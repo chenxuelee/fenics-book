@@ -1,16 +1,190 @@
-\fenicschapter{Turbulent Flow and Fluid-Structure Interaction with Unicorn}
-              {Turbulent Flow and Fluid-Structure Interaction with Unicorn}
-              {Johan Hoffman, Johan Jansson, Niclas Jansson, Claes Johnson, and Murtazo Nazarov}
+\fenicschapter{Turbulent Flow and Fluid--Structure Interaction with Unicorn}
+              {Turbulent Flow and Fluid--Structure Interaction with Unicorn}
+              {Johan Hoffman, Johan Jansson, Niclas Jansson, Claes Johnson and Murtazo Nazarov}
 
-\editornote{[hoffman-1]}
+\section{Introduction}
 
-General Galerkin (G2) methods are adaptive stabilized finite element
-methods with a posteriori error control. In a unified continuum
-mechanics formulation, the basic conservation laws for mass, momentum
-and energy are expressed in a general form for fluid and structure
-mechanics, which allows for one single implementation for a large
-class of continuum mechanics problems using G2, and the FEniCS project
-Unicorn is the implementation of this methodology. In this chapter we
-review the basic methodology of Unicorn in the form of: Adaptivity and
-G2 for incompressible/compressible laminar/turbulent flow and
-fluid--structure interation, ALE methods and mesh smoothing.
+For many problems involving a fluid and a structure, decoupling the
+computation of the two is not possible for accurate modeling of the
+phenomenon at hand, instead the full fluid-structure interaction (FSI)
+problem has to be solved together as a coupled problem. This includes
+a multitude of important problems in biology, medicine and industry,
+such as the simulation of insect or bird flight, the human
+cardiovascular and respiratory systems, the human speech organ, the
+paper making process, acoustic noise generation in exhaust systems,
+airplane wing flutter, wind induced vibrations in bridges and wave
+loads on offshore structures. Common for many of these problems is
+that for various reasons they are very hard or impossible to
+investigate experimentally, and thus reliable computational simulation
+would open up for detailed study and new insights, as well as for new
+important design tools for construction.
+
+Computational methods used today are characterized by a high
+computational cost, and a lack of generality and reliability. In
+particular, major open challenges of computational FSI include: (i)
+robustness of the fluid- structure coupling, (ii) for high Reynolds
+numbers the computation of turbulent fluid flow, and (iii) efficiency
+and reliability of the computations in the form of adaptive methods
+and quantitative error estimation.
+
+The FEniCS project aims towards the goals of generality, efficiency,
+and simplicity, concerning mathematical methodology, implementation,
+and application.  The Unicorn project is a realization of this effort
+in the field of continuum mechanics, that we here expose to a range of
+challenging problems that traditionally demand a number of specialized
+methods and codes, including some problems which have been considered
+unsolvable with state of the art methods.  The basis of Unicorn is an
+adaptive finite element method and a unified continuum formulation,
+which offer new possibilities for mathematical modeling of high
+Reynolds number turbulent flow, gas dynamics and fluid-structure
+interaction.
+
+Unicorn, which is based on the DOLFIN/FFC/FIAT suite, is today central
+in a number of applied research projects, characterized by large
+problems, complex geometry and constitutive models, and a need for
+fast results with quantitative error control.  We here present some
+key elements of Unicorn and the underlying theory, and illustrate how
+this opens for a number of breakthroughs in applied research.
+
+\section{Continuum models}
+
+Continuum mechanics is based on conservation laws for mass, momentum
+and energy, together with constitutive laws for the stresses. A
+Newtonian fluid is characterized by a linear relation between the
+viscous stress and the strain, together with a fluid pressure,
+resulting in the Navier-Stokes equations.  Many common fluids,
+including water and air at subsonic velocities, can be modeled as
+incompressible fluids, where the pressure acts as a Langrangian
+multiplier enforcing a divergence free velocity. In models of gas
+dynamics the pressure is given from the internal energy, with an ideal
+gas corresponding to a linear relation.  Solids and non-Newtonian
+fluids can be described by arbitrary complex laws relating the stress
+to displacements, strains and internal energies.
+
+Newtonian fluids are characterized by two important non-dimensional
+numbers: the Reynolds number $Re$, measuring the importance of viscous
+effects, and the Mach number $M$, measuring the compressibility
+effects by relating the fluid velocity to the speed of sound. High
+$Re$ flow is characterized by partly turbulent flow, and high $M$ flow
+by shocks and contact discontinuities, all phenomena associated with
+complex flow on a range of scales. The Euler equations corresponds to
+the limit of inviscid flow where $Re \rightarrow \infty$, and
+incompressible flow corresponds to the limit of $M\rightarrow 0$.
+
+\section{Mathematical framework}
+
+The mathematical theory for the Navier-Stokes equations is incomplete,
+without any proof of existence or uniqueness, formulated as one of the
+Clay Institute \$1 million problems. What is available if the proof of
+existence of weak solutions by Leray from 1934, but this proof does
+not extend to the inviscid case of the Euler equations. No general
+uniqueness result is available for weal solutions, which limits the
+usefulness of the concept.
+
+In \cite{} a new mathematical framework of weak (output) uniqueness is
+introduced, characterizing well-posedness of weak solutions with
+respect to functionals $M$ of the solution $u$, thereby circumventing
+the problem of non-existence of classical solutions. This framework
+extends to the Euler equations, and also to compressible flow, where
+the basic result takes the form
+\begin{equation}
+\vert M(u) - M(U) \vert \leq S (\Vert R(u)\Vert_{-1} + \Vert R(U)\Vert_{-1}) 
+\end{equation}
+with $\Vert \cdot \Vert _{-1}$ a weak norm measuring residuals $R$ of two weak solutions $u$ and 
+$U$, and with $S$ a stability factor given by a duality argument connecting local errors to output errors 
+in $M$. 
+
+\section{Computational method}
+
+Computational methods in fluid mechanics are typically very
+specialized; for a certain range of $Re$ or $M$, or for a particular
+class of geometries. In particular, there is a wide range of
+turbulence models and shock capturing techniques.  The goal of Unicorn
+is to design one method with one implementation, capable of modeling
+general geometry and the whole range of parameters $Re$ and $M$. The
+mathematical framework of well-posedness allows for a general
+foundation for Newtonian fluid mechanics, and the General Galerkin
+(G2) finite element method offers a robust algorithm to compute weak
+solutions \cite{g2 incompr compr}.
+
+Adaptive G2 methods are based on a posteriori error estimates of the form: 
+\begin{equation}
+\vert M(u) - M(U) \vert \leq \sum_K {\cal E}_K
+\end{equation}
+with $ {\cal E}_K$ a local error indicator for cell $K$.
+
+Parallel mesh refinement...
+
+[Unicorn implementation]
+
+\section{Boundary conditions}
+
+1/2 page
+
+friction bc, turbulent boundary conditions
+
+[Unicorn implementation]
+
+\section{Geometry modeling}
+
+1/2 page
+
+projection to exact geometry
+
+[Unicorn implementation]
+
+\section{Fluid-structure interaction}
+
+1 page
+
+Challenges: stablity coupling, weak strong, monolithic
+
+different software, methods
+
+mesh algorithms, smoothing, Madlib
+
+Unified continuum fluid-structure interaction
+
+[Unicorn implementation]
+
+\section{Applications}
+
+\subsection{Turbulent flow separation}
+
+1 pages
+
+drag crisis, cylinders and spheres, etc. 
+
+\subsection{Flight aerodynamics}
+
+2 page 
+
+naca aoa
+
+\subsection{Vehicle aerodynamics} 
+
+1 page 
+
+Volvo
+
+\subsection{Biomedical flow}
+
+1 page 
+
+ALE heart model 
+
+\subsection{Aeroacoustics}
+
+1 page 
+
+Swenox mixer - aerodynamic sources 
+
+\subsection{Gas flow}
+
+2 pages 
+
+compressible flow 
+
+\section{References}
+
+1 page
