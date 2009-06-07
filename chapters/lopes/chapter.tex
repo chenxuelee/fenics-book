@@ -1,46 +1,930 @@
-\fenicschapter{Boussinesq Surface Wave Equations}
-              {Boussinesq Surface Wave Equations}
-              {N. Lopes, P. Pereira, and L. Trabucho}
+%{{{ MACRO AND COMMAND DEFINITION
+\def\bu{{\bf u}}
+\def\bx{{\bf x}}
+\def\fba{\vartheta_1}
+\def\fbb{\vartheta_2}
+\def\bn{{\bf n}}
+\def\bomega{{\bf  \omega}}
+\def\dx{{\rm d}x}
+\def\dy{{\rm d}y}
+\def\dt{{\rm d}t}
+\def\ds{{\rm d}s}
+\newcommand{\fpar}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\grad}[1]{\nabla{#1}}
+\newcommand{\diverg}[1]{\nabla\cdot{#1}}
+%}}}
 
-\editornote{[lopes]}
+\fenicschapter{Improved Boussinesq Equations for Surface Water Waves}
+              {Improved Boussinesq Equations for Surface Water Waves}
+              {N. Lopes, P. Pereira and L. Trabucho}
 
-The FEniCS project, via DOLFIN and FFC, provides a good support for
-the implemen- tation of several large scale industrial models. We
-implement a solver for an improved Boussinesq type system that models
-the evolution of surface water waves in a variable depth seabed. This
-type of models is used, for instance in harbour simulation.
+%{{{Abstract
 
-There are several Boussinesq models and the most widely used are the
-ones based on wave Elevation and horizontal Velocities formulation
-(BEV), see for instance: [Wal99], [LW04] and the references therein.
+The main motivation  of this work is the
+implementation of a general solver for some of the improved Boussinesq
+models\index{Boussinesq models}.
+Here, we use  the second order model proposed
+by Zhao et al.  \cite{ZhaTen04} to investigate the behaviour
+of surface water waves.
+Some effects like surface tension, dissipation and
+wave generation by natural phenomena or external physical mechanisms are also included.
+ As a consequence, some modified
+dispersion relations are derived for this extended model.
+% In this framework, 
+% the referred model is improved by considering  extra terms.      
 
-In this work we use the model proposed by Zhao, Teng and Cheng in
-[ZTC04]. This model uses as unknowns the wave Elevation and the
-velocity Potential (BEP), reducing the number of system equations and
-the spatial dierentiation order, when compared to the (BEV) models.
+%}}}
 
-The model considered is described by the following set of equations:
-...  where $h$ stands for the water depth, $g$ the gravity, $\eta$
-represents the wave elevation and $\phi$ the velocity potential. We
-consider different examples with standard boundary conditions: total
-reective walls, corresponding to the standard zero Neumann conditions;
-incident wave boundaries, corresponding to time dependent Dirichlet
-conditions.
+%{{{ Introduction 
 
-As we consider several types of sponge layers near the wave breaking
-zone, we add some extra damping terms to the above equations.
+\section{Introduction}
+The \fenics\, project, via \dolfin\,  and \textbf{FFC}, provides a good
+support for the implementation of large scale
+industrial models.  We  implement  a solver for some of the
+ Boussinesq type systems to model the evolution of
+surface water waves\index{water waves} in a variable depth seabed. 
+This type of models is used, for instance, in harbour
+simulation\footnote{See Fig. \ref{fig::harbour} for an
+example of a standard harbour.},
+tsunami generation and propagation as well as in coastal dynamics.
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=8cm]{chapters/lopes/eps/nazare1.eps}
+\caption{Nazar\'{e}'s harbour, Portugal.}\label{fig::harbour}
+\end{figure}
 
-We improve the (ZTC) model with an internal wave generation
-method, proposed in [WKS99] for the (BEV) models by considering also
-time-dependent source functions.
+\editornote{Need to get permission for this figure!}
 
-The numerical treatment of the model is made using Lagrange P1 and P2
-elements for the discretization of the spacial variables. For the time
-integration we consider several Runge-Kutta and Predictor-Corrector
-algorithms.
+There are several {\bf B}oussinesq models and some of the most widely
+used are those based on the wave {\bf E}levation and horizontal {\bf
+V}elocities formulation (BEV) (see, e.g., \cite{LiuWoo04},
+\cite{WalMar02}).
 
-Several standard benchmarks were done, for instance the Gaussian wave
-evolution in a rectangular basin, as in [LW04], showing good agreement
-with the improved (BEV) models. Some new test cases are considered,
-essentially wave evolution and interaction in variable seadepth domain
-with obstacles.
+In the next section  the governing equations for
+surface water waves are presented.
+From these equations  different types of models can be derived.
+We  consider only  the wave {\bf E}levation and  velocity
+{\bf P}otential  (BEP) formulation. 
+Thus, the  number of system 
+equations is reduced when
+compared to the BEV models.
+Two  different types of BEP models are taken into account: 
+\begin{itemize}
+\item[{\it i})] a standard sixth-order model;
+\item[{\it ii})] the second-order model proposed by {\bf Z}hao, {\bf T}eng
+and {\bf C}heng (ZTC) (cf. \cite{ZhaTen04}).
+\end{itemize}
+We use the sixth-order model to  illustrate a standard
+technique in order to  derive a  Boussinesq-type model.
+In the subsequent sections, only the ZTC model is
+considered.
+Note  that these two models 
+ are complemented with some extra terms, due to the
+inclusion of effects like dissipation, surface tension and  wave
+generation by moving an impermeable bottom or using a source function.
+ 
+An important characteristic of the modified ZTC model,
+including dissipative effects, 
+is presented in the third section, namely,
+ the dispersion relation.
+ 
+In the fourth and fifth sections, we describe several types of
+wave generation, absorption and reflection mechanisms. 
+Initial conditions for a solitary wave  and a periodic wave
+induced by Dirichlet boundary conditions are also presented. 
+Moreover, we  complement the ZTC model using a  source
+function  to generate surface water waves, as  proposed in \cite{WeiKir99}.
+Total reflective walls are modelled by standard zero Neumann
+conditions for the surface elevation and velocity potential.
+The wave energy absorption is simulated using sponge layers. 
+
+The following section is dedicated to the 
+numerical methods used in the discretization of the
+variational formulation.
+The discretization of the spatial variables  is accomplished
+with low order Lagrange elements  whereas   the time integration 
+is implemented using  Runge-Kutta and Predictor-Corrector algorithms. 
+
+In the seventh section,  the ZTC numerical
+model is used to simulate
+the evolution of a periodic wave in an harbour  geometry  like that one represented in Fig. \ref{fig::harbour}.
+%}}}
+
+%{{{ Model derivation
+
+\section{Model derivation}
+As usual  we consider the following set of
+equations for the irrotational flow of an incompressible and inviscid fluid:
+\begin{equation}\label{eq::euler}
+\begin{cases}
+\displaystyle\fpar{ \bu}{
+  t}+(\bu\cdot\nabla_{xyz})\bu=-\nabla_{xyz}\left(\frac{P}{\rho} +g\, z\right),\\
+\nabla_{xyz}\times \bu={\bf 0},  \\
+\nabla_{xyz}\cdot{\bu}=0,
+\end{cases}
+\end{equation}
+where \(\bu\) is the  velocity vector field of the fluid, \(P\) the
+pressure, \(g\) the gravitational acceleration, \(\rho\) the
+mass per unit volume, \(t\) the time and the differential operator \(\displaystyle\nabla_{xyz}=~\left[\fpar{}{x},\fpar{}{y},\fpar{}{z}\right]\!\!.\)
+A Cartesian coordinate system is adopted with the
+horizontal  \(x\) and \(y\)-axes on the still water plane and
+the \(z\)-axis pointing vertically upwards 
+(see Fig. \ref{fig::schematic}). The fluid domain is
+bounded by the  bottom seabed at \(z=-h(x,y,t)\) and the free
+water surface at \(z=\eta(x,y,t)\). 
+
+\editornote{AL: Need to decide what to do about bold fonts for vectors. I prefer not to use it.}
+
+\begin{figure}[!htb]
+{\centering
+\includegraphics[width=12cm]{chapters/lopes/eps/graph.eps}
+\caption{Cross-section of the water wave domain.}\label{fig::schematic}
+\par}
+\end{figure} 
+In Fig. \ref{fig::schematic}, \(L\), \(A\) and \(H\) are
+the characteristic wave length, wave amplitude and
+depth, respectively. Note that the material time derivative is
+denoted by \(\frac{D}{D t}\). 
+  
+From the irrotational assumption, one can  introduce a
+velocity potential function, \(\phi(x,y,z,t)\)\index{potential}, to obtain  Bernoulli's equation:
+\begin{equation}\label{eq::bern}
+\fpar{ \phi}{ t}+\frac{1}{2}\nabla_{xyz} \phi \cdot\nabla_{xyz} \phi
++\frac{P}{\rho} +g\, z=f(t), 
+\end{equation}
+where \(f(t)\) stands
+for  an arbitrary function of integration.
+ Note that one can   remove
+ \(f(t)\)  from equation \eqref{eq::bern} if  \(\phi\) is
+ redefined by \(\phi+\int f(t)\, \dt\).
+From the incompressibility condition
+(see \eqref{eq::euler}\(_3\))    
+ the velocity potential  satisfies  Laplace's equation:
+\begin{equation}
+\nabla^2\phi+\fpar{^2\phi}{z^2}=0,
+\end{equation}
+where \(\nabla\) is the  horizontal gradient operator given
+by \(\displaystyle \nabla=\left[\fpar{}{x},\fpar{}{y}\right]\!\!.\) 
+To close this problem,  the following boundary conditions
+must be satisfied:
+\begin{enumerate}
+\item[{\it i})]  the kinematic boundary condition for the free water surface: 
+\begin{equation}
+\fpar{\phi}{z}=\fpar{\eta}{t}+\nabla\phi\cdot\nabla\eta,\quad z=\eta;
+\end{equation} 
+\item[{\it ii})] the kinematic boundary condition for the impermeable sea bottom:
+\begin{equation}
+\fpar{\phi}{z}+(\nabla\phi\cdot\nabla h)=-\fpar{h}{t},
+\quad z=-h ;
+\end{equation}
+\item[{\it iii})] the dynamic boundary condition for the free
+water surface:
+\begin{equation}\label{eq::dyn}
+\fpar{\phi}{t}+ g\eta+\frac{1}{2}
+\left(|\nabla\phi|^2 +\left(\fpar{\phi}{z}\right)^2\right)+
+D(\phi)-W(\eta) = 0,
+\quad z =\eta,
+\end{equation}
+\end{enumerate}
+where \(D(\phi)\) is a  dissipative term 
+(see, e.g., the work by Duthyk and 
+Dias \cite{DutDia07}). 
+We assume that this dissipative term
+ is of the following form:
+\begin{equation}
+ D(\phi)=\nu\fpar{^2\phi}{z^2},
+\end{equation}
+with  \(\nu=\mu/\rho\)  and \(\mu\) an eddy-viscosity coefficient. Note that a
+non-dissipative model means that there is no energy loss.
+This is not acceptable from a physical point of view, since
+any real flow is accompanied by energy dissipation.
+
+In equation \eqref{eq::dyn}, \(W\)  is the surface tension term given by: 
+\begin{equation}\label{eq::tension}
+ \displaystyle W(\eta)=T\frac{\displaystyle \left(1+\left(\fpar{\eta}{y}\right)^2\right)\fpar{^2\eta}{x^2}+\left(1+\left(\fpar{\eta}{x}\right)^2\right)\fpar{^2\eta}{y^2}
+-2\fpar{\eta}{x}\fpar{\eta}{y}\fpar{^2\eta}{\displaystyle x\partial
+y}}{(1+|\nabla\eta|^2)^{3/2}},
+\end{equation}
+where \(T\) is the surface tension coefficient.
+
+Using  Laplace's equation it is possible to write the
+dissipative term, mentioned above, as \(D(\phi)=-\nu\nabla^2\phi\). 
+In addition,  the linearization of the surface tension term
+results in \(W(\eta)=T\nabla^2\eta\).
+Throughout the literature, analogous terms were
+added to the kinematic and dynamic conditions to
+absorb the wave energy near  the boundaries. 
+These terms  are related
+with  the sponge or damping layers.
+The physical meaning   of  these terms
+was  explained, for instance, in the recent  
+work of Dias et al. \cite{DiaDya08}.
+As we will see later, the dispersion relations can be
+modified using these extra terms.    
+The surface tension effects are important if short waves are considered.
+In general this is not the case. 
+In fact, the long wave assumption is made to derive  
+these extended models.
+ We refer the works by Wang et
+al.  \cite{WanWu08} as well as  Dash and Daripa  \cite{DasDar02},
+which included surface tension effects in the  KdV 
+(Korteweg-de Vries) and Boussinesq equations.  
+ On the other hand,  it is  worth to mention
+that one of the main goals of the scientific research on Boussinesq
+wave models is the  improvement  of the range of
+applicability in terms of 
+the water-depth/wave-length relationship.    
+A more detailed description of the above equations is found
+in the  G. B. Whitham's reference book on waves \cite{Whi74}, 
+or in the more recent book  by R. S. Johnson \cite{Joh97}.
+
+%}}}
+
+%{{{ Standard models 
+
+\subsection{Standard models}
+In this subsection, we present  a generic  Boussinesq 
+system  using the velocity potential formulation.
+To transform 
+equations \eqref{eq::bern}-\eqref{eq::tension} in a
+dimensionless form, the following scales are 
+introduced:
+\begin{equation}
+( x', y')=\frac{1}{L}(x,y),\quad 
+z'=\frac{z}{H}, \quad  t'=\frac{t\sqrt{gH}}{L},\quad
+ \eta'=\frac{\eta}{A},\quad  \phi'=
+\frac{H\phi}{AL\sqrt{gH}},\quad h'=\frac{h}{H},
+\end{equation}
+together with the  small parameters
+\begin{equation}
+\mu=\frac{H}{L},\quad \varepsilon=\frac{A}{H}.
+\end{equation}
+In the last equation, \(\mu\) is usually called the 
+long wave parameter  and \(\varepsilon\) the 
+small amplitude wave parameter. 
+Note that \(\varepsilon\)
+is  related with the nonlinear terms and \(\mu\) with the
+dispersive terms.
+For simplicity, in what follows, we drop the prime notation.
+
+The Boussinesq approach consists in reducing a 3{\bf D}
+problem to a 2{\bf D} one. 
+This may be accomplished by
+ expanding the 
+velocity potential in a Taylor power series in terms of \(z\). 
+Using  Laplace's
+equation, in a dimensionless form, one can obtain the
+following  expression for the velocity potential:
+\begin{equation}
+\phi(x,y,z,t)=\sum_{n=0}^{+\infty}\left((-1)^n\frac{z^{2n}}{(2n)!}\mu^{2n}\nabla^{2n}\phi_0(x,y,t)+
+(-1)^n \frac{z^{2n+1}}{(2n+1)!}\mu^{2n}\nabla^{2n}\phi_1(x,y,t)\right),
+\end{equation}
+with
+\begin{equation}
+\phi_0=\phi\mid_{ z=0},\quad \phi_1=\left(\fpar{\phi}{z}\right)\mid_{z=0}.
+\end{equation}
+From asymptotic expansions,  successive approximation
+techniques and the kinematic boundary condition for the sea bottom, it is possible to
+write \(\phi_1\)   in terms of \(\phi_0\) (cf. \cite{CheLiu94}, \cite{ZhaTen04}). 
+In this work, without loss of generality,  we  assume that
+the dispersive and nonlinear terms are related by the
+following equation: 
+\begin{equation}
+\frac{\varepsilon}{\mu^2}=O(1).
+\end{equation}
+Note that  the Ursell number is defined by \(\displaystyle U_r=\frac{\varepsilon}{\mu^2}\) .
+
+A sixth-order model is obtained if 
+ \(\phi_1\) is expanded in terms of \(\phi_0\) and all terms
+up to \(O(\mu^8)\) are retained. 
+Thus,  the asymptotic kinematic and dynamic
+boundary conditions for the free water surface  are
+rewritten as
+ follows \footnote{Note that \(D\)
+and \(W\) are, now,   dimensionless functions.}:
+\begin{equation}\label{eq::kindyn}
+\renewcommand{\arraystretch}{1.7}
+\left\{\begin{array}{l}
+\displaystyle\fpar{\eta}{t}+\varepsilon\nabla\cdot(\eta\nabla\phi_0)-\frac{1}{\mu^2}\phi_1+
+\frac{\varepsilon^2}{2}\nabla\cdot(\eta^2\nabla\phi_1)=O(\mu^{6}),\\ \\
+\displaystyle \fpar{\phi_0}{t}+\varepsilon\eta\fpar{\phi_1}{t}+\eta +
+\frac{\varepsilon}{2} \left|\nabla\phi_0\right|^2+\varepsilon^2\nabla\phi_0\cdot\eta\nabla\phi_1-\\
+\displaystyle \qquad -\varepsilon^2\eta\nabla^2\phi_0\phi_1
++\frac{\varepsilon}{2\mu^2}\phi_1^2
++D(\phi_0,\phi_1)-W(\eta)
+=O(\mu^{6}),
+\end{array}\right .
+\end{equation}
+where \(\phi_1\) is given by:
+\begin{multline}\label{eq::phi_1}
+\phi_1=
+-\mu^{2}\nabla\cdot\left(h\nabla\phi_0\right)
++\frac{\mu^{4}}{6}\nabla\cdot\left(h^3\nabla^3\phi_0\right)
+-\frac{\mu^{4}}{2}\nabla\cdot\left(h^2
+\nabla^2\cdot\left(h\nabla\phi_0\right) \right)-\\
+-\frac{\mu^6}{120}\nabla\cdot\left(h^5\nabla^5\phi_0\right)+
+\frac{\mu^6}{24}\nabla\cdot\left(h^4\nabla^4\cdot\left(h\nabla\phi_0\right)\right)+\frac{\mu^6}{12}\nabla\cdot\left(h^2\nabla^2\cdot\left(h^3\nabla^3\phi_0\right)\right)-\\
+-\frac{\mu^6}{4}\nabla\cdot\left(h^2\nabla^2\cdot\left(h^2\nabla^2\cdot\left(h\nabla\phi_0\right)\right)\right)
+-\frac{\mu^2}{\varepsilon}\fpar{h}{t}-
+\frac{\mu^2}{\varepsilon}\frac{\mu^2}{2}\nabla\cdot\left(h^2\nabla\fpar{h}{t}\right)+\\
++\frac{\mu^2}{\varepsilon}\frac{\mu^4}{24}\nabla\cdot\left(h^4\nabla^3
+\fpar{h}{t}\right)
+-\frac{\mu^2}{\varepsilon}\frac{\mu^4}{4}\nabla\cdot\left(h^2\nabla^2\left(h^2\nabla\fpar{h}{t}\right)\right)+O(\mu^{8}).
+\end{multline}
+To obtain equation \eqref{eq::phi_1}, we assume
+that \(\displaystyle\fpar{h}{t}=O(\varepsilon)\) (cf. \cite{DutDia07}).
+
+%}}}
+
+%{{{ \(2^{nd}\)-order model
+
+\subsection{Second-order model}
+The low order equations are obtained, essentially, via
+the slowly varying bottom assumption. In
+particular, only  \(O(h,\nabla h)\) terms are 
+retained.
+Also, only low order  nonlinear terms \(O(\varepsilon)\) are admitted.
+In fact the modified ZTC model is  written retaining
+only \(O(\varepsilon,\mu^4)\) terms.
+ 
+Under these conditions,  \eqref{eq::kindyn}
+and \eqref{eq::phi_1} lead to:
+\begin{equation}\label{eq::kindyn2}
+\begin{cases}
+\displaystyle\fpar{\eta}{t}+\varepsilon\nabla\cdot(\eta\nabla\phi_0)-\frac{1}{\mu^2}\phi_1=O(\mu^{6}),\\ \\
+\displaystyle\fpar{\phi_0}{t}+\eta +
+\frac{\varepsilon}{2} \left|\nabla\phi_0\right|^2-\nu\varepsilon\nabla^2\phi_0-\mu^2T\nabla^2\eta
+=O(\mu^{6})
+\end{cases}
+\end{equation}
+and
+\begin{multline}\label{eq::phi_2}
+\phi_1=
+-\mu^{2}\nabla\cdot\left(h\nabla\phi_0\right)
++\frac{\mu^{4}}{6}\nabla\cdot\left(h^3\nabla^3\phi_0\right)
+-\frac{\mu^{4}}{2}\nabla\cdot\left(h^2
+\nabla^2\cdot\left(h\nabla\phi_0\right) \right)-\\
+-\frac{2\mu^6}{15}h^5\nabla^6\phi_0-2\mu^6h^4\nabla h\cdot\nabla^5\phi_0
+-\frac{\mu^2}{\varepsilon}\fpar{h}{t}+O(\mu^{8}).
+\end{multline}
+Thus, these extended equations, in terms of the dimensional
+variables, are written as follows:
+\begin{equation}\label{eq::ztc}
+\begin{cases}
+\displaystyle \frac{\partial\eta}{\partial t} +\nabla\cdot[(h+\eta)\nabla{\Phi}]
+-\frac{1}{2}\nabla\cdot [h^{2}\nabla\frac{\partial \eta}
+{\partial t}]
++\frac{1}{6}h^{2}\nabla^2\frac{\partial\eta}{\partial t}
+-\frac{1}{15}\nabla\cdot[h\nabla(h\frac{\partial\eta}
+{\partial t})]=-\fpar{h}{t},\\ \\
+\displaystyle \frac{\partial \Phi}{\partial t}
++\frac{1}{2}|\nabla\Phi|^2+g\eta-
+\frac{1}{15}gh\nabla\cdot(h\nabla\eta)-\nu\nabla^2\Phi-gT\nabla^2\eta=0,
+\end{cases}
+\end{equation}
+where  \(\Phi\) is  the transformed velocity potential given
+by:
+\begin{equation}\label{eq::phitrans}
+\Phi=\phi_0+\frac{h}{15}\nabla\cdot(h\nabla\phi_0) .
+\end{equation}
+ The transformed velocity potential
+is used with two main consequences  (cf. \cite{ZhaTen04}):
+\begin{itemize}
+\item[{\it i})]  the  spatial derivation order is reduced to the
+second order;
+\item[{\it ii})] linear dispersion characteristics,
+analogous to the fourth-order BEP model proposed by Liu and Woo 
+ \cite{LiuWoo04} and  the third-order BEV model  developed
+by  Nwogu  \cite{Nwo93}, are obtained.       
+\end{itemize}
+
+%}}}
+
+%{{{ Linear dispersion relation 
+
+\section{Linear dispersion relation}
+One of the most important properties of a water  wave model is
+described by the linear dispersion relation.
+From this relation we can deduce the phase velocity, group velocity
+and the linear shoaling.   
+The dispersion relation\index{dispersion relation} provides
+a good method to characterize the linear
+properties of a wave model. 
+This is achieved using the linear wave
+theory of Airy.
+  
+In this section we follow the  work by Duthyk and
+Dias \cite{DutDia07}. 
+Moreover, we  present a generalized version of the dispersion
+relation for the ZTC model with the
+dissipative term mentioned above.
+One can also include other damping terms, which are usually
+used in the sponge layers.
+
+For simplicity,  a 1{\bf D}-Horizontal  model is  considered. 
+To obtain the dispersion relation, 
+a standard  test  wave is assumed:
+\begin{equation}\label{eq::linwave}
+\begin{cases}
+\eta(x,t)=a\,e^{i(kx-\omega t)},\\ \\
+\Phi(x,t)=-b\,i\,e^{i(kx-\omega t)},\\
+\end{cases}
+\end{equation}
+where \(a\) is the wave amplitude,  \(b\) the potential
+magnitude, \(k=2\pi/L\) the wave number and \(\omega\) the angular frequency.
+This wave, described by equations \eqref{eq::linwave}, is the
+solution of the linearized  ZTC model, with a constant depth
+bottom and an extra dissipative term, 
+ if the following equation is satisfied:
+\begin{equation}\label{eq::dissdisp}
+\omega^2-ghk^2\frac{1+(1/15)(kh)^2}{1+2/5(kh)^2}+i\nu\omega k^2=0.
+\end{equation}
+Using Pad\'{e}'s [2,2] approximant,  the dispersion relation
+given by last equation  is accurate up to \(O((kh)^4)\) or \(O(\mu^4)\) when
+compared with the following equation:
+\begin{equation}\label{eq::linairy}
+\omega^2-ghk^2\frac{\tanh(kh)}{kh}+i\nu\omega k^2=0.
+\end{equation}
+In  fact, equation \eqref{eq::linairy} is the dispersion 
+relation of the full linear problem.
+
+From \eqref{eq::dissdisp}, the 
+ phase velocity, \(\displaystyle C=\frac{w}{k}\),  for this dissipative ZTC model is 
+ given by:
+\begin{equation}
+C=-\frac{i\nu k}{2}\pm\sqrt{-\left(\frac{\nu k}{2}\right)^2+gh\frac{(1+1/15(kh)^2)}{(1+2/5(kh)^2)}}.
+\end{equation}
+In Fig. \ref{fig::dispersion}, we can see the positive real
+part 
+of \(\displaystyle\left(C/\sqrt{gh}\right)\) as a function of \(kh\) for the following models:
+  full linear theory (FL), 
+Zhao et al. (ZTC), full linear theory with a 
+dissipative model (FL\_D) and the
+improved  ZTC model with the dissipative term (ZTC\_D).
+  \begin{figure}[!htb]
+{\centering 
+\includegraphics[width=12cm]{chapters/lopes/eps/dispersion.eps}
+\caption{Positive  part of \(\displaystyle Re\left(C/\sqrt{gh}\right)\) for several models.}
+\label{fig::dispersion}\par}
+\end{figure}
+From Fig. \ref{fig::dispersion}, one can also see that
+  these two dissipative models  admit
+critical wave numbers \(k_1\) and \(k_2\), 
+such that the positive  part of \(\displaystyle Re\left(C/\sqrt{gh}\right)\) is zero
+for \(k\geq k_1\) and \(k\geq k_2\). 
+To avoid some numerical instabilities one can optimize
+ the \(\nu\) values in order 
+ to reduce  the short waves propagation.
+  
+
+In general, to improve the dispersion relation one can also use other
+ transformations like \eqref{eq::phitrans}, or evaluate the
+ velocity potential at \(z=-\sigma h\) (\(\sigma\in[0,1]\))
+ instead of  \(z=0\) (cf. \cite{BinMad08}, \cite{MadAgn03} and \cite{MadBin03}).  
+
+%}}}
+
+%{{{ Wave generation
+\section{Wave generation}
+In this section some of the physical mechanisms to induce
+surface water waves are presented. 
+We note that the moving bottom approach is useful for wave
+generation due to seismic activities. However, some  
+physical applications  are associated with other wave generation mechanisms.  
+For simplicity, we only consider
+mechanisms to generate surface water waves 
+along the \(x\) direction.
+
+\subsection{Initial condition}
+The simplest way of inducing a wave into a certain domain is 
+to consider an appropriate initial condition. 
+An useful and typical benchmark case
+is to assume a solitary wave given by:
+\begin{equation}
+\eta(x,t)=a_1\,{\rm sech}^2(kx -\omega t)+a_2\,{\rm
+sech}^4(kx-\omega t),
+\end{equation}
+\begin{equation}
+u(x,t)=a_3\,{\rm sech}^2(k x-\omega t),
+\end{equation}
+where the parameters \(a_1\) and \(a_2\) are the wave amplitudes and \(a_3\) is the magnitude
+of the velocity in the \(x\) direction.  
+As we   use a potential formulation, \(\Phi\) is given by:
+\begin{equation}
+\Phi(x,t)=-\frac{2a_3\,e^{2\omega t }}{k\,(e^{2\omega t
+}+e^{2k x})}+ K_1(t),
+\end{equation}
+where   \(K_1(t)\) is
+a time-dependent  function of integration.
+
+In \cite{Wal99} and \cite{WeiKir95} the above solitary wave was presented as a
+solution of the extended Nwogu's Boussinesq
+model. 
+
+\subsection{Incident wave}\label{subsec::incidentwave}
+For time-dependent wave generation,
+it is possible to consider waves induced by a boundary
+condition. 
+This requires that the wave surface elevation and
+the velocity potential must satisfy appropriated boundary
+conditions, e.g., 
+Dirichlet or Neumann conditions.\index{boundary conditions}
+
+The simplest case is to consider  a periodic wave given by:
+\begin{equation}\label{eq::eta}
+\eta(x,t)=a \sin(kx-\omega t)
+\end{equation}
+\begin{equation}\label{eq::phi}
+\Phi(x,t)=-\frac{c}{k}\cos(k x-\omega t)+K_2(t),
+\end{equation}
+where \(c\) is the wave velocity magnitude and \(K_2(t)\) is a time-dependent function of integration.
+This function \(K_2(t)\) must satisfy   the initial
+condition of the problem.
+ In equations \eqref{eq::eta} as well as \eqref{eq::phi},
+ one can note that  the parameters \(a,c,k\) and \(\omega\)  are
+not all arbitrary, since they are related by the dispersion relation. 
+One can also consider the  superposition of water waves
+as solutions of the full linear problem with a constant depth. 
+%}}}
+
+%{{{ Source function
+
+\subsection{Source function}
+In  the work by Wei et
+al.  \cite{WeiKir99}, a source function\index{source function}
+  for the  generation of surface water waves was derived.
+This source function was obtained, using   Fourier
+transform and Green's functions, to solve the  linearized and
+non homogeneous equations of the   
+ Peregrine \cite{Per67} and  Nwogu's \cite{Nwo93} models.
+This mathematical procedure can also be  adapted here  to
+deduce the source function.
+
+We  consider  a monochromatic
+Gaussian wave generated by the following source function:
+\begin{equation}\label{eq::src}
+f(x,t)=D^* \exp(-\beta (x-x_s)^2)\cos(\omega t), 
+\end{equation}
+with \(D^*\) given by:
+\begin{equation}
+\displaystyle D^*=\frac{\sqrt{\beta}}{\omega\sqrt{\pi}}a\exp(\frac{k^2}{4\beta})\frac{2}{15}h^3k^3g.
+\end{equation}
+In the above expressions
+\(x_s\) is the center line of the source function and
+\(\beta\)  is a parameter associated with the width of the
+generation band (cf. \cite{WeiKir99}).
+%}}}
+
+%{{{ Reflective walls and sponge layers 
+\section{Reflective walls and sponge layers}
+
+Besides the incident wave boundaries 
+ where the wave profiles
+are given, one must close the system with appropriate
+boundary conditions. 
+We consider two more types of
+boundaries:
+\begin{itemize}
+\item[{\it i})] full reflective boundaries;\index{reflective boundaries}
+\item[{\it  ii})] partial reflective or absorbing boundaries. 
+\end{itemize}
+The first case is modelled by the following equations:
+\begin{equation}\label{eq::fullrefl}
+\frac{\partial \Phi}{\partial \bn}=0,\qquad\frac{\partial \eta}{\partial \bn}=0,
+\end{equation}
+where \(\bn\) is the outward unit vector normal to the
+computational domain \(\Omega\).
+We  denote  \(\Gamma\) as  the boundary of \(\Omega\). 
+
+Note that  in  the finite element formulation, the full
+reflective boundaries (equations \eqref{eq::fullrefl})  are integrated by
+considering zero Neumann-type boundary conditions.
+
+Coupling the  reflective case and an extra artificial  
+  layer, often called sponge \index{sponge-layers} or damping layer,
+we can simulate partial reflective or full absorbing boundaries. 
+In this way, the  reflected energy
+can be controlled. Moreover, one can prevent unwanted wave
+  reflections and avoid complex wave interactions. 
+It is also possible to simulate effects like energy dissipation by wave breaking.
+  
+In fact, a sponge layer can be defined as a
+subset \(\cal{L}\) of \(\Omega\) where 
+some extra viscosity term is added. 
+As mentioned above, the system of equations can incorporate
+several extra damping terms, like that one provided by the
+inclusion of  a dissipative model. Thus, the viscosity
+coefficient \(\nu\) is described by a
+ function of the form:
+\begin{equation}
+\nu(x,y)=
+\left\{
+\begin{matrix}
+0,& (x,y)\not\in\cal{L} ,\\ \\
+\displaystyle
+n_1\frac{\displaystyle\exp{\left(\frac{d(x,y)}{d_{\cal{L}}}\right)^{n_2}}-1}{\exp(1)-1},&
+(x,y) \in\cal{L},
+\end{matrix}
+\right.
+\end{equation}  
+where \(n_1\) and  \(n_2\) are, in general, experimental
+ parameters, \(d_{\cal{L}}\) is  the sponge-layer diameter and
+ \(d\)
+stands for the distance function between a point \((x,y)\) and
+ the intersection of \(\Gamma\) and the boundary
+ of \(\cal{L}\) (see, e.g., \cite{Wal99} pag. 79). 
+
+%}}}
+
+%{{{ Numerical Methods
+
+\section{Numerical Methods}
+We start this section by noting that a detailed description
+of  the implemented numerical methods referred bellow
+can be found in the work of N. Lopes \cite{Lop07}.  
+
+For simplicity, we only consider
+the second-order system described by
+equations \eqref{eq::ztc}  restricted to a stationary
+bottom and without
+dissipative, surface tension or extra source terms. 
+
+The model variational formulation is written as follows:
+\begin{equation}\label{eq::varform}
+\renewcommand{\arraystretch}{2.0}
+\begin{array}{l}
+\displaystyle \int_\Omega\fpar{\eta}{t}\fba\, \dx\dy+\frac{2}{5}\int_\Omega
+h^2\nabla\left(\fpar{\eta}{t}\right)\nabla\fba\, \dx\dy-\frac{1}{3}\int_\Omega
+h(\nabla h)\nabla\left(\fpar{\eta}{t}\right)\fba\, \dx\dy+\\
+\displaystyle +\frac{1}{15}\int_\Omega h\nabla
+h\fpar{\eta}{t}\nabla\fba\, \dx\dy
++\int_\Omega \fpar{\Phi}{t}\fbb\, \dx\dy= 
+\int_\Omega(h+\eta)\grad{\Phi}\grad{\fba}\, \dx\dy+
+\\\displaystyle+\frac{2}{5}\int_\Gamma
+h^2\fpar{}{t}\left(\fpar{\eta}{{\bf n}}\right)\fba d\Gamma -
+\frac{1}{15}\int_\Gamma h\fpar{h}{\bf
+n}\fpar{\eta}{t}\fba\, d\Gamma-\int_\Gamma(h+\eta)\fpar{\Phi}{\bf n}\fba\, d\Gamma-
+\\
+\displaystyle
+-\frac{1}{2}\int_\Omega|\nabla\Phi|^2\fbb\, \dx\dy-g\int_\Omega \eta\fbb\, \dx\dy-
+\frac{g}{15}\int_\Omega h^2\nabla\eta\nabla\fbb\, \dx\dy-
+\\\displaystyle-\frac{g}{15}\int_\Omega h(\nabla h)(\nabla\eta)\fbb\, \dx\dy +\frac{g}{15}\int_\Gamma h^2\fpar{\eta}{\bf n}\fbb\, d\Gamma,
+\end{array}
+\end{equation} 
+where  the unknown functions
+\(\eta\) and \(\Phi\) are the surface elevation and the
+transformed velocity potential, whereas  \(\fba\) and \(\fbb\)  
+are the test functions defined in  appropriate spaces.  
+  
+The spatial  discretization of this equation
+is implemented  using low order  Lagrange finite elements. 
+In addition, the numerical implementation of \eqref{eq::varform} is accomplished using  \textbf{FFC}. 
+
+We use
+a predictor-corrector \index{Predictor-Corrector}  scheme with an initialization
+provided by the Runge-Kutta\index{Runge-Kutta} method for the
+time integration.
+Note that the discretization of equation \eqref{eq::varform} can be written as follows:
+\begin{equation}
+M\dot Y={\bf f}(t,Y),
+\end{equation}
+where \(\dot Y\) and \(Y\) refer
+to \(\displaystyle \left(\fpar{\eta}{t},\fpar{\Phi}{t}\right)\)
+and  to \((\eta,\Phi)\), respectively. The  known vector {\bf f} is  related
+with the right-hand side of \eqref{eq::varform} and \(M\) is the
+coefficient matrix.
+In this way,  the fourth order  Adams-Bashforth-Moulton method 
+can be written as follows:  
+\begin{equation}\label{eq::pc}
+\begin{cases}
+\displaystyle MY^{(0)}_{n+1}=MY_n+\frac{\Delta t}{24}[55{\bf f}(t_n,Y_n)-59{\bf
+f}(t_{n-1},Y_{n-1})+37{\bf f}(t_{n-2},Y_{n-2})-9{\bf f}(t_{n-3},Y_{n-3})]\\ \\
+\displaystyle MY^{(1)}_{n+1}=MY_n+\frac{\Delta t}{24}[9{\bf f}(t_{n+1},Y^{(0)}_{n+1})+19{\bf f}(t_n,Y_n)-5{\bf f}(t_{n-1},Y_{n-1})+{\bf f}(t_{n-2},Y_{n-2})]
+\end{cases},
+\end{equation}
+where \(\Delta t\) is the time step, \(t_n=n\Delta
+  t\) \((n\in \mathbb{N})\) and \(Y_n=(\eta,\Phi)\)
+  evaluated at \(t_n\).
+  The predicted and
+corrected values of \(Y_n\) are denoted by \(Y_n^{(0)}\) and \(Y_n^{(1)}\),  respectively.  
+The corrector-step equation (\eqref{eq::pc}\(_{2}\)) can
+be iterated as  function of a predefined error
+between consecutive time steps. For more details see, e.g.,  \cite{HaiWan91}
+or \cite{Lam91}.
+
+%}}}
+
+%{{{ Numerical Applications
+
+\section{Numerical Applications}
+In this section, 
+we present some numerical results about the propagation
+ of surface water waves in an harbour with a geometry
+similar to that one of  Fig. \ref{fig::harbour}.
+
+The colour scale used in all
+figures in this section is presented in
+Fig. \ref{fig::scale}.
+A schematic description of the fluid domain, namely the bottom profile and the
+sponge layer can be seen in Figs. \ref{fig::harbour_depth}
+and \ref{fig::harbour_sponge}, respectively.
+Note that a piecewise linear bathymetry  is considered. 
+A sponge layer is used to absorb the wave energy at the
+outflow region 
+and to avoid strong  interaction between incident and
+reflected waves  in the harbour entrance.
+ A monochromatic periodic wave, with  an
+ amplitude of \(0.3\, {\tt m}\),
+is introduced at the indicated boundary (Dirichlet BC) in
+Fig. \ref{fig::harbour_sponge}.
+This is achieved by considering
+a periodic Dirichlet boundary condition as
+described in the subsection \ref{subsec::incidentwave}.
+Full reflective walls are assumed as boundary conditions in
+all domain boundary except in the harbour entrance.
+
+In Fig. \ref{fig::elevation} 
+a wave elevation  snapshot is shown.  
+ A zoom of the image, which  describes
+the physical potential and velocity vector field in the still
+water plane, is given in  the neighbourhood of  the
+point \((x,y)=(150,0)\,{\tt m}\) at the same time step (see Fig. \ref{fig::potential1}).
+In Fig. \ref{fig::vel1}  two time steps of the
+speed in the still water plane are shown. 
+\begin{figure}[!htb]
+\begin{minipage}[t]{0.3\linewidth}
+\psfrag{Xd3d 8.3.2 (15 Dec 2007)}[rb][rb]{}
+\psfrag{-0.1772}[lt][lt]{\(\longleftarrow\tt Max\)}
+\psfrag{-0.2052}[lt][lt]{}
+\psfrag{-0.2332}[lt][lt]{}
+\psfrag{-0.2612}[lt][lt]{}
+\psfrag{-0.2892}[lt][lt]{}
+\psfrag{-0.3172}[lt][lt]{}
+\psfrag{-0.3452}[lt][lt]{}
+\psfrag{-0.3732}[lt][lt]{}
+\psfrag{-0.4012}[lt][lt]{}
+\psfrag{-0.4292}[lt][lt]{}
+\psfrag{-0.4572}[lb][lb]{\(\longleftarrow\tt min\)}
+{\centering
+\includegraphics[height=4.1cm]{chapters/lopes/eps/table.eps}
+\caption{Scale.}\label{fig::scale}\par}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.6\linewidth}
+\psfrag{wave}[lt][lt]{Periodic incident Wave}
+%\psfrag{sponge}{Sponge layer}
+\psfrag{10}[rb][rb]{}
+\psfrag{20}[rb][rb]{}
+\psfrag{0}[rb][rb]{}
+\psfrag{5}[rb][rb]{}
+\psfrag{-15}[rb][rb]{}
+\psfrag{15}[rb][rb]{}
+\psfrag{-1}[rb][rb]{}
+\psfrag{-2}[rb][rb]{}
+\psfrag{-3}[rb][rb]{}
+\psfrag{-4}[rb][rb]{}
+\psfrag{-5}[rb][rb]{}
+\psfrag{-6}[rb][rb]{}
+\psfrag{-10}[rb][rb]{}
+{\centering     
+\includegraphics[width=\linewidth]{chapters/lopes/eps/depth.eps}
+\caption{Impermeable bottom \newline \([{\tt Max}=-5.316\,{\tt m},{\tt min}=-13.716\,{\tt m}]\).}
+\label{fig::harbour_depth}\par}
+\end{minipage}
+\end{figure}
+\begin{figure}[htb!]
+{\centering
+\psfrag{101}[rt][rt]{$y/ 30\,{\tt m}$}
+%\psfrag{-10}[rb][rb]{-300}
+%\psfrag{20}[rb][rb]{600{\tt m}}
+%\psfrag{0}[rb][rb]{0}
+\psfrag{BC}[rb][rb]{(Dirichlet BC) \(\longrightarrow\)}
+%\psfrag{-15}[rb][rb]{$-450 {\tt m}$}
+%\psfrag{15}[rb][rb]{450}
+\psfrag{201}[lt][lt]{$x/30\,{\tt m}$}
+%\psfrag{-5}[rb][rb]{-150}
+\includegraphics[width=10cm]{chapters/lopes/eps/sponge.eps}
+\caption{Sponge layer (viscosity) \([{\tt Max} \approx 27\,{\tt m}^2/{\tt
+s}, {\tt min}=0 \,{\tt m}^2/{\tt s}]\).}\label{fig::harbour_sponge}\par}
+\end{figure}
+\begin{figure}[!htb]
+{\centering
+\includegraphics[width=11cm]{chapters/lopes/eps/eta.eps}
+\caption{Surface elevation \([{\tt Max}\approx 0.84\,{\tt
+m}, {\tt min}\approx-0.81\,{\tt m}] \).}\label{fig::elevation}\par}
+\end{figure}
+\begin{figure}[!htb]
+{\centering
+\includegraphics[width=9cm]{chapters/lopes/eps/pvel2.eps}
+\caption{Velocity vector field at $z=0$ and potential magnitude\newline
+\([{\tt Max}\approx 36\, {\tt m}^2/{\tt s}, {\tt min}\approx-9\,{\tt m}^2/{\tt s}]\).}\label{fig::potential1}\par}
+\end{figure}
+\begin{figure}[!htb]
+{\centering
+\includegraphics[width=6cm]{chapters/lopes/eps/vel1.eps}
+\includegraphics[width=6cm]{chapters/lopes/eps/vel2.eps}
+\caption{Water speed
+\([{\tt Max}\approx 4\, {\tt m/s}, {\tt min}=0\,{\tt m/s}]\).}\label{fig::vel1}\par}
+\end{figure}
+
+From these numerical results, one can conclude that the
+interaction between incident and reflected waves, near the harbour entrance,
+ can generate wave amplitudes of, approximately,
+ \(0.84\,{\tt m}\). These amplitudes  almost  take the
+ triple value  of the incident wave amplitude.
+One can also observe an analogous behaviour for
+velocities. The maximum water speed   of the
+incident waves at z=0 
+is, approximately, \( 1.2\,{\tt m}/{\tt s}\) whereas, after the
+interaction, the maximum speed value is almost \(4\,{\tt
+m}/{\tt s}\).    
+%}}}
+       
+%{{{ Conclusions and future work
+
+\section{Conclusions and future work}
+
+As far as we know,  the finite element 
+method is not often applied in surface water wave models
+based on the BEP formulation. 
+In general, finite difference methods are preferred 
+but are not appropriated for the treatment of complex
+geometries like the ones of  harbours, for instance. 
+
+In fact, the surface water wave problems are associated with 
+Boussinesq-type governing equations, which require very high order
+\((\geq 6)\) spatial
+derivatives or a very high number of equations \((\geq 6)\). 
+A first approach, to the high-order  models  using
+discontinuous Galerkin finite element methods, can be found
+in \cite{KarAll06}.
+
+From this work one can conclude that the \fenics\, packages,
+namely {\bf DOLFIN} and {\bf FFC}, are appropriated to model
+surface water waves.
+   
+We have been developing {\bf DOLFWAVE}, i.e., a \fenics\, based application for 
+surface water waves.   
+{\bf DOLFWAVE} will be compatible with {\bf Xd3d}
+post-processor\footnote{{\tt http://www.cmap.polytechnique.fr/\(\sim\)jouve/xd3d/}}.    
+The current state of the work, 
+along with several numerical simulations,  
+can be found at  
+{\tt http://ptmat.fc.ul.pt/\(\sim\)ndl}.
+This package will include some  standard potential models of low
+ order  \((\leq 4)\)   as well as other new models to be submitted
+elsewhere by the authors \cite{LopPer09}.
+
+
+%}}}
+
+%{{{Ackowledgments
+
+\section{Acknowledgments}
+L. Trabucho work is partially supported by Funda\c{c}\~{a}o para
+a Ci\^{e}ncia e Tecnologia, 
+Financiamento Base 2008-ISFL-1-209. 
+N. Lopes work is supported by  Instituto Superior de
+Engenharia de Lisboa -- ISEL.  
+
+\begin{center}
+N. Lopes\(^{\ast,\diamond,\dagger}\), {\tt e-mail}: ndl@ptmat.fc.ul.pt\\
+\quad P. Pereira\(^{\ast,\sharp}\),{\tt e-mail}: ppereira@deq.isel.ipl.pt\\
+L. Trabucho\(^{\diamond,\dagger}\),{\tt e-mail}: trabucho@ptmat.fc.ul.pt   
+\end{center}
+\vskip0.2in
+{
+\noindent \(^{\ast}\) \'{A}rea Cient\'{i}fica de Matem\'{a}tica\\
+ISEL-Instituto Superior de Engenharia de Lisboa,
+\\
+Rua Conselheiro Em\'{i}dio Navarro, 1\\
+1959-007 Lisboa\\
+Portugal\\
+}
+\vskip0.2in
+{
+\noindent \(^{\diamond}\)
+Departamento de Matem\'{a}tica\\
+FCT-UNL-Faculdade de Ci\^{e}ncias e Tecnologia\\
+2829-516 Caparica\\
+Portugal\\
+}
+\vskip0.2in
+{
+\noindent \(^{\dagger}\)
+CMAF-Centro de Matem\'{a}tica e Aplica\c{c}\~{o}es
+Fundamentais,\\
+Av. Prof. Gama Pinto, 2\\
+1649-003 Lisboa,\\
+Portugal
+}
+\vskip0.2in
+{
+\noindent \(^{\sharp}\)
+CEFITEC-Centro de F\'{i}sica e Investiga\c{c}\~ao Tecnol\'{o}gica\\
+FCT-UNL-Faculdade de Ci\^{e}ncias e Tecnologia\\
+2829-516 Caparica\\
+Portugal\\
+}
+\vfill
+
+%}}}
