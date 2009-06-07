@@ -2,6 +2,751 @@
               {Unicorn: A Unified Continuum Mechanics Solver by General Galerkin Methods}
               {Johan Hoffman, Johan Jansson, Niclas Jansson, and Murtazo Nazarov}
 
-\editornote{[hoffman-2]}
+Unicorn is solver technology (models, methods, algorithms and software
+implementations) targeting simulation of realistic continuum mechanics
+applications, such as drag/lift computation for fixed or flexible
+objects (fluid-structure interaction) in turbulent incompressible or
+compressible flow (airplane/bird flight, car aerodynamics). The basis
+for Unicorn is Unified Continuum (UC) modeling, where we define
+conservation equations for mass, momentum and energy over the whole
+domain as one continuum, together with a Cauchy stress and phase
+variable as data for defining material properties and constitutive
+equation. For the discretization we use a stabilized adaptive finite
+element method which we refer to as General Galerkin (G2), which has
+been shown to accurately compute quantities of interest in both
+laminar and turbulent flow
+\cite{ho:siam:bb,hojo:cmame:special,ho:sp,ho:cc,ho:sp,ho:scm}, where
+the methodology includes deforming geometries with an Arbitrary
+Lagrangian-Eulerian (ALE) discretization \cite{Hoffman_2009,
+jjan:fsipre}.
 
-The Unicorn implementation is described.
+This chapter provides a description of the technology in Unicorn
+focusing on efficient and general algorithms and software
+implementation of the UC concept and the adaptive G2
+discretization. We describe how Unicorn fits into the FEniCS
+framework, how it interfaces to other FEniCS components (FIAT, FFC,
+DOLFIN) and what interfaces and functionality Unicorn provides itself
+and how the implementation is designed. We also give application
+examples in incompressible turbulent flow, fluid-structure interaction
+and compressible flow for illustration.
+
+Unicorn realizes automated computational modeling in the form of
+tensor assembly, time-stepping, adaptive fixed-point iteration for
+solving discrete systems, duality-based adaptive error control, mesh
+adaptivity by local cell operations (split, collapse, swap) and cell
+quality optimization (elastic mesh moothing). We also describe the
+implementation of key concepts for efficient computation of
+large-scale turbulent flow problems: friction boundary conditions and
+parallelization of tensor assembly and mesh refinement.
+
+%[Implementation: TimeDependentPDE, error estimation based on duality,
+%mesh adaptivity/smoothing, friction BC, solver interface, efficient
+%solution of discrete systems by fixed-point iteration, parallel
+%solver/mesh refinement.]
+
+%Write a short introduction to your chapter here. Explain the purpose
+%of the chapter and include a brief outline. Remember to index
+%important terms and use citations.~\cite{Cia78}
+
+%\index{important term}
+
+%------------------------------------------------------------------------------
+\section{Unified Continuum modeling}
+
+% Intro (explain mesh motion)
+
+We define an incompressible unified continuum model in a fixed Euler
+coordinate system consisting of:
+\begin{itemize}
+\item
+conservation of mass
+\item
+conservation of momentum
+\item
+phase convection equation
+\item
+constitutive equations for stress as data
+\end{itemize}
+where the stress is the Cauchy (laboratory) stress and the phase
+variable is used to define material data such as constitutive equation
+for the stress and material parameters. Note that in this continuum
+description the coordinate system is fixed (Euler), and a phase
+function (marker) is convected according to the phase convection
+equation.
+
+We start with conservation of mass, momentum and energy, together with
+a convection equation for a phase function $\theta$ over a space-time
+domain $Q = [\Omega \times [0, T]]$ with $\Omega$ an open domain in
+$R^3$ with boundary $\Gamma$:
+\begin{equation}
+  \addtolength{\fboxsep}{5pt}
+  \boxed{
+    \begin{split}\label{eq:TotalModel}
+      D_t \rho + D_{x_j} (u_j \rho) &= 0
+      \quad \text{(Mass conservation)}\\
+      D_t m_i + D_{x_j} (u_j m_i) &= D_{x_j} \sigma_i
+      \quad \text{(Momentum conservation)}\\
+      D_t e + D_{x_j} (u_j e) &= D_{x_j} \sigma_i u_i
+      \quad \text{(Energy conservation)}\\
+      D_t \theta + D_{x_j} u_j \theta &= 0
+      \quad \text{(Phase convection equation)}
+    \end{split}
+  }
+\end{equation}
+together with initial and boundary conditions. We can then pose
+constitutive relations between the constitutive (Cauchy) stress
+component $\sigma$ and other variables such as the velocity $u$.
+
+We define incompressibility as:
+\begin{align*}
+D_t \rho + u_j D_{x_j} \rho &= 0
+\end{align*}
+
+which together with mass and momentum conservation gives:
+\begin{align*}
+\rho(D_t u_i + u_j D_j u_i) &= D_{x_j} \sigma_{ij}\\
+D_{x_j} u_j &= 0
+\end{align*}
+where now the energy equation is decoupled and we can omit it.
+
+We decompose the total stress into constitutive and forcing stresses:
+\begin{align*}
+D_{x_j} \sigma_{ij} = D_{x_j} \sigma_{ij} + D_{x_j} \sigma^f_{ij} =
+D_{x_j} \sigma_{ij} + f_i
+\end{align*}
+
+Summarizing, we end up with the incompressible UC formulation:
+\begin{equation}
+  \addtolength{\fboxsep}{5pt}
+  \boxed{
+    \begin{split}\label{eq:TotalUC}
+      \rho(D_t u_i + u_j D_{x_j} u_i) &= D_{x_j} \sigma_{ij} + f_i\\
+      D_{x_j} u_j &= 0\\
+      D_t \theta + D_{x_j} u_j \theta &= 0
+    \end{split}
+  }
+\end{equation}
+The UC modeling framework is simple and compact, close to the
+formulation of the original conservation equations, without mappings
+between coordinate systems. This allows simple manipulation and
+processing for error estimation and implementation. It is also
+general, we can choose the constitutive equations to model simple or
+complex solids and fluids, possibly both in interaction, with
+individual parameters.
+
+\subsection{Automated computational modeling and software design}
+
+One key design choice of UC modeling is to define the Cauchy stress
+$\sigma$ as data, which means the conservation equations for momentum
+and mass are fixed and explicitly defined regardless of the choice of
+constitutive equation. This gives a generality in software design,
+where a modification of constitutive equation impacts the
+implementation of the constitutive equation, but not the
+implementation of the conservation equations.
+
+%rather than expanding $\sigma$, giving a different
+%momentum equation for each choice of constitutive law for $\sigma$.
+
+\section{Space-time General Galerkin discretization}
+
+The General Galerkin (G2) method has been developed as an adaptive
+stabilized finite element method for turbulent
+incompressible/compressible flow
+\cite{ho:siam:bb,hojo:cmame:special,ho:sp,ho:cc,ho:sp,ho:scm,ho:cnsg2}.
+G2 has been shown to be cheap, since the adaptive mesh refinement is
+minimizing the number of degrees of freedom, general, since there are
+no model parameters to fit, and reliable, since the method is based on
+quantitative error control in a chosen output.
+
+We begin by describing the standard FEM applied to the model to
+establish basic notation, and proceed to describe streamline diffusion
+stabilization and local ALE map over a mesh $T^h$ with mesh size h
+together with adaptive error control based on duality.
+
+\subsection{Standard Galerkin}
+
+We begin by formulating the standard cG(1)cG(1) FEM
+\cite{ereshajo:cde} with piecewise continuous linear solution in time
+and space for \ref{eq:TotalModel} by defining the exact solution: $w = [u,
+  p, \theta]$, the discrete solution $W = [U, P, \Theta]$ and the
+residual $R(W) = [R_u(W), R_p(W), R_\theta(W)]$:
+
+\begin{align*}
+  R_u(W) &= \rho(D_t U_i + U_j D_{x_j} U_i) - D_{x_j} \Sigma_{ij} - f_i\\
+  R_p(W) &= D_{x_j} U_j\\
+  R_\theta(W) &= D_t \Theta + u_j D_{x_j} \Theta
+\end{align*}
+
+where $R(w) = 0$ and $\Sigma$ denotes a discrete piecewise constant
+stress.
+
+To determine the degrees of freedom $\xi$ we enforce the Galerkin
+orthogonality $(R(W), v) = 0, \forall v \in V_h$ where $v$ are test
+functions in the space of piecewise linear continuous functions in
+space and piecewise constant discontinuous functions in time and
+$(\cdot,\cdot)$ denotes the space-time $L_2$ inner product over Q. We
+thus have the weak formulation:
+
+\begin{align*}
+  (R^u(W), v^u) &= (\rho(D_t U_i + U_j D_j U_i) - f_i, v^u_i) + (\Sigma_{ij}, D_{x_j} v^u_i) - \int_{t_{n-1}}^{t_n}\int_\Gamma \Sigma_{ij} v^u_i n_j ds dt = 0\\
+  (R^p(W), v^p) &= (D_{x_j} U_j, v^p) = 0\\
+  (R^\theta(W), v^\theta) &= (D_t \Theta + u_j D_{x_j} \Theta, v^\theta) = 0
+\end{align*}
+
+for all $v \in V_h$, where the boundary term on $\Gamma$ arising from
+integration by parts vanishes if we assume a homogenous Neumann
+boundary condition for the stress $\Sigma$.
+
+This standard finite element formulation is unstable for
+convection-dominated problems and due to choosing equal order for the
+pressure and velocity. Thus we cannot use the standard finite element
+formulation by itself but proceed to a streamline diffusion
+stabilization formulation. We also describe a local ALE discretization
+for handling the phase interface.
+
+\subsection{Local ALE}
+
+If the phase function $\Theta$ has different values on the same cell
+it would lead to an undesirable diffusion of the phase interface. By
+introducing a local ALE coordinate map \cite{ereshajo:cde} on each
+discrete space-time slab based on a given mesh velocity (i.e. the
+material velocity of one of the phases) we can define the phase
+interface at cell facets, allowing the interface to stay
+discontinuous. We describe the details of the coordinate map and its
+influence on the FEM discretization in the appendix. The resulting
+discrete phase equation is:
+\begin{equation}
+\begin{split}\label{eq:ALE}
+D_t \Theta(x) +
+(U(x) - \beta_h(x)) \cdot \nabla \Theta(x) = 0
+\end{split}
+\end{equation}
+with $\beta_h(x)$ the mesh velocity.
+
+We thus choose the mesh velocity $\beta_h$ to be the discrete material
+velocity U in the structure part of the mesh (vertices touching
+structure cells) and in the rest of the mesh we use mesh smoothing to
+determine $\beta_h$ to maximize the mesh quality according to a chosen
+objective, alternatively use local mesh modification operations
+(refinement, coarsening, swapping) on the mesh to maintain the quality
+\cite{comare:meshadapt}. Note that we still compute in Euler
+coordinates, but with a moving mesh.
+
+\subsection{Streamline diffusion stabilization}
+
+For the standard FEM formulation of the model we only have stability
+of $U$ but not of spatial derivatives of $U$. This means the solution
+can be oscillatory, causing inefficiency by introducing unnecessary
+error. We instead choose a weighted standard Galerkin/streamline
+diffusion method of the form $(R(W), v + \delta R(v)) = 0, \forall v
+\in V_h$ (see \cite{ereshajo:cde}) with $\delta > 0$ a stabilization
+parameter. We here also make a simplification where we only introduce
+necessary stabilization terms and drop terms not contributing to
+stabilization. Although not fully consistent, the streamline diffusion
+stabilization avoid unnecessary smearing of shear layers as the
+stabilization is not based on large ($\approx h^{-\frac{1}{2}}$) cross flow
+derivatives). For the UC model the stabilized method thus looks like:
+
+\begin{align*}
+  (R^u(W), v^u) &= (\rho(D_t U_i + U_j D_j U_i) - f_i, v^u_i) + (\Sigma_{ij}, D_{x_j} v^u_i) + SD^u(W, v^u) = 0\\
+  (R^p(W), v^p) &= (D_{x_j} U_j, v^p) + SD^p(W, v^p) = 0
+\end{align*}
+for all $v \in V_h$, and:
+\begin{align*}
+  SD^u(W, v^u) &= \delta_1 (U_j D_j U_i, U^u_j D_j v^u_i) +
+  \delta_2 (D_{x_j} U_j, D_{x_j} v^u_j)\\
+  SD^p(W, v^p) &= \delta_1 (D_{x_i} P, D_{x_i} v^p)
+\end{align*}
+
+where we only include the dominating stabilization terms to reduce
+complexity in the formulation.
+
+\subsection{Duality-based adaptive error control}
+
+\subsection{Unicorn/FEniCS software implementation}
+
+We implement the G2 discretization of the UC in a general interface
+for time-dependent PDE where we give the forms $a(U, v) = (D_U F_U,
+v)$ and $L(v) = (F_U, v)$ for assembling the linear system given by
+Newton's method for a time step for the incompressible UC with
+Newtonian fluid constitutive equation in figure \ref{code:FFC_UC}. The
+language used is Python, where we use the FEniCS Form Compiler (FFC)
+\cite{kirlog:2006} form notation.
+
+\begin{figure}[!h]
+\center{
+{
+\footnotesize
+\lstset{language=Python,frame=ltrb,framesep=5pt,basicstyle=\normalsize,
+ keywordstyle=\ttfamily\color{OliveGreen},
+ identifierstyle=\ttfamily\color{CadetBlue}\bfseries, 
+ commentstyle=\color{Brown},
+ stringstyle=\ttfamily,
+ showstringspaces=ture}
+
+\begin{lstlisting}
+
+...
+
+def ugradu(u, v):
+    return [dot(u, grad(v[i])) for i in range(d)]
+
+def epsilon(u):
+    return 0.5 * (grad(u) + transp(grad(u)))
+
+def S(u, P):
+    return mult(P, Identity(d)) - mult(nu, grad(u))
+
+def f(u, v):
+    return -dot(ugradu(Uc, Uc), v) + \
+        dot(S(Uc, P), grad(v)) + \
+	-mult(d1, dot(ugradu(Um, u), ugradu(Um, v))) + \
+	-mult(d2, dot(div(u), div(v))) + \
+        dot(ff, v)
+    
+def dfdu(u, k, v):
+    return -dot(ugradu(Um, u), v) + \
+        -dot(mult(nu, grad(u)), grad(v)) + \
+        -mult(d1, dot(ugradu(Um, u), ugradu(Um, v))) + \
+        -mult(d2, dot(div(u), div(v)))
+
+# cG(1)
+def F(u, u0, k, v):
+    uc = 0.5 * (u + u0)
+    return (-dot(u, v) + dot(u0, v) + mult(k, f(u, v)))
+
+def dFdu(u, u0, k, v):
+    uc = 0.5 * u
+    return (-dot(u, v) + mult(1.0 * k, dfdu(uc, k, v)))
+
+a = (dFdu(U1, U0, k, v)) * dx
+L = -F(UP, U0, k, v) * dx
+
+\end{lstlisting}
+}}
+\caption{
+Source code for bilinear and linear forms for incompressible UC one
+time step with a Newton-type method (approximation of Jacobian).  }
+\label{code:FFC_UC}
+\end{figure}
+
+\section{Unicorn classes: data types and algorithms}
+
+\subsection{Unicorn software design}
+
+Unicorn follows two basic design principles:
+
+\begin{itemize}
+\item
+Keep It Simple Stupid (KISS)
+\item
+``Premature optimization is the root of all evil'' (Donald Knuth)
+\end{itemize}
+
+Together, these two principles enforce generality and
+understandability of interfaces and implementations. Unicorn re-uses
+other existing implementations and chooses straightforward,
+sufficiently efficient (optimize bottlenecks) standard algorithms for
+solving problems. This leads to small and maintainable
+implementations. High performance is achieved by reducing the
+computational load on the method level (through adaptivity and
+fixed-point iteration).
+
+Unicorn consists of key concepts abstracted in the following
+classes/interfaces:
+
+\begin{description}
+\item[{\tt TimeDependentPDE}: \ time-stepping]
+In each time-step a non-linear algebraic system is solved by
+fixed-point iteration.
+\item[{\tt ErrorEstimate}: \ adaptive error control]
+The adaptive algorithm is based on computing local {\em error
+indicators} of the form $\epsilon_K = (R(U), D_x \Phi)_{L_2(K \times T)}$. This
+algorithm is abstracted in the {\tt ErrorEstimate} and class.
+\item[{\tt SlipBC}: \ friction boundary condition]
+Efficient computation of turbulent flow in Unicorn is based on
+modeling of turbulent boundary layers by a friction model: $u \cdot n
+= 0$, implemented as a strong boundary condition in the algebraic
+system.
+\end{description}
+
+\subsection{\tt TimeDependentPDE}
+
+We consider time-dependent equations of the type $f(u) = -D_t u + g(u)
+= 0$ where $g$ can include differential operators in space, where
+specifically the UC model is of this type. In weak form the equation
+type looks like$(f(u), v) = (-D_t u + g(u), v) = 0$, possibly with
+partial integration of terms
+
+We want to define a class (datatype and algorithms) abstracting the
+time-stepping of the G2 method, where we want to give the equation
+(possibly in weak form) as input and generate the time-stepping
+automatically. cG(1)cG(1) (Crank-Nicolson in time) gives the equation
+for the (possibly non-linear) algebraic system $F(U)$ (in Python
+notation):
+
+\lstset{language=Python,frame=ltrb,framesep=5pt,basicstyle=\normalsize,
+ keywordstyle=\ttfamily\color{OliveGreen},
+ identifierstyle=\ttfamily\color{CadetBlue}\bfseries, 
+ commentstyle=\color{Brown},
+ stringstyle=\ttfamily,
+ showstringspaces=ture}
+
+{\small
+\begin{lstlisting}
+# cG(1)
+def F(u, u0, k, v):
+    uc = 0.5 * (u + u0)
+    return (-dot(u, v) + dot(u0, v) + mult(k, g(uc, v)))
+\end{lstlisting}
+}
+
+With v: $\forall v \in V_h$ generating the equation system.
+
+We solve this system by Newton-type fixed-point iteration:
+
+\begin{equation}
+(F'(U_P) U_1, v) = (F'(U_P) - F(U_P), v)
+\label{discrete_cg1}
+\end{equation}
+
+where $U_P$ denotes the value in the previous iterate and $F'
+= \frac{\partial F}{\partial U}$ the Jacobian matrix or an
+approximation. Note that $F'$ can be chosen freely since it only
+affects the convergence of the fixed-point iteration, and does not
+introduce approximation error.
+
+We define the bilinear form $a(U, v)$ and linear form $L(v)$
+corresponding to the left and right hand sides respectively (in Python
+notation):
+
+\lstset{language=Python,frame=ltrb,framesep=5pt,basicstyle=\normalsize,
+ keywordstyle=\ttfamily\color{OliveGreen},
+ identifierstyle=\ttfamily\color{CadetBlue}\bfseries, 
+ commentstyle=\color{Brown},
+ stringstyle=\ttfamily,
+ showstringspaces=ture}
+
+{\small
+\begin{lstlisting}
+def dFdu(u, u0, k, v):
+    uc = 0.5 * u
+    return (-dot(u, v) + mult(k, dgdu(uc, k, v)))
+
+a = (dFdu(U, U0, k, v)) * dx
+L = (dFdu(UP, U0, k, v) - F(UP, U0, k, v)) * dx
+\end{lstlisting}
+}
+
+Thus, in each time step we need to solve the system given in
+eq. \ref{discrete_cg1} by fixed-point iteration by repeatedly
+computing $a$ and $L$, solving a linear system and updating $U$.
+
+We now encapsulate this in a C++ class interface in
+fig. \ref{code:TimeDependentPDE} which we call {\tt TimeDependentPDE} where
+we give $a$ and $L$, an end time $T$, a mesh (defining $V_h$) and
+boundary conditions.
+
+
+\lstset{language=C++,frame=ltrb,framesep=5pt,basicstyle=\normalsize,
+ keywordstyle=\ttfamily\color{OliveGreen},
+ identifierstyle=\ttfamily\color{CadetBlue}\bfseries, 
+ commentstyle=\color{Brown},
+ stringstyle=\ttfamily,
+ showstringspaces=ture}
+
+
+
+\begin{figure}[!h]
+{\small
+\begin{lstlisting}
+    /// Represent and solve time dependent PDE.
+    class TimeDependentPDE
+    {
+    /// Public interface
+    public:
+      TimeDependentPDE(
+        // Computational mesh
+        Mesh& mesh,
+        // Bilinear form for Jacobian approx.
+        Form& a,
+        // Linear form for time-step residual
+        Form& L,
+        // List of boundary conditions
+        Array <BoundaryCondition*>& bcs,
+        // End time
+        real T
+        );
+      virtual ~TimeDependentPDE();
+      /// Solve PDE
+      virtual uint solve();
+
+    /// Protected interface for subclasses
+    protected:
+      /// Compute initial value
+      virtual void u0(Vector& u);
+      /// Called before each time step
+      virtual void preparestep();
+      /// Called before each fixed-point iteration
+      virtual void prepareiteration();
+      /// Return the bilinear form a
+      Form& a();
+      /// Return the linear form L
+      Form& L();
+      /// Return the mesh
+      Mesh& mesh();
+    };
+\end{lstlisting}
+}
+\caption{
+C++ class interface for TimeDependentPDE.
+}
+\label{code:TimeDependentPDE}
+\end{figure}
+
+
+The skeleton of the time-stepping with fixed-point iteration is
+implemented in listing \ref{code:time-stepping}.
+
+\begin{figure}[!h]
+{\small
+\begin{lstlisting}
+
+void TimeDependentPDE::solve()
+{
+  // Time-stepping
+  while(t < T)
+  {
+    U = U0;
+    preparestep();
+    step();
+  }
+}
+
+void TimeDependentPDE::step()
+{
+  // Fixed-point iteration
+  for(int iter = 0; iter < maxiter; iter++)
+  {
+    prepareiteration();
+    step_residual = iter();
+
+    if(step_residual < tol)
+    {
+      // Iteration converged
+      break;
+    }
+  }
+}
+
+void TimeDependentPDE::iter()
+{
+  // Compute one fixed-point iteration
+  assemble(J, a());
+  assemble(b, L());
+  for (uint i = 0; i < bc().size(); i++)
+    bc()[i]->apply(J, b, a());
+  solve(J, x, b);
+
+  // Compute residual for the time-step/fixed-point equation
+  J.mult(x, residual);
+  residual -= b;
+
+  return residual.norm(linf);
+}
+\end{lstlisting}
+}
+\label{code:time-stepping}
+\caption{
+Skeleton implementation in Unicorn of time-stepping with fixed-point
+iteration.}
+\end{figure}
+
+See \ref{fpefficiency} and \cite{jjan:optrep} for a dicussion about
+the efficiency of the fixed-point iteration and its implementation.
+
+[Discuss pressure/systems]
+
+\subsection{\tt ErrorEstimate}
+
+The duality-based adaptive error control algorithm requires the
+following primitives:
+
+\begin{description}
+\item[Residual computation]
+We compute the mean-value in each cell of the continuous residual
+$R(U) = f(U) = -D_t U + g(U)$, this is computed as the
+$L_2$-projection into the space of piecewise constants $W_h$: $(R(U),
+v) = (-D_t U + g(U), v), \forall v \in W_h$.
+\item[Dual solution]
+We compute the solution of the dual problem using the same technology
+as the primal problem. The dual problem is solved backward in time,
+but with the time coordinate transform $s = T - t$ we can use the
+standard {\tt TimeDependentPDE} interface and step the dual time $s$
+forward.
+\item[Space-time function storage/evaluation]
+We compute error indicators as space-time integrals over cells:
+$\epsilon_K = (R(U), D_x \Phi)_{L_2(K \times T)}$, where we need to
+evaluate both the primal solution $U$ and the dual solution $\Phi$. In
+addition, $U$ is a coefficient in the dual equation. This requires
+storage and evaluation of a space-time function, which is encapsulated
+in the {\tt SpaceTimeFunction} class.
+\item[Mesh adaptation]
+After the computation of the error indicators we select the largest
+$p\%$ of the indicators for refinement. The refinement is then
+performed by recursive Rivara cell bisection encapsulated in the {\tt
+MeshAdaptivity} class. A future promising alternative is to use
+Madlib \cite{madlib:www, Compere_JCP_2008} for mesh adaptation, which
+is based on edge split, collapse and swap, and would thus give the
+ability to coarsen a mesh, or more generally to control the mesh size.
+\end{description}
+
+Using these primitives, we can construct an adaptive algorithm. The
+adaptive algorithm is encapsulated in the C++ class interface in
+fig. \ref{code:ErrorEstimate} which we call {\tt ErrorEstimate}.
+
+\begin{figure}[!h]
+{\small
+\begin{lstlisting}
+    /// Represent and solve time dependent PDE.
+    class TimeDependentPDE
+    {
+    /// Public interface
+    public:
+      TimeDependentPDE(
+        // Computational mesh
+        Mesh& mesh,
+        // Bilinear form for Jacobian approx.
+        Form& a,
+        // Linear form for time-step residual
+        Form& L,
+        // List of boundary conditions
+        Array <BoundaryCondition*>& bcs,
+        // End time
+        real T
+        );
+      virtual ~TimeDependentPDE();
+      /// Solve PDE
+      virtual uint solve();
+
+    /// Protected interface for subclasses
+    protected:
+      /// Compute initial value
+      virtual void u0(Vector& u);
+      /// Called before each time step
+      virtual void preparestep();
+      /// Called before each fixed-point iteration
+      virtual void prepareiteration();
+      /// Return the bilinear form a
+      Form& a();
+      /// Return the linear form L
+      Form& L();
+      /// Return the mesh
+      Mesh& mesh();
+    };
+\end{lstlisting}
+}
+\caption{
+C++ class interface for TimeDependentPDE.
+}
+\label{code:TimeDependentPDE}
+\end{figure}
+
+
+\subsection{\tt SlipBC}
+
+For high Reynolds numbers problems such as car aerodynamics or
+airplane flight, it's not possible to resolve the turbulent boundary
+layer. One possibility is to model turbulent boundary layers by a
+friction model:
+
+\begin{align}
+u \cdot n &= 0\\
+u \cdot \tau_k + \beta^{-1} n^\top \sigma \tau_k &= 0, k = 1, 2
+\end{align}
+
+We implement the normal component condition (slip) boundary condition
+strongly. By ``strongly'' we here mean an implementation of the
+boundary condition after assembling the left hand side matrix and the
+right hand side vector in the algebraic system, whereas the tangential
+components (friction) are implemented ``weakly'' by adding boundary
+integrals in the variational formulation.  The row of the matrix and
+load vector corresponding to a vertex is found and replaced by a new
+row according to the boundary condition.
+ 
+The idea is as follows: Initially, the test function $v$ is expressed
+in the Cartesian standard basis $(e_1, e_2, e_3)$.  Now, the test
+function is mapped locally to normal-tangent coordinates with the
+basis $(n, \tau_1, \tau_2)$, where $n = (n_1, n_2, n_3)$ is the
+normal, and $\tau_1 = (\tau_{11}, \tau_{12}, \tau_{13})$, $\tau_2 =
+(\tau_{21}, \tau_{22}, \tau_{23})$ are tangents to each node on the
+boundary. This allows us to let the normal direction to be constrained
+and the tangent directions be free:
+\begin{equation*}
+     v = (v \cdot n)n + (v \cdot \tau_1) \tau_1 + (v \cdot \tau_2) \tau_2.
+\end{equation*}
+For the matrix and vector this means that the rows corresponding to
+the boundary need to be multiplied with $n,\tau_1,\tau_2$,
+respectively, and then the normal component of the velocity should be
+put 0.
+
+This concept is encapsulated in the class {\tt SlipBC} which is a
+subclass of \\ {\tt dolfin::BoundaryCondition} for representing strong
+boundary conditions.
+
+\section{Mesh adaptivity}
+
+\subsection{Local mesh operations: Madlib}
+
+Madlib incorporates an algorithm and implementation of {\bf mesh
+adaptation} where a small set of local mesh modification operators are
+defined such as edge split, edge collapse and edge swap. A mesh
+adaptation algorithm is defined which uses this set of local operators
+in a control loop to satisfy a prescribed size field $h(x)$ and
+quality tolerance. Edge swapping is the key operator for improving
+quality of cells, for example around a vertex with a large number of
+connected edges.
+
+In the formulation of finite element methods it is typically assumed
+that the cell size of a computational mesh can be freely modified to
+satisfy a desired size field $h(x)$ or to allow mesh motion. In
+state-of-the-art finite element software implementations this is
+seldom the case, where typically only limited operations are allowed
+\cite{BHK07, COMSOL_webpage}, (local mesh refinement),
+or a separate often complex, closed and ad-hoc mesh generation
+implementation is used to re-generate meshes.
+
+The mesh adaptation algorithm in Madlib gives the freedom to adapt to
+a specified size field using local mesh operations. The implementation
+is published as free software/open source allowing other research to
+build on the results and scientific repeatability of numerical
+experiments.
+
+\subsection{Elastic mesh smoothing: cell quality optimization}
+
+\subsection{Recusive Rivara bisection}
+
+\section{Parallel computation}
+
+\subsection{Tensor assembly}
+
+\subsection{Mesh refinement}
+
+\section{Application examples}
+
+\subsection{Incompressible flow}
+
+\subsection{Compressible flow}
+
+\subsection{Fluid-structure interaction}
+
+%\section{TODO}
+
+%\begin{itemize}
+%\item
+%namespaces
+%\item
+%clean up fixed-point
+%\item
+%clean up G2/add adaptivity
+%\end{itemize}
