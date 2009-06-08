@@ -132,8 +132,8 @@ from instant import inline
 c_code = r'''
 double add(double a, double b)
 {
-    printf("Hello world! C function add is being called...\n");
-    return a+b;
+  printf("Hello world! C function add is being called...\n");
+  return a+b;
 }'''
 add_func = inline(c_code)
 sum = add_func(3, 4.5)
@@ -352,17 +352,18 @@ with the flag \emp{-fopenmp} and link with the OpenMP shared
 library, e.g. \emp{libgomp.so} for Linux (specified with \emp{-lgomp}). 
 This can be done as follows:
 \begin{code}
-instant_ext = build_module(code=c_code, 
-                           system_headers=['numpy/arrayobject.h', 
-                                           'omp.h'],
-                           include_dirs=[numpy.get_include()],
-                           init_code='import_array();',
-                           cppargs=['-fopenmp'], 
-                           lddargs=['-lgomp'],
-                           arrays=[['ux', 'uy', 'u'], 
-                                   ['umx', 'umy', 'um'],
-                                   ['kx', 'ky', 'k'],
-                                   ['upn', 'up', 'out']])
+instant_ext = \
+  build_module(code=c_code, 
+               system_headers=['numpy/arrayobject.h', 
+                               'omp.h'],
+               include_dirs=[numpy.get_include()],
+               init_code='import_array();',
+               cppargs=['-fopenmp'], 
+               lddargs=['-lgomp'],
+               arrays=[['ux', 'uy', 'u'], 
+               ['umx', 'umy', 'um'],
+               ['kx', 'ky', 'k'],
+               ['upn', 'up', 'out']])
 \end{code}
 Note that the arguments \emp{include\_\-headers}, \emp{init\_\-code}, and the
 first element of \emp{system\_\-headers} could have been omitted had we chosen
@@ -505,9 +506,10 @@ under \emp{\$examples/ex4.py}:
 \begin{code}
 from instant import inline
 code = r'''
-double add(double a, double b) { 
-    printf("Hello world! C function add is being called...\n"); 
-    return a+b;
+double add(double a, double b)
+{
+  printf("Hello world! C function add is being called...\n"); 
+  return a+b;
 }'''
 add_func = inline(code, modulename='ex4_cache') 
 sum = add_func(3, 4.5)
@@ -531,6 +533,7 @@ different caching options can be found in Section \ref{msc}.
 
 The resulting module files can be found in a directory reflecting the name of
 the module, in this case \emp{ex4\_\-cache}:
+\footnotesize
 \begin{code}
 ilmarw@multiboot:~/instant_doc/code$ cd ex4_cache/
 ilmarw@multiboot:~/instant_doc/code/ex4_cache$ ls -g
@@ -546,7 +549,8 @@ drwxr-xr-x 4 ilmarw  4096 2009-05-18 16:52 build
 -rw-r--r-- 1 ilmarw 94700 2009-05-18 16:52 ex4_cache_wrap.cxx
 -rw-r--r-- 1 ilmarw    23 2009-05-18 16:53 __init__.py
 -rw-r--r-- 1 ilmarw   448 2009-05-18 16:53 setup.py
-\end{code} 
+\end{code}
+\normalsize
 When building a new module, Instant creates a new directory with 
 a number of files. The first file it generates is the SWIG interface file, named
 \emp{ex4\_\-cache.i} in this example. Then the Distutils file \emp{setup.py} is generated based
@@ -607,7 +611,9 @@ signature. It is important that the order of the variables in the signature is
 retained for each array, e.g. one cannot write:
 \begin{code}
 c_code = """
-double sum (int len_a, int len_bx, int len_by, double* a, double* b){
+double sum (int len_a, int len_bx, int len_by,
+            double* a, double* b)
+{
   ...
 }
 """
@@ -615,7 +621,10 @@ double sum (int len_a, int len_bx, int len_by, double* a, double* b){
 The correct code would be:
 \begin{code}
 c_code = """
-double sum (int len_a, double* a, int len_bx, int len_by, double* b){
+double sum (int len_a, double* a,
+            int len_bx,
+            int len_by, double* b)
+{
   ...
 }
 """
@@ -688,22 +697,24 @@ from instant import inline_with_numpy
 from numpy import arange, dot
 
 c_code = '''
-void dot_c(int Am, int An, long* A, int bn, int* b, int xn, double* x)
+void dot_c(int Am, int An, long* A, int bn, int* b,
+           int xn, double* x)
 {
-    for (int i=0; i<Am; i++)
+  for (int i=0; i<Am; i++)
+  {
+    x[i] = 0;
+    for (int j=0; j<An; j++)
     {
-        x[i] = 0;
-        for (int j=0; j<An; j++)
-        {
-            x[i] += A[i*Am + j]*b[j];
-        }
+      x[i] += A[i*Am + j]*b[j];
     }
+  }
 }
 '''
-dot_c = inline_with_numpy(c_code,
-                          arrays = [['Am', 'An', 'A', 'in', 'long'],
-                                    ['bn', 'b', 'int'],
-                                    ['xn', 'x', 'out']])
+dot_c = \
+  inline_with_numpy(c_code,
+                    arrays = [['Am', 'An', 'A', 'in', 'long'],
+                              ['bn', 'b', 'int'],
+                              ['xn', 'x', 'out']])
 a = arange(9)
 a.shape = (3, 3)
 b = arange(3)
@@ -729,7 +740,8 @@ arrays = [['m', 'mp', 'ar1', 'multi'],
 \end{code}
 In this case, the C function signature should look like:
 \begin{code}
-void sum (int m, int* mp, double* ar1, int n, int* np, double* ar2)
+void sum (int m, int* mp, double* ar1, int n,
+          int* np, double* ar2)
 \end{code}
 
 In the C code, all arrays are 1-dimensional. Indexing a 3-dimensional arrays

@@ -105,6 +105,9 @@ J_{\scriptscriptstyle[1,2]}= \left\{
 \right.
 \end{equation}
 \noindent where $i$ is the amplitude, 2 the valence of \Ca, $F$ Faraday's constant and $A$ the area of the channel. Note that inward current is by convention negative.\par
+
+\editornote{Placement of figures seems strange.}
+
 The flux to cytosole is modeled as a concentration dependent flux,
 \begin{equation}
   \label{eq:conc-dependent-flux}
@@ -369,6 +372,8 @@ The solution of the included stochastic Markov chain models is stored in a state
 To simplify the presentation of the time stepping algorithm we only consider one continuous variable, this could for example be the \Ca field. The framework presented here can be expanded to also handle several continuous variables. We define a base class called \texttt{DiscreteObject} which defines the interface for all discrete objects. A key function of a discrete object is to know when its \textit{next event} is due to. The \texttt{DiscreteObject} that has the smallest next event time, gets to define the size of the next \Dt, for which the \Ca field is solved with. In \python this is easily done by making the \texttt{DiscreteObject}s sortable with respect to their next event time. All \texttt{DiscreteObject}s is then collected in a list, \texttt{discrete\_objects} see Fig.~\ref{fig:time-stepping-algorithm}, and the \texttt{DiscreteObject} with the smallest next event time is then just \texttt{min(discrete\_objects)}.\par
 
 An event from a \texttt{DiscreteObject} that does not have an impact on the continuous solution will be ignored, e.g., a Markov chain model transition that is not a channel transition. A transition needs to be realized before we can tell if it is a channel transition or not. This is done by \textit{stepping} the \texttt{DiscreteObject}, calling the objects \texttt{step()} method. If the method returns \texttt{False} it will not affect the \Ca field, and we enter the while loop, and a new \texttt{DiscreteObject} is picked, see Fig.~\ref{fig:time-stepping-algorithm}. However if the object returns \texttt{True} when it is stepped, we will exit the while loop and continue. Next we have to update the other discrete objects with the chosen \Dt, solve the \Ca field, broadcast the solution and last but not least execute the discrete event that is scheduled to happen at \Dt.\par
+
+\editornote{Fix ugly text sticking out in margin.}
 
 In Fig.~\ref{fig:time-line} we show an example of a possible realization of this algorithm. The example starts at t=2ms at the top-most timeline represented by \textbf{A}, and it includes three different types of \texttt{DiscreteObject}s: \texttt{i}) \texttt{DtExpander}, \texttt{ii}) \texttt{StochasticHandler}, and \texttt{iii}) \texttt{TStop}. See the legend of the figure for more details.\par
 \begin{figure}
