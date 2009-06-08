@@ -1,17 +1,17 @@
 \newtheorem{definition}{Definition}[section]
 \newtheorem{proposition}{Proposition}[section]
 %\theoremstyle{definition} % use not italic font for the rest
-%\newtheorem{example}{Example}[section]
+\newtheorem{example}{Example}[section]
 \newtheorem{remark}{Remark}[section]
 
 %\DefineVerbatimEnvironment{code}{Verbatim}{frame=single,rulecolor=\color{blue}}
 \newcommand{\mathbfx}[1]{{\mbox{\boldmath $#1$}}}
-%\newcommand{\R}{{\mathbb R}}
+\newcommand{\R}{{\mathbb R}}
 \renewcommand{\P}{{\mathbb P}}
 \renewcommand{\H}{{\mathbb H}}
 \newcommand{\xxi}{\mathbfx{\xi}}
-\newcommand{\xxx}{\mathbf{x}}
-\newcommand{\eee}{\mathbf{e}}
+\newcommand{\xx}{\mathbf{x}}
+\newcommand{\ee}{\mathbf{e}}
 \newcommand{\GG}{\mathbf{G}}
 \newcommand{\kentc}[1]{\marginpar{\tiny KAM: #1}}
 \newcommand{\rckc}[1]{\marginpar{\tiny RCK: #1}}
@@ -40,8 +40,8 @@ element bases.  While porous media flow requires
 vector fields discretized by piecewise polynomial functions with
 normal components continuous across cell boundaries.  Many problems in 
 electromagnetism call for the tangentially continuous vector fields obtained
-by using Nedelec elements~\cite{nedelec}.  Many elements are carefully designed
-to satisfy the \emph{inf-sup} condition~\cite{BrezziFortin,g-r},
+by using Nedelec elements~\cite{Nedelec80,Nedelec86}.  Many elements are carefully designed
+to satisfy the \emph{inf-sup} condition~\cite{BrezziFortin91,GiraultRaviart86},
 originally developed to explain stability of discretizations of 
 incompressible flow problems.  Additionally, some problems call for low-order
 discretizations, while others are effectively solved with high-order
@@ -87,21 +87,21 @@ and test its numerical properties before analyzing it mathematically.
 
 
 In the present chapter, we describe the mathematical formulation
-underlying such projects as FIAT~\cite{www:fiat,fiat:toms1,fiat:toms2}, 
-SyFi~\cite{www:syfi,toms:syfi} and Exterior~\cite{www:exterior}.
+underlying such projects as FIAT~\cite{Kirby04,Kirby06}, 
+SyFi~\cite{AlnaesMardal09,AlnaesMardal2009a} and Exterior~\cite{LoggMardal09}.
 This formulation starts from definitions of finite elements as
-given classically by Ciarlet~\cite{Ciarlet}.  It then uses basic linear
+given classically by Ciarlet~\cite{Ciarlet02}.  It then uses basic linear
 algebra to construct the appropriate nodal basis for an abstract
 finite element in terms of polynomials that are easy to implement and
 well-behaved in floating point arithmetic.  We focus on
 constructing nodal bases for a single, fixed reference element.  As we
 will see in Chapter~\ref{}, form compilers such as
-\texttt{ffc}~\cite{www:ffc} and \texttt{sfc}~\cite{www:sfc} will work
+\texttt{ffc}~\cite{Logg2007b} and \texttt{sfc}~\cite{Alnaes2009} will work
 in terms of this single reference element.   
 
 
 Other approaches exist in the literature, such as the hierarchical
-bases studied by Szabo and Babuska~\cite{SzaBab91} and extended to \(
+bases studied by Szabo and Babuska~\cite{SzaboBabuska91} and extended to \(
 H(\mathrm{curl}) \) and \( H(\mathrm{div}) \) spaces in work such
 as~\cite{AinCoy02}.  These can provide greater flexibility for
 refining the mesh and polynomial degree in finite element methods, but
@@ -115,7 +115,7 @@ automatic software.
 
 \section{Preliminaries}
 Both FIAT and SyFi work a slightly modified version of the  abstract definition of a finite element introduced by
-Ciarlet~\cite{Ciarlet}.
+Ciarlet~\cite{Ciarlet02}.
 \begin{definition}[A Finite Element]
 \label{def:finite:element}
 A finite element is a triple \( (K,P,N) \) with
@@ -209,27 +209,27 @@ other cases it is more complicated.
 For completeness, we briefly describe the basics of creating the global finite elements in terms of a mapped
 reference element. Let therefore $T$ be a polygon and $\hat{T}$ the corresponding reference polygon.
 Between the coordinates
-$\xxx\in T$ and $\xxi\in\hat T$ we use the mapping 
+$\xx\in T$ and $\xxi\in\hat T$ we use the mapping 
 \begin{equation}
 \label{eq:geometry}
-\xxx = \GG(\xxi) + \xxx_0,
+\xx = \GG(\xxi) + \xx_0,
 \end{equation}
 and define the Jacobian determinant of this mapping as
 \begin{equation}
 \label{eq:geometry2}
-J(\xxx) = \left| \frac{\partial\GG(\xxi) }{\partial \xxi} \right| .
+J(\xx) = \left| \frac{\partial\GG(\xxi) }{\partial \xxi} \right| .
 \end{equation}
 The basis functions are defined in terms of the basis function
 on the reference element as
 \begin{equation}
 \label{eq:subs}
-N_j(\xxx) = \hat{N_j}(\xxi), 
+N_j(\xx) = \hat{N_j}(\xxi), 
 \end{equation}
 where $\hat{N_j}$ is basis function number $j$ on the reference element. 
 The integral can then be performed on the reference polygon, 
 \begin{equation}
 \label{eq:integration2}
-\int_T \, f(\xxx) \, d\xxx = \int_{\hat{T}} \, f(\xxi) \, J d\xxi ,
+\int_T \, f(\xx) \, d\xx = \int_{\hat{T}} \, f(\xxi) \, J d\xxi ,
 \end{equation}
 and the spatial derivatives are defined by the derivatives on the
 reference element and the geometry mapping simply by using the
@@ -243,7 +243,7 @@ chain rule,
 The above definition of a global element is commonly called \emph{isoparametric}
 and is common for approximations in $H^1$. For approximations in $H(div)$ or
 $H(curl)$ it is neccessary to modify \eqref{eq:subs} with the Piola mapping.  
-Furthermore, some elements like the Rannacher-Turek element~\cite{TurekBook,rannacher-turek} has far better
+Furthermore, some elements like the Rannacher-Turek element~\cite{Turek99,RannacherTurek92} has far better
 properties when defined globally compared its analogous definition in terms
 of a reference element. 
 
@@ -461,7 +461,7 @@ It is straightforward to generalize the scalar valued polynomials discussed
 earlier to vector or tensor valued polynomials. Let $\{e_i\}$ be canonical
 basis in $\R^d$. Then a basis for the vector valued polynomials is
 \[
-P_{ij} = P_j \eee_i,
+P_{ij} = P_j \ee_i,
 \]
 with a similar definition extending the basis to tensors.
 
@@ -628,8 +628,8 @@ functionals, then we may apply this technique.  In this case,
 \( V_1 \in \mathbb{R}^{\dim{P},\dim{\bar{P}}} \) and 
 \( V_2 \in \mathbb{R}^{\dim{\bar{P}}-\dim P,\dim{\bar{P}}} \).  This
 scenario, though somewhat abstract, is applicable not only to BDFM,
-but also to the N\'ed\'elec~\cite{Nedelec:1980:MFE}, Arnold-Winther~\cite{a-w-2002},
-Mardal-Tai-Winther~\cite{M-T-W-02}, Tai-Winther~\cite{T-W-06}, and Bell~\cite{} element families.
+but also to the N\'ed\'elec~\cite{Nedelec80}, Arnold-Winther~\cite{ArnoldWinther2002},
+Mardal-Tai-Winther~\cite{MardalTaiEtAl02}, Tai-Winther~\cite{TaiWinther06}, and Bell~\cite{} element families.
 
 Again, we summarize the discussion as a proposition.
 \begin{proposition}
