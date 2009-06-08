@@ -534,35 +534,11 @@ simulations.
 
 
 \subsubsection{Verifying the mesh.}
-In our case, the resolution in the cross section is more important
-than along the pipe. Gmsh allows to construct uniform meshes with a
-predefined number of layers in the main flow direction. With the
-unnatural boundary conditions of equal velocity throughout the inflow
-and outflow cross sections (plug flow), the correct velocity field
-develops between the pipe's ends. In the current section, we try to
-find out how long the pipe has to be, so that the mid--cross section
-represents the fully developed profile. Further, we know that there is
-a boundary layer close to the boundary, characterized by a steep
-velocity gradient. To capture the latter, we generated three mesh
-layers containing triangles of small edge size on the inner and the
-outer boundary. The distance of the layers was chosen, so that the
-edge length slightly increases for each layer. Starting from 10\% of
-the maximum edge length, for the first layer, the width of the second
-and the third layer was set to 30\% and 80\% of the maximum edge
-length. Comparisons of a mesh with and without boundary layers can be
-seen in Figure \ref{fig:boundary_layers}.
+In our case, the resolution in the cross section is more important than along the pipe. Thus, we first varied the number of nodes per cross section on a pipe of length 1.75 cm with 30 layers in the flow direction. Reducing the maxium edge length \footnote{Denoted as \emp{lc} in the Gmsh code.} from 0.04, to 0.02 and 0.01 mm gradually decreased the velocity with some distance to the boundary. The reason for the different velocities lies in the no-slip boundary condition, that influences a greater area for meshes with fewer nodes per cross section, leading to a smaller region of the non-zero flow area. 
 
+Additionally, we observed increasingly wave-like structures of fluctuating velocites in the inflow and outflow regions, when the maximum edge length was decreased. These effects result from the changed ratio of edge lengths in cross-sectional and tubular direction.\\
 
-FIGUR EINFUEGEN
-
-%\begin{figure}\begin{center}
-%\includegraphics[width=0.3\textwidth]{chapters/csf_flow/eps/pulse_f1_08_sysmax_nmb7.eps}
-%\includegraphics[width=0.3\textwidth]{chapters/csf_flow/eps/pulse_f1_08_sysdia_nmb18.eps}
-%\includegraphics[width=0.3\textwidth]{chapters/csf_flow/eps/pulse_f1_08_diamin1_nmb25.eps}
-%\caption{Case: Spinal SAS with (right) and without(left) boundary layers. The velocity in z-direction for the non-symmetric pulse at the time steps ??? $t=0.07, 0.18, 0.25$.}
-%\label{fig:boundary_layers}. 
-%\end{center}\end{figure}
-
+To avoid increasing the node density utterly, we introduced three thin layers close to the side boundaries, that capture the steep velocity gradient in the boundary layer. The distance of the layers was chosen, so that the edge length slightly increases for each layer. Starting from 10\% of the maximum edge length, for the first layer, the width of the second and the third layer was set to 30\% and 80\% of the maximum edge length. It turned out, that for meshes with layers along the side boundaries, a maximum edge length of 0.04 mm was enough to reproduce the actual flow profile. 
 
 To add mesh layers in Gmsh, copies for the elliptic arcs are scaled to gradually increase the maximum edge length. The code example below shows the creation of the layers close to the outer ellipse. The inner layers are created similarly.
 \begin{code}
@@ -581,10 +557,10 @@ that are necessary to define the surfaces between all neighboring ellipses simil
 \begin{code}
 Plane Surface(32) = {20,22};
 \end{code}
-Additionally, all Surfaces have to be listed in the Extrude command (see below).
+Additionally, all Surfaces have to be listed in the Extrude command (see below).\\
 
 
-To further adapt the mesh structure to the flow profile, we used the fact that the only non-zero velocity component is along the tubular length axis. The velocities of a cross sectional point only change along the tube, for cross sections close to the inflow and outflow boundaries but not in the region inbetween, where flow is fully developed. It is thus not required to have as dense nodes in the flow direction as required for the cross sections. For straight rigid pipes, we decided therefore to extrude the cross sectional mesh with a small number of layers per tube length. An additional advantage of this strategy is, that the meshes are uniform in every cross section. The layers can be specified during extrusion. Note that the list of extruded surfaces now contains six layers and the mid section.
+The tubular layers can be specified during extrusion. Note that the list of extruded surfaces now contains the six layers close to the side boundaries and the section between them.
 \begin{code}
 // Extrude
 length = 5.0;		
@@ -592,21 +568,13 @@ layers = 30;
 csf[] = Extrude {0,0,length} {Surface{32}; Surface{33};
    Surface{34};Surface{35};Surface{36};Surface{37};Surface{38};Layers{ {layers}, {1} }; };
 \end{code}
+Besides controling the numbers of nodes in tubular direction, extruded meshes result in more homogenous images in cross-sectional cuts.\\
 
-The complete code can be found in \ldots. The presented results were simulated on  meshes of length 5 cm with 30 layers in z-direction and three layers on the side boundaries.\\
 
-Figure \ref{fig:z_layers} shows that extruded meshes result in smoother cross section images. 
 
-Testing different numbers of layers  ....
-
-%FIGUR EINFUEGEN
-%\begin{figure}\begin{center}
-%\includegraphics[width=0.3\textwidth]{chapters/csf_flow/eps/pulse_f1_08_sysmax_nmb7.eps}
-%\includegraphics[width=0.3\textwidth]{chapters/csf_flow/eps/pulse_f1_08_sysdia_nmb18.eps}
-%\includegraphics[width=0.3\textwidth]{chapters/csf_flow/eps/pulse_f1_08_diamin1_nmb25.eps}
-%\caption{Case: Spinal SAS with (right) and without(left) layers in z-direction. The velocity in z-direction for the non-symmetric pulse at the time steps ??? $t=0.07s, 0.18s, 0.25s$.}
-%\label{fig:z_layers}. 
-%\end{center}\end{figure}
+The test meshes of 1.75 cm showed seemed to have a fully developed region around the mid-cross sections, where want to observe the flow profile. Testing different numbers of tubular layers for the length of 1.75, 2.5 and 5 cm showed that the above mentioned observations of wave-like structures occurred less for longer pipes, even though the number of layers was low compared to the pipe length.
+The presented results were simulated on meshes of length 5 cm with 30 layers in z-direction and three layers on the side boundaries.The complete code can be found in \emp{mesh_generation/FILENAME}%FIXME
+.\\
 
 
 
