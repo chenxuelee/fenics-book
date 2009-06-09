@@ -32,16 +32,16 @@
 \section{Introduction}
 
 Instant is a small Python module for just-in-time compilation (or inlining) of
-C/C++ code based on \index{SWIG}SWIG~\cite{www:SWIG} and
+C/C++ code based on \index{SWIG}SWIG~\cite{www:swig} and
 \index{Distutils}Distutils\footnote{http://www.python.org/doc/2.5.2/lib/module-distutils.html}. 
-Just-in-time compilation can significantly speed up, e.g., your NumPy~\cite{www:NumPy} code in a clean and
+Just-in-time compilation can significantly speed up, e.g., your NumPy~\cite{www:numpy} code in a clean and
 readable way. This makes Instant a very convenient tool in combination with code
 generation. Before we demonstrate the use of Instant in a series of examples,
 we briefly step through the basic ideas behind the implementation.
 Instant relies on SWIG for the generation of wrapper code needed for making the
-C/C++ code usable from Python~\cite{www:Python}. SWIG is a mature and well-documented tool
+C/C++ code usable from Python~\cite{www:python}. SWIG is a mature and well-documented tool
 for wrapping C/C++ code in many languages. We refer to its website for a comprehensive 
-user manual and we also discuss some common tricks and troubles in Chapter~\cite{chap:mardal-2}. 
+user manual and we also discuss some common tricks and troubles in Chapter~\ref{chap:mardal-2}. 
 The code to be inlined, in addition to the
 wrapper code, is then compiled into a Python extension module (a shared library
 with functionality as specified by the Python C-API) by using
@@ -49,17 +49,17 @@ Distutils. To check whether the C/C++ code has changed since the last
 execution, Instant computes the SHA1
 sum\footnote{http://www.apps.ietf.org/rfc/rfc3174.html} of the code and compares it to
 the SHA1 checksum of the code used in the previous execution. Finally, Instant has
-implemented a set of SWIG \index{Typemap}typemaps, allowing the user to
+implemented a set of SWIG \index{typemaps}typemaps, allowing the user to
 transfer NumPy arrays between the Python code and the C/C++ code.
 
 There exist several packages that are similar to Instant. 
-Worth mentioning here are \index{Weave}Weave~\cite{www:Weave}, 
-\index{Cython}Cython~\cite{www:Cython}, and \index{F2PY}F2PY~\cite{www:F2PY}. 
+Worth mentioning here are \index{Weave}Weave~\cite{www:weave}, 
+\index{Cython}Cython~\cite{www:cython}, and \index{F2PY}F2PY~\cite{Peterson}. 
 Weave allows us to inline C code directly in our Python
 code. Unlike Instant, Weave does not require the specification of the function
 signature and the return argument. For specific examples of Weave and the
-other mentioned packages, we refer to~\cite{WilbersLangtangenEtAl2009,www:Weave}. Weave is part of
-SciPy~\cite{www:SciPy}. 
+other mentioned packages, we refer to~\cite{WilbersLangtangenEtAl2009a,www:weave}. Weave is part of
+SciPy~\cite{www:scipy}. 
 %FIXME this needs to be put another place:
 %Indexing multi-dimensional arrays in Instant and Weave must
 %be done by using striding as the different dimensions are stored in
@@ -77,27 +77,28 @@ code.
 %row-major storage, it is important to specify the storage of the NumPy arrays
 %correctly in order to gain the maximum speed-up.
 Cython is a rather new project, branched from the more well-known Pyrex
-project~\cite{www:Pyrex}. Cython is attractive because of  its integration
+project~\cite{www:pyrex}. Cython is attractive because of  its integration
 with NumPy arrays. Cython differs from the other projects by being a programming
 language of its own. Cython extends Python with concepts such as static typing,  
 hence allowing the user to incrementally speed up the code.
 
 Instant accepts plain C/C++. This makes it particularly attractive to combine
-Instant with tools capable of generating C/C++ code such as FFC~\cite{Logg2007d},
-SFC~\cite{SFC}, Swiginac~\cite{www:Swiginac}, and Sympy~\cite{www:Sympy}.  In fact,
+Instant with tools capable of generating C/C++ code such as FFC (see Chapter~\ref{chap:logg-1}),
+SFC (see Chapter~\ref{chap:alnes-3}), Swiginac~\cite{www:swiginac}, and Sympy~\cite{vCert'ik2009}.  In fact,
 tools like these have been the main motivation behind Instant, and both FFC
 and SFC employ Instant. Instant is released under a BSD license, see the
 file \emp{LICENSE} in the source directory.
 
-In this chapter we will begin with several examples in Section \ref{sec:examples}.  
-Section \eqref{sec:explained} explains how Instant works, while 
-Section \eqref{sec:api} gives a detailed description of the API. 
+In this chapter we will begin with several examples in Section \ref{wilbers:sec:examples}.  
+Section \ref{wilbers:sec:explained} explains how Instant works, while 
+Section \ref{wilbers:sec:api} gives a detailed description of the API. 
 
 
 \section{Examples}
-\label{sec:examples}
-All code from the examples in this section can be found online.
-\footnote{http://www.fenics.org/pub/documents/book/instant/examples} We will refer
+\label{wilbers:sec:examples}
+All code from the examples in this section can be found
+online\footnote{http://www.fenics.org/pub/documents/book/instant/examples}.
+We will refer
 to this location as \emp{\$examples}.
 
 \subsection{Installing Instant}
@@ -178,10 +179,10 @@ that allows the user to specify a mapping between Python and C/C++ types. We
 will not go into details on typemaps in this chapter, but the reader 
 should be aware that it is a powerful tool that may greatly enhance your 
 code, but also lead to mysterious bugs when used wrongly. Typemaps 
-are discussed in Chapter~\cite{mixedlanguage} and at length at the SWIG
+are discussed in Chapter~\ref{chap:mardal-2} and at length at the SWIG
 webpage. In this chapter, it is sufficient to illustrate how to deal
 with arrays in Instant using the NumPy module. More details on how Instant
-NumPy arrays can be found in Section \ref{arrays}.
+NumPy arrays can be found in Section \ref{wilbers:sec:arrays}.
 
 \subsection{Ordinary Differential Equations}
 We introduce a
@@ -249,20 +250,20 @@ time_loop_c(p, Q, 1.0, 1.0, 1.0/(N-1), N, 1.0)
 \end{code}
 In the above example we obtain a speed-up of about a factor 400 when using
 100000 time steps compared to the pure Python with NumPy version, see Table
-\ref{speed-up}. This is about the same as a pure C program. The result of
+\ref{wilbers:fig:speed-up}. This is about the same as a pure C program. The result of
 solving the ODE can be seen in Figure
-\ref{fig1}. The comparison between NumPy and Instant is not really fair, as
+\ref{wilbers:fig:fig1}. The comparison between NumPy and Instant is not really fair, as
 NumPy  primarily gives a speed-up for code that can be vectorized, something
 that is not the case with our current ODE. In fact, utilizing pure Python
 lists instead of NumPy arrays, reduces the speed-up to a factor 100. For code
 that can be vectorized, the speed-up is about one order of magnitude when we
-use Instant instead~\cite{Wilbers09}.
+use Instant instead~\cite{WilbersLangtangenEtAl2009a}.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{chapters/wilbers/eps/pressure_plot.eps}
 \caption{Plot of pressure and blood volume flux computed by solving the Windkessel model.}
-\label{fig1}
+\label{wilbers:fig:fig1}
 \end{center}
 \end{figure}
 
@@ -276,7 +277,7 @@ CPU time with Instant & 5.0e-6  & 1.4e-5 & 1.0e-4 & 1.0e-3 & 1.1e-2  \\ \hline
 CPU time with C       & 4.0e-6  & 1.1e-5 & 1.0e-4 & 1.0e-3 & 1.1e-2  \\ \hline 
 \end{tabular}
 \caption{CPU times of Windkessel model for different implementations (in seconds).}
-\label{speed-up}
+\label{wilbers:fig:speed-up}
 \end{center}
 \end{table}
 The complete code for this example can be found in \emp{\$examples/ex2.py}
@@ -285,7 +286,7 @@ The complete code for this example can be found in \emp{\$examples/ex2.py}
 \subsection{Numpy Arrays and OpenMP}
 It is easy to speed up code on parallel computers with OpenMP. We will not
 describe \index{OpenMP}OpenMP in 
-any detail here, the reader is referred to~\cite{OpenMP}. However, note
+any detail here, the reader is referred to~\cite{www:openmP}. However, note
 that preprocessor directives like '\emp{\#pragma omp \ldots}' are OpenMP directives and
 that OpenMP functions start with \emp{omp}.
 In this example, we want
@@ -493,7 +494,7 @@ primary objective is to examplify different Instant features.
 %
 
 \section{Instant Explained}
-\label{sec:explained}
+\label{wilbers:sec:explained}
 
 The previous section concentrated on the usage of Instant and it may
 appear mysterious how it actually works since it is unclear what
@@ -529,7 +530,7 @@ either in cache or locally, and further whether we need to rebuild these files
 based on the checksum of the source files and the arguments to the Instant
 function. This means that Instant will perform the compile step \emph{only} if
 changes are made to the source code or arguments. More details about the
-different caching options can be found in Section \ref{msc}. 
+different caching options can be found in Section \ref{wilbers:sec:msc}. 
 
 The resulting module files can be found in a directory reflecting the name of
 the module, in this case \emp{ex4\_\-cache}:
@@ -585,13 +586,13 @@ Arguments to this script will output the files matching the specified pattern,
 for example will \emp{instant-showcache 'test*.i'} show the content of the
 SWIG interface file for any module beginning with the letters \emp{test}.
 
-\subsection{Arrays and Typemaps}\label{arrays}
+\subsection{Arrays and Typemaps}\label{wilbers:sec:arrays}
 Instant has support for converting NumPy arrays to C arrays and vice
 versa. For arrays with up to three dimensions, the SWIG interface file from
 NumPy is used, with a few modifications. When installing Instant, this file is
 included as well. \emp{arrays} should be a list, each entry containing
 information about a specific array. This entry should contain a list with
-strings, so the \emp{arrays} argument is a nested list.\index{Typemap}
+strings, so the \emp{arrays} argument is a nested list.\index{typemaps}
 
 Each array (i.e. each element in \emp{arrays}) is a list containing the names
 of the variables describing that array in the C code. For a 1-dimensional
@@ -755,8 +756,8 @@ macro in C:
 \end{code}
 which allows us to write \emp{index(u, i, j, k)} instead.
 
-\subsection{Module name, signature, and cache}\label{msc}
-\index{Cache}\index{Signature}
+\subsection{Module name, signature, and cache}\label{wilbers:sec:msc}
+\index{cache}\index{signatures}
 The Instant cache resides in the directory \emp{.instant} in the
 directory of the user. It is possible to specify a different directory, but the
 \emp{instant-clean} script will not remove these when executed.
@@ -817,7 +818,7 @@ other processes cannot access this module while it is being copied.
 
 
 \section{Instant API}
-\label{sec:api}
+\label{wilbers:sec:api}
 In this section we will describe the various Instant functions and their
 arguments visible to the user. The first ten functions are the core Instant
 functions, with \emp{build\_\-module} being the main one, while the next eight
@@ -849,7 +850,7 @@ SWIG programmers. The keywords arguments are as follows:
     If specified, the module will not be cached.
     If missing, a name will be constructed based on
     a checksum of the other arguments, and the module
-    will be placed in the global cache. See Section \ref{msc} for more
+    will be placed in the global cache. See Section \ref{wilbers:sec:msc} for more
     details.
   \eit
 \item \emp{source\_\-directory}
@@ -891,7 +892,7 @@ SWIG programmers. The keywords arguments are as follows:
     \item Type: String
     \item Comment: Additional declarations (typically needed for inheritance)
       for interface file. These declarations should be given as triple-quoted
-      strings in the case they span multiple lines, and are plaves in the main
+      strings in the case they span multiple lines, and are placed in the main
       section of the interface file.
   \eit
 \item \emp{sources}
@@ -1000,7 +1001,7 @@ SWIG programmers. The keywords arguments are as follows:
         If the NumPy array har more than four dimensions, the inner list should
         contain strings with variable names for the number of dimensions,
         the length in each dimension as a pointer, and the array itself,
-        respectively. For more details, see section \ref{arrays}.
+        respectively. For more details, see Section \ref{wilbers:sec:arrays}.
   \eit
 \item \emp{generate\_\-interface}
   \bit
@@ -1019,7 +1020,7 @@ SWIG programmers. The keywords arguments are as follows:
     \item Default: \emp{None}
     \item Type: String
     \item Comment: A signature string to identify the form instead of the
-      source code. See Section \ref{msc}.
+      source code. See Section \ref{wilbers:sec:msc}.
   \eit
 \item \emp{cache\_\-dir}
   \bit
@@ -1105,7 +1106,8 @@ is \emp{True}, the link flags are returned as a fifth list. Let's look at an
 example:
 \begin{code}
 inc_dirs, comp_flags, libs, lib_dirs, link_flags = \
-header_and_libs_from_pkgconfig('ufc-1', 'libxml-2.0', 'numpy-1', 
+header_and_libs_from_pkgconfig('ufc-1', 'libxml-2.0', 
+                               'numpy-1', 
                                returnLinkFlags=True)
 \end{code}
 This makes it a easy to write C code that makes use of a package providing a
