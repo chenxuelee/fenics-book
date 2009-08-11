@@ -22,8 +22,8 @@ public:
 stab = Function(Vv,cppcode); stab.field = a
 
 # Assemble the stabilization matrices
-E_stab = assemble(div(a*u)*dot(stab,grad(v))*dx)
-M_stab = assemble(u*dot(stab,grad(v))*dx)
+E_stab = assemble(div(a*u)*inner(stab,grad(v))*dx)
+M_stab = assemble(u*inner(stab,grad(v))*dx)
 
 # Adding them to the A and M matrices, weighted by the global tau
 tau = 0.28; E.axpy(tau,E_stab); M.axpy(tau,M_stab)

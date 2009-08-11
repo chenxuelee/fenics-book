@@ -1,24 +1,22 @@
-# Time parameters
-dt_min = 1.0e-8; dt = dt_min; t = 0; c0 = 0.1; tstop = 1.0
+# Model parameters
+dt_min = 1.0e-10; dt = dt_min; t = 0; c0 = 0.1; tstop = 1.0
 events = [0.2,tstop/2,tstop,tstop]; dt_expand = 2.0;
-
-# Boundary parameters
+sigma = 1e5; ds = 50; area = pi; Faraday = 0.0965; amp = -0.1
 t_channels = {1:[0.2,tstop/2], 2:[tstop/2,tstop]}
-sigma = 1e5; ds = 20; area = 3.1416; Faraday = 0.0965; amp = -0.1
 
 # Initialize the solution Function and the left and right hand side
 u = Function(Vs); x = u.vector()
-x[:] = c0*exp(-a.valence*a.phi_0*exp(-a.kappa*mesh.coordinates()[:,-1]))
-b = Vector(len(x); A = K.copy();
+x[:] = c0#*exp(-a.valence*a.phi_0*exp(-a.kappa*mesh.coordinates()[:,-1]))
+b = Vector(len(x)); A = K.copy();
 
 solver = KrylovSolver("bicgstab","amg_hypre")
-dolfin_set("Krylov relative tolerance",1e-7)
-dolfin_set("Krylov absolute tolerance",1e-10);
+solver.parameters["relative_tolerance"] = 1e-10
+solver.parameters["absolute_tolerance"] = 1e-7
 
 plot(u, vmin=0, vmax=4000, interactive=True)
 while t < tstop:
     # Initalize the left and right hand side
-    A[:] = K; A *= sigma; A += E; b[:] = 0
+    A.assign(K); A *= sigma; A += E; b[:] = 0
     
     # Adding channel fluxes
     for c in [1,2]:
