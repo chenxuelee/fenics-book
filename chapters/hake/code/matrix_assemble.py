@@ -14,9 +14,9 @@ a = Function(Vv,["0.0","0.0","phi_0*valence*kappa*sigma*exp(-kappa*x[2])"],
              {"phi_0":-2.2,"valence":2,"kappa":1,"sigma":1.e5})
 
 # Assembly of the K, M and A matrices
-K = assemble(dot(grad(u),grad(v))*dx)
+K = assemble(inner(grad(u),grad(v))*dx)
 M = assemble(u*v*dx)
-E = assemble(-u*dot(a,grad(v))*dx)
+E = assemble(-u*inner(a,grad(v))*dx)
 
 # Collecting face markers from a file, and skip the 0 one
 sub_domains = MeshFunction("uint",mesh,"cleft_mesh_face_markers.xml.gz")
