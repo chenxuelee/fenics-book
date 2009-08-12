@@ -16,11 +16,11 @@ operations are expressed in terms of numerical linear algebra and
 performed using the widely distributed \texttt{numpy} package.
 
 The FIAT project is one of the first FEniCS projects, providing the
-basis function back-end for \texttt{ffc} and enabling high-order 
-\( H^1 \), 
+basis function back-end for \texttt{ffc} and enabling high-order
+\( H^1 \),
 \( H(\mathrm{div}) \) and \( H(\mathrm{curl}) \) elements.  It is widely
 distributed, with downloads on every inhabited continent and in over
-sixty countries, averaging  about 100 downloads per month. 
+sixty countries, averaging  about 100 downloads per month.
 
 
 This chapter works in the context of a Ciarlet triple \( (K,P,N) \)~\cite{Cia78},
@@ -28,7 +28,7 @@ where \( K \) is a fixed reference domain, typically a triangle or
 tetrahedron.  \( P \) is a finite-dimensional polynomial space, though
 perhaps vector- or tensor-valued and not coincident with polynomials
 of some fixed degree.  \( N = \{ \ell_i \}_{i=1}^{|P|} \) is a set of linear functionals spanning
-\( P^\prime \).  Recalling Chapter~\cite{}, the goal is first to
+\( P^\prime \).  Recalling Chapter~\cite{missing}, the goal is first to
 enumerate a convenient basis \( \{ \phi_i \}_{i=1}^{|P|} \) for \( P
 \) and then to form a generalized Vandermonde system
 \[
@@ -46,9 +46,9 @@ evaluation algorithms.  FIAT uses the so-called collapsed-coordinate
 polynomials~\cite{KarShe99} on the triangle and tetrahedra.  Let
 \(P^{\alpha,\beta}_i(x) \) denote the Jacobi polynomial of degree \( i
 \) with weights \( \alpha \) and \( \beta \).
-On the triangle \( K \) 
+On the triangle \( K \)
 with vertices \( (-1,1) \), \((1,-1) \), \( (-1,1) \), the
-polynomials are of the form 
+polynomials are of the form
 \[
   D^{p,q}( x,y ) = P^{0,0}_{p}(\eta_1)  \left( \frac{1-\eta_2}{2}
   \right)^i P^{2i+1,0}_j(\eta_2)
@@ -61,7 +61,7 @@ where
 \end{split}
 \]
 is called the collapsed-coordinate mapping is a singular
-transformation between the triangle and the biunit 
+transformation between the triangle and the biunit
 square.  The set \( \{ D^{p,q}( x,y) \}_{p,q \geq 0}^{p+q\leq n} \)
 forms a basis for polynomoials of degree \( n \).  Moreover, they are
 orthogonal in the \( L^2(K) \) inner product.
@@ -69,7 +69,7 @@ Recently~\cite{Kir09}, it has been shown that these polynomials
 may be computed directly on the triangle without reference to the
 singular mapping.  This means that no special treatment of the
 singular point is required, allowing use of standard automatic
-differentiation techniques to compute derivatives.  
+differentiation techniques to compute derivatives.
 
 The recurrences are obtained by rewriting the polynomials as
 \[
@@ -109,7 +109,7 @@ D^{p-1,0}(x,y)$
 \EndFor
 \For{$p \gets 0,d-1$}
 \For{$q \gets 1,d-p-1$}
-\State $D^{p,q+1}(x,y) := 
+\State $D^{p,q+1}(x,y) :=
 \left( a_{q}^{2p+1,0} y + b_q^{2p+1,0} \right) D^{p,q}(x,y)
 - c_q^{2p+1,0} D^{p,q-1}(x,y)$
 \EndFor
@@ -121,11 +121,11 @@ D^{p-1,0}(x,y)$
 \section{Representing polynomials and functionals}
 Even using recurrence relations and \texttt{numpy} vectorization for
 arithmetic, further care is required to optimize performance.  In this
-section, standard 
+section, standard
 operations on polynomials will be translated into vector operations, and
 then batches of such operations cast as matrix multiplication.  This
 helps eliminate the interpretive overhead of Python while moving
-numerical computation into  optimized library routines, since 
+numerical computation into  optimized library routines, since
 \texttt{numpy.dot} wraps level 3 BLAS and other functions such as
 \texttt{numpy.svd} wrap relevant LAPACK routines.
 
@@ -159,7 +159,7 @@ p(x) = \mathcal{R}(p)_i \Phi_i.
 
 More generally in FIAT, a set of polynomials \( \{ p_i \} \) will need
 to be evaulated simultaneously, such as evaluating all of the members
-of a finite element basis.  
+of a finite element basis.
 The coefficients of the set of
 polynomials may be stored in the rows of a matrix \( C \), so
 that
@@ -189,7 +189,7 @@ which is just the matrix product \( C \Phi \) and may
 may be efficiently carried out by a library operation,
 such as the \texttt{numpy.dot} wrapper to level 3 BLAS.
 
-Finite element computation also requires the evaluation of derivatives 
+Finite element computation also requires the evaluation of derivatives
 of polynomials.  In a symbolic context, differentiation presents no
 particular difficulty, but working in a numerical context requires
 some special care.
@@ -208,7 +208,7 @@ The formulae in Algorithm~\ref{dubalg} and their tetrahedral counterpart are
 fairly easy to differentiate, but derivatives may also be obtained through
 automatic differentiation.  Some experimental support for this using
 the AD tools in Scientific Python has been developed in an unreleased
-version of FIAT.  
+version of FIAT.
 
 The released version of FIAT currently evaluates derivatives in terms
 of linear operators, which allows the coordinate singularity in the
@@ -230,7 +230,7 @@ polynomials, making use of the multidimensional arrays implemented in
 array.  Let \( p \in (P)^m \) and \( p^i \) be the \( j^\mathrm{th} \)
 component of \( p \).  Then \( p = \mathcal{R}(p)_{jk} \phi_k \), so
 that \( \mathcal{R}(p)_{jk} \) is the coefficient of \( \phi_k \) for
-\( p^j \).  
+\( p^j \).
 
 The previous discussion of tabulating collections of functions at
 collections of points is naturally extended to this context.  If \( \{
@@ -246,12 +246,12 @@ p_i(x_k)^j = C_{ijl} \phi_{lk}.
 \]
 Psychologically, this is just a matrix product if \( C_{ijl} \)
 is stored contiguously in generalized row-major format, and the
-operation is readly cast as dense matrix multiplication.  
+operation is readly cast as dense matrix multiplication.
 
 Returning for the moment to scalar-valued polynomials, linear
-functionals may also be represented as 
+functionals may also be represented as
 Euclidean vectors.  Let \( \ell: P \rightarrow \mathbb{R} \) be a linear
-functional.  Then, for any \( p \in P \), 
+functional.  Then, for any \( p \in P \),
 \[
 \ell( p ) = \ell( \mathcal{R}(p)_i \phi_i )
 = \mathcal{R}(p)_i \ell( \phi_i ),
@@ -259,7 +259,7 @@ functional.  Then, for any \( p \in P \),
 so that \( \ell \) acting on \( p \) is determined entirely by its
 action on the basis \( \{ \phi_i \} \).  As with \( \mathcal{R} \), define
 \( \mathcal{R}^\prime : P^\prime \rightarrow \mathbb{R}^{|P|} \) by
-\[ 
+\[
   \mathcal{R}^\prime (\ell)_i
 = \ell( \phi_i),
 \]
@@ -294,18 +294,18 @@ Also, the formalism of \( \mathcal{R}^\prime \) may be generalized to
 functionals over vector-valued spaces.  As before, let \( P \) be a
 space of degree \( n \) with basis \( \{ \phi_i \}_{i=1}^{|P|} \) and
 to each \( v \in (P)^m \) associate the representation \( v^i
-= \mathcal{R}(v)_{ij}\phi_j \).  In this notation, 
+= \mathcal{R}(v)_{ij}\phi_j \).  In this notation,
 \( v = \mathcal{R}(v)_{ij} \phi_j \) is the vector indexed over \( i \).
 For any functional
-\( \ell \in \left( \left(P\right)^m \right)^\prime \), a 
+\( \ell \in \left( \left(P\right)^m \right)^\prime \), a
 representation \( \mathcal{R}^\prime(\ell)_{ij} \) must be defined
-such that 
+such that
 \[
 \ell(v) = \mathcal{R}^\prime(\ell)_{ij} \mathcal{R}(v)_{ij},
 \]
 with summation implied over \(i\) and \( j\).  To determine the
 representation of \( \mathcal{R}^\prime(f) \), let \( e^j \) be the
-canonical basis vector with \( (e^j)_i = \delta_{ij} \) and 
+canonical basis vector with \( (e^j)_i = \delta_{ij} \) and
 write
 \begin{equation}
 \begin{split}
@@ -355,7 +355,7 @@ RT_r = \left( P_r(K) \right)^d \oplus \left( \tilde{P}_r(K) \right) x,
 \]
 where \( x \in \mathbb{R}^d \) is the coordinate vector and
 \( \tilde{P}_r \) is the space of homogeneous polynomials of degree \(
-r \).  
+r \).
 Given any basis \( \{ \phi_i \} \) for \( P_r(K) \) such as the
 Dubiner basis, it is easy to obtain a basis for \( (P_r(K))^d \) by
 taking vectors where one component is some \( \phi_i \) and the rest
@@ -367,11 +367,11 @@ form
 x^i y^{r-i}
 \) span the space of homoegeneous
 polynomials, they are subject to ill-conditioning in numerical computations.
-On the other hand, the Dubiner basis 
-of order \( r \), \( \{ \phi_i \}_{i=1}^{|P_r|} \) 
+On the other hand, the Dubiner basis
+of order \( r \), \( \{ \phi_i \}_{i=1}^{|P_r|} \)
 may be ordered so that the last \( r + 1 \) functions,
 \( \{ \phi_i \}_{i=|P_r|-r}^{|P_r|} \), have degree exactly \( r \).
-While they do not span \( \tilde{P}_r \), the span of 
+While they do not span \( \tilde{P}_r \), the span of
 \( \{ x \phi_i \}_{i=|P_r|-r}^{|P_r|} \) together with a basis for \(
 (P_r(K))^2 \) does span \( RT_r \).
 
@@ -379,7 +379,7 @@ So, this gives a basis for the Raviart-Thomas space that can be
 evaluated and differentiated using the recurrence relations described
 above.  A similar technique may be used to construct elements that
 consist of standard elements augmented with some kind of bubble
-function, such as 
+function, such as
 the PEERS element of elasticity or MINI element for Stokes flow.
 
 
@@ -402,7 +402,7 @@ of degree \( r \) mapped to \( \gamma \).  Then, if a function \( u
 \[
 \int_{\gamma} ( u \cdot n ) \mu^\gamma \, ds = 0
 \]
-for each \( \gamma \in \mathcal{E}(K) \).  
+for each \( \gamma \in \mathcal{E}(K) \).
 
 Number the edges by \( \{ \gamma_i \}_{i=1}^3 \) and introduce
 linear functionals \\
@@ -429,19 +429,19 @@ generalized Vandermonde matrix.
 
 This technique may be generalized to three dimensions, and it also
 applies to N\'ed\'elec~\cite{Ned80}, Arnold-Winther~\cite{ArnWin02},
-Mardal-Tai-Winther~\cite{MarTai02}, 
+Mardal-Tai-Winther~\cite{MarTai02},
 and many other elements.
 
 \section{Conveying topological information to clients}
 Most of this chapter has provided techniques for constructing finite
-element bases and evaluating and differentiating them.  
+element bases and evaluating and differentiating them.
 FIAT must also indicate which degrees of freedom are
 associated with which entities of the reference element.  This
 information is required when local-global mappings are generated by a
-form compiler such as \texttt{ffc}. 
+form compiler such as \texttt{ffc}.
 
 The topological information is provided by a graded incidence relation
-and is similar to the presentation of finite element meshes in~\cite{Log09}.  
+and is similar to the presentation of finite element meshes in~\cite{Log09}.
 Each entity in the reference element is
 labeled by its topological dimension (e.g. 0 for vertices and 1 for
 edges), and then the entities of the same dimension are ordered by
@@ -449,7 +449,7 @@ some convention.  To each entity, a list of the local nodes is
 associated.  For example, the reference triangle with entities labeled
 is shown in Figure~\ref{fig:reftri}, and the
 cubic Lagrange triangle with nodes in the dual basis labeled is
-shown in Figure~\ref{fig:p3}.  
+shown in Figure~\ref{fig:p3}.
 
 \begin{figure}[H]
   \label{fig:reftri}
@@ -471,7 +471,7 @@ shown in Figure~\ref{fig:p3}.
 
 For this example, the graded incidence relation is stored as
 \begin{verbatim}
-{ 0: { 0: [ 0 ] , 
+{ 0: { 0: [ 0 ] ,
        1: [ 1 ] ,
        2: [ 2 ] } ,
   1: { 0: [ 3 , 4 ] ,
@@ -528,14 +528,14 @@ constructors accept the reference element and order of function space as
 arguments.  This gives an interface that is parametrized by dimension
 and degree.  The classes such as \texttt{Lagrange} derive from a base class
 \texttt{FiniteElement} that provides access to the three components of
-the Ciarlet triple.  
+the Ciarlet triple.
 
 The currently released version of FIAT stores the
 reference element as a flag indicating the simplex dimension, although
 a development version provides an actual class describing reference
 element geometry and topology.  This will allow future releases of
 FIAT to be parametrized over the particular reference element shape
-and topology.  
+and topology.
 
 The function space \( P \) is modelled by the base class
 \texttt{PolynomialSet}, while  contains a rule for
@@ -577,7 +577,7 @@ In the future, FIAT will include the developments discussed already
 (more general reference element geometry/topology and automatic
 differentiation).  Automatic differentiation will make it easier to
 construct finite elements with deriva\-tive-type degrees of freedom such
-as Hermite, Morley, and Argyris.  Aditionally, 
+as Hermite, Morley, and Argyris.  Aditionally,
 we hope to expand the collection of quadrature
 rules and provide more advanced point distributions, such as
 Warburton's warp-blend points~\cite{War05}.
