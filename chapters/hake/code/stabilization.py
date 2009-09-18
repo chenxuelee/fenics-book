@@ -2,7 +2,7 @@
 cppcode = """class Stab: public Function {
 public:
   Function* field; uint _dim; double sigma;
-  Stab(const FunctionSpace& V): Function(V)
+  Stab(boost::shared_ptr<FunctionSpace> V): Function(V)
     {field = 0; sigma=1.0e5;}
   void eval(double* v, const Data& data) const {
     if (!field)
@@ -26,4 +26,4 @@ E_stab = assemble(div(a*u)*inner(stab,grad(v))*dx)
 M_stab = assemble(u*inner(stab,grad(v))*dx)
 
 # Adding them to the A and M matrices, weighted by the global tau
-tau = 0.28; E.axpy(tau,E_stab); M.axpy(tau,M_stab)
+tau = 0.28; E.axpy(tau,E_stab,True); M.axpy(tau,M_stab,True)

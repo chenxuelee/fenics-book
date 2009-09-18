@@ -29,5 +29,5 @@ F = {};f = {};tmp = K.copy(); tmp.zero()
 for k in unique_sub_domains:
     domain.values()[:] = (sub_domains.values() != k)
     F[k] = assemble(u*v*ds, exterior_facet_domains = domain, \
-                    tensor = tmp.copy(), reset_tensor = False)
+                    tensor = tmp.copy(), reset_sparsity = False)
     f[k] = assemble(v*ds, exterior_facet_domains = domain)

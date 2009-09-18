@@ -24,7 +24,7 @@ while t < tstop:
             b.axpy(-amp*1e9/(2*Faraday*area),f[c])
     
     # Adding cytosole flux at Omega 3
-    A.axpy(sigma/ds,F[3]); b.axpy(c0*sigma/ds,f[3])
+    A.axpy(sigma/ds,F[3],True); b.axpy(c0*sigma/ds,f[3])
 
     # Applying the Backward Euler time discretization
     A *= dt; b *= dt; b += M*x; A += M
