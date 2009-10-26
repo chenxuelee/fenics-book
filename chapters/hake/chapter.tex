@@ -1,36 +1,20 @@
 \newcommand{\Ca}{\ensuremath{\mbox{Ca}^{2+}}\xspace}
 \newcommand{\CaC}{\ensuremath{\left[\mbox{Ca}^{2+}\right]}\xspace}
 \newcommand{\Na}{\ensuremath{\mbox{Na}^{+}}\xspace}
-\newcommand{\NaC}{\ensuremath{\left[\mbox{Na}^{+}\right]}\xspace}
-\newcommand{\K}{\ensuremath{\mbox{K}^{+}}\xspace}
-\newcommand{\HC}{\ensuremath{\left[\mbox{H}^{+}\right]}\xspace}
-\renewcommand{\H}{\ensuremath{\mbox{H}^{+}}\xspace}
-\newcommand{\KC}{\ensuremath{\left[\mbox{K}^{+}\right]}\xspace}
 \newcommand{\Cl}{\ensuremath{\mbox{Cl}^{-}}\xspace}
-\newcommand{\ClC}{\ensuremath{\left[\mbox{Cl}^{-}\right]}\xspace}
 \newcommand{\Mg}{\ensuremath{\mbox{Mg}^{2+}}\xspace}
 \newcommand{\MgC}{\ensuremath{\left[\mbox{Mg}^{2+}\right]}\xspace}
 
 \newcommand{\T}{\ensuremath{\mathcal{T}}\xspace}
 
 % positional numbers
-\newcommand{\ith}{\ensuremath{i^{\scriptscriptstyle\text{th}}}\xspace}
 \newcommand{\kth}{\ensuremath{k^{\scriptscriptstyle\text{th}}}\xspace}
-\newcommand{\lth}{\ensuremath{l^{\scriptscriptstyle\text{th}}}\xspace}
 \newcommand{\nth}{\ensuremath{n^{\scriptscriptstyle\text{th}}}\xspace}
-\newcommand{\mth}{\ensuremath{m^{\scriptscriptstyle\text{th}}}\xspace}
 
 \newcommand{\Ltwo}[1]{\ensuremath{\|#1\|_{L^2}\xspace}}
 
-%\newcommand{\dt}{\ensuremath{\Delta{}\tau}}
 \newcommand{\Dt}{\ensuremath{\Delta{}t}}
-\newcommand{\Dx}{\ensuremath{\Delta{}x}}
-\newcommand{\Dy}{\ensuremath{\Delta{}y}}
-\newcommand{\Dz}{\ensuremath{\Delta{}z}}
-\newcommand{\Dr}{\ensuremath{\Delta{}r}}
 \newcommand{\Ds}{\ensuremath{\Delta{}s}}
-\newcommand{\DS}{\ensuremath{\Delta{}S}}
-\newcommand{\DV}{\ensuremath{\Delta{}V}}
 \newcommand{\Rset}{\ensuremath{\mathbb{R}}}
 \newcommand{\diff}[2][{}]{\dfrac{\partial #1}{\partial #2}}
 
@@ -113,7 +97,7 @@ where $c = c(x,t)$ is the \CaC ($x\in\Omega$ and $t\in$[0,T]), $\sigma$ the diff
 \end{equation}
 Here $\dot{c}$ is the time derivative of $c$.\par
 
-The strength of $\psi$ is defined by the amount of charge at the cell membrane and by the combined screening effect of all the ions in the dyadic cleft. In addition to \Ca, the intracellular solution also contains \K, \Na, \Cl, and \Mg. Following the previous approach by \citet{LangnerCafisoEtAl1990} and \citet{SoellerCannell1997}, these other ions will be treated as being in steady state. The cell membrane is assumed to be planar and effectively infinite. This assumption allows us to use an approximation of the electric potential in the solution,
+The strength of $\psi$ is defined by the amount of charge at the cell membrane and by the combined screening effect of all the ions in the dyadic cleft. In addition to \Ca, the intracellular solution also contains \ensuremath{\mbox{K}^{+}}, \Na, \Cl, and \Mg. Following the previous approach by \citet{LangnerCafisoEtAl1990} and \citet{SoellerCannell1997}, these other ions will be treated as being in steady state. The cell membrane is assumed to be planar and effectively infinite. This assumption allows us to use an approximation of the electric potential in the solution,
 \begin{equation}
   \label{eq:electric_potential}
   \psi(z) = \psi_0\e^{-\kappa{}z}.
@@ -424,7 +408,7 @@ The solution of the included stochastic Markov chain models is stored in a state
 
 \subsection*{Time stepping algorithm}
 \label{sec:event-driven-simulator}
-To simplify the presentation of the time stepping algorithm we only consider one continuous variable, this could for example be the \Ca field. The framework presented here can be expanded to also handle several continuous variables. We define a base class called \texttt{DiscreteObject}, which defines the interface for all discrete objects. A key function of a discrete object is to know when its \textit{next event} is due at. The \texttt{DiscreteObject} that has the smallest next event time, gets to define the size of the next \Dt. In \python this is easily done by making the \texttt{DiscreteObject}s sortable with respect to their next event time. All \texttt{DiscreteObject}s is then collected in a list, \texttt{discrete\_objects} see Fig.~\ref{fig:time-stepping-algorithm}. The \texttt{DiscreteObject} with the smallest next event time is then just \texttt{min(discrete\_objects)}.\par
+To simplify the presentation of the time stepping algorithm we only consider one continuous variable, this could for example be the \Ca field. The framework presented here can be expanded to also handle several continuous variables. We define a base class called \texttt{DiscreteObject}, which defines the interface for all discrete objects. A key function of a discrete object is to know when its \textit{next event} is due at. The \texttt{DiscreteObject} that has the smallest next event time, gets to define the size of the next \Dt. In \packagefont{Python} this is easily done by making the \texttt{DiscreteObject}s sortable with respect to their next event time. All \texttt{DiscreteObject}s is then collected in a list, \texttt{discrete\_objects} see Fig.~\ref{fig:time-stepping-algorithm}. The \texttt{DiscreteObject} with the smallest next event time is then just \texttt{min(discrete\_objects)}.\par
 
 An event from a \texttt{DiscreteObject} that does not have an impact on the continuous solution will be ignored for example a Markov chain model transition that is not a channel transition. A transition needs to be realized before we can tell if it is a channel transition or not. This is done by \textit{stepping} the \texttt{DiscreteObject}, i.e., calling the object's \texttt{step()} method. If the method returns \texttt{False}, it will not affect the \Ca field, and we enter the while loop, and a new \texttt{DiscreteObject} is picked, see Fig.~\ref{fig:time-stepping-algorithm}. If the object returns \texttt{True} when stepped, we exit the loop and continue. Next, we have to update the other discrete objects with the chosen \Dt, solve for the \Ca field, broadcast the solution and last but not least execute the discrete event that is scheduled to happen at \Dt.\par
 
@@ -443,7 +427,7 @@ In Fig.~\ref{fig:time-line} we show an example of a possible realization of this
 \subsection*{\texttt{diffsim}: an example}
 \index{\texttt{diffsim}}
 \index{event driven simulator}
-\texttt{diffsim} is a versatile event driven simulator that incorporates the time stepping algorithm presented in the previous section together with the infrastructure to solve models with one or more diffusional domains, defined by a computational mesh. Each such domain can have several diffusive ligands. Custom fluxes can easily be included through the framework. The sub module \texttt{dyadiccleft} implements some published Markov models that can be used to simulate the stochastic behaviour of a dyad and some convenient boundary fluxes. It also implements the field flux from the lipid bi-layer discussed in Section~\ref{sec:ca-diffusion}. In Fig.~\ref{fig:diffsim_test} a runnable script is presented, which simulates the time to release, also called the latency, for a dyad. The two Markov models that is presented in Section \ref{sec:stochastic-models} are here used to model the stochastic dynamics of the RyRs and the LCCs. The simulation is driven by a so called dynamic voltage clamp. The data that defining the voltage clamp is read from a file using utilities from the \numpy \python packages.\par
+\texttt{diffsim} is a versatile event driven simulator that incorporates the time stepping algorithm presented in the previous section together with the infrastructure to solve models with one or more diffusional domains, defined by a computational mesh. Each such domain can have several diffusive ligands. Custom fluxes can easily be included through the framework. The sub module \texttt{dyadiccleft} implements some published Markov models that can be used to simulate the stochastic behaviour of a dyad and some convenient boundary fluxes. It also implements the field flux from the lipid bi-layer discussed in Section~\ref{sec:ca-diffusion}. In Fig.~\ref{fig:diffsim_test} a runnable script is presented, which simulates the time to release, also called the latency, for a dyad. The two Markov models that is presented in Section \ref{sec:stochastic-models} are here used to model the stochastic dynamics of the RyRs and the LCCs. The simulation is driven by a so called dynamic voltage clamp. The data that defining the voltage clamp is read from a file using utilities from the \numpy \packagefont{Python} packages.\par
 
 \section{Discussion}
 We have presented a computational model of the \Ca dynamics of the dyadic cleft in heart cells. It consists of a coupled stochastic and continuous system. We have showed how one can use \pydolfin to discretise and solve the continuous system using a finite element method. The continuous system is an advection-diffusion equation that produce unstable discretizations. We investigate how one can use the streamline upwind/Petrov-Galerkin method to stabilize the discretized system. We use three different meshes and find an L$^2$-optimal global stabilization parameters $\tau$ for each mesh.\par

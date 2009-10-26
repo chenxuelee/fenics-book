@@ -1,9 +1,11 @@
 # Defining the stabilization using local Peclet number
-cppcode = """class Stab: public Function {
+cppcode = """class Stab : public Expression {
 public:
-  Function* field; uint _dim; double sigma;
-  Stab(boost::shared_ptr<FunctionSpace> V): Function(V)
-    {field = 0; sigma=1.0e5;}
+  Expression* field; double sigma;
+  Stab(): Expression(3), field(0), sigma(1.0e5)
+  {
+    value_shape.push_back(3);
+  }
   void eval(double* v, const Data& data) const {
     if (!field)
       error("Attach a field function.");
@@ -19,7 +21,7 @@ public:
     for (uint i = 0;i < geometric_dimension(); ++i)
       v[i] *= 0.5*h*tau/field_norm;}};
 """
-stab = Function(Vv,cppcode); stab.field = a
+stab = Expression(cppcode, V = Vv); stab.field = a
 
 # Assemble the stabilization matrices
 E_stab = assemble(div(a*u)*inner(stab,grad(v))*dx)

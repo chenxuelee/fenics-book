@@ -10,8 +10,9 @@ v = TestFunction(Vs)
 u = TrialFunction(Vs)
 
 # Defining the electric field-function
-a = Function(Vv,["0.0","0.0","phi_0*valence*kappa*sigma*exp(-kappa*x[2])"],
-             {"phi_0":-2.2,"valence":2,"kappa":1,"sigma":1.e5})
+a = Expression(["0.0","0.0","phi_0*valence*kappa*sigma*exp(-kappa*x[2])"],
+               defaults = {"phi_0":-2.2,"valence":2,"kappa":1,"sigma":1.e5},
+               V = Vv)
 
 # Assembly of the K, M and A matrices
 K = assemble(inner(grad(u),grad(v))*dx)
