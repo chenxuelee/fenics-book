@@ -17,11 +17,6 @@
 %\newcommand{\bit}{\begin{itemize}}
 %\newcommand{\eit}{\end{itemize}}
 %\DefineVerbatimEnvironment{code}{Verbatim}{frame=single,rulecolor=\color{blue},fontsize=\small}
-\renewcommand{\L}{\mathcal{L}}
-\renewcommand{\K}{\mathcal{K}}
-\newcommand{\A}{\mathcal{A}}
-\newcommand{\B}{\mathcal{B}}
-\renewcommand\curl{\operatorname{curl}}
 
 \fenicschapter{Block Preconditioning of Systems of PDEs}
               {Block Preconditioning of Systems of PDEs}
@@ -61,14 +56,14 @@ presentation is given. Consider the following abstract formulation
 of a linear PDE problem: \\ 
 Find $u$ in the Hilbert space $H$ such that: 
 \[
-\A u = f,  
+\mathcal{A} u = f,  
 \]
 where $f\in H^*$ and $H^*$ is the dual space of $H$.  
 We will assume that the PDE problem is well-posed, i.e., 
-that $\A : H \rightarrow H^*$ is a bounded invertible operator in the sense that,  
+that $\mathcal{A} : H \rightarrow H^*$ is a bounded invertible operator in the sense that,  
 \[
-\|\A\|_{\L (H, H^*)} \le C \quad \mbox{and} \quad  
-\|\A^{-1}\|_{\L (H^*, H)} \le C. 
+\|\mathcal{A}\|_{\mathcal{L} (H, H^*)} \le C \quad \mbox{and} \quad  
+\|\mathcal{A}^{-1}\|_{\mathcal{L} (H^*, H)} \le C. 
 \]
 The reader should notice that this operator is bounded only when 
 viewed as an operator from $H$ to $H^*$. 
@@ -81,32 +76,32 @@ The remedy for the unbounded spectrum is to introduce a preconditioner.
 Let the preconditioner $B$ be an operator
 mapping $H^*$ to $H$ such that  
 \[
-\|\B\|_{\L(H^*, H)} \le C \quad \mbox{and} \quad   
-\|\B^{-1}\|_{\L(H, H^*)} \le C. 
+\|\mathcal{B}\|_{\mathcal{L}(H^*, H)} \le C \quad \mbox{and} \quad   
+\|\mathcal{B}^{-1}\|_{\mathcal{L}(H, H^*)} \le C. 
 \]
 Then 
-$\B\A: H \rightarrow H$ and 
+$\mathcal{B}\mathcal{A}: H \rightarrow H$ and 
 \[
-\|\B\A\|_{\L(H, H)} \le C^2 \quad \mbox{and} \quad  
-\|(\B\A)^{-1}\|_{\L(H, H)} \le C^2. 
+\|\mathcal{B}\mathcal{A}\|_{\mathcal{L}(H, H)} \le C^2 \quad \mbox{and} \quad  
+\|(\mathcal{B}\mathcal{A})^{-1}\|_{\mathcal{L}(H, H)} \le C^2. 
 \]
 Hence, the spectrum and therefore the condition number of the
 preconditioned operator, 
 \[
-\kappa(\B\A) = \|\B\A\|_{\L(H, H)} \|(\B\A)^{-1}\|_{\L(H, H)} \le C^4  
+\kappa(\mathcal{B}\mathcal{A}) = \|\mathcal{B}\mathcal{A}\|_{\mathcal{L}(H, H)} \|(\mathcal{B}\mathcal{A})^{-1}\|_{\mathcal{L}(H, H)} \le C^4  
 \]
 is bounded.  
-Given that the discretized operators  $\A_h$ and $\B_h$ are stable, in the sense
+Given that the discretized operators  $\mathcal{A}_h$ and $\mathcal{B}_h$ are stable, in the sense
 that the operator norms are bounded, then the condition number of the discrete preconditioned
-operator, $\kappa(\B_h \A_h)$, will be bounded independent of $h$. The number of iterations required 
+operator, $\kappa(\mathcal{B}_h \mathcal{A}_h)$, will be bounded independent of $h$. The number of iterations required 
 by a Krylov solver to reach a certain convergence criterion can typically be bounded by
 the condition number. Hence, when the condition number of the discrete problem is bounded independent
 of $h$, the Krylov solvers will have a converges rate independent of $h$. 
-If then $\B_h$ is similar to $\A_h$ in terms of storage and evaluation, 
+If then $\mathcal{B}_h$ is similar to $\mathcal{A}_h$ in terms of storage and evaluation, 
 we will then have an \emph{order-optimal} solution algorithm. 
-We remark that it is crucial that $\A_h$
+We remark that it is crucial that $\mathcal{A}_h$
 is a stable operator and will illustrate this for the Stokes problem. 
-Finally we will see that $\B_h$ often can be constructed 
+Finally we will see that $\mathcal{B}_h$ often can be constructed 
 using multigrid techniques. 
 
 \section{Numerical Examples}
@@ -122,12 +117,12 @@ Find $u\in H^1_0 \cap L^2_0$ such that
 \[
 \int_\Omega \nabla u \cdot \nabla v \, dx = \int_\Omega f v \, dx + \int_{\partial \Omega} g v \, ds, \quad \forall v \in H^1_0 \cap L^2_0 .      
 \]
-Let the linear operator $\A$ be defined in terms of the  bilinear form,  
+Let the linear operator $\mathcal{A}$ be defined in terms of the  bilinear form,  
 \[
-(\A u, v) =  \int_\Omega \nabla u \cdot \nabla v \, dx.  
+(\mathcal{A} u, v) =  \int_\Omega \nabla u \cdot \nabla v \, dx.  
 \]
 It is well-known that 
-$\A$ is a bounded invertible operator from $H^1_0 \cap L^2_0$ into its dual space $H^{-1}\cap L^2_0$. 
+$\mathcal{A}$ is a bounded invertible operator from $H^1_0 \cap L^2_0$ into its dual space $H^{-1}\cap L^2_0$. 
 Furthermore, it is well-known that one can construct multigrid preconditioners for this operator
 such that the preconditioner is spectrally equivalent with the inverse of $A$, independent of the
 characteristic size of the cells in the mesh~\cite{JHBramble_1993a,Hackbusch, TOS2001}. 
@@ -300,9 +295,9 @@ Find $u,p \in H^1_0 \times L_0^2$ such that
 \int_\Omega \nabla \cdot u \, q \,  dx +  
 \int_\Omega \nabla \cdot v \, p \,  dx = \int_\Omega f\, v\, dx   , \quad \forall v,q \in H^1_0 \times L_0^2.
 \]
-Let the linear operator $\A$ be defined as
+Let the linear operator $\mathcal{A}$ be defined as
 \[
-\A  =
+\mathcal{A}  =
 \begin{pmatrix} A & B^* \\ B & 0 \end{pmatrix}.
 \]
 where 
@@ -311,13 +306,13 @@ where
 (B u, q) &=& \int_\Omega \nabla \cdot u \, q \,  dx,    
 \end{eqnarray}
 and $B^*$ is the adjoint of $B$.  
-Then it is well-known that $\A$ is a bounded operator from
+Then it is well-known that $\mathcal{A}$ is a bounded operator from
 $H^1_0 \times L_0^2$ to its dual $H^{-1} \times L_0^2$, see e.g.~\cite{Brezzi,BrezziFortin}. Therefore, we 
 construct a preconditioner, 
-$\B: H^{-1} \times L_0^2 \rightarrow H^1_0 \times L_0^2$
+$\mathcal{B}: H^{-1} \times L_0^2 \rightarrow H^1_0 \times L_0^2$
 defined as 
 \[
-\B 
+\mathcal{B} 
 = 
 \begin{pmatrix} K^{-1} & 0 \\ 0 & L^{-1} \end{pmatrix}.
 \]
@@ -328,8 +323,8 @@ where
 \end{eqnarray}
 We refer to \cite{M-W-09} for a mathematical explanation of the derivation 
 of such preconditioners. 
-Notice that this operator $\B$ is  positive in contrast to $\A$. Hence, 
-the preconditioned operator $\B \A$ will be indefinite. For both 
+Notice that this operator $\mathcal{B}$ is  positive in contrast to $\mathcal{A}$. Hence, 
+the preconditioned operator $\mathcal{B} \mathcal{A}$ will be indefinite. For both 
 $K$ and $L$, we use the AMG preconditioner provided by ML/Trilinos as
 described in the previous example (A simple Jacobi preconditioner
 would be sufficient for $L$).
@@ -340,7 +335,7 @@ we present the number of iterations needed for convergence
 and estimates on the condition number $\kappa$ with 
 respect to different discretization methods and different characteristic cell sizes $h$. 
 The MinRes iteration is stopped when 
-$(\B_h r_k, r_k)/(\B_h r_0, r_0) \le 10^{-10}$, where $r_k$ is the residual at
+$(\mathcal{B}_h r_k, r_k)/(\mathcal{B}_h r_0, r_0) \le 10^{-10}$, where $r_k$ is the residual at
 iteration $k$. 
 The condition numbers, $\kappa$, were estimated using the CG method on the
 normal equation. This condition number will always be less 
@@ -467,7 +462,7 @@ k \int_\Omega \nabla u : \nabla v \,  dx +
 \]
 Let 
 \[
-\A  =
+\mathcal{A}  =
 \begin{pmatrix} A & B^* \\ B & 0 \end{pmatrix}.
 \]
 where 
@@ -496,12 +491,12 @@ with a bounded inverse. Furthermore, the bounds are uniform in $k$.
 Therefore we 
 construct a preconditioner $B$, such that  
 \[
-\B: L^2 \cap k H^1_0 \times H^1 \cap L_0^2 + k^{-1} L_0^2 \rightarrow 
+\mathcal{B}: L^2 \cap k H^1_0 \times H^1 \cap L_0^2 + k^{-1} L_0^2 \rightarrow 
 L^2 + k^{-1} H^{-1} \times H^{-1} \cap L_0^2 + k L_0^2  .
 \] 
-Such a $\B$ can be defined as 
+Such a $\mathcal{B}$ can be defined as 
 \[
-\B 
+\mathcal{B} 
 = 
 \begin{pmatrix} K^{-1} & 0 \\ 0 & L^{-1} + M^{-1} \end{pmatrix}.
 \]
@@ -580,13 +575,13 @@ of the Hodge Laplacian,
              p          &=&  0 \quad \mbox{on} \ \partial \Omega.  
 \end{eqnarray}
 The variational form is: \\ 
-Find $u, p \in H_0(\curl) \times H^1_0$ such that   
+Find $u, p \in H_0(\operatorname{curl}) \times H^1_0$ such that   
 \begin{eqnarray}
 \int_\Omega \nabla \times u \cdot \nabla \times v \, dx    
-- \int_\Omega \nabla p v \, dx  &=& \int_\Omega f v \, dx  \quad \forall v \in H_0(\curl) \\
+- \int_\Omega \nabla p v \, dx  &=& \int_\Omega f v \, dx  \quad \forall v \in H_0(\operatorname{curl}) \\
  \int_\Omega u  \nabla q  \, dx - \int_\Omega p q \, dx   &=& 0 \quad \forall q \in H^1_0 . \\
 \end{eqnarray}
-Hence, it is natural to consider preconditioner a for $H(\curl)$ problems
+Hence, it is natural to consider preconditioner a for $H(\operatorname{curl})$ problems
 (in addition to $H^1$ preconditioners). Such preconditioners have
 been considered by many c.f. e.g. ~\cite{A-F-W-97Hdiv,A-F-W-00, Hip97, Hip99}.   
 One important observation in these papers is that point-wise smoothers
@@ -596,7 +591,7 @@ aggregation step~\cite{ml-guide,maxwell-amg}.
 
 Let 
 \[
-\A  =
+\mathcal{A}  =
 \begin{pmatrix} A & B^* \\ B & -C \end{pmatrix}, 
 \]
 where, 
@@ -605,8 +600,8 @@ where,
 (B p, v) &=&  - \int_\Omega \nabla p v \, dx \\
 (C p, q) &=&  - \int_\Omega p q \, dx 
 \end{eqnarray}
-Then $\A: H_0(\curl) \times H^1_0 \rightarrow  H^{-1}(\curl) \times H^{-1}$, where   
-$H^{-1}(\curl)$ is the dual of   $H_0(\curl)$.
+Then $\mathcal{A}: H_0(\operatorname{curl}) \times H^1_0 \rightarrow  H^{-1}(\operatorname{curl}) \times H^{-1}$, where   
+$H^{-1}(\operatorname{curl})$ is the dual of   $H_0(\operatorname{curl})$.
 
 
 However, if we for the moment forget about the boundary conditions, 
@@ -617,13 +612,13 @@ from \eqref{mixed:hodge1}-\eqref{mixed:hodge2}, i.e.,
 \]
 Hence, the problem is elliptic
 in nature, although this is not apparent in the mixed formulation. 
-In other words, modulo boundary conditions,  $\A: H^1 \times L^2 \rightarrow  H^{-1} \times L^2$.
+In other words, modulo boundary conditions,  $\mathcal{A}: H^1 \times L^2 \rightarrow  H^{-1} \times L^2$.
 
-To avoid constructing a $H(\curl)$ preconditioner we will employ
+To avoid constructing a $H(\operatorname{curl})$ preconditioner we will employ
 the observation that this is a vector Laplacian. 
 Let the discrete operator be 
 \[
-\A  =
+\mathcal{A}  =
 \begin{pmatrix} A_h & B_h^* \\ B_h & -C_h \end{pmatrix}, 
 \]
 where we assume that the discrete system has been obtained by using a stable finite
@@ -645,12 +640,12 @@ $P_1 A_h$ and $P_2 L_h$, where $P_1$ and $P_2$ is simply the algebraic multigrid
 preconditioners for $A_h$ and $L_h$, respectively. 
 Then we test the preconditioners 
 \[
-\B_1  =
+\mathcal{B}_1  =
 \begin{pmatrix} A_h & 0  \\ 0  & D_h \end{pmatrix}. 
 \]
 Here, $D_h$ is a discrete Laplacian. The other preconditioner is   
 \[
-\B_2  =
+\mathcal{B}_2  =
 \begin{pmatrix} L_h & 0  \\ 0  & C_h \end{pmatrix}. 
 \]
 
@@ -663,8 +658,8 @@ on the unitcube.
 $h$ & $2^{-1}$ & $2^{-2}$ & $2^{-3}$ & $2^{-4}$  & $2^{-5}$ \\ \hline 
 $ P_1 A_h$ & 7.5 & 20.2 & 78.4 & 318.5 & 1206.3 \\ \hline
 $ P_2 L_h$ & 1.5 & 2.1  & 5.8  & 20.4 & 78.0 \\ \hline
-$\B_1 \A$ & 3.9 & 6.7 & 17.6 & 58.6 & - \\ \hline
-$\B_2 \A$ & 4.3 & 8.7 & 33.6 & 30.0 & - \\ \hline
+$\mathcal{B}_1 \mathcal{A}$ & 3.9 & 6.7 & 17.6 & 58.6 & - \\ \hline
+$\mathcal{B}_2 \mathcal{A}$ & 4.3 & 8.7 & 33.6 & 30.0 & - \\ \hline
 \end{tabular}
 \caption{The estimated condition number $\kappa$ and the number of iterations for 
   convergence with respect to various mesh refinements.}  \label{table:hodge}
@@ -680,6 +675,9 @@ to its underlying type \emp{Epetra\_FECrsMatrix}. We may then use PyTrilions.
 The following code demonstrate how to perform matrix matrix products, mass lump inversion  etc. using 
 PyTrilinos. 
 \begin{code}
+V = FunctionSpace(mesh, "N1curl", 1)
+Q = FunctionSpace(mesh, "CG", 1)
+
 u,p = TrialFunction(V), TrialFunction(Q)
 v,q = TestFunction(V), TestFunction(Q)
 
