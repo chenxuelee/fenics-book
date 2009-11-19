@@ -7,7 +7,7 @@
 
 
 \section{Introduction}
-Python~\cite{www:python} has in the last decade become an established platform for scientific computing. Widely used scientific software like, e.g., \petsc\cite{www:petsc}, \hypre\cite{www:hypre}, \trilinos\cite{pytrilinos}, \vtk\cite{www:vtk}, \itk, \ginac\cite{BauerFrinkEtAl2000} have all been equipped with Python interfaces. In addition many packages like for instance the \fenics packages \ferari, \fiat \cite{Kirby2006}, \ffc\cite{FFC}, \ufl\cite{UFL}, \viper, as well as other packages like \sympy\cite{Sympy}, \scipy\cite{SciPy} are pure Python packages. The \dolfin library has both a C++ and a Python user-interface. Python makes application building on top of \dolfin more user friendly, but the Python interface also introduces additional complexity and new problems. This chapter describes some lessons learned during the development of \pydolfin, and is intentionally quite technical. We assume that the reader has basic knowledge of both C++ and Python. A suitable textbook on Python for scientific computing is \cite{Simula.SC.63}, which cover both Python and its C interface. SWIG is well documented and we refer to the user manual that can be found on its web page~\cite{SWIG}. Finally, we refer to \citet{SC.5.Langtangen.2003.a} and \citet{pytrilinos} for a description of how \swig can be used to generate Python interfaces for Diffpack and Trilinos.\par
+Python~\cite{www:python} has in the last decade become an established platform for scientific computing. Widely used scientific software like, e.g., \petsc\cite{www:petsc}, \hypre\cite{www:hypre}, \trilinos\cite{pytrilinos}, \vtk\cite{www:vtk}, \itk, \ginac\cite{BauerFrinkEtAl2000} have all been equipped with Python interfaces. In addition many packages like for instance the \fenics packages \ferrari, \fiat \cite{Kirby2006}, \ffc\cite{FFC}, \ufl\cite{UFL}, \viper, as well as other packages like \sympy\cite{Sympy}, \scipy\cite{SciPy} are pure Python packages. The \dolfin library has both a C++ and a Python user-interface. Python makes application building on top of \dolfin more user friendly, but the Python interface also introduces additional complexity and new problems. This chapter describes some lessons learned during the development of \pydolfin, and is intentionally quite technical. We assume that the reader has basic knowledge of both C++ and Python. A suitable textbook on Python for scientific computing is \cite{Simula.SC.63}, which cover both Python and its C interface. SWIG is well documented and we refer to the user manual that can be found on its web page~\cite{SWIG}. Finally, we refer to \citet{SC.5.Langtangen.2003.a} and \citet{pytrilinos} for a description of how \swig can be used to generate Python interfaces for Diffpack and Trilinos.\par
 
 All the code examples in this chapter can found in 
 \emp{\$FENICSBOOK/mixed\_language/}. 
@@ -17,9 +17,9 @@ Python and C++ are two very different languages, but they can be glued together 
 
 \subsection{Basic \swig}
 To get a basic understanding of \swig, consider the following definition of an Array class defined in \emp{Array.h}. 
-\codeinput{chapters/hake_mardal/code/Array.h}
+\codeinput{chapters/mardal-2/code/Array.h}
 A first attempt to make the Array accessible in Python using \swig, is to write a \swig interface file \emp{Array\_1.i}.
-\codeinput{chapters/hake_mardal/code/Array_1.i}
+\codeinput{chapters/mardal-2/code/Array_1.i}
 Here we specify the name of the Python module: \emp{Array}, what code should be inlined directly in the wrapper code (declarations), \emp{\#include "Array.h"} and what code \swig should parse to create the wrapper code \emp{\%include "Array.h"} (definitions). The following command shows how to run \swig on this interface file to produce the wrapper code.
 \begin{code}
 swig -python -c++ -I. -O Array_1.i
@@ -27,7 +27,7 @@ swig -python -c++ -I. -O Array_1.i
 The command generates two files: \texttt{Array.py} and \texttt{Array\_}\texttt{wrap.cxx}. In the file \texttt{Array\_}\texttt{wrap.cxx}, \swig includes everything that is needed to bridge the interface between our C++ class and Python. When \texttt{Array\_wrap.cxx} is compiled into a shared library it can be imported directly into Python, which is done in the generated \texttt{Array.py} file. The file \texttt{Array.py} is  pure python, and in this file \swig has generated code for the so called Python proxy class; a Python version of the C++ defined \texttt{Array} class. The reader should be able to recognize the Python class \texttt{Array} in the end of the \texttt{Array.py} file. \par
 
 The following Distutils file executes the \swig command above and compiles and links the source code and the generated wrapper code into a shared library.
-\codeinput{chapters/hake_mardal/code/setup.py}
+\codeinput{chapters/mardal-2/code/setup.py}
 Build and install the module in the current working directory by typing:
 \begin{code}
 python setup.py install --install-lib=.
@@ -69,7 +69,7 @@ Furthermore, the access to the actual instance is provided by the \texttt{self} 
 %A basic observation here is that Python does not have \texttt{const} types. This means that if \swig would have wrapped the \texttt{operator[]} methods in the \texttt{Array} class ...
 \subsection{\texttt{operator +=} and memory}
 The second problem is related to \swig that garbage collection in Python. Python features garbage collection, which means that a user should not be bothered with the destruction of objects. The mechanism is based on reference counting. When no more references are pointing to an object it is destroyed. The \swig generated Python module consists of a small Python layer, that defines the interface to the underlying C++ object. An instance of a \swig generated class therefore keeps a reference to the underlying C++ object. Default behavior is that the C++ object is destroyed together with the Python object. This behavior can be troublesome in quite many cases, which can be illustrated with the following simple example:
-\codeinput{chapters/hake_mardal/code/segfault_test.py}
+\codeinput{chapters/mardal-2/code/segfault_test.py}
 This script produce the following output:
 \begin{code}
 id(a): 3085535980
@@ -431,8 +431,8 @@ Here, \texttt{columns} and \texttt{values} are used to return the sparsity patte
 columns, values = A.getrow(row)
 \end{code}
 
-\subsection{\dolfin header files and \python docstrings}
-\swig needs to know what part of \dolfin that should be wrapped to \python. This information is provided in the file \texttt{kernel\_module.i}. This file is automatically generated by the \python script \texttt{generate.py}. \python docstring information is also generated by running \texttt{generate.py}. This is done by letting Doxygen extracted documentation from the header files and save it to XML. These files are then parsed and \swig directives for adding docstrings to the corresponding function, method or class is added to a generated interface file, \texttt{docstrings.i}. This file is then included from the main \texttt{dolfin.i} file. The update of the \texttt{kernel\_module.i} and \texttt{docstrings.i} files is not done automatically. So when ever a header file is added or subtracted from the \dolfin library one needs to manually run \texttt{generate.py}, which updates the \texttt{kernel\_module.i} and the \texttt{docstrings.i} files.\par
+\subsection{\dolfin header files and Python docstrings}
+\swig needs to know what part of \dolfin that should be wrapped to Python. This information is provided in the file \texttt{kernel\_module.i}. This file is automatically generated by the Python script \texttt{generate.py}. Python docstring information is also generated by running \texttt{generate.py}. This is done by letting Doxygen extracted documentation from the header files and save it to XML. These files are then parsed and \swig directives for adding docstrings to the corresponding function, method or class is added to a generated interface file, \texttt{docstrings.i}. This file is then included from the main \texttt{dolfin.i} file. The update of the \texttt{kernel\_module.i} and \texttt{docstrings.i} files is not done automatically. So when ever a header file is added or subtracted from the \dolfin library one needs to manually run \texttt{generate.py}, which updates the \texttt{kernel\_module.i} and the \texttt{docstrings.i} files.\par
 
 \subsection{Specializations of kernel modules}
 \dolfin is divided into kernel modules that follows the directory structure of the \texttt{dolfin} directory. As mentioned above we have organized the \swig directives for these modules into a \texttt{$\ldots$\_pre.i} and \texttt{$\ldots$\_post.i}. Not all modules have such files, which means that we have not implemented any specializations for these modules. Here we will highlight some \swig directives we have used to specialize the \texttt{mesh} and \texttt{la} modules. We encourage users, who want to get a full overview of all the specializations we have done in \pydolfin, to take a look into the different \swig interface files included in the distribution.\par
@@ -705,23 +705,23 @@ we print out the first entry of the element matrix after \emp{tabulate\_tensor} 
 (gdb) run
 \end{code}
 \begin{figure}[htbp]
-  \subfigure{ \includegraphics[width=8cm]{pics/fig1.png}} \\
-  \subfigure{ \includegraphics[width=8cm]{pics/fig2.png}}
+  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pics/fig1.eps}} \\
+  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pics/fig2.eps}}
   \caption{Upper Picture: Starting a separate thread for the Python session in ddd.
            Lower Picture: Opening the source code after the \dolfin library has been loaded into Python.}
   \label{figure12}
 \end{figure}
 \begin{figure}
-  \subfigure{ \includegraphics[width=8cm]{pics/fig3.png}} \\
-  \subfigure{ \includegraphics[width=8cm]{pics/fig4.png}}
+  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pics/fig3.eps}} \\
+  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pics/fig4.eps}}
 \caption{Upper Picture: Navigating through the source code for finding the assembly loop. 
          Lower Picture: Searching for the function \emp{tabulate\_tensor.} }
 \label{figure34}
 \end{figure}
 
 \begin{figure}
-  \subfigure{ \includegraphics[width=8cm]{pics/fig5.png}} \\
-  \subfigure{ \includegraphics[width=8cm]{pics/fig6.png}}
+  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pics/fig5.eps}} \\
+  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pics/fig6.eps}}
 \caption{Setting a breakpoint after tabulate tensor and printing out the first element matrix entry.}
 \label{fig5}
 \end{figure}
