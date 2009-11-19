@@ -5,7 +5,7 @@
 
 A novel concept for calibrating depositional models is presented.
 In this approach transport coefficients are determined from well output measurements.
-Finite element implementation of the multi--lithology models and their duals is automated 
+Finite element implementation of the multi--lithology models and their duals is automated
 by the FEniCS project DOLFIN using a python interface.
 
 %\index{important term}
@@ -13,25 +13,25 @@ by the FEniCS project DOLFIN using a python interface.
 %------------------------------------------------------------------------------
 \section{Issues in dual lithology sedimentation}
 
-Different types of forward computer models are being used by sedimentologists and geomorphologists 
-to simulate the process of sedimentary deposition over geological time periods. 
-The models can be used to predict the presence of reservoir rocks and stratigraphic traps at a variety of scales. 
-State--of--the--art advanced numerical software provides accurate approximations to the mathematical model, 
-which commonly is expressed in terms of a nonlinear diffusion dominated PDE system. 
-The potential of todays simulation software in industrial applications is limited however, 
-due to major uncertainties in crucial material parameters that combine a number of physical phenomena 
-and therefore are difficult to quantify. 
+Different types of forward computer models are being used by sedimentologists and geomorphologists
+to simulate the process of sedimentary deposition over geological time periods.
+The models can be used to predict the presence of reservoir rocks and stratigraphic traps at a variety of scales.
+State--of--the--art advanced numerical software provides accurate approximations to the mathematical model,
+which commonly is expressed in terms of a nonlinear diffusion dominated PDE system.
+The potential of todays simulation software in industrial applications is limited however,
+due to major uncertainties in crucial material parameters that combine a number of physical phenomena
+and therefore are difficult to quantify.
 Examples of such parameters are diffusive transport coefficients.
 
-The idea in this contribution is to calibrate uncertain transport coefficients to direct observable data, 
-like well measurements from a specific basin. 
-In this approach the forward evolution process, mapping data to observations, 
-is reversed to determine the data, i.e. transport coefficients. 
-Mathematical tools and numerical algorithms are applied 
+The idea in this contribution is to calibrate uncertain transport coefficients to direct observable data,
+like well measurements from a specific basin.
+In this approach the forward evolution process, mapping data to observations,
+is reversed to determine the data, i.e., transport coefficients.
+Mathematical tools and numerical algorithms are applied
 to automatically calibrate geological models to actual observations ---
 a critical but so far missing link in forward depositional modeling.
 
-Automatic calibration, in combination with stochastic modeling, 
+Automatic calibration, in combination with stochastic modeling,
 will boost the applicability and impact of modern numerical simulations in industrial applications.
 
 %------------------------------------------------------------------------------
@@ -40,21 +40,21 @@ will boost the applicability and impact of modern numerical simulations in indus
 Submarine sedimentation is an evolution process.
 By flow into the basin, sediments build up and evolve in time.
 The evolution follows geophysical laws, expressed as diffusive PDE models.
-The following system is a multidimensional version of the dual lithology model by Riven{\ae}s \cite{Riv92, Riv93}
+The following system is a multidimensional version of the dual lithology model by Riven{\ae}s \cite{Rivenaes1992, Rivenaes1993}
 \begin{equation} \label{model}
 \left(\begin{array}{rl} A & s \\ -A & 1-s \end{array}\right)
-\left(\begin{array}{c} s \\ h \end{array}\right)_t = 
-\nabla \cdot \left( \begin{array}{l} \alpha s \nabla h \\ \beta (1-s) \nabla h \end{array} \right) 
+\left(\begin{array}{c} s \\ h \end{array}\right)_t =
+\nabla \cdot \left( \begin{array}{l} \alpha s \nabla h \\ \beta (1-s) \nabla h \end{array} \right)
 \enspace \hbox{in} \enspace [0,T] \times B \enspace .
 \end{equation}
-Here $h$ denotes the thickness of a layer of deposit and 
+Here $h$ denotes the thickness of a layer of deposit and
 $s$ models the volume fraction for the sand lithology.
 Consequently, $1-s$ is the fraction for mud.
-The system is driven by fluxes anti proportional to the flow rates 
+The system is driven by fluxes anti proportional to the flow rates
 $s \nabla h$ and $(1-s) \nabla h$
 resulting in a diffusive, but incompletely parabolic, PDE system.
 The domain of the basin is denoted by $B$.
-Parameters in the model are: 
+Parameters in the model are:
 The transport layer thickness $A$ and the diffusive transport coefficients $\alpha$, $\beta$.
 
 For a forward in time simulation, the system requires initial and boundary data.
@@ -65,46 +65,46 @@ Along the boundary of the basin, the flow rates $s \nabla h$ and $(1-s) \nabla h
 %------------------------------------------------------------------------------
 \section{An inverse approach}
 
-The parameter--to--observation mapping 
+The parameter--to--observation mapping
 $R: (\alpha, \beta) \mapsto (s, h)$
 is commonly referred to as the forward problem.
 In a basin direct observations are only available at wells.
 Moreover, from the age of the sediments, their history can be reconstructed.
 Finally, well--data is available in certain well areas $W \subset B$ and backward in time.
 
-The objective of the present investigation is to 
+The objective of the present investigation is to
 determine transport coefficients from observed well--data
 and in that way, to calibrate the model to the data.
 This essentially means to invert the parameter--to--observation mapping.
-Denoting observed well--data by $(\widetilde s,\widetilde h)$, 
+Denoting observed well--data by $(\widetilde s,\widetilde h)$,
 the goal is to minimize the output functional
 \begin{equation} \label{output}
- J(\alpha, \beta) = 
+ J(\alpha, \beta) =
  \frac{1}{|W|} \int_0^T \int_W (\widetilde s - s)^2 + (\widetilde h - h)^2 \; dx \; dt
 \end{equation}
 with respect to the transport coefficients $\alpha$ and $\beta$.
 
-In contrast to the "direct inversion" as described by Imhof and Sharma \cite{ImhSha07},
-which is considered impractical, 
+In contrast to the "direct inversion" as described by Imhof and Sharma \cite{ImhofSharma2007},
+which is considered impractical,
 we do not propose to invert the time evolution of the diffusive depositional process.
 We actually use the forward--in--time evolution of sediment layers in a number of wells
-to calibrate transport coefficients. 
+to calibrate transport coefficients.
 Via the calibrated model we can simulate the basin and reconstruct its historic evolution.
-By computational mathematical modeling, 
+By computational mathematical modeling,
 the local data observed in wells determines the evolution throughout the entire basin.
 
 %------------------------------------------------------------------------------
 \section{The Landweber algorithm}
 
-In a slightly more abstract setting, 
-the task is to minimize an objective functional $J$ 
+In a slightly more abstract setting,
+the task is to minimize an objective functional $J$
 which implicitly depends on the parameters $p$ via $u$
 subject to the constraint that $u$ satisfies some PDE model;
 a PDE constrained minimization problem:
 Find $p$ such that $J(p)=J(u(p))=\min$ and $\mathrm{PDE}(u,p)=0$.
 \goodbreak
 
-Landweber's steepest decent algorithm \cite{Lan51} iterates the following sequence until convergence:
+Landweber's steepest decent algorithm \cite{Landweber51} iterates the following sequence until convergence:
 \goodbreak
 
 \begin{enumerate}
@@ -118,46 +118,46 @@ Note that the search direction $d^k$, the negative gradient, is the direction of
 To avoid scale dependence, the search direction is normed.
 
 The increment $\Delta p^k$ is determined by a one dimensional line search algorithm,
-minimizing a locally quadratic approximation to $J$ along the line $p^k + \gamma d^k$, $\gamma \in \R$.
-We use the ansatz 
+minimizing a locally quadratic approximation to $J$ along the line $p^k + \gamma d^k$.
+We use the ansatz
 $$
  J(p^k + \gamma d^k) = a \gamma^2 + b \gamma + c \enspace , \quad \gamma \in \R \enspace .
 $$
-The extreme value of this parabola is located at 
+The extreme value of this parabola is located at
 \begin{equation} \label{gamma}
- \gamma^k = - \frac{b}{2a} \enspace .
+ \gamma_e = - \frac{b}{2a} \enspace .
 \end{equation}
-To determine $\Delta p^k = \gamma^k$, the parabola is fitted to the local data.
+To determine $\gamma_e$, the parabola is fitted to the local data.
 For example $b$ is given by the gradient
 $$
- J_\gamma(p^k) = b = \nabla J(p^k) \cdot d^k = - \| \nabla J(p^k) \|^2 \enspace .
+ J_\gamma(p^k) = b = \nabla_p J(p^k) \cdot d^k = - \| \nabla_p J(p^k) \| \enspace .
 $$
 To find $a$, another gradient of $J$ along the line $p^k + \gamma d^k$ is needed.
-To avoid an extra evaluation, we project $p^{k-1}=p^k - \gamma^{k-1} d^{k-1}$ onto the line 
-$p^k + \gamma d^k$, that is $\pi(p^{k-1}) = p^k - \gamma^* d^k$ and approximate the directional derivative
+To avoid an extra evaluation, we project $p^{k-1}$ onto the line
+and approximate the directional derivative
 \begin{equation} \label{approx}
- J_\gamma(p^k-\gamma^* d^k) \approx \nabla J(p^{k-1}) \cdot d^k \enspace .
+ J_\gamma(p^k-\gamma^k d^k) \approx \nabla_p J(p^{k-1}) \cdot d^k \enspace .
 \end{equation}
-Note that this approximation is exact 
+Note that this approximation is exact
 if two successive directions $d^{k-1}$ and $d^k$ are in line.
 Elementary geometry yields
-$\gamma^* = \gamma^{k-1} \cos \varphi$ and
-$\cos \varphi = d^{k-1} \cdot d^k$. 
-Thus $\gamma^* = \gamma^{k-1} \cdot d^{k-1} \cdot d^k$.
-From $J_\gamma(p^k-\gamma^* d^k) = -2a\gamma^* +b$ and (\ref{approx}) we find
+$\gamma^k = \gamma^{k-1} \cos \varphi$,
+$\cos \varphi = d^{k-1} \cdot d^k$ and
+$\gamma^k = \gamma^{k-1} \cdot d^{k-1} \cdot d^k$.
+From (\ref{approx}) we find
 $$
- -2 a = 
- \frac{(\nabla J(p^{k-1}) - \nabla J(p^k))\cdot d^k}
-      {\gamma^{k-1} \cdot d^{k-1} \cdot d^k} \enspace .
+ -2 a =
+ \frac{(\nabla_p J(p^{k-1}) - \nabla_p J(p^k))\cdot d^k}
+      {\gamma^{k-1} \cdot d^{k-1} \cdot d^k}
 $$
-Finally, the increment (\ref{gamma}) evaluates as
+Thus, the increment (\ref{gamma}) evaluates as
 $$
- \Delta p^k = \gamma^k = 
- \frac{\nabla J(p^k)\cdot \nabla J(p^{k-1})}
-      {\nabla J(p^k)\cdot \nabla J(p^{k-1}) - \|\nabla J(p^k)\|^2} \cdot
- \frac{\nabla J(p^k)}{\nabla J(p^{k-1})} \cdot
- d^{k-1} \enspace .
-$$ 
+ \Delta p^k = \gamma_e =
+ \frac{\nabla_p J(p^k)\cdot \nabla_p J(p^{k-1})}
+      {\nabla_p J(p^k)\cdot \nabla_p J(p^{k-1}) - \|\nabla_p J(p^k)\|^2} \cdot
+ \frac{\|\nabla_p J(p^k)\|}{\|\nabla_p J(p^{k-1})\|} \cdot
+ \gamma^{k-1} \enspace .
+$$
 
 %------------------------------------------------------------------------------
 \section{Evaluation of gradients by duality arguments}
@@ -168,16 +168,16 @@ The most common approach to numerical derivatives, via finite differences,
 is impractical for complex problems:
 Finite difference approximation would require to perform $n+1$ forward simulations in $n$ parameter dimensions.
 Using duality arguments however, $n$ nonlinear PDE systems can be replaced by one linear, dual problem.
-After all, $J$ is evaluated by one forward simulation of the nonlinear PDE model 
+After all, $J$ is evaluated by one forward simulation of the nonlinear PDE model
 and the complete gradient $\nabla J$ is obtained by one (backward) simulation of the linear, dual problem.
-Apparently, one of the first references to this kind of duality arguments is \cite{ChaLem74}.
+Apparently, one of the first references to this kind of duality arguments is \cite{ChaventLemmonier1974}.
 
-The concept is conveniently explained for a scalar diffusion equation 
+The concept is conveniently explained for a scalar diffusion equation
 $$
  u_t = \nabla \cdot (\alpha \nabla u) \enspace .
 $$
 As transport coefficients may vary throughout the basin,
-we allow for a piecewise constant coefficient 
+we allow for a piecewise constant coefficient
 $$
  \alpha = \left\{
  \begin{array}{rl} \alpha_1 & x \in B_1 \\[\jot] \alpha_2 & x \in B_2 \end{array}
@@ -189,69 +189,69 @@ selecting a suitable test function $\phi$, the equation in variational form read
 $$
   {\cal A}(u, \phi) := \int_0^T \int_B u_t \phi + \alpha \nabla u \cdot \nabla \phi \dx \dt = 0 \enspace .
 $$
-Taking an derivative $\d/\partial \alpha_i$, $i=1,2$ under the integral sign, we find
+Taking an derivative $\partial /\partial \alpha_i$, $i=1,2$ under the integral sign, we find
 \begin{equation} \label{A}
- {\cal A}(u_{\alpha_i}, \phi) = 
+ {\cal A}(u_{\alpha_i}, \phi) =
  \int_0^T \int_B u_{\alpha_i,t} \phi + \alpha \nabla u_{\alpha_i} \cdot \nabla \phi \dx \dt =
  - \int_0^T \int_{B_i} \nabla u \cdot \nabla \phi \dx \dt
  \enspace .
 \end{equation}
-The corresponding derivative of the output functional 
-$J=\int_0^T \int_W (u-d)^2 \dx\dt$ reads 
+The corresponding derivative of the output functional
+$J=\int_0^T \int_W (u-d)^2 \dx\dt$ reads
 $$
  J_{\alpha_i} = 2 \int_0^T \int_W (u - d) u_{\alpha_i} \dx\dt \enspace , \quad i=1,2 \enspace .
 $$
-The trick is to define a dual problem 
+The trick is to define a dual problem
 $$
  {\cal A}(\phi, \omega) = 2 \int_0^T \int_W (u - d) \phi \dx\dt
 $$
 such that ${\cal A}(u_{\alpha_i}, \omega) =  J_{\alpha_i}$ and by using the dual solution $\omega$ in (\ref{A})
 $$
- {\cal A}(u_{\alpha_i}, \omega) =  J_{\alpha_i} = - \int_0^T \int_{B_i} \nabla u \cdot \nabla \omega \dx \dt \enspace , 
+ {\cal A}(u_{\alpha_i}, \omega) =  J_{\alpha_i} = - \int_0^T \int_{B_i} \nabla u \cdot \nabla \omega \dx \dt \enspace ,
  \quad i=1,2 \enspace .
 $$
-In effect, the desired gradient $\nabla J = (J_{\alpha_1}, J_{\alpha_2})$ is expressed in terms of primal-- and dual solutions.
+In effect, the desired gradient $\nabla J$ is expressed in terms of primal-- and dual solutions.
 In this case the dual problem reads
-$$
+\begin{equation} \label{dual}
  \int_0^T \int_B \phi_t \omega + \alpha \nabla \phi \cdot \nabla \omega \dx \dt =
  2 \int_0^T \int_W (u-d) \phi \dx \dt \enspace ,
-$$
-which in strong form appears as a backward in time heat equation with zero terminal condition
-\begin{equation} \label{dual}
- - \omega_t = \nabla \cdot (\alpha \nabla \omega) + 2 (u-d)|_W \enspace .
 \end{equation}
+which in strong form appears as a backward in time heat equation with zero terminal condition
+$$
+ - \omega_t = \nabla \cdot (\alpha \nabla \omega) + 2 (u-d)|_W \enspace .
+$$
 Note that this dual equation is linear and entirely driven by the data mismatch in the well.
-With perfectly matching data $d=u|_W$, the dual solution is zero. 
+With perfectly matching data $d=u|_W$, the dual solution is zero.
 
 Along the same lines of argumentation one derives the multilinear operator to the depositional model (\ref{model})
-\begin{eqnarray*} 
+\begin{eqnarray*}
  && \displaystyle {\cal A}(u,v)(\phi,\psi) = \\[\jot]
- && \displaystyle \int_0^T \int_B \left(Au_t+uh_t+sv_t\right)\phi + \alpha u \nabla h \cdot \nabla \phi 
+ && \displaystyle \int_0^T \int_B \left(Au_t+uh_t+sv_t\right)\phi + \alpha u \nabla h \cdot \nabla \phi
    + \alpha s \nabla v \cdot \nabla \phi \dx \dt \\[\jot]
- && \displaystyle + \int_0^T \int_B \left(-Au_t-uh_t(1-s)v_t\right)\psi -\beta u \nabla h \cdot \nabla \psi 
-   + \beta (1-s) \nabla v \cdot \nabla \psi \dx \dt 
+ && \displaystyle + \int_0^T \int_B \left(-Au_t-uh_t(1-s)v_t\right)\psi -\beta u \nabla h \cdot \nabla \psi
+   + \beta (1-s) \nabla v \cdot \nabla \psi \dx \dt
  \enspace .
 \end{eqnarray*}
 The dual system related to the well output functional (\ref{output}) reads
 $$
- {\cal A}(\phi,\psi)(\omega,\nu) = 
+ {\cal A}(\phi,\psi)(\omega,\nu) =
   2 \int_0^T \int_W (s - \widetilde s) \phi + (h - \widetilde h) \psi \dx \dt
   \enspace .
 $$
 By construction it follows ${\cal A}(s_p,h_p)(\omega,\nu) = J_p(\alpha,\beta)$.
 Given both primal and dual solutions, the gradient of the well output functional evaluates as
 \begin{eqnarray*}
- J_{\alpha_i}(\alpha,\beta) &=& 
+ J_{\alpha_i}(\alpha,\beta) &=&
  - \int_0^T \int_{B_i} s \nabla h \cdot \nabla \omega \dx \dt \enspace , \\[\jot]
- J_{\beta_i}(\alpha,\beta) &=& 
+ J_{\beta_i}(\alpha,\beta) &=&
  - \int_0^T \int_{B_i} (1-s) \nabla h \cdot \nabla \nu \dx \dt
  \enspace .
 \end{eqnarray*}
 
-A detailed derivation including non zero flow conditions is given in \cite{Sch08}.
+A detailed derivation including non zero flow conditions is given in \cite{Schroll2008}.
 For completeness, not for computation(!), we state the dual system in strong form
 \begin{eqnarray*}
- & \displaystyle -A(\omega-\nu)_t + h_t(\omega-\nu) + \alpha \nabla h \cdot \nabla \omega 
+ & \displaystyle -A(\omega-\nu)_t + h_t(\omega-\nu) + \alpha \nabla h \cdot \nabla \omega
  = \beta \nabla h \cdot \nabla \nu + \left. \frac{2}{|W|} (s - \widetilde s) \right|_W \\[\jot]
  & \displaystyle -(s\omega + (1-s)\nu)_t
  = \nabla \cdot (\alpha s \nabla \omega + \beta (1-s) \nabla \nu) + \left. \frac{2}{|W|} (h - \widetilde h) \right|_W \enspace .
@@ -263,24 +263,23 @@ Thus, perfectly matching data results in a trivial dual solution.
 %------------------------------------------------------------------------------
 \section{Aspects of the implementation}
 
-The FEniCS project DOLFIN \cite{DOLFIN} automates the solution of PDEs in variational formulation
+The FEniCS project DOLFIN \cite{LoggWells2009} automates the solution of PDEs in variational formulation
 and is therefore especially attractive for implementing dual problems,
 which are derived in variational form.
 In this section the coding of the dual diffusion equation
 (\ref{dual}) is illustrated.
-Testing the equation in space, $\mathrm{supp}\, \varphi \subset B$,
-%Choosing a test function supported in $[t_n, t_{n+1}] \times B$
-the weak form reads 
+Choosing a test function supported in $[t_n, t_{n+1}] \times B$
+the weak form reads
 $$
- \int_B -\omega_t \varphi + \alpha \nabla \omega \cdot \nabla \varphi \dx =
- 2 \int_W (u-d) \varphi \dx \enspace .
+ - \int_{t_n}^{t_{n+1}} \int_B \omega_t \phi + \alpha \nabla \omega \cdot \nabla \phi \dx \dt =
+ 2 \int_{t_n}^{t_{n+1}} \int_W (u-d) \phi \dx \dt \enspace .
 $$
 Trapezoidal rule time integration gives
 \begin{equation} \label{trapez}
  \begin{array}{l}
- \displaystyle - \int_B (\omega^{n+1}-\omega^n) \varphi \dx 
-     + \frac{\Delta t}{2} \int_B \alpha \nabla(\omega^{n+1}+\omega^n) \cdot \nabla \varphi \dx \\[5mm]
- \displaystyle = \Delta t \int_W (\omega^{n+1} - d^{n+1} +\omega^n -d^n) \varphi \dx
+ \displaystyle - \int_B (\omega^{n+1}-\omega^n) \phi \dx
+     + \frac{\Delta t}{2} \int_B \alpha \nabla(\omega^{n+1}+\omega^n) \cdot \nabla \phi \dx \\[5mm]
+ \displaystyle = \Delta t \int_W (\omega^{n+1} - d^{n+1} +\omega^n -d^n) \phi \dx
  \enspace , \quad n = N, N-1,\ldots, 0 \enspace .
  \end{array}
 \end{equation}
@@ -299,12 +298,14 @@ Next, it gets marked:
 \end{verbatim}
 An integral over the well area is defined:
 \begin{verbatim}
- dxWell = Integral("cell", 1)
+ dxWell = dx(1)
 \end{verbatim}
+\goodbreak
+
+\noindent
 The driving source in (\ref{trapez}) is written as:
 \begin{verbatim}
  f = dt*(u1-d1+u0-d0)*phi*dxWell
- b = assemble(f, mesh, cell_domains=subdomains)
 \end{verbatim}
 The first line in (\ref{trapez}) is stated in variational formulation:
 \begin{verbatim}
@@ -315,24 +316,24 @@ Let DOLFIN sort out left-- and right hand sides:
 \begin{verbatim}
  a = lhs(F); l = rhs(F)
 \end{verbatim}
-Assemble the linear system in matrix--vector form:
+Construct the variational problem:
 \begin{verbatim}
- A = assemble(a, mesh); b += assemble(l, mesh)
+ problem = VariationalProblem(a, l+f)
 \end{verbatim}
 And solve it:
 \begin{verbatim}
- solve(A, u.vector(), b)
+ u = problem.solve()
 \end{verbatim}
-The direct solver may be replaced by GMRES with algebraic multigrid:
-\begin{verbatim}
- solve(A, u.vector(), b, gmres, amg)
-\end{verbatim}
+%The direct solver may be replaced by GMRES with algebraic multigrid:
+%\begin{verbatim}
+% solve(A, u.vector(), b, gmres, amg)
+%\end{verbatim}
 
 %------------------------------------------------------------------------------
 \section{Numerical experiments}
 
-With these preparations, we are now ready to inspect the well output functional (\ref{output}) 
-for possible calibration of the dual lithology model (\ref{model}) to ``observed'', 
+With these preparations, we are now ready to inspect the well output functional (\ref{output})
+for possible calibration of the dual lithology model (\ref{model}) to ``observed'',
 actually generated synthetic, data.
 We consider the PDE system (\ref{model}) with discontinuous coefficients
 $$
@@ -344,9 +345,9 @@ $$
  \begin{array}{rl} \beta_1 & x \ge 1/2 \\[\jot] \beta_2 & x < 1/2 \end{array}
  \right .
 $$
-in the unit square $B=[0,1]^2$. 
+in the unit square $B=[0,1]^2$.
 Four wells $W = W_1 \cup W_2 \cup W_3 \cup W_4$
-are placed one in each quarter 
+are placed one in each quarter
 $$
  W_4 = [0.3, 0.3] \times [0.7, 0.8] \enspace, \quad
  W_3 = [0.7, 0.8] \times [0.7, 0.8] \enspace,
@@ -376,39 +377,39 @@ $(\alpha_1, \alpha_2)=(\beta_1, \beta_2)=(0.8,0.8)$.
 We fix $\beta$ to the reference values and scan the well output over the $\alpha$--range $[0.0, 1.5]^2$.
 The upper left plot in Figure~\ref{fig2} depicts contours of the apparently convex functional,
 with the reference parameters as the global minimum.
-Independent Landweber iterations, started in each corner of the domain 
+Independent Landweber iterations, started in each corner of the domain
 identify the optimal parameters in typically five steps.
 The iteration is stopped if $\| \nabla J(p^k) \| \le 10^{-7}$, an indication that the minimum is reached.
-The lower left plot shows the corresponding scan over $\beta$ where $\alpha=(0.8,0.8)$ is fixed. 
+The lower left plot shows the corresponding scan over $\beta$ where $\alpha=(0.8,0.8)$ is fixed.
 Obviously the search directions follow the steepest decent,
 confirming that the gradients are correctly evaluated via the dual solution.
-In the right column of Figure~\ref{fig2} we see results for the same experiments, 
+In the right column of Figure~\ref{fig2} we see results for the same experiments,
 but with 5\% random noise added to the synthetic well data.
 In this case the optimal parameters are of course not the reference parameters, but still close.
-The global picture appears stable with respect to noise, 
+The global picture appears stable with respect to noise,
 suggesting that the concept allows to calibrate diffusive, depositional models to data observed in wells.
 
-Ultimately, the goal is to calibrate all four parameters 
+Ultimately, the goal is to calibrate all four parameters
 $\alpha = (\alpha_1, \alpha_2)$ and $\beta = (\beta_1, \beta_2)$
-to available data. 
+to available data.
 Figure~\ref{fig3} depicts Landweber iterations in four dimensional parameter space.
 Actually projections onto the $\alpha$ and $\beta$ coordinate plane are shown.
-Each subplot depicts one iteration. 
+Each subplot depicts one iteration.
 The initial guess varies from line to line.
 Obviously, all iterations converge and, without noise added,
 the reference parameters, $\alpha = \beta = (0.8, 0.8)$, are detected as optimal parameters.
 Adding 5\% random noise to the recorded data, we simulate data observed in wells.
-In this situation, see the right column, 
+In this situation, see the right column,
 the algorithm identifies optimal parameters, which are clearly off the reference.
 Fig.~\ref{fig7} depicts fifty realizations of this experiments.
 The distribution of the optimal parameters is shown together with their average in red.
-The left column in Fig.~\ref{fig7} corresponds to the reference parameters 
+The left column in Fig.~\ref{fig7} corresponds to the reference parameters
 $(\alpha_1, \alpha_2)=(\beta_1, \beta_2)=(0.8,0.8)$ as in Fig.~\ref{fig3}.
-The initial guesses vary from row to row and are the same as in Fig.~\ref{fig3}. 
-On average the calibrated, optimal parameters are close to the reference. 
-Typical standard deviations vary from $0.07$ to $0.17$, depending on the coefficient.
+The initial guesses vary from row to row and are the same as in Fig.~\ref{fig3}.
+On average the calibrated, optimal parameters are close to the reference.
+typical standard deviations vary from $0.07$ to $0.17$, depending on the coefficient.
 
-In the next experiments non uniform reference parameters are set for 
+In the next experiments non uniform reference parameters are set for
 $\alpha = (0.6, 1.0)$ and $\beta = (1.0, 0.6)$.
 Figure~\ref{fig4} shows iterations with the noise--free reference solution used as data on the left hand side.
 Within the precision of the stopping criterion, the reference parameters are detected.
@@ -416,7 +417,7 @@ Adding 5\% noise to the well data leads to different optimal parameters, just as
 On average however, the optimal parameters obtained in repeated calibrations match the reference parameters quite well,
 see Figure~\ref{fig7}, right hand side.
 
-In the next experiments, $\beta$ is discontinuous along $y=1/2$ 
+In the next experiments, $\beta$ is discontinuous along $y=1/2$
 and piecewise constant in the lower and upper half of the basin
 $$
  \alpha = \left\{
@@ -430,8 +431,8 @@ $$
 $$
 In this way the evolution is governed by different diffusion parameters
 in each quarter of the basin.
-Having placed one well i each quarter, 
-one can effectively calibrate the model to synthetic data with and without random noise, 
+Having placed one well i each quarter,
+one can effectively calibrate the model to synthetic data with and without random noise,
 as shown in Figures~\ref{fig5} and \ref{fig6}.
 
 \begin{figure}
@@ -440,12 +441,12 @@ as shown in Figures~\ref{fig5} and \ref{fig6}.
     \psfrag{a2}{{\tiny$\alpha_2$}}
     \psfrag{b1}{{\tiny$\beta_1$}}
     \psfrag{b2}{{\tiny$\beta_2$}}
-    \includegraphics[width=7cm]{chapters/schroll/eps/a1a2scan4.eps}
-    \includegraphics[width=7cm]{chapters/schroll/eps/a1a2scan4-5.eps}
-    \includegraphics[width=7cm]{chapters/schroll/eps/b1b2scan4.eps}
-    \includegraphics[width=7cm]{chapters/schroll/eps/b1b2scan4-5.eps}
+    \includegraphics[width=8cm]{chapters/schroll/eps/a1a2scan4.eps}
+    \includegraphics[width=8cm]{chapters/schroll/eps/a1a2scan4-5.eps}
+    \includegraphics[width=8cm]{chapters/schroll/eps/b1b2scan4.eps}
+    \includegraphics[width=8cm]{chapters/schroll/eps/b1b2scan4-5.eps}
     \end{center}
-  \caption{Contours of $J$ and Landweber iterations, optimal parameters (green), reference parameters (red). 
+  \caption{Contours of $J$ and Landweber iterations, optimal parameters (green), reference parameters (red).
    Clean data left column, noisy data right. \label{fig2}}
 \end{figure}
 
@@ -545,22 +546,22 @@ as shown in Figures~\ref{fig5} and \ref{fig6}.
 %------------------------------------------------------------------------------
 \section{Results and conclusion}
 
-The calibration of piecewise constant diffusion coefficients 
+The calibration of piecewise constant diffusion coefficients
 using local data in a small number of wells is a well behaved inverse problem.
-The convexity of the output functional, which is the basis for a successful minimization, 
+The convexity of the output functional, which is the basis for a successful minimization,
 remains stable with random noise added to the well data.
 
 We have automated the calibration of diffusive transport coefficients in two ways:
 First, the Landweber algorithm, with duality based gradients, automatically detects optimal parameters.
 Second, the FEniCS project DOLFIN, automatically implements the methods.
-As the dual problems are derived in variational form, 
+As the dual problems are derived in variational form,
 DOLFIN is the appropriate tool for efficient implementation.
 
 \subsection*{Acknowledgments}
 
 The presented work was funded by a research grant from StatoilHydro.
-The author wants to thank Are Magnus Bruaset for initiating this work. 
+The author wants to thank Are Magnus Bruaset for initiating this work.
 Many thanks to Bj{\o}rn Fredrik Nielsen for thoughtful suggestions regarding inverse problems
 as well as Anders Logg and Ola Skavhaug for their support regarding the DOLFIN software.
-The work has been conducted at Simula Research Laboratory as part of CBC, 
+The work has been conducted at Simula Research Laboratory as part of CBC,
 a Center of Excellence awarded by the Norwegian Research Council.

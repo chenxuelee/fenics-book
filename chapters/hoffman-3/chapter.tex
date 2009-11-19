@@ -1,70 +1,63 @@
-\fenicschapter{Computational Thermodynamics}
+\fenicschapter{Computational Compressible Flow and Thermodynamics}
               {Computational Thermodynamics}
               {Johan~Hoffman, Claes~Johnson and Murtazo Nazarov}
               {hoffman-3}
+	      
+%\editornote{Missing figures, need to be added in EPS sub directory.}
+%\editornote{Missing bibliography, needs to be added to common bibliography.bib
+%in correct format.}      
 
-\editornote{Missing figures, need to be added in EPS sub directory.}
-\editornote{Missing bibliography, needs to be added to common bibliography.bib in correct format.}
+\newcommand{\bbR}{{\Bbb{R}}}
+\newcommand{\bbC}{{\Bbb{C}}}
 
 We test the functionality of FEniCS on the challenge of computational
-thermodynamics in the form of a finite element solver of the Euler
-equations expressing conservation of mass, momentum and energy. We
-show that computational solutions satisfy a 2nd Law formulated in
-terms of kinetic energy, internal (heat) energy, work and
-shock/turbulent dissipation, without reference to entropy. We show
-that the 2nd Law
-%The Euler equations
-%are regularized in computational solution 
-%by a least-squares stabilized finite element method referred
-%to as EG2. The 2nd Law expresses 
+thermodynamics in the form 
+of the EG2 finite element solver of the Euler equations expressing conservation 
+of mass, momentum and energy. We show that EG2 solutions satisfy a 2nd
+Law formulated 
+in terms of kinetic energy,  internal (heat) energy, work and shock/turbulent
+dissipation, 
+without reference to entropy. We show that the 2nd Law 
 expresses an irreversible transfer of kinetic energy to heat energy in
-shock/turbulent dissipation arising because the Euler equations lack
-pointwise solutions, and thus explains the occurence of
-irreversibility in formally reversible systems as an effect of
-instability with blow-up of Euler residuals combined with finite
-precision computation, without resort to statistical mechanics or ad
-hoc viscous regularization.
-%EG2 includes a duality-based posteriori error control showing that mean-value outputs can be 
-%computable to tolerances of interest. 
-We simulate the classical Joule experiment of a gas expanding from
-rest under temperature drop followed by temperature recovery by
-turbulent dissipation until rest in the double volume.
- 
+shock/turbulent dissipation 
+arising because the Euler equations lack pointwise solutions.
+The 2nd Law thus explains the occurence of irreversibility in formally
+reversible systems
+as an effect of instability with blow-up of Euler residuals combined with finite
+precision 
+computation, without resort to statistical mechanics or ad hoc viscous
+regularization. 
+We simulate the classical Joule or Joule-Thompson experiment
+of a gas expanding from rest under temperature drop and turbulent dissipation 
+until rest in the double volume. 
+
 \section{FEniCS as Computational Science}
 
 The goal of the FEniCS project is to develop software for automated
-computational solution of differential equations based on a finite
-element methodology combining generality with efficiency. The FEniCS
-Application Unicorn offers a solver for a fluid-solids continuum based
-on a unified Eulerian formulation of momentum balance combined with
-constitutive laws for fluid/solid in Eulerian/updated Lagrangian form,
-which shows the capability of FEniCS for automation of computational
-fluid-structure interaction.
+computational solution of differential equations based on 
+a finite element methodology combining generality with efficiency. 
+Thermodynamics is a basic area of continuum mechanics with many important
+applications, which however is feared 
+by both teachers, students and engineers as being difficult to understand and to
+apply, principally because of the 
+appearance of turbulence. In this article we show that turbulent thermodynamics
+can be made understandable and useful by automated 
+computational solution, as a demonstration of the capability of FEniCS. 
 
-Thermodynamics is a basic area of continuum mechanics with many
-important applications, which however is feared by both teachers,
-students and engineers as being difficult to understand and to apply,
-principally because of the apperance of turbulence. In this article we
-show that turbulent thermodynamics can be made understandable and
-useful by automated computational solution, as another example of the
-capability of FEniCS.
-
-The biggest mystery of classical thermodynamics is the 2nd Law about
-entropy and automation cannot harbor any mystery.  Expert systems are
-required for mysteries and FEniCS is not an expert system.  Automation
-requires a continuum mechanics formulation of thermodynamics with a
-transparent 2nd Law.  We present a formulation of thermodynamics based
-on finite precision computation with a 2nd Law without reference to
-entropy, which we show can serve as a basis for automated
-computational simulation of complex turbulent thermodynamics and thus
-can open to new insight and design, a main goal of FEniCS. In this
-setting the digital finite element model becomes the real model of the
-physics of thermodynamics viewed as a form of analog finite precision
-computation, a model which is open to inspection and analysis because
-solutions can be computed and put on the table. This represents a new
-kind of science in the spirit of Dijkstra \cite{dijkstra} and Wolfram
-\cite{wolfram}, which can be explored using FEniCS and which we
-present in non-technical form in My Book of Knols \cite{knol}.
+The biggest mystery of classical thermodynamics is the 2nd Law about entropy and
+automation cannot harbor any mystery. 
+Expert systems are required for mysteries and FEniCS is not an expert system.
+Automation requires a continuum mechanics formulation of thermodynamics with a
+transparent 2nd Law.
+We present a formulation of thermodynamics based on finite precision computation
+with a 2nd Law without
+reference to entropy, which we show can serve as a basis for automated
+computational simulation of complex turbulent thermodynamics
+and thus can open to new insight and design, a main goal of FEniCS. In this
+setting the digital finite element model becomes the 
+real model of the physics of thermodynamics viewed as a form of analog finite
+precision computation, a model which is open to 
+inspection and analysis because solutions can be computed and put on the table.
 
 \section{The 1st and 2nd Laws of Thermodynamics}
 
@@ -76,81 +69,85 @@ from an internal fire located in the left ventricle. (Hippocrates, 460 B.C.)
 \normalsize
 
 \emph{Thermodynamics} is fundamental in a wide range of phenomena from
-macroscopic to microscopic scales.  Thermodynamics essentially
-concerns the interplay between \emph{heat energy} and \emph{kinetic
-energy} in a \emph{gas} or \emph{fluid}.  Kinetic energy, or
-\emph{mechanical energy}, may generate heat energy by
-\emph{compression} or \emph{turbulent dissipation}.  Heat energy may
-generate kinetic energy by \emph{expansion}, but not through a
-\emph{reverse} process of turbulent dissipation.  The industrial
-society of the 19th century was built on the use of \emph{steam
-engines}, and the initial motivation to understand thermodynamics came
-from a need to increase the efficiency of steam engines for conversion
-of heat energy to useful mechanical energy.  Thermodynamics is closely
-connected to the dynamics of \emph{slightly viscous} and
-\emph{compressible} gases, since substantial compression and expansion
-can occur in a gas, but less in fluids (and solids).
+macroscopic to microscopic scales. 
+Thermodynamics essentially concerns the interplay between \emph{heat energy} 
+and \emph{kinetic energy} in a \emph{gas} or \emph{fluid}. 
+Kinetic energy, or \emph{mechanical energy}, 
+may generate heat energy by 
+\emph{compression}
+or \emph{turbulent dissipation}. 
+Heat energy may generate kinetic energy by \emph{expansion}, but
+not through a \emph{reverse} process of turbulent dissipation. 
+The industrial society
+of the 19th century was built on the use of \emph{steam engines}, and the 
+initial motivation to understand thermodynamics came from a need to
+increase the efficiency of steam engines for conversion of heat energy to
+useful mechanical energy. 
+Thermodynamics is closely connected to the dynamics of \emph{slightly viscous}
+and \emph{compressible} gases, since substantial compression and 
+expansion can occur in a gas, but less in fluids (and solids).
 
-The development of classical thermodynamics as a rational science
-based on logical deduction from a set of axioms, was initiated in the
-19th century by Carnot \cite{carnot}, Clausius \cite{clausius} and
-Lord Kelvin \cite{kelvin}, who formulated the basic axioms in the form
-of the \emph{1st Law} and the \emph{2nd Law} of thermodynamics. The
-1st Law states (for an isolated system) that the \emph{total energy},
-the sum of kinetic and heat energy, is conserved.  The 1st Law is
-naturally generalized to include also conservation of mass and
-Newton's law of conservation of momentum and then can be expressed as
-the \emph{Euler equations} for a gas/fluid with \emph{vanishing
-viscosity}.
-%The 1st law can be viewed as a definition, with any loss of kinetic 
-%energy defined to be heat energy. 
+The development of classical thermodynamics as a rational science 
+based on logical deduction from a set of axioms, was initiated in 
+the 19th century by Carnot \cite{carnot}, Clausius 
+\cite{claus1984} and Lord Kelvin \cite{kelvin}, who formulated
+the basic axioms in the form of the \emph{1st Law} and the \emph{2nd Law} of
+thermodynamics. The 1st Law states (for an isolated system)
+that the \emph{total energy},
+the sum of kinetic and heat energy, is conserved.
+The 1st Law is naturally generalized to include also conservation 
+of mass and Newton's law of conservation of momentum and then 
+can be expressed as the \emph{Euler equations} for  a gas/fluid 
+with \emph{vanishing viscosity}.
 
-The 2nd Law has the form of an inequality $dS\ge 0$ for a quantity
-named \emph{entropy} denoted by $S$, with $dS$ denoting change
-thereof, supposedly expressing a basic feature of real thermodynamic
-processes.  The classical 2nd Law states that the entropy cannot
-decrease; it may stay constant or it may increase, but it can never
-decrease (for an isolated system).
+The 2nd Law has the form of an inequality 
+$dS\ge 0$ for a quantity
+named \emph{entropy} denoted by
+$S$, with $dS$ denoting change thereof, supposedly  
+expressing a basic feature of real thermodynamic processes.
+The classical 2nd Law states that the entropy cannot decrease; 
+it may stay constant or it may increase,
+but it can never decrease (for an isolated system). 
 
-The role of the 2nd Law is to give a scientific basis to the many
-observations of \emph{irreversible} processes, that is, processes
-which cannot be reversed in time, like running a movie backwards.
-Time reversal of a process with strictly increasing entropy, would
-correspond to a process with strictly decreasing entropy, which would
-violate the 2nd Law and therefore could not occur. A perpetum mobile
-would represent a reversible process and so the role of the 2nd Law is
-in particular to explain \emph{why} it is imposssible to construct a
-perpetum mobile, and \emph{why} time is moving forward in the
-direction an \emph{arrow of time}, as expressed by Max Planck
-\cite{planck1,planck2,planck3}: \emph{Were it not for the existence of
-irreversible processes, the entire edifice of the 2nd Law would
-crumble}.
+The role of the 2nd Law is
+to give a scientific basis to the many observations  
+of \emph{irreversible} processes, that is, processes which cannot 
+be reversed in time, like running a movie backwards. 
+Time reversal of a 
+process with strictly increasing entropy, would correspond
+to a process with strictly 
+decreasing entropy, which would violate the 2nd Law and therefore could
+not occur. A perpetum mobile would represent a reversible
+process and so the role of the 2nd Law is in particular to explain \emph{why}
+it is impossible to construct a perpetum mobile, and
+\emph{why} time is moving forward in the direction an
+\emph{arrow of time}, as expressed by  Max Planck 
+\cite{planck1,planck2,planck3}: \emph{Were it not for the 
+existence of irreversible processes, the entire edifice
+of the 2nd Law would crumble}.
 
-While the 1st Law in the form of the Euler equations expressing
-conservation of mass, momentum and total energy can be understood and
-motivated on rational grounds, the nature of the 2nd Law is
-mysterious.  It does not seem to be a consequence of the 1st Law,
-since the Euler equations seem to be time reversible, and the role of
-the 2nd Law is to explain irreversibility. Thus questions are lining
-up: nIf the 2nd Law is a new independent law of Nature, how can it be
-justified? What is the physical significance of that quantity named
-entropy, which Nature can only get more of and never can get rid of,
-like a steadily accumulating heap of waste? What mechanism prevents
-Nature from recycling entropy? How can irreversiblity arise in a
-reversible system? How can viscous dissipation arise in a system with
-vanishing viscosity? Why is there no \emph{Maxwell demon}
-\cite{maxwell}?  Why can a gas by itself expand into a larger volume,
-but not by itself contract back again, if the motion of the gas
-molecules is governed by the reversible Newton's laws of motion? Why
-is there an arrow of time? This article presents answers.
+While the 1st Law in the form of the Euler equations
+expressing conservation of mass, momentum and total energy
+can be understood and motivated on rational grounds, 
+the nature of the 2nd Law is mysterious.
+It does not seem to be a consequence of the 1st Law, since the Euler
+equations seem to be time reversible, and the role of the 2nd Law is to 
+explain irreversibility. Thus questions are lining up: If the 2nd Law is a new
+independent law of 
+Nature, how can it be justified? What is the physical significance of that
+quantity named entropy, 
+which Nature can only get more of and never can get rid of, like 
+a steadily accumulating heap of waste? What mechanism prevents Nature 
+from recycling entropy? How can irreversiblity arise in a 
+reversible system? How can viscous dissipation arise in a 
+system with vanishing viscosity? Why is there no \emph{Maxwell demon}
+\cite{maxwell}? 
+Why can a gas by itself expand
+into a larger volume, but not by itself contract back again,
+if the motion of the gas molecules is governed by the reversible Newton's
+laws of motion? Why is there an arrow of time? This article presents answers.
 
-%\begin{figure}[bhpt] 
-%\centerline{ 
-%\includegraphics[height=12.0cm]{ambsthermopict/newcdiag.eps} 
-%} 
-%\caption{Converting heat to kinetic (mechanical) energy in 1712.}
-%\label{nse_people} 
-%\end{figure}
+  
 
 \section{The Enigma}
 \small
@@ -161,147 +158,156 @@ been illuminated by a ray of scientific thought. (T. H. Huxley)
 \end{quote}
 \normalsize
 
-These were the questions which confronted scientists in the late 19th
-century, after the introduction of the concept of entropy by Clausius
-in 1865, and these showed to be tough questions to answer.  After much
-struggle, agony and debate, the agreement of the physics community has
-become to view \emph{statistical mechanics} based on an assumption of
-\emph{molecular chaos} as developed by Boltzmann \cite{boltzmann}, to
-offer a rationalization of the classical 2nd Law in the form of a
-tendency of (isolated) physical processes to move from improbable
-towards more probable states, or from ordered to less ordered states.
+
+
+These were the questions which confronted scientists 
+in the late 19th century, after the introduction  of the concept of entropy
+by Clausius in 1865, and these showed to be tough questions to answer.
+After much struggle, agony and debate, the agreement of the 
+physics community has become to  
+view \emph{statistical mechanics} based on an
+assumption of \emph{molecular chaos} as developed by Boltzmann 
+\cite{boltzmann}, 
+to offer a rationalization of the classical 2nd Law in the form
+of a tendency of (isolated) physical processes to move from improbable towards 
+more probable states, or from ordered to less ordered states.
 Boltzmann's assumption of molecular chaos in a dilute gas of colliding
-molecules, is that two molecules about to collide have independent
-velocities, which led to the \emph{H-theorem} for \emph{Boltzmann's
-equations} stating that a certain quantity denoted by $H$ could not
-decrease and thus could serve as an entropy defining an arrow of time.
+molecules, is that two molecules about to collide have
+independent velocities, which led to the \emph{H-theorem} 
+for \emph{Boltzmann's equations} stating that a certain quantity
+denoted by $H$ could not decrease and thus could serve as
+an entropy defining an arrow of time. 
 Increasing disorder would thus represent increasing entropy, and the
-classical 2nd Law would reflect the eternal pessimistists idea that
-things always get more messy, and that there is really no limit to
-this, except when everything is as messy as it can ever get. Of
-course, experience could give (some) support this idea, but the
-trouble is that it prevents things from ever becoming less messy or
-more structured, and thus may seem a bit too pessimistic.  No doubt,
-it would seem to contradict the many observations of \emph{emergence}
-of ordered non-organic structures (like crystals or waves and cyclons)
-and organic structures (like DNA and human beings), seemingly out of
-disordered chaos, as evidenced by the physics Nobel Laureate Robert
-Laughlin \cite{laughlin}.
+classical 2nd Law would reflect the eternal pessimisticts idea that things 
+always get more messy, and 
+that there is really no limit to this,
+except when everything is as messy as it can ever get. Of course, experience
+could give (some) support this idea, but the trouble is that it prevents things
+from ever becoming less messy or more structured, and 
+thus may seem a bit too pessimistic.
+No doubt, it would seem to contradict the many observations of 
+\emph{emergence} of ordered non-organic structures (like crystals or
+waves and cyclones) and organic structures (like DNA and human beings), 
+seemingly out of disordered chaos, as evidenced by the physics
+Nobel Laureate Robert Laughlin.% \cite{laughlin}.
 
-%\begin{figure}[bhpt] 
-%\centerline{ 
-%\includegraphics[height=6.0cm]{ambsthermopict/lawsofthermodynamics.eps} 
-%} 
-%\caption{Classical thermodynamics in a nutshell (from the web).}
-%\label{nse_people} 
-%\end{figure}
+Most trained thermodynamicists
+would here say that emergence of order
+out of chaos, in fact does not contradict the classical 2nd Law, 
+because it concerns 
+``non-isolated systems''. But they would probably insist that  
+the Universe as a whole (isolated system) would steadily evolve towards a   
+``heat-death'' with maximal entropy/disorder (and no life), thus
+fulfilling the pessimists expectation. The question from where the
+initial order came from, would however be left open.
 
-Most trained thermodynamicists would here say that emergence of order
-out of chaos, in fact does not contradict the classical 2nd Law,
-because it concerns ``non-isolated systems''. But they would probably
-insist that the Universe as a whole (isolated system) would steadily
-evolve towards a ``heat-death'' with maximal entropy/disorder (and no
-life), thus fulfilling the pessimists expectation. The question from
-where the initial order came from, would however be left open.
-
-The standard presentation of thermodynamics based on the 1st and 2nd
-Laws, thus involves a mixture of deterministic models (Boltzmann's
-equations with the H-theorem) based on statistical assumptions
-(molecular chaos) making the subject admittedly difficult to both
-learn, teach and apply, despite its strong importance. This is
-primarily because the question \emph{why} necessarily $dS\ge 0$ and
-never $dS<0$, is not given a convincing understandable answer.  In
-fact, statistical mechanics allows $dS<0$, although it is claimed to
-be very unlikely. The basic objective of statistical mechanics as the
-basis of classical thermodynamics, thus is to (i) give the entropy a
-physical meaning, and (ii) to motivate its tendency to (usually)
-increase. Before statistical mechanics, the 2nd Law was viewed as an
-experimental fact, which could not be rationalized theoretically. The
-classical view on the 2nd Law is thus either as a statistical law of
-large numbers or as a an experimental fact, both without a rational
-deterministic mechanistic theoretical foundation. The problem with
-thermodynamics in this form is that it is understood by very few, if
-any:
+The standard presentation of thermodynamics based on the 
+1st and 2nd Laws, thus involves a mixture of deterministic 
+models (Boltzmann's equations with the H-theorem) based on
+statistical assumptions (molecular chaos) making the subject
+admittedly difficult to both learn, teach and apply, 
+despite its strong importance. This is primarily because the question \emph{why}
+necessarily $dS\ge 0$ and never $dS<0$, is not
+given a convincing understandable answer. 
+In fact, statistical mechanics allows 
+$dS<0$, although it is claimed to be very unlikely. The basic objective
+of statistical mechanics as the basis of classical thermodynamics,
+thus is to (i) give the entropy a physical meaning, and (ii) to motivate
+its tendency to (usually) increase. Before statistical mechanics,
+the 2nd Law was viewed as an experimental fact, which could not
+be rationalized theoretically. The classical view on the 2nd Law
+is thus either as a statistical law of large numbers or as a an 
+experimental fact, both without a rational deterministic mechanistic 
+theoretical foundation. The problem with thermodynamics in this form
+is that it is understood by very few, if any:
 
 \small
 \begin{itemize}
 \item \emph{Every mathematician knows it is impossible to understand
 an elementary course in thermodynamics.} (V. Arnold)
 \item \emph{...no one knows what entropy is, so if you in a debate use
-this concept, you will always have an advantage.} (von Neumann to
-Shannon)
-\item \emph{As anyone who has taken a course in thermodynamics is well
-aware, the mathematics used in proving Clausius' theorem (the 2nd Law)
-is of a very special kind, having only the most tenous relation to
-that known to mathematicians.} (S. Brush \cite{brush})
+this concept, you will always have an advantage.} (Von Neumann to Shannon)
+\item \emph{As anyone who has taken a course in thermodynamics is well aware,
+the mathematics used in proving Clausius' theorem (the 2nd Law) is of a very
+special kind, having only the most tenuous relation to that known to
+mathematicians.} \cite{brush}
 \item \emph{Where does irreversibility come from? It does not come
-form Newton's laws. Obviously there must be some law, some obscure but
-fundamental equation. perhaps in electricty, maybe in neutrino
-physics, in which it does matter which way time goes.} (Feynman
-\cite{feynman})
+form Newton's laws. Obviously there must be some law, some
+obscure but fundamental equation. perhaps in electricity,
+maybe in neutrino physics, in which it does
+matter which way time goes.} \cite{feynman}
 \item
-\emph{For three hundred years science has been dominated by a
-Newtonian paradigm presenting the World either as a sterile mechanical
-clock or in a state of degeneration and increasing disorder...It has
-always seemed paradoxical that a theory based on Newtonian mechanics
-can lead to chaos just because the number of particles is large, and
-it is subjectivly decided that their precise motion cannot be observed
-by humans... In the Newtonian world of necessity, there is no arrow of
-time. Boltzmann found an arrow hidden in Nature's molecular game of
-roulette.}  (Paul Davies \cite{davies})
+\emph{For three hundred years science has been dominated by 
+a Newtonian paradigm presenting the World either
+as a sterile mechanical clock or in a state of degeneration 
+and increasing disorder...It has always seemed paradoxical
+that a theory based on Newtonian mechanics can lead
+to chaos just because the number of particles is large, 
+and it is subjectively decided that their precise motion cannot be 
+observed by humans... In the Newtonian world of necessity, there
+is no arrow of time. Boltzmann found an arrow hidden in  
+Nature's molecular game of roulette.}
+(Paul Davies)% \cite{davies})
 \item \emph{The goal of deriving the law of entropy increase
 from statistical mechanics has so far eluded the deepest
-thinkers.} (Lieb \cite{lieb})
+thinkers.} \cite{lieb}
 \item \emph{There are great physicists who have not understood it}.
 (Einstein about Boltzmann's statistical mechanics) 
 \end{itemize}
 \normalsize
  
+ 
 \section{Computational Foundation}   
 
-In this note we present a foundation of thermodynmaics, further
-elaborated in \cite{hoffman,ambsthermo}, where the basic assumption of
-statistical mechanics of molecular chaos, is replaced by
-\emph{deterministic finite precision computation}, more precisely by a
-\emph{least squares stabilized finite element method} for the Euler
-equations, referred to as \emph{Euler General Galerkin} or \emph{EG2}.
-In the spirit of Dijkstra \cite{dijkstra}, we thus view EG2 as the
-physical model of thermodynamics, that is the Euler equations together
-with a computational solution procedure, and not just the Euler
-equations without constructive solution procedure as in a classical
-non-computational approach.
+In this note we present a foundation of thermodynamics, further
+elaborated in \cite{nazarov2009, hoffjohn2007}, 
+where the basic assumption of statistical mechanics of
+molecular chaos, is replaced by 
+\emph{deterministic finite precision computation}, more precisely by
+a \emph{least squares stabilized finite element method} 
+for the Euler equations, referred to
+as \emph{Euler General Galerkin} or \emph{EG2}.
+%In the spirit of Dijkstra \cite{dijkstra}, 
+We thus view EG2 as the 
+physical model of thermodynamics, that is the Euler equations
+together with a computational solution procedure, and not just
+the Euler equations without constructive solution procedure
+as in a classical non-computational approach. 
 
-Using EG2 as a model of thermodynamics changes the questions and
-answers and opens new possibilities of progress together with new
-challenges to mathematical analysis and computation.  The basic new
-feature is that EG2 solutions are computed and thus are available to
-inspection. This means that the analysis of solutions shifts from
-\emph{a priori} to \emph{a posteriori}; after the solution has been
-computed it can be inspected.
+Using EG2 as a model of thermodynamics changes the questions 
+and answers and opens new possibilities of progress together with
+new challenges to mathematical analysis and computation.
+The basic new feature is that EG2 solutions are computed and thus 
+are available to inspection. This means that the analysis of solutions 
+shifts from \emph{a priori} to \emph{a posteriori}; after the solution
+has been computed it can be inspected.
 
-Inspecting computed EG2 solutions we find that they are
-\emph{turbulent} and have \emph{shocks}, which is identified by
-pointwise large Euler residuals, reflecting that pointwise solutions
-to the Euler equations are lacking. The enigma of thermodynamics is
-thus the enigma of turbulence (since the basic nature of shocks is
-understood). Computational thermodynamics thus essentially concerns
-computational turbulence. In this note and \cite{ambsthermo} we
-present evidence that EG2 opens to a resolution of the enigma of
-turbulence and thus of thermodynamics.
+Inspecting computed EG2 solutions we find that they are 
+\emph{turbulent} and have \emph{shocks}, which is identified by pointwise
+large Euler residuals, reflecting that pointwise solutions
+to the Euler equations are lacking. The enigma of thermodynamics
+is thus the enigma of turbulence (since the basic nature of shocks is 
+understood). Computational thermodynamics thus essentially
+concerns computational turbulence. In this note and \cite{hoffjohn2007}
+we present evidence that EG2 opens to a resolution 
+of the enigma of turbulence and thus of thermodynamics.
+
  
-The fundamental question concerns \emph{wellposedness} in the sense of
-Hadamard, that is what aspects or \emph{outputs} of turbulent/shock
-solutions are stable under perturbations in the sense that small
-perturbations have small effects. We show that wellposedness of EG2
-solutions can be tested a posteriori by computationally solving a
-\emph{dual linearized problem}, through which the output sensitivity
-of non-zero Euler residuals can be estimated. We find that mean-value
-outputs such as drag and lift and total turbulent dissipation are
-wellposed, while point-values of turbulent flow are not. We can thus a
-posteriori in a case by case manner, assess the quality of EG2
-solutions as solutions of the Euler equations.
+The fundamental question concerns \emph{wellposedness} in the sense
+of Hadamard, that is what aspects or \emph{outputs} of 
+turbulent/shock solutions 
+are stable under perturbations in the sense that small perturbations
+have small effects. We show that wellposedness of EG2 solutions
+can be tested a posteriori by computationally solving a \emph{dual linearized
+problem}, through which the output sensitivity of non-zero Euler residuals
+can be estimated. We find that mean-value outputs such as drag and lift 
+and total turbulent dissipation are wellposed, while point-values
+of turbulent flow are not. We can thus a posteriori in a case by case 
+manner, assess the quality of EG2 solutions as solutions of the Euler 
+equations. 
 %But we refrain from the seemingly hopeless task of proving a 
 %priori that EG2 will produce wellposed solutions for all data.    
+
 
 We formulate a \emph{2nd Law} for EG2 
 without the concept of entropy, in terms of  
@@ -316,319 +322,280 @@ flow always develops turbulence/shocks with $D>0$, and the
 2nd Law thus expresses an irreversible transfer of kinetic energy
 into heat energy, while the total energy $E+K$ remains constant.
 
-With the 2nd Law in the form (\ref{secondlaw}), we avoid the
-(difficult) main task of statistical mechanics of specifying the
-physical significance of entropy and motivating its tendency to
-increase by probabilistic considerations based on (tricky)
-combinatorics. Thus using \emph{Ockham's razor} \cite{ockham}, we
-rationalize a scientific theory of major importance making it both
-more understandable and more useful. The new 2nd Law is closer to
-classical Newtonian mechanics than the 2nd Law of statistical
-mechanics, and thus can be viewed to be more fundamental.
+With the 2nd Law in the form (\ref{secondlaw}), we 
+avoid the (difficult) main task of 
+statistical mechanics 
+of specifying the physical significance of entropy and motivating its
+tendency to increase by probabilistic considerations based on
+(tricky) combinatorics. Thus using \emph{Ockham's razor} % \cite{ockham},
+we rationalize a scientific theory of major importance making it both
+more understandable and more useful. The new 2nd Law is closer to 
+classical Newtonian mechanics than the 2nd Law of statistical mechanics, 
+and thus can be viewed to be more fundamental. 
 
-The new 2nd Law is a consequence of the 1st Law in the form of the
-Euler equations combined with EG2 finite precision computation
-effectively introducing viscosity and viscous dissipation. These
-effects appear as a consequence of the non-existence of pointwise
-solutions to the Euler equations reflecting instablities leading to
-the development shocks and turbulence in which large scale kinetic
-energy is transferred to small scale kinetic energy in the form of
-heat energy. The viscous dissipation can be interpreted as a penalty
-on pointwise large Euler residuals arising in shocks/turbulence, with
-the penalty being directly coupled to the violation following a
-principle of criminal law exposed in \cite{foucault}.  EG2 thus
-explains the 2nd Law as a consequence of the non-existence of
-pointwise solutions with small Euler residuals.  This offers an
-understanding to the emergence of irreversible solutions of the
-formally reversible Euler equations.  If pointwise solutions had
-existed, they would have been reversible without dissipation, but they
-don't exist, and the existing computational solutions have dissipation
-and thus are irreversible.
+The new 2nd Law is a consequence of the 1st Law 
+in the form of the Euler equations combined with EG2
+finite precision computation effectively introducing 
+viscosity and viscous dissipation. These effects 
+appear as a consequence of the non-existence of pointwise solutions to 
+the Euler equations reflecting instabilities leading to 
+the development shocks and turbulence in which
+large scale kinetic energy is transferred to small scale
+kinetic energy in the form of heat energy. The viscous dissipation
+can be interpreted as a penalty on pointwise
+large Euler residuals arising in shocks/turbulence,
+with the penalty being directly coupled to the violation. EG2 
+thus explains the 2nd Law as a consequence of 
+the non-existence of pointwise solutions with small Euler residuals.
+This offers an understanding to the emergence of irreversible
+solutions of the formally reversible Euler equations. 
+If pointwise solutions had existed, they would have been 
+reversible without dissipation, but they don't exist, and the
+existing computational solutions have dissipation and thus are
+irreversible.
 
 \section{Viscosity Solutions}
 
 An EG2 solution can be viewed as particular \emph{viscosity solution}
-of the Euler equations, which is a solution of \emph{regularized Euler
-equations} augmented by additive terms modeling viscosity effects with
-small viscosity coefficients. The effective viscosity in an EG2
-solution typically may be comparable to the mesh size.
+of the Euler equations, which is a solution of \emph{regularized 
+Euler equations} augmented by additive terms modeling viscosity
+effects with small viscosity coefficients. The effective viscosity in an 
+EG2 solution typically may be comparable to the mesh size.
 
-For incompressible flow the existence of viscosity solutions, with
-suitable solution dependent viscosity coefficients, can be proved a
-priori using standard techniques of analytical mathematics.  Viscosity
-solutions are pointwise solutions of the regularized equations.  But
-already the most basic problem with constant viscosity, the
-incompressible Navier-Stokes equations for a Newtonian fluid, presents
-technical difficulties, and is one of the open Clay Millennium
-Problems.
+For incompressible flow the existence of viscosity solutions,
+with suitable solution dependent viscosity coefficients, can
+be proved a priori using standard techniques of analytical mathematics.
+Viscosity solutions are pointwise solutions of the regularized 
+equations. 
+But already the most basic problem with constant viscosity,
+the incompressible Navier-Stokes equations for a Newtonian fluid, presents
+technical difficulties, and is one of the open Clay Millennium Problems.
 
 For compressible flow the technical complications are even more
-severe, and it is not clear which viscosities would be required for an
-analytical proof of the existence of viscosity solutions
-\cite{feireisl} to the Euler equations.  Furthermore, the question of
-wellposedness is typically left out, as in the formulation of the
-Navier-Stokes Millennium Problem, with the motivation that first the
-existence problem has to be settled.  Altogether, analytical
-mathematics seems to have little to offer a priori concerning the
-existence and wellposedness of solutions of the compressible Euler
-equations.  In contrast, EG2 computational solutions of the Euler
-equations seem to offer a wealth of information a posteriori, in
-particular concerning wellposedness by duality.
+severe, and it is not clear which viscosities would be required 
+for an analytical proof of the existence of viscosity 
+solutions \cite{feireisl} to the Euler equations.
+Furthermore, the question of wellposedness is typically left out, 
+as in the formulation of the Navier-Stokes Millennium Problem, 
+with the motivation that first the existence problem has to be settled. 
+Altogether, analytical mathematics seems to have little to offer a 
+priori concerning
+the existence and wellposedness of solutions of the compressible Euler 
+equations.
+In contrast, EG2 computational solutions of the Euler equations
+seem to offer a wealth of information a posteriori, in particular
+concerning wellposedness by duality.
 
-An EG2 solution thus can be viewed as a specific viscosity solution
-with a specific regularization from the least squares stabilization,
-in particular of the momentum equation, which is necessary because
-pointwise momentum balance is impossible to achieve in the presence of
-shocks/turbulence.  The EG2 viscosity can be viewed to be the minimal
-viscosity required to handle the contradiction behind the
-non-existence of pointwise solutions.  For a shock EG2 could then be
-directly interpreted as a certain physical mechanism preventing a
-shock wave from turning over, and for turbulence as a form of
-automatic computational turbulence model.
+An EG2 solution thus can be viewed as a specific viscosity solution with 
+a specific regularization from the least squares stabilization, in particular 
+of the momentum equation, which is necessary because pointwise momentum balance
+is impossible to achieve in the presence of shocks/turbulence. 
+The EG2 viscosity can be viewed
+to be the minimal viscosity required to handle the contradiction
+behind the non-existence of pointwise solutions.  
+For a shock EG2 could then be directly interpreted as  
+a certain physical mechanism preventing a shock wave from turning over,
+and for turbulence as a form of automatic computational turbulence
+model.  
 
-EG2 thermodynamics can be viewed as form of deterministic chaos, where
-the mechanism is open to inspection and can be used for prediction. On
-the other hand, the mechanism of statistical mechanics is not open to
-inspection and can only be based on ad hoc assumption, as noted by
-e.g. Einstein \cite{einsteincit1}. If Boltzmann's assumption of
-molecular chaos cannot be justified, and is not needed, why consider
-it at all, \cite{loschmidt}?
+EG2 thermodynamics can be viewed as form of deterministic
+chaos, where the mechanism is open to inspection and can be 
+used for prediction. On the other hand, the mechanism
+of statistical mechanics is not open to inspection and 
+can only be based on ad hoc assumption. If Boltzmann's
+assumption of molecular chaos cannot be justified, and 
+is not needed, why consider it at all, \cite{loschmidt}?
 
 \begin{figure}[bhpt] 
 \centerline{ 
-%\includegraphics[height=6cm]{fig358.eps} 
+ \includegraphics[height=6cm]{chapters/hoffman-3/eps/fig358.eps} 
 } 
 \caption{Joule's 1845 experiment}
 \label{joule} 
 \end{figure} 
 
-\editornote{Missing figure.}
 
 \section{Joule's 1845 Experiment} 
 
-To illustrate basic aspects of thermodynamics, we recall Joule's
-experiment from 1845 with a gas initially at rest with temperature $T
-=1$ at a certain pressure in a certain volume immersed into a
-container of water, see Fig. \ref{joule}. At initial time a valve was
-opened and the gas was allowed to expand into the double volume while
-the temperature change in the water was carefully measured by Joule.
-To the great surprise of both Joule and the scientific community, no
-change of the temperature of the water could be detected, in
-contradiction with the expectation that the gas would cool off under
-expansion.  Moreover, the expansion was impossible to reverse; the gas
-had no inclination to contract back to the original volume.
-Simulating Joule's experiment using EG2, we discover the following as
-displayed in Fig. \ref{joule_den}-\ref{joule_kin2}
+To illustrate basic aspects of thermodynamics, 
+we recall Joule's experiment from 1845 with a gas initially
+at rest, or in equilibrium, at a certain temperature and density  
+in a certain volume immersed into a container of water, see
+Fig. \ref{joule}. At initial time a valve was opened and the
+gas was allowed to expand into the double volume while the temperature 
+change in the water was carefully measured by Joule.
+To the great surprise of both Joule and the scientific community, no change 
+of the temperature of the water could be detected, in contradiction with 
+the expectation that the gas would cool off under expansion. 
+Moreover, the expansion was impossible to reverse; the gas had no inclination
+to contract back to the original volume.  
+
+We simulate Joule's experiment computationally using EG2: At initial time a
+valve is opened in a channel connecting 
+two cubical chambers, a left and a right chamber, filled with gas of the same
+temperature but different 
+density/pressure with high density/pressure in the left and low in the right
+chamber. 
+Figs. \ref{densitytemp} - \ref{tur_disipation} display the time-evolution of
+mean temperature, density, kinetic 
+energy, pressure and turbulent dissipation in the left and right chambers. Figs.
+\ref{temp3} - \ref{tur_disp_dist} give snapshots of the distribution of 
+temperature and speed at an intermediate time.
+
+We see that temperature drops in the left chamber as the gas expands with heat
+energy transforming to kinetic energy
+with a maximal temperature drop in the channel. The cool expanding gas is
+heated  in the right chamber by compression and shock/turbulence dissipation.
+The mean temperature thus drops in the left chamber and
+increases in the right and
+after a slight rebounce settles to a remaining density/temperature gap as the
+gas comes to rest with the same pressure
+in the left and right chambers and the same total heat energy as before
+expansion.
+
+From the 1st Law alone there are many different possible end states with varying
+gaps in density/temperature. 
+It is the 2nd Law which determines the size of the gap, which relates to the
+amount of turbulent/shock dissipation
+in the left and right chambers, which is determined by the dynamics of the
+process including 
+the distribution of turbulence/shock dissipation. 
+
+Classical thermodynamics focusing on equilibrium states does not tell which from
+a range of 
+possible equilibrium end states with varying gaps, will actually be realized,
+because the true end state depends on the dynamics
+of the process. If anything, classical thermodynamics would predict an end state
+with zero gap (constant enthalpy), which we have seen is incorrect.
+In short, classical equilibrium thermodynamics excluding dynamics cannot
+correctly
+predict equilibrium end states, and thus has little practical value. 
+  
+\begin{figure}[bhpt] 
+\centerline{ 
+\includegraphics[height=5.0cm]
+{chapters/hoffman-3/eps/Rho_2.eps}
+\includegraphics[height=5.0cm]
+{chapters/hoffman-3/eps/T_2.eps}
+} 
+\caption{Evolution in time of mean density and temperature in left and right
+chambers}
+\label{densitytemp} 
+\end{figure}
+\begin{figure}[bhpt] 
+\centerline{ 
+\includegraphics[height=5.0cm]
+{chapters/hoffman-3/eps/K_2.eps}
+\includegraphics[height=5.0cm]
+{chapters/hoffman-3/eps/P_2.eps}
+} 
+\caption{Evolution in time of mean kinetic energy and pressure in left and right
+chambers}
+\label{kinenergypress} 
+\end{figure}
 
 \begin{figure}[bhpt] 
 \centerline{ 
-%\includegraphics[height=3.5cm]
-%{ambsthermopict/joule-pics/joule-chamber-den-1.eps} 
-%\includegraphics[height=3.5cm]
-%{ambsthermopict/joule-pics/joule-chamber-den-2.eps} 
+\includegraphics[height=5.0cm]
+{chapters/hoffman-3/eps/tur_disp_l.eps}
+\includegraphics[height=5.0cm]
+{chapters/hoffman-3/eps/tur_disp_r.eps}
 } 
-\caption{Density at two time instants}
-\label{joule_den} 
+\caption{Evolution in time of mean turbulent dissipation in left and right
+chambers}
+\label{tur_disipation} 
 \end{figure}
-\begin{figure}[bhpt] 
-\centerline{ 
-%\includegraphics[height=3.5cm]
-%{ambsthermopict/joule-pics/joule-chamber-tem-1.eps} 
-%\includegraphics[height=3.5cm]
-%{ambsthermopict/joule-pics/joule-chamber-tem-2.eps} 
-} 
-\caption{Temperature at two time instants}
-\label{joule_tem} 
-\end{figure}
+
+
 
 \begin{figure}[bhpt] 
 \centerline{ 
-%\includegraphics[height=2.0cm]
-%{ambsthermopict/joule-pics/joule-den-lc.eps}
-%\includegraphics[height=2.0cm]
-%{ambsthermopict/joule-pics/joule-den-rc.eps}
+\includegraphics[height=8.0cm]
+{chapters/hoffman-3/eps/Tem_T_3.eps}
 } 
-\caption{Average density in left and right chamber}
-\label{joule_den2} 
+\caption{Distribution of gas temperature at $T=3$}
+\label{temp3} 
 \end{figure}
+
 
 \begin{figure}[bhpt] 
 \centerline{ 
-%\includegraphics[height=2.0cm]
-%{ambsthermopict/joule-pics/joule-tem-lc.eps}
-%\includegraphics[height=2.0cm]
-%{ambsthermopict/joule-pics/joule-tem-rc.eps} 
+\includegraphics[height=8.0cm]
+{chapters/hoffman-3/eps/vel_T_3.eps}
 } 
-\caption{Average temperature in left and right chamber}
-\label{joule_tem2} 
+\caption{Distribution of gas speed at $T=3$}
+\label{vel3} 
 \end{figure}
 
 \begin{figure}[bhpt] 
 \centerline{ 
-%\includegraphics[height=2.0cm]
-%{ambsthermopict/joule-pics/joule-chamber-kinene-1.eps} 
-%\includegraphics[height=2.0cm]
-%{ambsthermopict/joule-pics/joule-chamber-temp.eps} 
+\includegraphics[height=8.0cm]
+{chapters/hoffman-3/eps/tur_disp.eps}
 } 
-\caption{Average kinetic energy and temperature: short time}
-\label{joule_kin} 
-\end{figure}
-\begin{figure}[bhpt] 
-\centerline{
-%\includegraphics[height=3.0cm]
-%{ambsthermopict/joule-pics/joule-kinene-1.eps} 
-%\includegraphics[height=3.0cm]
-%{ambsthermopict/joule-pics/joule-kin-lc.eps}   
-%\includegraphics[height=3.0cm]
-%{ambsthermopict/joule-pics/joule-kin-rc.eps} 
-} 
-\caption{Average kinetic energy in both, left and right chamber(s): long time}
-\label{joule_kin2} 
+\caption{Distribution of turbulent dissipation at $T=3$}
+\label{tur_disp_dist} 
 \end{figure}
 
-In a first phase the temperature drops below 1 as the gas expands with
-increasing velocity, and in a second phase shocks/turbulence appear
-and heat the gas towards a final state with the gas at rest in the
-double volume and the temperature back to $T =1$.  The total (heat)
-energy is, of course, conserved since the density is reduced by a
-factor 2 after expansion to double volume. We can also understand that
-the rapidity of the expansion process makes it difficult to detect any
-temperature drop in the water in the inital phase. Altogether, using
-EG2 we can first simulate and then understand Joule's experiment, and
-we thus see no reason to be surprised. We shall see below as a
-consequence of the 2nd Law that reversal of the process with the gas
-contracting back to the original small volume, is impossible because
-the only way the gas can be put into motion is by expansion, and thus
-contraction is impossible.
 
-In statistical mechanics the dynamics of the process would be
-dismissed and only the initial and final state would be subject to
-analysis. The final state would then be viewed as being ``less
-ordered'' or ``more probable'' or having ``higher entropy'', because
-the gas would occupy a larger volume, and the reverse process with the
-gas contracting back to the initial small volume, if not completely
-impossible, would be ``improbable''. But to say that a probable state
-is is more probable than an improbable state is more mystifying than
-informative. Taking the true dynamics of the process into account
-including in particular the second phase with heat generation from
-shocks or turbulence, we can understand the observation of constant
-temperature and irreversibility in a deterministic fashion without
-using any mystics of entropy based on mystics of statistics. In
-\cite{arrow} we develop a variety of aspects of the arrow of time
-enforced by the new 2nd Law.
+The 2nd Law states that reversal of 
+the process with the gas contracting back to the original small volume,
+is impossible because the only way the gas can be put into motion without
+external forcing is 
+by expansion: self-expansion is possible, but not self-constraction. 
 
-%\cite{einsteincit1,
-%einsteincit2,einsteincit3}.
-
-%\section{Limitations of Classical Thermodynamics}
-
-%Classical thermodynamics developed in the late 19th century
-%seeks to describe systems in \emph{thermodynamic equilibrium}, 
-%neglecting the dynamic process
-%from one equilibrium state to another with the motivation that 
-%the dynamics is too complex. To describe systems in thermodynamic equilibrium
-%different forms of \emph{statistical mechanics} were pioneered  
-%by in particular Gibbs and Boltzmann.
-
-%The classical formulations of the 2nd Law
-%are cryptic, and thus have no clear scientific meaning. Yet the 2nd Law
-%is considered as a foundation of classical thermodynamics.
-
-%\section{Carnot Engine}
-%Carnot created an equation he employed to prove this statement, and 
-%currently used to show the thermodynamic efficiency of a heat machine: 
-%e = 1 - TL / TH (the efficiency of a heat machine is equal to one minus 
-%the low operating temperature of the machine in degrees Kelvin, divided 
-%by the high operating temperate of the machine in degrees Kelvin). For a 
-%machine to attain full efficiency, temperatures of absolute zero would 
-%have to be incorporated.
-
-%\small
-%\begin{quote} 
-%The total energy of the universe is constant; the total entropy is 
-%continually increasing. (Rudolf Clausius 1865)
-%\end{quote}
-%\begin{quote} Everyone knows that heat can produce motion. That it possesses
-%vast motive power no one can doubt, in these days when the steem engine is 
-%everywhere so well known. The study of these enegines is of great interest,
-%their importance is enormous, their use is contnually increasing, and they
-%seem desined to produce a great revolution in the civilized world.
-%(Carnot \cite{carnot} 1824).
-%\end{quote}
-%\begin{quote}...the whole procedure was an act of despair because a
-%theoretical interpretation had to be found at any price, no matter
-%how high that might be... (Planck on the statistical mechanics basis of 
-%his radiation law)
-%\end{quote}
-%\begin{quote} Where does irreversibility come from? It does not come
-%form Newton's laws. Obviously there must be some law, some
-%obscure but fundamental equation. perhaps in electricty,
-%maybe in neutrino physics, in which it \emph{does}
-%matter which way time goes. (The Feynmman Lectures on Physics 1963)
-%\end{quote}
-%\begin{quote} The 2nd Law cannot be derived from purely mechanical
-%laws. It carries the stamp of the essentially statitical nature of heat.
-%(Bergman in Basic Theories of Physics 1951)
-%\end{quote}
+We are thus able to analyze and understand the dynamics of the Joule experiment
+using the 1st and
+the new form of the 2nd law. The experiment displays the expansion phase of a
+compression refrigerator
+with heat being moved by expansion from the left chamber in contact with the
+inside of the refrigerator, 
+into the right chamber in contact with the outside. The cycle is closed by
+recompression under outside cooling. 
+The efficiency connects to the temperature drop in the left chamber and the gap,
+with efficiency suffering from
+rebounce to a small gap.   
 
 \section{The Euler Equations}
-
-\small
-%\begin{quote} 
-%The total energy of the universe is constant; the total entropy is 
-%continually increasing. (Rudolf Clausius 1865)
-%\end{quote}
-%\begin{quote} Everyone knows that heat can produce motion. That it possesses
-%vast motive power no one can doubt, in these days when the steam engine is 
-%everywhere so well known. The study of these engines is of great interest,
-%their importance is enormous, their use is continually increasing, and they
-%seem desined to produce a great revolution in the civilized world.
-%(Carnot \cite{carnot} 1824).
-%\end{quote}
-%\begin{quote}...the whole procedure was an act of despair because a
-%theoretical interpretation had to be found at any price, no matter
-%how high that might be... (Planck on the statistical mechanics basis of 
-%his radiation law)
-%\end{quote}
-%\begin{quote} The 2nd Law cannot be derived from purely mechanical
-%laws. It carries the stamp of the essentially statitical nature of heat.
-%(Bergman in Basic Theories of Physics 1951)
-%\end{quote}
-\normalsize
-
-We consider the Euler equations for an inviscid perfect gas enclosed
-in a volume $\Omega$ in $\R^3$ with boundary $\Gamma$ over a time
-interval $I=(0,1]$ expressing conservation of \emph{mass density}
-$\rho$, \emph{momentum} $m=(m_1,m_2,m_3)$ and \emph{internal energy}
-$e$: Find $\hat u=(\rho ,m,e)$ depending on $(x,t)\in Q\equiv
-\Omega\times I$ such that
+We consider the Euler equations for an inviscid perfect gas 
+enclosed in a volume $\Omega$ in $\bbR^3$ with boundary $\Gamma$
+over a time interval $I=(0,1]$ expressing conservation of
+\emph{mass density} $\rho$, \emph{momentum} $m=(m_1,m_2,m_3)$ and 
+\emph{internal energy} $e$: 
+Find $\hat u=(\rho ,m,e)$ 
+depending on $(x,t)\in Q\equiv \Omega\times I$ such that
 \begin{equation}\label{euler}
 \begin{array}{rcl}
-R_\rho (\hat u)\equiv\dot \rho +\nabla\cdot (\rho u )&=&  0 \quad \mbox{in } Q, \\
+R_\rho (\hat u)\equiv\dot \rho +\nabla\cdot (\rho u )&=&  0 \quad \mbox{in } Q,
+\\
 R_m(\hat u)\equiv\dot m +\nabla\cdot (mu +p)&=&  f \quad \mbox{in } Q, \\
-R_e(\hat u)\equiv\dot e +\nabla\cdot (eu)+p\nabla\cdot u &=& g  \quad \mbox{in } Q,\\ 
+R_e(\hat u)\equiv\dot e +\nabla\cdot (eu)+p\nabla\cdot u &=& g  \quad \mbox{in }
+Q,\\ 
 u\cdot n&=&0\quad \mbox{on } \Gamma\times I\\
 \hat u(\cdot ,0)&=&\hat u^0\quad \mbox{in } \Omega , 
 \end{array} 
 \end{equation}
-where $u=\frac{m}{\rho}$ is the velocity, $p=(\gamma -1)e$ with
-$\gamma >1$ a \emph{gas constant}, $f$ is a given volume force, $g$ a
-heat source/sink and $\hat u^0$ a given initial state. We here express
-energy conservation in terms of the internal energy $e=\rho T$, with
-$T$ the temperature, and not as conservation of the \emph{total
-energy} $\epsilon =e+k$ with $k=\frac{\rho v^2}{2}$ the \emph{kinetic
-energy}, in the form $\dot\epsilon +\nabla\cdot (\epsilon u)=
-0$. Because of the appearance of shocks/turbulence, the Euler
-equations lack pointwise solutions, except possible for short time,
-and regularization is therefore necessary. For a mono-atomic gas
+where $u=\frac{m}{\rho}$ is the velocity, 
+$p=(\gamma -1)e$ with $\gamma >1$ a \emph{gas constant},
+$f$ is a given volume force, $g$ a heat source/sink and $\hat u^0$
+a given initial state. We here express
+energy conservation in terms of the internal energy $e=\rho T$, 
+with $T$ the temperature, and not
+as conservation of the \emph{total energy} 
+$\epsilon =e+k$ with $k=\frac{\rho v^2}{2}$ the \emph{kinetic energy},
+in the form $\dot\epsilon +\nabla\cdot (\epsilon u)= 0$. Because
+of the appearance of shocks/turbulence, the Euler equations lack
+pointwise solutions, except possible for short time, and
+regularization is therefore necessary. For a mono-atomic gas
 $\gamma =5/3$ and (\ref{euler}) then is a \emph{parameter-free model},
-the ideal form of mathematical model according to Einstein...
+the ideal form of mathematical model according to Einstein..   
+
+
 
 \section{Energy Estimates for Viscosity Solutions}
 
-For the discussion we consider the following regularized version of
-(\ref{euler}) assuming for simplicity that $f=0$ and $g=0$: Find $\hat
-u_{\nu ,\mu}\equiv\hat u=(\rho ,m,e)$ such that
+For the discussion we consider the following regularized version
+of (\ref{euler}) assuming for simplicity that $f=0$ and $g=0$: Find $\hat u_{\nu
+,\mu}\equiv\hat u=(\rho ,m,e)$ such that
 \begin{equation}\label{eulerreg}
 \begin{array}{rcl}
 R_\rho (\hat u)&=&  0 \quad \mbox{in } Q, \\
@@ -639,49 +606,55 @@ u&=&0\quad  \quad\mbox{on } \Gamma\times I,\\
 \hat u(\cdot ,0)&=&\hat u^0\quad \mbox{in } \Omega ,
 \end{array} 
 \end{equation}
-where $\nu >0$ is a \emph{shear viscocity} $\mu >>\nu \ge 0$ if
-$\nabla\cdot u >0$ in expansion (with $\mu =0$ if $\nabla\cdot u \le
-0$ in compression), is a small \emph{bulk viscosity}, and we use the
-notation $\vert \nabla u\vert^2 =\sum_i\vert\nabla u_i\vert^2$. We
-shall see that the bulk viscosity is a safety feature putting a limit
-to the work $p\nabla\cdot u$ in expansion appearing in the energy
-balance.
+where $\nu >0$ is a \emph{shear viscosity} $\mu >>\nu \ge 0$ 
+if $\nabla\cdot u >0$ in expansion (with $\mu =0$ if $\nabla\cdot u \le 0$
+in compression), 
+is a small \emph{bulk viscosity}, and   
+we use the notation 
+$\vert \nabla u\vert^2 =\sum_i\vert\nabla u_i\vert^2$. We shall
+see that the bulk viscosity is a safety feature putting a limit 
+to the work $p\nabla\cdot u$ in expansion appearing in the energy balance.
 
-We note that only the momentum equation is subject to viscous
-regulariztion. Further, we note that the shear viscosity term in the
-momentum equation multiplied by the velocity $u$ (and formally
-integrated by parts) appears as a positive right hand side in the
-equation for the internal energy, reflecting that the dissipation from
-shear viscosity is transformed into internal heat energy. In contrast,
-the dissipation from the bulk viscosity represents another form of
-internal energy not accounted for as heat energy, acting only as a
-safety feature in the sense that its contribution to the energy
-balance in general will be small, while that from the shear viscosity
-in general will be substantial reflecting shock/turbulent dissipation.
+We note that only the momentum equation is subject
+to viscous regularization. Further, we note that
+the shear viscosity term in the momentum
+equation multiplied by the velocity $u$ (and formally integrated by parts)
+appears as a positive right hand side in the equation for the internal 
+energy, reflecting that the dissipation from shear viscosity
+is transformed into internal heat energy. In contrast, the
+dissipation from the bulk viscosity represents 
+another form of internal energy not accounted for as heat energy,
+acting only as a safety feature in the sense that its contribution
+to the energy balance in general will be small, while that from the 
+shear viscosity in general will be substantial reflecting
+shock/turbulent dissipation.
 
 Below we will consider instead regularization by EG2 with the
-advantage that the EG2 solution is computed and thus is available to
-inspection, while $\hat u_{\nu ,\mu}$ is not.  We shall see that EG2
-regularization can be interpreted as a (mesh-dependent) combination of
-bulk and shear viscosity and thus (\ref{eulerreg}) can be viewed as an
-analytical model of EG2 open to simple form of analysis in the form of
-energy estimates.
+advantage that the EG2 solution is computed and thus is 
+available to inspection, while $\hat u_{\nu ,\mu}$ is not.
+We shall see that EG2 regularization can be interpreted 
+as a (mesh-dependent) combination of bulk and shear viscosity
+and thus (\ref{eulerreg}) can be viewed as an analytical model
+of EG2 open to simple form of analysis in the form of energy
+estimates.
 
-As indicated, the existence of a pointwise solution $\hat u=\hat
-u_{\nu ,\mu}$ to the regularized equations (\ref{eulerreg}) is an open
-problem of analytical mathematics, although with suitable additional
-regularization it could be possible to settle
-\cite{feireisl}. Fortunately, we can leave this problem aside, since
-EG2 solutions will be shown to exist a posteriori by computation. We
-thus formally assume that (\ref{eulerreg}) admits a pointwise
-solution, and derive basic energy estimates which will be paralleled
-below for EG2.  We thus use the regularized problem (\ref{eulerreg})
-to illustrate basic features of EG2, including the 2nd Law.
+As indicated, the existence of a pointwise solution 
+$\hat u=\hat u_{\nu ,\mu}$ to the regularized equations (\ref{eulerreg})
+is an open problem of analytical mathematics, 
+although with suitable additional regularization it could
+be possible to settle \cite{feireisl}. Fortunately, we can leave this
+problem aside, since EG2 solutions will be shown to exist a posteriori 
+by computation. We thus formally assume that (\ref{eulerreg}) admits a 
+pointwise solution, and derive basic energy estimates which
+will be paralleled below for EG2.  We thus use the regularized problem 
+(\ref{eulerreg}) to illustrate basic features of EG2, including
+the 2nd Law.       
 
-We shall prove now that a regularized solution $\hat u$ is an
-approximate solution of the Euler equations in the sense that $R_\rho
-(\hat u)=0$ and $R_e(\hat u)\ge 0$ pointwise, $R_m(\hat u)$ is weakly
-small in the sense that
+
+We shall prove now that a regularized solution 
+$\hat u$ is an approximate solution of the Euler equations 
+in the sense that $R_\rho (\hat u)=0$ and $R_e(\hat u)\ge 0$ pointwise,
+$R_m(\hat u)$ is weakly small in the sense that 
 \begin{equation}\label{euler1dweak}
 \Vert R_m(\hat u)\Vert_{-1}\le 
 \frac{\sqrt{\nu}}{\sqrt{\mu}}+\sqrt{\mu}<<1,
@@ -697,20 +670,21 @@ K=\int_\Omega k\, dx,\quad E=\int_\Omega e\, dx, \quad W
 =\int_\Omega p\nabla\cdot u\, dx, 
 \quad D =\int_\Omega \nu \vert\nabla u\vert^2\, dx.
 \]
-Choosing $\nu << \mu$ we can assure that $\Vert R_m(\hat u_{\nu
-,\mu})\Vert_{-1}$ is small. We can view the 2nd Law as a compensation
-for the fact that the momentum equation is only satisfied in a weak
-sense, and the equation for internal energy with inequality.
+Choosing $\nu << \mu$ we can assure that
+$\Vert R_m(\hat u_{\nu ,\mu})\Vert_{-1}$ is small. We can view
+the 2nd Law as a compensation for the fact that the momentum
+equation is only satisfied in a weak sense, and the equation 
+for internal energy with inequality. 
 
-The 2nd Law (\ref{2ndlaw}) states an irreversible transfer of kinetic
-energy to heat energy in the presence of shocks/turbulence with $D
->0$, which is the generic case.  On the other hand, the sign of $W$ is
-variable and thus the corresponding energy transfer may go in either
-direction.
+The 2nd Law (\ref{2ndlaw}) states an irreversible
+transfer of kinetic energy to heat energy in the presence of  
+shocks/turbulence with $D >0$, which is the generic case. 
+On the other hand, the sign of $W$ is variable and
+thus the corresponding energy transfer may go in either direction. 
 
-The basic technical step is to multiply the momentum equation by $u$,
-and use the mass balance equation in the form $\frac{\vert
-u\vert^2}{2}(\dot \rho +\nabla\cdot (\rho u))=0$, to get
+The basic technical step is to multiply the momentum equation
+by $u$, and use the mass balance equation in the form
+$\frac{\vert u\vert^2}{2}(\dot \rho +\nabla\cdot (\rho u))=0$, to get
 \begin{equation}\label{k}
 \dot k +\nabla\cdot (ku)+p\nabla\cdot u -
 \nabla (\mu p\nabla\cdot u)\cdot u-\nabla\cdot(\nu \nabla u)\cdot u=0.
@@ -750,7 +724,8 @@ for simplicity that $K(0)=0$,
 K(1)+\int_Q\nu (\Delta u)^2dxdt=\int_Q p\nabla\cdot udxdt -
 \int_Q\mu p(\nabla\cdot u)^2dxdt \le \frac{1}{\mu}\int_Qpdxdt\le \frac{1}{\mu},
 \]
-where we used that $\int_Q p dxdt=(\gamma -1)\int_Qedxdt \le \int_IE(t)dt\le 1$. It follows that
+where we used that $\int_Q p dxdt=(\gamma -1)\int_Qedxdt \le \int_IE(t)dt\le 1$.
+It follows that
 \begin{equation}\label{nuu2}
 \int_Q\nu \vert\nabla u\vert^2dxdt\le \frac{1}{\mu}.
 \end{equation}
@@ -763,43 +738,46 @@ with $C$ a constant of moderate size, which completes the proof. As indicated,
 $\Vert R_m(\hat u)\Vert_{-1}$ is estimated by computation, as
 shown below. The role of the analysis
 is thus to rationalize computational experience, not to replace
-it.
+it. 
+
 
 \section{Compression and Expansion}
 
-The 2nd Law (\ref{2ndlaw}) states that there is a transfer of kinetic
-energy to heat energy if $W<0$, that is under compression with
-$\nabla\cdot u<0$, and a transfer from heat to kinetic energy if
-$W>0$, that is under expansion with $\nabla\cdot u>0$.  Returning to
-Joule's experiment, we see by the 2nd Law that contraction back to the
-original volume from the final rest state in the double volume, is
-impossible, because the only way the gas can be set into motion is by
-expansion. To see this no reference to entropy is needed.
+The 2nd Law (\ref{2ndlaw}) states that there is a transfer
+of kinetic energy to heat energy if $W<0$, that is under compression
+with $\nabla\cdot u<0$, and a transfer from heat to kinetic energy 
+if $W>0$, that is under expansion with $\nabla\cdot u>0$. 
+Returning to Joule's experiment, we see by the 2nd Law that contraction back
+to the original volume from the final rest state in the double volume,
+is impossible, because the only way the gas can be set into motion is 
+by expansion. To see this no reference to entropy is needed.
 
-\section{A 2nd Law witout Entropy}
+\section{A 2nd Law without Entropy}
 
-We note that the 2nd Law (\ref{2ndlaw}) is expressed in terms of the
-physical quantities of kinetic energy $K$, heat energy $E$, work $W$,
-and dissipation $D$ and does not involve any concept of entropy.  This
-relieves us from the task of finding a physical significance of
+We note that the 2nd Law (\ref{2ndlaw}) is expressed in terms of 
+the physical quantities of kinetic energy $K$, heat energy $E$, work $W$,
+and dissipation $D$ and does not involve any concept of entropy. 
+This relieves us from the task of finding a physical significance of 
 entropy and justification of a classical 2nd Law stating that entropy
-cannot decrease.  We thus circumvent the main difficulty of classical
-thermodynamics based on statistical mechanics, while we reach the same
-goal as statistical mechanics of explaining irreversibility in
-formally reversible Newtonian mechanics.
+cannot decrease.
+We thus circumvent the main difficulty of classical thermodynamics
+based on statistical mechanics, while we reach the same goal 
+as statistical mechanics
+of explaining irreversibility in formally reversible Newtonian mechanics.
 
-We thus resolve \emph{Loschmidt's paradox} \cite{loschmidt} asking how
-irreversibility can occur in a formally reversible system, which
-Boltzmann attempted to solve.  But Loschmidt pointed out that
-Boltzmann's equations are not formally reversible, because of the
-assumption of molecular chaos that velocities are independent before
-collision, and thus Boltzmann effectively assumes what is to be
-proved.  Boltzmann and Loschmidt's met in heated debates without
-conclusion, but after Boltzmann's tragic death followed by the
-experimental verification of the molecular nature of gases,
-Loschmidt's paradox evaporated as if it had been resolved, while it
-had not.  Postulating molecular chaos still amounts to assume what is
-to be proved.
+We thus resolve \emph{Loschmidt's paradox} \cite{loschmidt} asking 
+how irreversibility can occur in a formally reversible system,
+which Boltzmann attempted to solve. 
+But Loschmidt pointed out that Boltzmann's equations
+are not formally reversible, because of the assumption of
+molecular chaos that velocities are independent before
+collision, and thus Boltzmann effectively assumes what is to be proved.
+Boltzmann and Loschmidt's met in heated debates without conclusion,
+but after Boltzmann's tragic death followed by the experimental verification
+of the molecular nature of gases, Loschmidt's paradox
+evaporated as if it had been resolved, while it had not. 
+Postulating molecular chaos still amounts to
+assume what is to be proved.
 
 \section{Comparison with Classical Thermodynamics}
 
@@ -822,12 +800,6 @@ effectively expressing that $Tds\ge 0$, which is the
 same  as $ds\ge 0$ since $T>0$. In symbolic form the new 2nd Law
 thus expresses the same as the classical 2nd Law, without referring 
 to entropy.
-%which is taken as an axiom supposedly reflecting a principle of
-%Nature, which cannot be derived from more basic principles.
-%The rationale behind the 2nd Law in this form was the main mystery
-%of science in the later half of the 19th century, and in an attempt
-%to motivate it on a molecular-mechanistic basis, Boltzmann
-%invented statistical mechanics.
 
 Integrating the classical 2nd Law
 (\ref{2ndlawclass}) for a perfect gas with
@@ -885,15 +857,12 @@ form of entropy and  statistical mechanics with all its
 complications. Of course, the new 2nd Law readily extends to
 the case of a general gas.
 
-
-
-
 \section{EG2}
 
 EG2 in cG(1)cG(1)-form for the Euler equations (\ref{euler}), reads: 
 Find $\hat u =(\rho ,m,\epsilon )\in V_h$ such that for all 
 $(\bar\rho ,\bar u,\bar\epsilon )\in W_h$
-\begin{equation}
+\begin{equation}\label{cG1cG1}
 \begin{split}
 ((R_\rho (\hat u),\bar\rho ))+((h u\cdot\nabla\rho , 
 u\cdot\nabla\bar\rho ))&=0,\\
@@ -914,7 +883,8 @@ nodes on
 $\Gamma$. Further, $((\cdot ,\cdot ))$  
 denotes relevant  
 $L_2(Q)$ scalar products, and $\nu_{sc}=h^2\vert R_m(\hat u)\vert$ is
-a residual dependent \emph{shock-capturing viscosity}, see \cite{ambsthermo}.  We here use the conservation equation
+a residual dependent \emph{shock-capturing viscosity}, see \cite{nazarov2009}. 
+We here use the conservation equation
 for the total energy $\epsilon$ rather than for the internal energy
 $e$.
 
@@ -922,7 +892,7 @@ EG2 combines a weak satisfaction of the Euler equations
 with a weighted least squares control of the residual $R(\hat u)
 \equiv (R_\rho (\hat u) ,R_m(\hat u),R_e(\hat u))$ and
 thus represents a midway between the Scylla of weak solution and
-Carybdis of least squares strong solution. 
+Charybdis of least squares strong solution. 
 
 
 
@@ -933,13 +903,13 @@ $\bar\rho$ a nodal interpolant
 of $\frac{\vert u\vert^2}{2}$ 
 from the momentum equation
 with  $\bar u=u$ and using the heat energy equation with $\bar e=1$, we obtain
-the following 2nd Law for EG2 (up to a $\sqrt{h}$-correction controled
-by the shockcapturing viscosity \cite{johnsonconslaw}): 
+the following 2nd Law for EG2 (up to a $\sqrt{h}$-correction controlled
+by the shock capturing viscosity \cite{johnsonconslaw}: 
 \begin{equation}\label{2ndlawEG2}
 \dot K = W-D_h,\quad \dot E=-W+D_h,
 \end{equation}
 where 
-\begin{equation}
+\begin{equation}\label{tur_disp}
 D_h=((h\rho u\cdot\nabla u,u\cdot\nabla u)).
 \end{equation}
 For solutions with turbulence/shocks, $D_h>0$ expressing an irreversible
@@ -963,43 +933,158 @@ give control of the entire residual, and thus EG2
 gives a least squares control of the 
 momentum residual. But the EG2 stabilization does not correspond
 to an ad hoc viscosity, as in classical regularization, but to
-a form of penalty arsing because Euler residuals 
+a form of penalty arising because Euler residuals 
 of turbulent/shock solutions are not pointwise small. In particular
-the dissipative mecahnism of EG2 does not correspond to a
+the dissipative mechanism of EG2 does not correspond to a
 simple shear viscosity, but rather to a form of ``streamline viscosity''
 preventing fluid particles from colliding while allowing strong shear. 
 
+\section{EG2 Implementation in FEniCS}
+
+The FEniCS implementation of EG2 is done in Unicorn
+\cite{chapter:implementation:unicorn} with source code displayed in Figs. 
+Fig \ref{code:FFC_Den} and \ref{code:FFC_ME}.
+
+% - a unified continuum mechanics
+% solver based on adaptive finite element methods, which is part of a free 
+% software project FEniCS (www.fenics.org). 
+% In Unicorn adaptivity is implemented in the following way: first a solution is
+% computed until the given final time, and then the cells of the mesh are
+% refined
+% based on the error indicator. The procedure is repeated until some given
+% tolerance is matched. 
+% 
+% The UFL implementation of a G2 method for the compressible Euler equations is
+% shown in Fig \ref{code:FFC_Den} and \ref{code:FFC_ME}. We use mixed finite
+% element space which contains scalar and vector basis functions. This choice
+% allows us to choose the conservative variables in the discrete Euler equations
+% (\ref{cG1cG1}) from the same space, and it is suitable in the DOLFIN
+% implementations. The same space is used for the dual problem, the UFL
+% implementation then is similar to one we show below. 
+% The code used to generate the results below can be found in the
+% Unicorn repositories, so that the results may be reproduced by the reader.
 
 
+\begin{figure}[!h]
+\center{
+{
+\lstset{language=Python,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
+ keywordstyle=\ttfamily\color{OliveGreen},
+ identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
+ commentstyle=\color{Brown},
+ stringstyle=\ttfamily,
+ showstringspaces=ture}
+\begin{lstlisting}
+cell = "tetrahedron"
+scalar = FiniteElement("Lagrange", cell, 1)
+vector = VectorElement("Lagrange", cell, 1)
+constant_scalar = FiniteElement("Discontinuous Lagrange", cell, 0)
+constant_vector = VectorElement("Discontinuous Lagrange", cell, 0)
 
-\section{Output Uniqueness and Stability} 
+TH = MixedElement([scalar,vector,scalar])
+d = scalar.cell_dimension()        # Dimension of domain
 
-Defining a mean-value output in the form of a space-time integral
-$((\hat u,\psi ))$ defined by a smooth weight function $\psi$,
-we obtain by duality-based error estimation as in 
-\cite{ambsflow} an a posteriori error estimate 
-of the form
-\[
-\vert ((\hat u,\psi ))- ((\hat w,\psi ))\vert\le S
-(\Vert R(\hat u)\Vert_{-1}+(\Vert R(\hat w)\Vert_{-1})
-\le S(\Vert h R(\hat u)\Vert_{0}+(\Vert h R(\hat w)\Vert_{0}) ,
-\]
-where $\hat u$ and $\hat w$ are 
-two EG2 solutions on meshes of  meshsize $h$, $S=S(\hat u,\hat w)$ 
-is a stablity factor defined as 
-the $H^1(Q)$-norm of a solution to a linearized dual problem
-with coedd
-with the data $\psi$ and $\Vert\cdot\Vert_0$ is 
-the $L_2(Q)$-norm. An output $((\hat u,\hat\psi ))$ is \emph{wellposed} 
-if $S\Vert h R(\hat u)\Vert_{0}\le TOL$ 
-with $S=S(\hat u,\hat u)$) and $TOL$ a small tolerance $TOL$ 
-of interest.
+(v1, v2, v3) = TestFunctions(TH)   # test basis function
+(rho, m, e) = TrialFunctions(TH)   # trial basis function
+(rho0, m0, e0) = Functions(TH)     # solution from previous time step
 
-In the case shocks/turbulence $\Vert R(\hat u)\Vert_0$ will be large
-$\sim h^{-1/2}$, while $\Vert hR(\hat u)\Vert_0$ may be small $\sim
-h^{1/2}$, and an output thus is wellposed if $S<<h^{-1/2}$.  In
-\cite{ambsthermo} we present computed stability factors for different
-weights $\hat\psi$, with global support corresponding to global
-mean-value outputs and local support to pointwise outputs. We find
-that global mean-values of turbulent flow are wellposed, but local
-not.
+P  = Function(scalar)              # pressure
+U  = Function(constant_vector)     # velocity to be computed in the
+				   #solver
+
+delta  = Function(constant_scalar) # stabilization parameter
+nu_rho = Function(constant_scalar) # shock capturing parameter for rho
+nu_m   = Function(constant_vector) # shock capturing parameter for m
+nu_e   = Function(constant_scalar) # shock capturing parameter for e
+
+u      = Function(vector)          # velocity to be computed in the 
+				   #solver     
+
+k  = Constant(cell)                # time step
+
+#_____________________________
+# Galerkin discretization of bilinear form for the density
+a1_a = v1*rho*dx - k*0.5*dot(grad(v1),U)*rho*dx
+
+# Stabilization of bilinear form for the density
+S1_a = k*0.5*delta*dot(grad(v1),U)*dot(U, grad(rho))*dx + \
+      k*0.5*nu_rho*dot(grad(v1),grad(rho))*dx
+
+# Galerkin discretization of linear form for the density
+a1_L = v1*rho0*dx + k*0.5*dot(grad(v1),U)*rho0*dx
+
+# Stabilization of linear form for the density
+S1_L = - k*0.5*delta*dot(grad(v1),U)*dot(U, grad(rho0))*dx - \
+      k*0.5*nu_rho*dot(grad(v1),grad(rho0))*dx
+
+
+\end{lstlisting}
+}}
+\caption{
+Source code for the choice of the function spaces and functions, 
+bilinear and
+linear forms for the conservation of mass.}
+\label{code:FFC_Den}
+\end{figure}
+
+
+\begin{figure}[!h]
+\center{
+{
+\lstset{language=Python,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
+ keywordstyle=\ttfamily\color{OliveGreen},
+ identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
+ commentstyle=\color{Brown},
+ stringstyle=\ttfamily,
+ showstringspaces=ture}
+\begin{lstlisting}
+#_____________________________
+a2_a = 0
+S2_a = 0
+a2_L = 0
+S2_L = 0
+
+for i in range(0, d):
+    # Galerkin discretization of bilinear form for the momentum m_i
+    a2_a += v2[i]*m[i]*dx - k*0.5*dot(grad(v2[i]),U)*m[i]*dx 
+    
+    # Stabilization of bilinear form for the momentum
+    S2_a += k*0.5*delta*dot(grad(v2[i]),U)*dot(U, grad(m[i]))*dx + \
+        k*0.5*nu_m[i]*dot(grad(v2[i]),grad(m[i]))*dx
+
+    # Galerkin discretization of linear form for the momentum
+    a2_L += v2[i]*m0[i]*dx + k*0.5*dot(grad(v2[i]),U)*m0[i]*dx
+
+    # Stabilization of linear form for the momentum
+    S2_L += -k*0.5*delta*dot(grad(v2[i]),U)*dot(U, grad(m0[i]))*dx - \
+        k*0.5*nu_m[i]*dot(grad(v2[i]),grad(m0[i]))*dx
+
+#_____________________________
+# Galerkin discretization of bilinear form for the energy
+a3_a = v3*e*dx - k*0.5*dot(grad(v3),U)*e*dx
+
+# Stabilization of bilinear form
+S3_a = k*0.5*delta*dot(grad(v3),U)*dot(U, grad(e))*dx + \
+       k*0.5*nu_e*dot(grad(v3),grad(e))*dx
+
+# Galerkin discretization of linear form for the density
+a3_L = v3*e0*dx + k*0.5*dot(grad(v3),U)*e0*dx + k*dot(grad(v3),U)*P*dx
+
+# Stabilization of linear form
+S3_L = - k*0.5*delta*dot(grad(v3),U)*dot(U,grad(e0))*dx - \
+       k*0.5*nu_e*dot(grad(v3),grad(e0))*dx
+
+#_____________________________
+# Weak form to the Euler equations:
+a = a1_a + S1_a + a2_a + S2_a + a3_a + S3_a
+L = a1_L + S1_L + a2_L + S2_L + a3_L + S3_L
+
+
+\end{lstlisting}
+}}
+\caption{
+Source code for bilinear and linear forms for the conservation of 
+momentum and
+energy. }
+\label{code:FFC_ME}
+\end{figure}
