@@ -348,9 +348,9 @@ some of the finer points of the implementation.
 \subsection{Formulation}
 \lstlistingname{}~\ref{lezar:listing:function_spaces} shows the definitions of the function spaces used in the solution of the problems considered here. \nedelec{} basis functions of the first kind ({\tt N\_v} and {\tt N\_u}) are used to approximate the transverse component of the electric field. This ensures that the tangential continuity required at element and material boundaries can be enforced~\cite{Jin2002}.  The axial component of the field is modelled using a set of Lagrange basis functions ({\tt M\_v}, and {\tt M\_u}). Additionally, a discontinuous Galerkin function space is included to allow for the modelling of material parameters such as dielectrics.
 \begin{lstlisting}[float=ht,caption=Function spaces and basis functions.,label=lezar:listing:function_spaces]
-V_DG = FunctionSpace(mesh, "DG", 0) V_N = FunctionSpace(mesh,
-"Nedelec", transverse_order) V_M = FunctionSpace(mesh, "Lagrange",
-axial_order)
+V_DG = FunctionSpace(mesh, "DG", 0) 
+V_N = FunctionSpace(mesh, "Nedelec 1st kind H(curl)", transverse_order) 
+V_M = FunctionSpace(mesh, "Lagrange", axial_order)
 
 combined_space = V_N + V_L
 
@@ -358,17 +358,17 @@ combined_space = V_N + V_L
 (N_u, M_u) = TrialFunctions(combined_space)
 \end{lstlisting}
 
-In order to deal with material properties, the {\tt Function} class is
-extended and the {\tt eval()} method overridden. This is illustrated
+In order to deal with material properties, the {\tt Expression} class is
+subclassed and the {\tt eval()} method overridden. This is illustrated
 in \lstlistingname{} \ref{lezar:listing:material_properties} where a
 dielectric with a relative permittivity of $\epsilon_r = 4$ that extends to
 $y = 0.25$ is shown. This class is then instantiated using the
 discontinuous Galerkin function space already discussed. For constant
 material properties (such as the inverse of the magnetic permittivity
-$\mu_r$, in this case) a JIT-compiled function is used.
+$\mu_r$, in this case) a JIT-compiled expression is used.
 
-\begin{lstlisting}[float=ht, caption=Material properties and functions., label=lezar:listing:material_properties]
-class HalfLoadedDielectric(Function):
+\begin{lstlisting}[float=ht, caption=Material properties and expressions., label=lezar:listing:material_properties]
+class HalfLoadedDielectric(Expression):
     def eval(self, values, x):
         if x[1] < 0.25:
             values[0] = 4.0
@@ -376,10 +376,10 @@ class HalfLoadedDielectric(Function):
             values[0] = 1.0;
 
 e_r = HalfLoadedDielectric(V_DG)
-one_over_u_r = Function(V_DG, "1.0")
+one_over_u_r = Expression("1.0")
 
-k_o_squared = Function(V_DG, "value", {"value" : 0.0})
-theta_squared = Function(V_DG, "value", {"value" : 0.0})
+k_o_squared = Expression("value", {"value" : 0.0})
+theta_squared = Expression("value", {"value" : 0.0})
 \end{lstlisting}
 
 The basis functions declared in \lstlistingname{}
@@ -393,7 +393,7 @@ The basis functions declared in \lstlistingname{}
  \eqref{lezar:eqn:matrix_equation_dispersion_scaled} can be assembled using
  the required combinations of these forms with the right hand side of
  \eqref{lezar:eqn:matrix_equation_dispersion_scaled}, {\tt rhs}, provided as
- an example.  It should be noted that the use of JIT-functions for
+ an example.  It should be noted that the use of JIT-compiled expressions for
  operating wavenumber and scaling parameters means that the forms need
  not be recompiled each time the operating frequency is changed. This
  is especially beneficial when the calculation of dispersion curves is
@@ -441,8 +441,8 @@ class ElectricWalls(SubDomain):
     def inside(self, x, on_boundary):
         return on_boundary
 
-dirichlet_bc = DirichletBC(combined_space,
-        Function(combined_space, "0.0"), ElectricWalls())
+zero = Expression(("0.0","0.0","0.0")
+dirichlet_bc = DirichletBC(combined_space, zero, ElectricWalls())
 \end{lstlisting}
 
 Once the required matrices have been assembled and the boundary
@@ -492,7 +492,7 @@ x} assigned to the function vector is one of the eigenvectors obtained
 by solving the eigenvalue problem.
 
 \begin{lstlisting}[float=h, caption=Extraction and visualisation of transverse and axial field components., label=lezar:listing:field_component_visualisation]
-f = Function(combined_space) f.vector().assign(x)
+f = Function(combined_space, x)
 
 (transverse, axial) = f.split()
 
