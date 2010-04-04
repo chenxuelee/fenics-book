@@ -94,7 +94,7 @@ amazed of how easy it is to solve PDEs with \fenics!
 %solving environment for your problem at hand.
 %The chapter ends with solving various physical problems of greater
 %complexity than the time-dependent, nonlinear Poisson equation:
-%bla-bla. 
+%bla-bla.
 
 Reading this tutorial obviously requires access to a machine where the
 \fenics{} software
@@ -138,7 +138,7 @@ contexts, for example, heat conduction, electrostatics,
 diffusion of substances, twisting of
 elastic rods, inviscid fluid flow, water waves. Moreover, the equation
 appears in numerical splitting strategies of more complicated systems
-of PDEs, in particular the Navier-Stokes equations. 
+of PDEs, in particular the Navier-Stokes equations.
 
 
 \subsection{Variational Formulation}
@@ -158,7 +158,7 @@ The core of the recipe for turning a PDE into a variational problem
 is to multiply the PDE by a function $v$, integrate the resulting
 equation over $\Omega$, and perform integration by parts of terms with
 second-order derivatives. The function $v$ which multiplies the PDE
-is in the mathematical finite element literature 
+is in the mathematical finite element literature
 called a \emph{test function}. The unknown function $u$ to be approximated
 is referred to
 as a \emph{trial function}. The terms test and trial function are used
@@ -183,7 +183,7 @@ The test function $v$ is required to vanish on the parts of the
 boundary where $u$ is known, which in the present problem implies that
 $v=0$ on the whole boundary $\partial\Omega$.
 The second term on
-the right-hand side of \langtangenrefeq{langtangen:poisson1:eqbyparts} therefore vanishes. 
+the right-hand side of \langtangenrefeq{langtangen:poisson1:eqbyparts} therefore vanishes.
 From \langtangenrefeq{langtangen:poisson1:multbyv} and \langtangenrefeq{langtangen:poisson1:eqbyparts}
 it follows that
 \begin{equation} \int_\Omega\nabla v\cdot\nabla u\dx = \int_\Omega vf\dx\langtangenep
@@ -196,7 +196,7 @@ We refer to \langtangenrefeq{langtangen:poisson1:weak1} as the \emph{weak form} 
 the original boundary-value problem \langtangenrefeq{langtangen:poisson1}.
 
 The proper statement of
-our variational problem now goes as follows: 
+our variational problem now goes as follows:
 Find $u \in V$ such that
 \begin{equation} \label{langtangen:poisson1:var}
   \int_{\Omega} \nabla v \cdot \nabla u \dx =
@@ -211,12 +211,12 @@ problem defined as
      V      &= \{v \in H^1(\Omega) : v = u_0 \mbox{ on } \partial\Omega\}. \\
   \end{split}
 \end{displaymath}
-In short, 
+In short,
 $H^1(\Omega)$ is the mathematically well-known Sobolev space containing
 functions $v$ such that $v^2$ and $||\nabla v||^2$ have finite integrals over
 $\Omega$. This implies that the functions must be continuous, but the
 derivatives can be discontinuous. The solution of the underlying
-PDE, on the contrary, 
+PDE, on the contrary,
 must lie in a function space where also the derivatives are continuous.
 The weaker continuity requirements of the variational statement
 \langtangenrefeq{langtangen:poisson1:var}, caused by the integration by parts, have
@@ -228,7 +228,7 @@ continuous variational problem \langtangenrefeq{langtangen:poisson1:var}
 to a discrete variational
 problem. This is done by introducing \emph{finite-dimensional} test and
 trial spaces $\hat{V}_h\subset\hat{V}$ and $V_h\subset{V}$. The
-discrete variational problem reads: 
+discrete variational problem reads:
 Find $u_h \in V_h \subset V$ such that
 \begin{equation} \label{langtangen:poisson1:vard}
   \int_{\Omega} \nabla v \cdot \nabla u_h \dx =
@@ -239,7 +239,7 @@ The choice of $\hat{V}_h$ and $V_h$ follows directly from the
 kind of finite elements we want to apply in our problem. For example,
 choosing the well-known linear triangular element with three nodes
 implies that
-$\hat V_h$ and $V_h$ are the spaces of all piecewise linear functions 
+$\hat V_h$ and $V_h$ are the spaces of all piecewise linear functions
 over a mesh of triangles,
 where the functions in $\hat V_h$
 are zero on the boundary
@@ -269,7 +269,7 @@ a(u, v) &=& \int_{\Omega} \nabla v \cdot \nabla u \dx,
 L(v) &=& \int_{\Omega} fv \dx\langtangenep\label{langtangen:poisson1:vard:L}
 \end{eqnarray}
 From the mathematics literature,
-$a(u,v)$ is known as a \emph{bilinear form} and $L(u)$ as a 
+$a(u,v)$ is known as a \emph{bilinear form} and $L(u)$ as a
 \emph{linear form}.
 We shall in every problem we solve identify the terms with the
 unknown $u$ and collect them in $a(u,v)$, and similarly collect
@@ -279,19 +279,19 @@ $L$ are then coded directly in the program.
 To summarize, before making a \fenics{} program for solving a PDE,
 we must first perform two steps:
 \begin{enumerate}
-\item Turn the PDE problem into a discrete 
+\item Turn the PDE problem into a discrete
 variational problem: Find $u\in V_h$
 such that
 \[ a(u,v) = L(v)\quad\forall v\in \hat{V}_h\langtangenep \]
 \item Specify the choice of discrete spaces, i.e., choice of finite elements.
 \end{enumerate}
-%\fenics{} will then generate a basis for 
+%\fenics{} will then generate a basis for
 
 \subsection{The Implementation}
 \label{langtangen:poisson1:impl}
 
 The test problem so far has a general domain $\Omega$ and general functions
-$u_0$ and $f$. However, 
+$u_0$ and $f$. However,
 we must specify $\Omega$, $u_0$, and $f$ prior to our first implementation.
 It will be wise to construct a specific problem where we can easily check
 that the solution is correct.
@@ -305,7 +305,7 @@ using very few elements and
 checking that the computed and the exact solution equal to machine precision.
 Test problems with this property will be frequently constructed throughout
 the present
-tutorial. 
+tutorial.
 %Should errors in the implementation arise, it is possible
 %to perform hand calculations of the intermediate steps in the finite
 %element method and compare with what the program gives.
@@ -361,8 +361,8 @@ interactive()
 \end{Verbatim}
 \noindent
 
-We shall now dissect this \fenics{} program in detail. The program 
-is written in the Python programming language. 
+We shall now dissect this \fenics{} program in detail. The program
+is written in the Python programming language.
 You may either take a quick look at a Python tutorial \cite{PythonTutorial}
 to pick up the basics of Python if you are unfamiliar with the language,
 or you may learn enough Python as you go along with the examples in this
@@ -393,10 +393,10 @@ from dolfin import *
 imports the key classes {\fontsize{12pt}{12pt}\verb!UnitSquare!},
 {\fontsize{12pt}{12pt}\verb!FunctionSpace!}, {\fontsize{12pt}{12pt}\verb!Function!}, and so forth, from the \dolfin{} library.
 All \fenics{} programs for solving PDEs by the finite element method
-normally start with this line. \dolfin{} is a software library with efficient 
+normally start with this line. \dolfin{} is a software library with efficient
 and convenient C++ classes for finite element computing, and
 {\fontsize{12pt}{12pt}\texttt{dolfin}} is a Python package providing access to this
-C++ library from Python programs. 
+C++ library from Python programs.
 You can think of \fenics{} is an umbrella, or project name, for a set of
 computational components, where \dolfin{} is one important component for
 writing finite element programs. \dolfin{} applies other components
@@ -410,7 +410,7 @@ mesh = UnitSquare(6, 4)
 \end{Verbatim}
 \noindent
 defines a uniform finite element mesh over the unit square
-$[0,1]\times [0,1]$. The mesh consists of \emph{cells}, 
+$[0,1]\times [0,1]$. The mesh consists of \emph{cells},
 which are triangles with
 straight sides. The parameters 6 and 4 tell that the square is
 first divided into $6\cdot 4$ rectangles, and then each rectangle
@@ -419,7 +419,7 @@ then becomes 48. The total number of vertices in this mesh is
 $7\cdot 5=35$.
 \dolfin{} offers some classes for creating meshes over
 very simple geometries. For domains of more complicated shape one needs
-to use a separate \emph{preprocessor} program to create the mesh. 
+to use a separate \emph{preprocessor} program to create the mesh.
 The \fenics{} program will then read the mesh from file.
 %We shall come back to this point later in Chapter~\ref{langtangen:possion:nD:nmat:prepro}.
 
@@ -432,12 +432,12 @@ V = FunctionSpace(mesh, 'CG', 1)
 The second argument reflects the type of element, while the third
 argument is the degree of the basis functions on the element.
 Here, {\fontsize{12pt}{12pt}\verb!'CG'!} stands
-for Continuous Galerkin, implying the 
+for Continuous Galerkin, implying the
 standard Lagrange family of elements.
 Insted of {\fontsize{12pt}{12pt}\texttt{'CG'}} we could have written {\fontsize{12pt}{12pt}\texttt{'Lagrange'}}.
 With degree 1, we simply get the standard linear Lagrange element,
-which is a triangle 
-with nodes at the three vertices. 
+which is a triangle
+with nodes at the three vertices.
 Some finite element practitioners refer to this element as the
 ``linear triangle''.
 The computed $u$ will be continuous and linearly varying in $x$ and $y$ over
@@ -496,7 +496,7 @@ u0 = Function(V, formula)
 \end{Verbatim}
 \noindent
 where {\fontsize{12pt}{12pt}\verb!formula!} is a string containing the mathematical expression
-written with C++ syntax (the formula is 
+written with C++ syntax (the formula is
 automatically turned into an efficient, compiled
 C++ function, see Chapter~\ref{langtangen:app:cpp:functions} for
 details on the syntax). The independent variables in the function
@@ -529,7 +529,7 @@ on_boundary = Boundary()
 \noindent
 The method {\fontsize{12pt}{12pt}\verb!inside!} shall return
 a boolean value: {\fontsize{12pt}{12pt}\verb!True!} if the point
-{\fontsize{12pt}{12pt}\verb!x!} lies on the Dirichlet boundary and 
+{\fontsize{12pt}{12pt}\verb!x!} lies on the Dirichlet boundary and
 {\fontsize{12pt}{12pt}\verb!False!} otherwise.
 The argument {\fontsize{12pt}{12pt}\verb!on_boundary!} is {\fontsize{12pt}{12pt}\verb!True!} if {\fontsize{12pt}{12pt}\verb!x!} is on
 the physical boundary of the mesh, so in the present case we can just return
@@ -585,7 +585,7 @@ The language used to express weak forms is called UFL (Unified Form Language)
 and is an integral part of \fenics.
 
 Having {\fontsize{12pt}{12pt}\verb!a!} and {\fontsize{12pt}{12pt}\verb!L!} defined, and information about essential
-(Dirichlet) boundary conditions in {\fontsize{12pt}{12pt}\verb!bc!}, we can formulate a 
+(Dirichlet) boundary conditions in {\fontsize{12pt}{12pt}\verb!bc!}, we can formulate a
 {\fontsize{12pt}{12pt}\verb!VariationalProblem!}:
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
@@ -610,7 +610,7 @@ PETSc has an interface to). We shall later in Chapter~\ref{langtangen:linsys}
 demonstrate how to get
 full control of the choice of solver and any solver parameters.
 
-The {\fontsize{12pt}{12pt}\verb!u!} variable refers to 
+The {\fontsize{12pt}{12pt}\verb!u!} variable refers to
 a {\fontsize{12pt}{12pt}\verb!Function!} instance. Note that we first defined {\fontsize{12pt}{12pt}\texttt{u}} as
 a {\fontsize{12pt}{12pt}\texttt{TrialFunction}} and used it to specify {\fontsize{12pt}{12pt}\texttt{a}}.
 Thereafter, we redefined {\fontsize{12pt}{12pt}\texttt{u}} to be a {\fontsize{12pt}{12pt}\texttt{Function}} representing
@@ -628,7 +628,7 @@ interactive()
 \end{Verbatim}
 \noindent
 The {\fontsize{12pt}{12pt}\verb!interactive()!} call is necessary for the plot to remain on the
-screen. With the left, middle, and right 
+screen. With the left, middle, and right
 mouse buttons you can rotate, translate, and zoom
 (respectively) the plotted surface to better examine how the solution looks
 like.
@@ -642,7 +642,7 @@ file << u
 \end{Verbatim}
 \noindent
 \hpl{Is this right?:}
-The {\fontsize{12pt}{12pt}\verb!poisson.pvd!} file can now be loaded into any 
+The {\fontsize{12pt}{12pt}\verb!poisson.pvd!} file can now be loaded into any
 front-end to VTK, say ParaView or VisIt. The {\fontsize{12pt}{12pt}\texttt{plot}} function from Viper
 is intended for quick examination of the solution during program development.
 More in-depth visual investigations of finite element solution will
@@ -669,7 +669,7 @@ will be formed from $a$ and $L$, and this system is solved for the
 $U_1,\ldots,U_N$ values. The $U_1,\ldots,U_N$ values are known
 \index{degree of freedom}
 as \emph{degrees of freedom} of $u$. For Lagrange elements (and many other
-element types) $U_k$ is simply the value of $u$ at the node 
+element types) $U_k$ is simply the value of $u$ at the node
 with global number $k$.
 (The nodes and cell vertices coincide for linear Lagrange elements, while
 for higher-order elements there may be additional nodes at
@@ -707,14 +707,14 @@ fontfamily=tt,xleftmargin=7mm]
 coor = mesh.coordinates()
 \end{Verbatim}
 \noindent
-For a $d$-dimensional problem, {\fontsize{12pt}{12pt}\verb!coor!} is an $M\times d$ 
+For a $d$-dimensional problem, {\fontsize{12pt}{12pt}\verb!coor!} is an $M\times d$
 {\fontsize{12pt}{12pt}\texttt{numpy}} array,
 $M$ being the number of vertices in the mesh. Writing out the solution
 on the screen can now be done by a simple loop:
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
 for i in range(len(u_array)):
-    print 'u(%8g,%8g) = %g' % \  
+    print 'u(%8g,%8g) = %g' % \
           (coor[i][0], coor[i][1], u_array[i])
 \end{Verbatim}
 \noindent
@@ -731,7 +731,7 @@ u(       1,       0) = 2
 \end{Verbatim}
 \noindent
 For Lagrange elements of
-degree higher than one, 
+degree higher than one,
 the vertices and the nodes do not coincide, and then
 the loop above is meaningless.
 
@@ -798,13 +798,13 @@ Mesh information can be gathered from the {\fontsize{12pt}{12pt}\verb!mesh!} ins
 {\fontsize{12pt}{12pt}\verb!mesh.num_cells()!} returns the number of cells (triangles) in
 the mesh, {\fontsize{12pt}{12pt}\verb!mesh.num_vertices()!} returns the number of verticies
 in the mesh (with our choice of linear Lagrange elements this equals
-the number of nodes). The call {\fontsize{12pt}{12pt}\verb!str(mesh)!}, or simply writing 
+the number of nodes). The call {\fontsize{12pt}{12pt}\verb!str(mesh)!}, or simply writing
 {\fontsize{12pt}{12pt}\texttt{print mesh}},
 creates a short ``pretty print''
 description of the mesh:
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
-<Mesh of topological dimension 2 (triangles) with 
+<Mesh of topological dimension 2 (triangles) with
 16 vertices and 18 cells, ordered>
 \end{Verbatim}
 \noindent
@@ -855,11 +855,11 @@ All the code in this subsection can be found in the file {\fontsize{12pt}{12pt}\
 \subsection{Formulating a Real Physical Problem}
 \label{langtangen:poisson:membrane}
 
-Perhaps you are not particularly 
-amazed by viewing the simple surface of $u$ in the 
+Perhaps you are not particularly
+amazed by viewing the simple surface of $u$ in the
 test problem from Chapters~\ref{langtangen:poisson1:impl}
 and \ref{langtangen:poisson1:verify1}.
-However, solving a real physical problem with a more interesting and amazing 
+However, solving a real physical problem with a more interesting and amazing
 solution on the screen
 is only a matter
 of specifying a more exciting domain, boundary condition, and/or
@@ -878,7 +878,7 @@ with
 p(x,y) = {A\over 2\pi\sigma}\exp{\left(
 - {1\over2}\left( {x-x_0\over\sigma}\right)^2
 - {1\over2}\left( {y-y_0\over\sigma}\right)^2
-\right)}\, . 
+\right)}\, .
 \end{equation}
 Here, $T$ is the tension in the membrane (constant), $p$ is the external
 pressure load,
@@ -891,7 +891,7 @@ $8\pi\sigma T/A$ as characteristic size of $D$, we can derive the equivalent
 scaled problem on the unit circle,
 \begin{equation}
 \label{langtangen:poisson1:membrane:scaled:eq}
--\Delta w = 
+-\Delta w =
 4\exp{\left(
 - {1\over2}\left( {Rx-x_0\over\sigma}\right)^2
 - {1\over2}\left( {Ry-y_0\over\sigma}\right)^2
@@ -911,14 +911,14 @@ You should now be able to figure out how to modify the
 {\fontsize{12pt}{12pt}\verb!Poisson2D_D1.py!} code to solve this membrane problem.
 More specifically, you are recommended to perform the following extensions:
 \begin{enumerate}
-\item  initialize $R$, $x_0$, $y_0$, $\sigma$, $T$, and $A$ in the 
-beginning of the program, 
+\item  initialize $R$, $x_0$, $y_0$, $\sigma$, $T$, and $A$ in the
+beginning of the program,
 \item
 build a string expression for $p$ with correct C++ syntax
 (use printf formatting in Python to build the expression),
 \item
-define the {\fontsize{12pt}{12pt}\texttt{a}} and {\fontsize{12pt}{12pt}\texttt{L}} variables in the variational problem for 
-$w$ and compute the solution, 
+define the {\fontsize{12pt}{12pt}\texttt{a}} and {\fontsize{12pt}{12pt}\texttt{L}} variables in the variational problem for
+$w$ and compute the solution,
 \item plot the mesh,
 $w$, and the scaled pressure function $p$ (the right-hand side of
 \langtangenrefeq{langtangen:poisson1:membrane:scaled:eq}),
@@ -931,7 +931,7 @@ in this problem.
 Choosing a small width $\sigma$ (say 0.01)
 and a location $(x_9,y_0)$ toward the circular boundary
 (say $(0.6R\cos\theta, 0.6R\sin\theta)$ for any $\theta\in [0,2\pi]$),
-may produce an exciting visual comparison of $w$ and $p$ that 
+may produce an exciting visual comparison of $w$ and $p$ that
 demonstrates the very smoothed elastic response to a peak force
 (or mathematically, the smoothing properties of the Laplace operator).
 You need to experiment with the mesh resolution to get a smooth
@@ -945,9 +945,9 @@ difference between the exact and the numerical solution
 if $\sigma \geq 50$ and write out the maximum difference
 to provide some evidence that the implementation is correct.
 
-You are strongly encouraged to spend some time on doing 
+You are strongly encouraged to spend some time on doing
 this exercise and play around with
-the plots and different mesh resolutions. 
+the plots and different mesh resolutions.
 A suggested solution to the exercise
 can be found in the file {\fontsize{12pt}{12pt}\texttt{membrane1.py}}.
 
@@ -1049,14 +1049,14 @@ we want each component of $\nabla u$ to be represented in the same
 way as $u$ itself. To this end, we can project the components
 of $\nabla u$ onto the
 same function space as we used for $u$.
-This means that we solve $w = \nabla u$ by a finite element 
+This means that we solve $w = \nabla u$ by a finite element
 method\footnote{This process is known as \emph{projection}\index{projection}.
 Looking at the component $\partial u/\partial x$ of the gradient, we project
 the (discrete) derivative
 $\sum_jU_j{\partial \phi_j/\partial x}$ onto another function space
 with basis $\bar\phi_1,\ldots\bar\phi$ such that the derivative in
-this space is expressed by the standard sum 
-$\sum_j\bar U_j\bar \phi_j$, for suitable (new) 
+this space is expressed by the standard sum
+$\sum_j\bar U_j\bar \phi_j$, for suitable (new)
 coefficients $\bar U_j$.},
 using the the same elements for the components of $w$ as we used for $u$.
 
@@ -1071,7 +1071,7 @@ L(v) &=& \int_\Omega v\cdot \nabla u\dx\langtangenep
 \end{eqnarray}
 The function spaces $V_h$ and $\hat{V}_h^{(g)}$ are
 vector versions of the function space for $u$, with
-boundary conditions removed (if $V_h$ is the 
+boundary conditions removed (if $V_h$ is the
 space we used for $u$, with no restrictions
 on boundary values, $ V^{(g)}_h = \hat{V}_h^{(g)} = [V_h]^d$, where
 $d$ is the number of space dimensions).
@@ -1135,10 +1135,10 @@ code {\fontsize{12pt}{12pt}\verb!Poisson2D_D2.py!} from Chapter~\ref{langtangen:
 with computations and visualizations of the gradient.
 Examining the arrays {\fontsize{12pt}{12pt}\verb!gradu_x_array!}
 and {\fontsize{12pt}{12pt}\verb!gradu_y_array!}, or looking at the plots of
-{\fontsize{12pt}{12pt}\verb!gradu_x!} and 
+{\fontsize{12pt}{12pt}\verb!gradu_x!} and
 {\fontsize{12pt}{12pt}\verb!gradu_y!}, quickly reveals that
 the computed {\fontsize{12pt}{12pt}\texttt{gradu}} field does not equal the exact
-gradient $(2x, 4y)$ in this particular test problem where $u=1+x^2+y^2$. 
+gradient $(2x, 4y)$ in this particular test problem where $u=1+x^2+y^2$.
 There are inaccuracies at the boundaries, arising from the
 approximation problem for $w$. Increasing the mesh resolution shows,
 however, that the components of the gradient vary linearly as
@@ -1169,13 +1169,13 @@ visualization packages.
 \label{langtangen:poisson1:functionals}
 
 After the solution $u$ of a PDE is computed, we often want to compute
-functionals of $u$, for example, 
+functionals of $u$, for example,
 \begin{equation}
 {1\over2}||\nabla u||^2 \equiv {1\over2}\int_\Omega \nabla u\cdot \nabla u\dx,
 \label{langtangen:poisson1:functionals:energy}
 \end{equation}
 which often reflects the some energy quantity.
-Another frequently occuring functional is the error 
+Another frequently occuring functional is the error
 \begin{equation}
 ||u-u_e|| = \left(\int_\Omega (u_e-u)^2\dx\right)^{1/2},
 \label{langtangen:poisson1:functionals:error}
@@ -1246,7 +1246,7 @@ E = sqrt(assemble(error))
 However, {\fontsize{12pt}{12pt}\verb!u_exact!} will in this expression be interpolated onto
 the function space {\fontsize{12pt}{12pt}\texttt{V}}, i.e., the exact solution used in
 the integral will vary linearly over
-the cells, and not as a sine function, 
+the cells, and not as a sine function,
 if {\fontsize{12pt}{12pt}\texttt{V}} corresponds to linear Lagrange elements.
 More accurate representation of the exact solution can be obtained
 by defining higher-order elements, say
@@ -1379,7 +1379,7 @@ applies the VTK package to visualize finite element functions.
 Viper is not a full-fledged, easy-to-use front-end to VTK (like ParaView
 or VisIt), but rather a thin layer on top of VTK's Python interface,
 allowing us to quickly visualize a \dolfin{} function or mesh, or data in
-plain Numerical Python arrays, within a Python program. 
+plain Numerical Python arrays, within a Python program.
 Viper is ideal for debugging, teaching, and initial scientific investigations.
 The visualization can be interactive, or you can steer and automate it
 through program statements.
@@ -1427,7 +1427,7 @@ by typing {\fontsize{12pt}{12pt}\texttt{m}} and {\fontsize{12pt}{12pt}\texttt{i}
 to a PNG and an EPS file. Here is the code:
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
-viz1 = plot(w, 
+viz1 = plot(w,
             wireframe=False,
             title='Scaled membrane deflection',
             rescale=False,
@@ -1451,7 +1451,7 @@ not see the effects of tilting the camera and changing the color scale.
 Figure~\ref{langtangen:poisson:2D:fig1} shows the resulting scalar surface.
 \begin{figure}
   \centerline{
-   \psfig{figure=chapters/langtangen/eps/membrane_waxis.eps}}
+   \includegraphics{chapters/langtangen/eps/membrane_waxis.eps}}
   \caption{\label{langtangen:poisson:2D:fig1}
   Plot of the deflection of a membrane.
   }
@@ -1469,7 +1469,7 @@ $u=u_0$ at the left and right sides,
 $x=0$ and $x=1$, while the Neumann condition
 \[ -{\partial u\over\partial n}=g \]
 is applied to the remaining
-sides $y=0$ and $y=1$. 
+sides $y=0$ and $y=1$.
 The Neumann condition is also known as a \emph{natural boundary condition}
 (in contrast to an essential boundary condition).
 
@@ -1477,7 +1477,7 @@ Let $\Gamma_D$ and $\Gamma_N$
 denote the parts of $\partial\Omega$ where the Dirichlet and Neumann
 conditions apply, respectively.
 The complete boundary-value problem can be written as
-\begin{eqnarray} 
+\begin{eqnarray}
     - \Delta u &=& f \mbox{ in } \Omega,  \\ %\label{langtangen:poisson:2D:DN}\\
     u &=& u_0 \mbox{ on } \Gamma_D,       \\ %\label{langtangen:poisson:2D:DN}bcD\\
     - {\partial u\over\partial n} &=& g \mbox{ on } \Gamma_N  %\label{langtangen:poisson:2D:DNbcN}\langtangenep
@@ -1506,7 +1506,7 @@ $v$ is only zero at the $\Gamma_D$. We have
 \partial n}\ds,
 \]
 and since $v=0$ on $\Gamma_D$,
-\[ 
+\[
 - \int_{\partial\Omega}v{\partial u\over
 \partial n}\ds
 =
@@ -1592,7 +1592,7 @@ The {\fontsize{12pt}{12pt}\verb!ds!} variable implies a boundary integral, while
 implies an intergral over the domain $\Omega$.
 No more modifications are necessary. Running the resulting program,
 found in the file {\fontsize{12pt}{12pt}\verb!Poisson2D_DN1.py!}, shows a
-successful verification -- 
+successful verification --
 $u$ equals the exact solution at all the nodes, regardless of
 how many elements we use.
 
@@ -1603,7 +1603,7 @@ The PDE problem from the previous section applies a function $u_0(x,y)$
 for setting Dirichlet conditions at two parts of the boundary.
 Having a single function to set multiple Dirichlet conditions is
 seldom possible. The more general case is to have $m$ functions for
-setting Dirichlet conditions at $m$ parts of the boundary. 
+setting Dirichlet conditions at $m$ parts of the boundary.
 The purpose of this section is to explain how such multiple conditions
 are treated in FEniCS programs.
 
@@ -1622,7 +1622,7 @@ $\Gamma_1$ corresponds to the boundary $x=1$.
 We have that $u_L = 1 + 2y^2$, $u_R = 2 + 2y^2$, and $g=-4y$.
 For the left boundary $\Gamma_0$ we
 define
-the usual triple of a function for the boundary value, 
+the usual triple of a function for the boundary value,
 a subclass of {\fontsize{12pt}{12pt}\texttt{SubDomain}} for defining
 the boundary of interest, and a {\fontsize{12pt}{12pt}\texttt{DirichletBC}} instance:
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
@@ -1646,7 +1646,7 @@ class RightDirichletBoundary(SubDomain):
     def inside(self, x, on_boundary):
         tol = 1E-14   # tolerance for coordinate comparisons
         return on_boundary and abs(x[0] - 1) < tol
- 
+
 Gamma_1 = DirichletBC(V, u_R, RightDirichletBoundary())
 \end{Verbatim}
 \noindent
@@ -1692,8 +1692,8 @@ where the entries in $A$ and $b$ are given by
 \end{displaymath}
 
 The examples so far have constructed a {\fontsize{12pt}{12pt}\verb!VariationalProblem!} instance
-and called its {\fontsize{12pt}{12pt}\verb!solve!} method to compute the solution 
-{\fontsize{12pt}{12pt}\verb!u!}. 
+and called its {\fontsize{12pt}{12pt}\verb!solve!} method to compute the solution
+{\fontsize{12pt}{12pt}\verb!u!}.
 The {\fontsize{12pt}{12pt}\texttt{VariationalProblem}} instance creates a linear system
 $AU=b$ and calls an appropriate solution method for such systems.
 An alternative is dropping the use of a {\fontsize{12pt}{12pt}\texttt{VariationalProblem}}
@@ -1718,11 +1718,11 @@ and a {\fontsize{12pt}{12pt}\texttt{TestFunction}} instance ({\fontsize{12pt}{12
 the {\fontsize{12pt}{12pt}\texttt{assemble}} function can
 compute the matrix elements $A_{i,j}$ and the vector elements $b_i$.
 
-The matrix $A$ and vector $b$ are first assembled without incorporating 
+The matrix $A$ and vector $b$ are first assembled without incorporating
 essential (Dirichlet) boundary conditions. Thereafter, the
 {\fontsize{12pt}{12pt}\verb!bc.apply(A, b)!} call performs the necessary modifications to
 the linear system. The first three statements above can alternatively
-be carried out by\footnote{The essential boundary conditions are 
+be carried out by\footnote{The essential boundary conditions are
 now applied to the element matrices and vectors prior to assembly.}
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
@@ -1730,7 +1730,7 @@ A, b = assemble_system(a, L, bc)
 \end{Verbatim}
 \noindent
 
-When we have multiple Dirichlet conditions stored in a list {\fontsize{12pt}{12pt}\texttt{bc}}, 
+When we have multiple Dirichlet conditions stored in a list {\fontsize{12pt}{12pt}\texttt{bc}},
 as explained in
 Chapter~\ref{langtangen:poisson:multiple:Dirichlet}, we must apply
 each condition in {\fontsize{12pt}{12pt}\texttt{bc}} to the system:
@@ -1803,7 +1803,7 @@ explicitly in the user's program, as an alternative to
 using a {\fontsize{12pt}{12pt}\texttt{VariationalProblem}} instance, can have some advantages in more
 advanced problem settings. For example, $A$ may be constant throughout
 a time-dependent simulation, so we can avoid recalculating $A$ at
-every time level and save a significant amount of simulation time. 
+every time level and save a significant amount of simulation time.
 Chapters \ref{langtangen:timedep:diffusion1:impl} and
 \ref{langtangen:timedep:diffusion1:noassemble} deal with this topic in detail.
 
@@ -1832,7 +1832,7 @@ p(x,y)\nabla u(x,y)\right\rbrack &=& f(x,y) &\mbox{in } \Omega, \\
 We shall quickly demonstrate that this simple extension of our model
 problem only requires an equally simple extension of the \fenics{} program.
 
-Let us continue to use our favorite solution $u(x,y)=1+x+2y^2$ and 
+Let us continue to use our favorite solution $u(x,y)=1+x+2y^2$ and
 then prescribe $p(x,y)=x+y$. It follows that
 $u_0(x,y) = 1 + x^2 + 2y^2$ and $f(x,y)=-8x-10y$.
 
@@ -1844,10 +1844,10 @@ from Chapter~\ref{langtangen:poisson1:verify1}?
 \item the variational problem is slightly changed.
 \end{enumerate}
 First we address the modified variational problem. Multiplying
-the PDE in \langtangenrefeq{langtangen:poisson:2D:varcoeff} and 
+the PDE in \langtangenrefeq{langtangen:poisson:2D:varcoeff} and
 integrating by parts now results
 in
-\[ \int_\Omega p\nabla v\cdot\nabla u\dx - 
+\[ \int_\Omega p\nabla v\cdot\nabla u\dx -
 \int_{\partial\Omega} pv{\partial u\over
 \partial n}\ds = \int_\Omega vf\dx\langtangenep\]
 The function spaces for $u$ and $v$ are the same as in
@@ -1917,7 +1917,7 @@ The convenience function {\fontsize{12pt}{12pt}\texttt{project}} was made to con
 occuring statements above:
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
-flux = project(-p*grad(u), 
+flux = project(-p*grad(u),
                VectorFunctionSpace(mesh, 'CG', 1))
 \end{Verbatim}
 \noindent
@@ -1952,19 +1952,19 @@ are explained in Chapter~\ref{langtangen:structviz}.
 \subsection{Visualization of Structured Mesh Data}
 \label{langtangen:structviz}
 
-When finite element computations are done on 
+When finite element computations are done on
 a structured rectangular mesh, maybe with uniform partitioning,
 VTK-based tools for completely unstructured 2D/3D meshes are not required.
 Instead we can use visualization
 tools for structured data, like the data appearing
 in finite difference simulations and image analysis.
-We shall demonstrate the potential of such tools. 
+We shall demonstrate the potential of such tools.
 
 A necessary first step
 is to transform our {\fontsize{12pt}{12pt}\texttt{mesh}} instance to an object representing a
 rectangle with equally-shaped \emph{rectangular} cells.
 The Python package {\fontsize{12pt}{12pt}\texttt{scitools}} has this type of structure, called
-a {\fontsize{12pt}{12pt}\texttt{UniformBoxGrid}}. The second step is to transform the 
+a {\fontsize{12pt}{12pt}\texttt{UniformBoxGrid}}. The second step is to transform the
 one-dimensional array of nodal
 values to a two-dimensional array holding the values at
 the corners of the cells in the structured grid. In such
@@ -1988,7 +1988,7 @@ u_box = dolfin_function2BoxField(u, mesh, (nx,ny), uniform_mesh=True)
 \noindent
 Here, {\fontsize{12pt}{12pt}\texttt{nx}} and {\fontsize{12pt}{12pt}\texttt{ny}} are the number of divisions in each space
 direction that were used when calling {\fontsize{12pt}{12pt}\texttt{UnitSquare}} to make the
-{\fontsize{12pt}{12pt}\texttt{mesh}} instance. 
+{\fontsize{12pt}{12pt}\texttt{mesh}} instance.
 The result {\fontsize{12pt}{12pt}\verb!u_box!} is a {\fontsize{12pt}{12pt}\texttt{BoxField}}
 instance that supports ``finite difference'' indexing and an underlying
 grid suitable for {\fontsize{12pt}{12pt}\texttt{numpy}} operations on 2D data.
@@ -2034,10 +2034,10 @@ A contour plot is made by the following {\fontsize{12pt}{12pt}\texttt{scitools.e
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
 from scitools.easyviz import contour, title, hardcopy
-contour(u_box.grid.coorv[X], u_box.grid.coorv[Y], u_box.values, 
+contour(u_box.grid.coorv[X], u_box.grid.coorv[Y], u_box.values,
         5, clabels='on')
 title('Contour plot of u')
-hardcopy('u_contours.eps') 
+hardcopy('u_contours.eps')
 
 # or more compact syntax:
 contour(u_box.grid.coorv[X], u_box.grid.coorv[Y], u_box.values,
@@ -2058,7 +2058,7 @@ The above call to
 Other functions for visualizing 2D scalar fields are {\fontsize{12pt}{12pt}\texttt{surf}} and
 {\fontsize{12pt}{12pt}\texttt{mesh}} as known from Matlab. Because the {\fontsize{12pt}{12pt}\texttt{from dolfin import *}}
 statement imports several names that are also present
-in {\fontsize{12pt}{12pt}\texttt{scitools.easyviz}} (e.g., {\fontsize{12pt}{12pt}\texttt{plot}}, {\fontsize{12pt}{12pt}\texttt{mesh}}, and 
+in {\fontsize{12pt}{12pt}\texttt{scitools.easyviz}} (e.g., {\fontsize{12pt}{12pt}\texttt{plot}}, {\fontsize{12pt}{12pt}\texttt{mesh}}, and
 {\fontsize{12pt}{12pt}\texttt{figure}}), we use functions from the latter package through a
 module prefix {\fontsize{12pt}{12pt}\texttt{ev}} (for \underline{e}asy\underline{v}iz) from now on:
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
@@ -2066,7 +2066,7 @@ fontfamily=tt,xleftmargin=7mm]
 import scitools.easyviz as ev
 ev.figure()
 ev.surf(u_box.grid.coorv[X], u_box.grid.coorv[Y], u_box.values,
-        shading='interp', colorbar='on', 
+        shading='interp', colorbar='on',
         title='surf plot of u', hardcopy='u_surf.eps')
 
 ev.figure()
@@ -2096,7 +2096,7 @@ x, uval, y_fixed, snapped = u_box.gridline(start, direction=X)
 \end{Verbatim}
 \noindent
 The variable {\fontsize{12pt}{12pt}\texttt{snapped}} is true if the line had to be snapped onto a
-gridline and in that case {\fontsize{12pt}{12pt}\verb!y_fixed!} holds the snapped 
+gridline and in that case {\fontsize{12pt}{12pt}\verb!y_fixed!} holds the snapped
 (altered) $y$ value.
 Plotting $u$ versus the $x$ coordinate along this line, using
 {\fontsize{12pt}{12pt}\texttt{scitools.easyviz}}, is now a matter of
@@ -2137,9 +2137,9 @@ is accurate except in the elements closest to the boundaries.
 
 \begin{figure}
   \centerline{
-\subfigure[]{\psfig{figure=chapters/langtangen/eps/Poisson2D_Dvc_surf1.eps,width=0.9\linewidth}}}
+\subfigure[]{\includegraphics[width=0.9\linewidth]{chapters/langtangen/eps/Poisson2D_Dvc_surf1.eps}}}
   \centerline{
-\subfigure[]{\psfig{figure=chapters/langtangen/eps/Poisson2D_Dvc_mesh1.eps,width=0.9\linewidth}}}
+\subfigure[]{\includegraphics[width=0.9\linewidth]{chapters/langtangen/eps/Poisson2D_Dvc_mesh1.eps}}}
   \caption{\label{langtangen:poisson:2D:fig3}
   Examples on plots created by transforming the finite element field to
   a field on a uniform, structured 2D grid:
@@ -2150,9 +2150,9 @@ is accurate except in the elements closest to the boundaries.
 
 \begin{figure}
   \centerline{
-\subfigure[]{\psfig{figure=chapters/langtangen/eps/Poisson2D_Dvc_contour1.eps,width=0.9\linewidth}}}
+\subfigure[]{\includegraphics[width=0.9\linewidth]{chapters/langtangen/eps/Poisson2D_Dvc_contour1.eps}}}
   \centerline{
-\subfigure[]{\psfig{figure=chapters/langtangen/eps/Poisson2D_Dvc_flux_x.eps,width=0.8\linewidth}}
+\subfigure[]{\includegraphics[width=0.8\linewidth]{chapters/langtangen/eps/Poisson2D_Dvc_flux_x.eps}}
 }
   \caption{\label{langtangen:poisson:2D:fig2}
   Examples on plots created by transforming the finite element field to
@@ -2237,7 +2237,7 @@ First note that although {\fontsize{12pt}{12pt}\texttt{sys.argv[2:]}} holds the 
 the mesh, all elements of the list {\fontsize{12pt}{12pt}\texttt{sys.argv[2:]}} are string objects,
 so we need to explicitly convert each element to an integer.
 The construction {\fontsize{12pt}{12pt}\verb!domain_type[d-1]!} will pick the right name of the
-object used to define the domain and generate the mesh. 
+object used to define the domain and generate the mesh.
 Moreover, the argument {\fontsize{12pt}{12pt}\texttt{*divisions}}
 sends each component of the list {\fontsize{12pt}{12pt}\texttt{divisions}} as a separate
 argument. For example, in a 2D problem where {\fontsize{12pt}{12pt}\texttt{divisions}} has
@@ -2327,10 +2327,10 @@ sample PDE for implementation is taken as a nonlinear Poisson equation:
 The coefficient $q(u)$ makes the equation nonlinear (unless $q(u)$
 is a constant).
 
-To be able to easily verify our implementation, 
+To be able to easily verify our implementation,
 we choose the domain, $q(u)$, $f$, and the boundary
 conditions such that we have
-a simple, exact solution $u$. Let 
+a simple, exact solution $u$. Let
 $\Omega$ is the unit hypercube $[0, 1]^d$
 in $d$ dimensions, $q(u)=(1+u)^m$, $f=0$, $u=0$ for $x_0=0$, $u=1$
 for $x_0=1$, and $\partial u/\partial n=0$ at all other boundaries
@@ -2367,19 +2367,19 @@ with $u_h = \sum_{j=1}^N U_j \phi_j$. Since $F$ is a nonlinear function
 of $u_h$, \langtangenrefeq{langtangen:poisson:nonlinear:d} gives rise to a system of
 nonlinear algebraic equations.
 From now on the interest is only in the discrete problem, and as mentioned
-in Chapter~\ref{langtangen:poisson1:varform}, 
+in Chapter~\ref{langtangen:poisson1:varform},
 we simply write $u$ instead of $u_h$ to get a closer notation between
 the mathematics and the Python code. When the exact solution needs to
 be distinguished, we denote it by $u_e$.
 
 \fenics{} can be used in alternative ways for solving a nonlinear PDE
 problem. We shall in the following subsections go through four
-solution strategies: 
-1) a simple Picard-type iteration, 
-2) a Newton method at the algebraic level, 
-3) a Newton method at the PDE level, and 
+solution strategies:
+1) a simple Picard-type iteration,
+2) a Newton method at the algebraic level,
+3) a Newton method at the PDE level, and
 4) an automatic approach where \fenics{} attacks the nonlinear variational
-problem directly. The ``black box'' strategy 4) is definitely the 
+problem directly. The ``black box'' strategy 4) is definitely the
 simplest one from a
 programmer's point of view, but the others give more control of the
 solution process for nonlinear equations (which also has some
@@ -2390,7 +2390,7 @@ pedagogical advantages).
 
 Picard iteration is an easy way of handling nonlinear PDEs: we simply
 use a known, previous solutions in the nonlinear terms such that these
-terms become linear in the unknown $u$. 
+terms become linear in the unknown $u$.
 For our particular problem,
 this means that we use a known, previous solution in the coefficient $q(u)$.
 More precisely, given a solution $u^k$ from iteration $k$, we seek a
@@ -2400,12 +2400,12 @@ that $u^{k+1}$ solves the \emph{linear problem}
 \label{langtangen:poisson:nonlinear:picard1}
 \nabla\cdot \left(q(u^k)\nabla u^{k+1}\right) = 0,\quad k=0,1,\ldots
 \end{equation}
-The iterations require an initial guess $u^0$. 
+The iterations require an initial guess $u^0$.
 The hope is that $u^{k} \rightarrow u$ as $k\rightarrow\infty$, and that
 $u^{k+1}$ is sufficiently close to the exact
 solution $u$ of the discrete problem after just a few iterations.
 
-We can easily formulate a variational problem for $u^{k+1}$ from 
+We can easily formulate a variational problem for $u^{k+1}$ from
 Equation~\langtangenrefeq{langtangen:poisson:nonlinear:picard1}.
 Equivalently, we can use $u^k$ in $q(u)$ in
 the nonlinear variational problem \langtangenrefeq{langtangen:poisson:nonlinear2}
@@ -2426,14 +2426,14 @@ use the formulation
 \begin{equation}
 a(u^{k+1},v) = L(v),
 \end{equation}
-with 
+with
 \begin{eqnarray}
 a(u,v) &=& \int_\Omega \nabla v\cdot\left( q(u^k)\nabla u\right)\dx
 \\
 L(v) &=& 0\langtangenep
 \end{eqnarray}
 
-The iterations can be stopped when $\epsilon\equiv ||u^{k+1}-u^k|| 
+The iterations can be stopped when $\epsilon\equiv ||u^{k+1}-u^k||
 < \mbox{tol}$, where $\mbox{tol}$ is small, say $10^{-5}$, or
 when the number of iterations exceed some critical limit. The latter
 case will pick up divergence of the method or unacceptable slow
@@ -2475,7 +2475,7 @@ Note that we use {\fontsize{12pt}{12pt}\texttt{numpy}} functionality to compute 
 the difference between the two most recent solutions. Here we apply
 the maximum/infinity norm on the difference of the solution vectors
 ({\fontsize{12pt}{12pt}\texttt{ord=1}} and {\fontsize{12pt}{12pt}\texttt{ord=2}} give the $\ell_1$ and $\ell_2$ vector
-norms -- other norms are possible for {\fontsize{12pt}{12pt}\texttt{numpy}} arrays, 
+norms -- other norms are possible for {\fontsize{12pt}{12pt}\texttt{numpy}} arrays,
 see {\fontsize{12pt}{12pt}\texttt{pydoc numpy.linalg.norm}}).
 
 The file {\fontsize{12pt}{12pt}\verb!nlPoisson_Picard.py!} contains the complete code for
@@ -2493,7 +2493,7 @@ use Newton's method to solve the system of nonlinear algebraic equations.
 From the continuous variational problem \langtangenrefeq{langtangen:poisson:nonlinear2},
 the discrete version \langtangenrefeq{langtangen:poisson:nonlinear:d} results in a
 system of equations for the unknown parameters $U_1,\ldots, U_N$
-(by inserting $u = \sum_{j=1}^N U_j \phi_j$ 
+(by inserting $u = \sum_{j=1}^N U_j \phi_j$
 and $v=\hat\phi_i$ in \langtangenrefeq{langtangen:poisson:nonlinear:d}):
 \begin{equation}
 \label{langtangen:nonlinear:Newton:F1}
@@ -2505,7 +2505,7 @@ F_i(U_1,\ldots,U_N) \equiv
 Newton's method for the system $F_i(U_1,\ldots,U_j)=0$, $i=1,\ldots,N$
 can be formulated as
 \begin{eqnarray}
-\sum_{j=1}^N 
+\sum_{j=1}^N
 {\partial \over\partial U_j} F_i(U_1^k,\ldots,U_N^k)\delta U_j
 &=& -F_i(U_1^k,\ldots,U_N^k),\\
 U_j^{k+1} &=& U_j^k + \omega\delta U_j,
@@ -2516,7 +2516,7 @@ be provided to start the algorithm.
 The original Newton method has $\omega=1$, but in problems where it is
 difficult to obtain convergence, so-called \emph{under-relaxation}\index{under-relaxation} with $\omega < 1$ may help.
 
-We need, in a program, to compute the Jacobian 
+We need, in a program, to compute the Jacobian
 matrix $\partial F_i/\partial U_j$
 and the right-hand side vector $-F_i$.
 Our present problem has $F_i$ given by \langtangenrefeq{langtangen:nonlinear:Newton:F1}.
@@ -2537,11 +2537,11 @@ The following results were used to obtain \langtangenrefeq{langtangen:poisson:no
 {\partial u\over\partial U_j} = {\partial\over\partial U_j}
 \sum_{j=1}^NU_j\phi_j = \phi_j,\quad {\partial\over\partial U_j}\nabla u = \nabla\phi_j,\quad {\partial\over\partial U_j}q(u) = q'(u)\phi_j\langtangenep
 \end{equation}
-We can reformulate the Jacobian matrix 
+We can reformulate the Jacobian matrix
 in \langtangenrefeq{langtangen:poisson:nonlinear:dFdU} by introducing the short
 notation $u^k = \sum_{j=1}^NU_j^k\phi_j$:
 \begin{equation}
-{\partial F_i\over\partial U_j} = 
+{\partial F_i\over\partial U_j} =
 \int_\Omega \left\lbrack
 \nabla \hat\phi_i\cdot\left( q'(u^k)\phi_j
 \nabla u^k \right)
@@ -2551,7 +2551,7 @@ notation $u^k = \sum_{j=1}^NU_j^k\phi_j$:
 \right\rbrack
 \dx\langtangenep
 \end{equation}
-In order to make \fenics{} compute this matrix, we need to formulate a 
+In order to make \fenics{} compute this matrix, we need to formulate a
 corresponding variational problem. Looking at the
 linear system of equations in Newton's method,
 \[ \sum_{j=1}^N {\partial F_i\over\partial U_j}\delta U_j = -F_i,\quad
@@ -2559,7 +2559,7 @@ i=1,\ldots,N,\]
 we can introduce $v$ as a general test function replacing $\hat\phi_i$,
 and we can identify the unknown
 $\delta u = \sum_{j=1}^N\delta U_j\phi_j$. From the linear system
-we can now go ``backwards'' to construct the corresponding 
+we can now go ``backwards'' to construct the corresponding
 discrete weak form
 \begin{equation}
 \label{langtangen:nonlinear:Newton:aLF}
@@ -2576,7 +2576,7 @@ discrete weak form
 Equation \langtangenrefeq{langtangen:nonlinear:Newton:aLF} fits the standard form
 $a(u,v)=L(v)$ with
 \begin{eqnarray*}
-a(u,v) &=& 
+a(u,v) &=&
 \int_\Omega \left\lbrack
 \nabla v\cdot\left( q'(u^k)\delta u
 \nabla u^k \right)
@@ -2588,8 +2588,8 @@ a(u,v) &=&
 L(v) &=& - \int_\Omega \nabla v\cdot\left( q(u^k)
 \nabla u^k\right) \dx\langtangenep
 \end{eqnarray*}
-Note the important feature in Newton's method 
-that the 
+Note the important feature in Newton's method
+that the
 previous solution $u^k$ replaces $u$
 in the formulas when computing the matrix
 $\partial F_i/\partial U_j$ and vector $F_i$ for the linear system in
@@ -2600,7 +2600,7 @@ To obtain a good initial guess $u^0$, we can solve a simplified, linear
 problem, typically with $q(u)=1$, which yields the standard Laplace
 equation $\Delta u^0 =0$. The receipe for solving this problem
 appears in Chapters~\ref{langtangen:poisson1:varform},
-\ref{langtangen:poisson1:impl}, and \ref{langtangen:poisson1:DN}. 
+\ref{langtangen:poisson1:impl}, and \ref{langtangen:poisson1:DN}.
 The code for computing $u^0$ becomes as follows:
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
@@ -2637,9 +2637,9 @@ Initially, {\fontsize{12pt}{12pt}\texttt{uk}} is the initial guess we call $u^0$
 
 
 The Dirichlet boundary conditions for the problem to be solved in each Newton
-iteration are somewhat different than the conditions for $u$. 
+iteration are somewhat different than the conditions for $u$.
 Assuming that $u^k$ fulfills the
-Dirichlet conditions for $u$, $\delta u$ must be zero at the boundaries 
+Dirichlet conditions for $u$, $\delta u$ must be zero at the boundaries
 where the Dirichlet conditions apply, in order for $u^{k+1}=u^k + \omega\delta u$ to fulfill
 the right Dirichlet values. We therefore define an additional list of
 Dirichlet boundary conditions instances for $\delta u$:
@@ -2707,7 +2707,7 @@ calling up an optimized BLAS routine for the calculation.
 
 Mesh construction for a $d$-dimensional problem with arbitrary degree of
 the Lagrange elements can be done as
-explained in Chapter~\ref{langtangen:poisson:nD}. 
+explained in Chapter~\ref{langtangen:poisson:nD}.
 The complete program appears in the file {\fontsize{12pt}{12pt}\verb!nlPoisson_algNewton.py!}.
 
 
@@ -2726,7 +2726,7 @@ perturbation $\delta u$ so that
 \begin{equation}
 u^{k+1} = u^k + \delta u
 \end{equation}
-fulfills the nonlinear PDE. 
+fulfills the nonlinear PDE.
 However, the problem for $\delta u$ is still nonlinear and nothing is
 gained. The idea is therefore to assume that $\delta u$ is sufficiently
 small so that we can linearize the problem with respect to $\delta u$.
@@ -2746,14 +2746,14 @@ we get
 We may collect the terms with the unknown $\delta u$ on the left-hand side,
 \begin{equation}
 \nabla\cdot\left( q(u^k)\nabla\delta u\right) +
-\nabla\cdot\left( q'(u^k)\delta u\nabla u^k\right) = 
+\nabla\cdot\left( q'(u^k)\delta u\nabla u^k\right) =
 -\nabla\cdot\left( q(u^k)\nabla u^k\right),
 \end{equation}
 The weak form of this PDE is derived by multiplying by a test function $v$
 and integrating over $\Omega$, integrating the second-order derivatives
 by parts:
 \begin{equation}
-\int_\Omega \left( 
+\int_\Omega \left(
 \nabla v\cdot \left( q(u^k)\nabla\delta u\right)
 + \nabla v\cdot \left( q'(u^k)\delta u\nabla u^k\right)\right)\dx
 = \int_\Omega\nabla v\cdot\left( q(u^k)\nabla u^k\right)\dx\langtangenep
@@ -2761,12 +2761,12 @@ by parts:
 The variational problem reads: Find $\delta u\in V$ such that
 $a(\delta u,v) = L(v)$ for all $v\in \hat V$, where
 \begin{eqnarray}
-a(\delta u,v) &=& 
-\int_\Omega \left( 
+a(\delta u,v) &=&
+\int_\Omega \left(
 \nabla v\cdot \left( q(u^k)\nabla\delta u\right)
 + \nabla v\cdot \left( q'(u^k)\nabla u^k\right)\right)\dx,\\
 \label{langtangen:nonlinear:poisson:pdelevel:eq1}
-L(v) &=& 
+L(v) &=&
 \int_\Omega\nabla v\cdot\left( q(u^k)\nabla u^k\right)\dx\langtangenep
 \label{langtangen:nonlinear:poisson:pdelevel:eq2}
 \end{eqnarray}
@@ -2790,10 +2790,10 @@ the PDE level, which is more straightforward.
 There is seemingly no need for differentiations to derive
 a Jacobian matrix,
 but a mathematically equivalent derivation is done when nonlinear terms are
-linearized using the first two Taylor series terms and when 
+linearized using the first two Taylor series terms and when
 products in the perturbation $\delta u$ are neglected.
 
-The implementation is identical to the one in 
+The implementation is identical to the one in
 Chapter~\ref{langtangen:nonlinear:Newton:algebraic} and is found in
 the file {\fontsize{12pt}{12pt}\verb!nlPoisson_pdeNewton.py!} (for the fun of it we use
 a {\fontsize{12pt}{12pt}\texttt{VariationalProblem}} instance instead of assembling a matrix and
@@ -2829,7 +2829,7 @@ L = dot(grad(v), q(u)*grad(u))*dx
 \end{Verbatim}
 \noindent
 
-The derivative {\fontsize{12pt}{12pt}\texttt{a}} of {\fontsize{12pt}{12pt}\texttt{L}} is formally the 
+The derivative {\fontsize{12pt}{12pt}\texttt{a}} of {\fontsize{12pt}{12pt}\texttt{L}} is formally the
 Gateaux derivative of $F(u;v)$ in the direction of the trial function.
 Technically, this Gateaux derivative is derived by computing
 \begin{equation}
@@ -2839,7 +2839,7 @@ Technically, this Gateaux derivative is derived by computing
 The $\delta u$ is now the trial function and $u^k$ is as usual the previous
 approximation to the solution $u$.
 We start with
-\[ 
+\[
 {d\over d\epsilon}\int_\Omega \nabla v\cdot\left( q(u^k + \epsilon\delta u)
 \nabla (u^k + \epsilon\delta u)\right)\dx
 \]
@@ -2918,7 +2918,7 @@ The examples in Chapter~\ref{langtangen:fundamentals}
 illustrate that solving linear, stationary PDE problems
 with the aid of \fenics{} is easy and requires little programming.
 That is, \fenics{} automates the spatial discretization by the
-finite element method. 
+finite element method.
 The solution of nonlinear problems, as we showed in Chapter~\ref{langtangen:poisson:nonlinear}, can also be automated (cf.~Chapter~\ref{langtangen:nonlinear:Newton:auto}),
 but many scientists will prefer to code the solution strategy of the
 nonlinear problem themselves and experiment with various combination of
@@ -2934,10 +2934,10 @@ We shall explain how easily this is accomplished through examples.
 
 Our time-dependent
 model problem for teaching purposes is naturally the simplest
-extension of the Poisson problem into the time domain, i.e., 
+extension of the Poisson problem into the time domain, i.e.,
 the diffusion problem
 \begin{eqnarray}
-{\partial u\over\partial t} &=& \Delta u + f \mbox{ in } \Omega, 
+{\partial u\over\partial t} &=& \Delta u + f \mbox{ in } \Omega,
 \label{langtangen:diffusion:pde1}\\
     u &=& u_0 \mbox{ on } \partial \Omega,
 \label{langtangen:diffusion:pde1:bc}\\
@@ -3008,7 +3008,7 @@ a(u,v) &=& \int_\Omega\left( vu + \Delta t
 L(v) &=& \int_\Omega v\left(u^{k-1} + \Delta t  f^k\right)\dx\langtangenep
 \label{langtangen:diffusion:pde1:L}
 \end{eqnarray}
-The continuous variational problem is to find 
+The continuous variational problem is to find
 $u^0\in V$ such that $a_0(u^0,v)=L_0(v)$ holds for all $v\in\hat V$,
 and then find $u^k\in V$
 such that $a(u^k,v)=L(v)$ for all $v\in\hat V$,
@@ -3020,7 +3020,7 @@ restricting the functional spaces $V$ and $\hat V$
 to finite-dimensional spaces
 $V_h$ and $\hat V_h$, exactly as we have done in the Poisson problems.
 We shall use the symbol $u$ for the finite element
-approximation at time $t_k$. In case we need to distinguish this 
+approximation at time $t_k$. In case we need to distinguish this
 space-time discrete approximation from the exact solution of
 the continuous diffusion problem, we use $u_e$ for the latter.
 With $u^{k-1}$ we mean, from now on, the finite element approximation
@@ -3032,7 +3032,7 @@ is a scalar field and not a vector field.
 Instead of solving \langtangenrefeq{langtangen:diffusion:pde1:u0} by a finite
 element method, i.e., projecting $I$ onto $V_h$ via
 the problem $a_0(u,v)=L_0(v)$, we could simply interpolate $u^0$ from
-$I$. That is, if $u^0=\sum_{j=1}^N U^0_j\phi_j$, we 
+$I$. That is, if $u^0=\sum_{j=1}^N U^0_j\phi_j$, we
 simply set $U_j=I(x_j,y_j)$, where $(x_j,y_j)$ are the coordinates of
 node no.~$j$. We refer to these two strategies as computing
 the initial condition by either projecting $I$ or interpolating $I$.
@@ -3054,7 +3054,7 @@ The matrix $A$ arising from $a$ can be computed prior to the time stepping,
 so that we
 only need to compute the right-hand side $b$, corresponding to $L$,
 in each pass in the time loop. Let us express the
-solution procedure in algorithmic form, writing 
+solution procedure in algorithmic form, writing
 $u$ for $u^k$ and $u_{\rm prev}$
 for the previous solution $u^{k-1}$:
 
@@ -3099,10 +3099,10 @@ Inserting \langtangenrefeq{langtangen:diffusion:pde1:u0test} in the PDE problem
 and $I(x,y)=1+x^2+\alpha y^2$.
 
 
-A new programming issue is 
+A new programming issue is
 how to deal with functions that vary in space \emph{and time}, such as
 the boundary condition $u_0$ given by \langtangenrefeq{langtangen:diffusion:pde1:u0test}.
-Given a {\fontsize{12pt}{12pt}\texttt{mesh}} and an associated function space {\fontsize{12pt}{12pt}\texttt{V}}, we 
+Given a {\fontsize{12pt}{12pt}\texttt{mesh}} and an associated function space {\fontsize{12pt}{12pt}\texttt{V}}, we
 can specify the $u_0$ function as
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
@@ -3114,12 +3114,12 @@ u0.t = 0
 \noindent
 This function expression has the components of {\fontsize{12pt}{12pt}\texttt{x}} as independent
 variables, while {\fontsize{12pt}{12pt}\texttt{alpha}}, {\fontsize{12pt}{12pt}\texttt{beta}}, and {\fontsize{12pt}{12pt}\texttt{t}} are parameters.
-The parameters can either be set through a dictionary at construction time, 
-as demonstrated for {\fontsize{12pt}{12pt}\texttt{alpha}} and {\fontsize{12pt}{12pt}\texttt{beta}}, or anytime through 
+The parameters can either be set through a dictionary at construction time,
+as demonstrated for {\fontsize{12pt}{12pt}\texttt{alpha}} and {\fontsize{12pt}{12pt}\texttt{beta}}, or anytime through
 attributes in the function
 instance, as shown for the {\fontsize{12pt}{12pt}\texttt{t}} parameter.
 
-The essential boundary conditions, along the whole boundary in this case, 
+The essential boundary conditions, along the whole boundary in this case,
 are set in the usual way,
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
@@ -3134,7 +3134,7 @@ bc = DirichletBC(V, u_exact, boundary)
 
 The initial condition can be computed by either projecting or interpolating
 $I$. The $I(x,y)$ function is available in the program through
-{\fontsize{12pt}{12pt}\verb!u0!}, 
+{\fontsize{12pt}{12pt}\verb!u0!},
 as long as {\fontsize{12pt}{12pt}\verb!u0.t!} is zero.
 We can then do
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
@@ -3204,7 +3204,7 @@ fontfamily=tt,xleftmargin=7mm]
 \end{Verbatim}
 \noindent
 
-The right-hand side vector {\fontsize{12pt}{12pt}\texttt{b}} must obviously 
+The right-hand side vector {\fontsize{12pt}{12pt}\texttt{b}} must obviously
 be recomputed at each time level.
 With the construction {\fontsize{12pt}{12pt}\texttt{b = assemble(L)}}, a new
 vector for {\fontsize{12pt}{12pt}\texttt{b}} is allocated in memory in every pass of the time loop.
@@ -3238,7 +3238,7 @@ the number of degrees of freedom $N$, while the solve operation
 has a work estimate of ${\cal O}( N^{1+p})$, where $p\geq 0$. As
 $N\rightarrow\infty$, the solve operation will for $p>0$ dominate,
 but for the values of $N$ typically used on smaller computers, the
-assembly step may still 
+assembly step may still
 represent a considerable part of the total work at each
 time level. Avoiding repeated assembly can therefore contribute to a
 significant speed-up of a finite element code in time-dependent problems.
@@ -3268,11 +3268,11 @@ the last expression can be written
 which is nothing but two matrix-vector products,
 \[ MU^{k-1} + \Delta t MF^k,\]
 if $M$ is the matrix with entries $M_{ij}$ and
-\[U^{k-1}=(U^{k-1}_1,\ldots,U^{k-1}_N),\] 
-and 
+\[U^{k-1}=(U^{k-1}_1,\ldots,U^{k-1}_N),\]
+and
 \[ F^k=(F^{k}_1,\ldots,F^{k}_N)\langtangenep\]
 
-We have immediate access to $U^{k-1}$ 
+We have immediate access to $U^{k-1}$
 in the program since that is the vector
 in the {\fontsize{12pt}{12pt}\verb!u_prev!} function. The $F^k$ vector can easily be
 computed by interpolating the prescribed $f$ function (at each time level if
@@ -3281,7 +3281,7 @@ $b$ can be calculated as
 \[ b = MU^{k-1} + \Delta t MF^k \langtangenep\]
 That is, no assembly is necessary to compute $b$.
 
-The coefficient matrix $A$ can also be split into two terms. 
+The coefficient matrix $A$ can also be split into two terms.
 We insert $v=\hat\phi_i$ and $u^k = \sum_{j=1}^NU^k_j\phi_j$ in
 the expression \langtangenrefeq{langtangen:diffusion:pde1:a} to get
 \[ \sum_{j=1}^N\left(\int_\Omega \hat\phi_i\phi_j\dx\right)U^k_j + \Delta t
@@ -3342,13 +3342,13 @@ while t <= T:
     b = M*u_prev.vector() + dt*M*Fk
 \end{Verbatim}
 \noindent
-The complete program appears in the file {\fontsize{12pt}{12pt}\verb!diffusion2D_D2.py!}..    
+The complete program appears in the file {\fontsize{12pt}{12pt}\verb!diffusion2D_D2.py!}..
 
 
 \subsection{A Physical Example}
 \label{langtangen:timedep:diffusion2:sin}
 
-With the basic programming techniques for time-dependent problem from 
+With the basic programming techniques for time-dependent problem from
 Chapters~\ref{langtangen:timedep:diffusion1:noassemble}--\ref{langtangen:timedep:diffusion1:impl}
 we are ready to attack more physically realistic examples.
 The next example concerns the question: How is the temperature in the
@@ -3365,14 +3365,14 @@ At all other boundaries we assume
 that the temperature does not change anymore when we move away from
 the boundary, i.e., the normal derivative is zero.
 Initially, the temperature can be taken as $T_R$ everywhere.
-The heat conductivity properties of the soil in the 
+The heat conductivity properties of the soil in the
 ground may vary with space so
 we introduce a variable coefficient $\kappa$ reflecting this property.
 Figure~\ref{langtangen:timedep:diffusion2:sin:fig1} shows a sketch of the
 problem, with a small region where the heat conductivity is much lower.
 \begin{figure}
 \centerline{
-\psfig{figure=chapters/langtangen/eps/daynight.eps,width=0.8\linewidth}
+\includegraphics[width=0.8\linewidth]{chapters/langtangen/eps/daynight.eps}
   }
   \caption{\label{langtangen:timedep:diffusion2:sin:fig1}
   Sketch of a (2D) problem involving heating and cooling of the ground due
@@ -3388,7 +3388,7 @@ T &=& T_0(t)\hbox{ on }\Gamma_0,\\
 T &=& T_R\hbox{ at }t =0\langtangenep
 \end{eqnarray}
 Here, $\varrho$ is the density of the soil, $c$ is the
-heat capacity, $\kappa$ is the thermal conductivity 
+heat capacity, $\kappa$ is the thermal conductivity
 (heat conduction coefficient)
 in the soil, and $\Gamma_0$ is the surface boundary $x_{d-1}=0$.
 
@@ -3465,7 +3465,7 @@ The $\kappa$ function can be defined as a constant $\kappa_1$ inside
 the particular rectangular area with a special soil composition, as
 indicated in Figure~\ref{langtangen:timedep:diffusion2:sin:fig1}. Outside
 this area $\kappa$ is a constant $\kappa_0$.
-The domain of the rectangular area are taken as 
+The domain of the rectangular area are taken as
 \[ [-W/4, W/4]\times [-W/4, W/4]\times [-D/2, -D/2 + D/4]\]
 in 3D, with $[-W/4, W/4]\times [-D/2, -D/2 + D/4]$ in 2D and
 $[-D/2, -D/2 + D/4]$ in 1D.
@@ -3495,7 +3495,7 @@ class Kappa(Function):
 \end{Verbatim}
 \noindent
 The {\fontsize{12pt}{12pt}\texttt{eval}} method gives great flexibility in defining functions,
-but a downside is that C++ calls up {\fontsize{12pt}{12pt}\texttt{eval}} in Python for 
+but a downside is that C++ calls up {\fontsize{12pt}{12pt}\texttt{eval}} in Python for
 each point {\fontsize{12pt}{12pt}\texttt{x}}, which is a slow process, and the number of calls
 is proportional to the number of nodes in the mesh.
 Function expressions in terms of strings are compiled to efficient
@@ -3526,7 +3526,7 @@ kappa = Function(V, kappa_str[d])
 For example, in 2D {\fontsize{12pt}{12pt}\verb!kappa_str[1]!} becomes
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
-x[0] > -0.5/4 && x[0] < 0.5/4 && x[1] > -1.0/2 && 
+x[0] > -0.5/4 && x[0] < 0.5/4 && x[1] > -1.0/2 &&
 x[1] < -1.0/2 + 1.0/4 ? 1e-07 : 0.2
 \end{Verbatim}
 \noindent
@@ -3590,7 +3590,7 @@ vertical direction. The code also plots the exact analytical solution,
 \[
 T(x,t) = T_R + T_Ae^{ax}\sin (\omega t + ax),\quad a =\sqrt{\omega\varrho c\over 2\kappa},
 \]
-which is valid when $\kappa$ is constant throughout $\Omega$. 
+which is valid when $\kappa$ is constant throughout $\Omega$.
 The reader is encouraged
 to play around with the code and test out various parameter sets:
 \begin{itemize}
@@ -3598,9 +3598,9 @@ to play around with the code and test out various parameter sets:
 \item $T_R=0$, $T_A=1$, $\kappa_0=0.2$, $\kappa_1=0.01$, $\varrho = c = 1$, $\omega = 2\pi$
 \item $T_R=0$, $T_A=1$, $\kappa_0=0.2$, $\kappa_1=0.001$, $\varrho = c = 1$, $\omega = 2\pi$
 \item $T_R=10$ C, $T_A=10$ C, $\kappa_0= 1.1 \hbox{ K}^{-1}\hbox{Ns}^{-1}$,
-$\kappa_0= 2.3 \hbox{ K}^{-1}\hbox{Ns}^{-1}$, 
-$\varrho = 1500\hbox{ kg/m}^3$, 
-$c = 1600\hbox{ Nm\,kg}^{-1}\hbox{K}^{-1}$, 
+$\kappa_0= 2.3 \hbox{ K}^{-1}\hbox{Ns}^{-1}$,
+$\varrho = 1500\hbox{ kg/m}^3$,
+$c = 1600\hbox{ Nm\,kg}^{-1}\hbox{K}^{-1}$,
 $\omega = 2\pi/24$ 1/h  $= 7.27\cdot 10^{-5}$ 1/s, $D=1.5$ m
 % kappa_1 = 1.1, varrho_1 = 1200, c_1 = 1000 => 9.17E-7
 % kappa_0 = 2.3, varrho_0 = 1800, c_0 = 1500 => 8.52E-7
@@ -3621,7 +3621,7 @@ Which backend to apply can be controlled by setting
 fontfamily=tt,xleftmargin=7mm]
 parameters['linear algebra backend'] = backendname
 \end{Verbatim}
-\noindent 
+\noindent
 where {\fontsize{12pt}{12pt}\texttt{backendname}} is a string, either {\fontsize{12pt}{12pt}\texttt{'PETSc'}},
 {\fontsize{12pt}{12pt}\texttt{'uBLAS'}}, {\fontsize{12pt}{12pt}\texttt{'Epetra'}}, or {\fontsize{12pt}{12pt}\texttt{'MTL4'}}.
 These backends offer high-quality implementations of both iterative
@@ -3651,9 +3651,9 @@ Let us explain how one can choose between direct and iterative solvers.
 We have seen that there
 are two ways of solving linear systems, either we call the {\fontsize{12pt}{12pt}\texttt{solve()}}
 method in a {\fontsize{12pt}{12pt}\texttt{VariationalProblem}} instance or we call the {\fontsize{12pt}{12pt}\texttt{solve(A, U, b)}}
-function with the assembled coefficient matrix {\fontsize{12pt}{12pt}\texttt{A}}, 
+function with the assembled coefficient matrix {\fontsize{12pt}{12pt}\texttt{A}},
 right-hand side vector {\fontsize{12pt}{12pt}\texttt{b}}, and
-solution vector {\fontsize{12pt}{12pt}\texttt{U}}. 
+solution vector {\fontsize{12pt}{12pt}\texttt{U}}.
 
 In case we use a {\fontsize{12pt}{12pt}\texttt{VariationalProblem}} instance, named {\fontsize{12pt}{12pt}\texttt{problem}},
 it has a {\fontsize{12pt}{12pt}\texttt{parameters}} instance that behaves like a Python dictionary,
@@ -3674,10 +3674,10 @@ a Poisson equation, the iterative solution process will be more
 efficient by setting the {\fontsize{12pt}{12pt}\texttt{'symmetry'}} parameter
 so that a Conjugate Gradient is applied.
 
-Having chosen an interative solver, we can invoke 
+Having chosen an interative solver, we can invoke
 a submenu {\fontsize{12pt}{12pt}\verb!'krylov_solver'!}
 in the
-{\fontsize{12pt}{12pt}\texttt{parameters}} object for setting various parameters for 
+{\fontsize{12pt}{12pt}\texttt{parameters}} object for setting various parameters for
 the iterative solver (GMRES or Conjugate Gradients, depending on
 whether the matrix is symmetric or not):
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
@@ -3691,7 +3691,7 @@ itsolver['monitor_convergence'] = True
 itsolver['report'] = True
 \end{Verbatim}
 \noindent
-Here, {\fontsize{12pt}{12pt}\verb!'divergence_limit'!} 
+Here, {\fontsize{12pt}{12pt}\verb!'divergence_limit'!}
 governs the maximum allowable number of iterations,
 \hpl{why must it be a real and not an int?}
 the {\fontsize{12pt}{12pt}\verb!'gmres_restart'!} parameter tells how many iterations GMRES performs before
@@ -3710,7 +3710,7 @@ Does it depend on the backend?}
 When direct solver is chosen, there is similarly a submenu
 {\fontsize{12pt}{12pt}\verb!'lu_solver'!} to set parameters, but here only the {\fontsize{12pt}{12pt}\texttt{'report'}}
 parameter is available (since direct solvers very soldom have any
-adjustable parameters). For nonlinear problems there is also 
+adjustable parameters). For nonlinear problems there is also
 submenu {\fontsize{12pt}{12pt}\verb!'newton_solver'!} where tolerances, maximum iterations, and
 so on, for a the Newton solver in {\fontsize{12pt}{12pt}\texttt{VariationalProblem}} can be set.
 
@@ -3726,9 +3726,9 @@ info(problem.parameters, True)
 \hpl{This will soon be outdated!}
 
 For the {\fontsize{12pt}{12pt}\texttt{solve(A, x, b)}} approach, a 4th argument to {\fontsize{12pt}{12pt}\texttt{solve}}
-determines the type of method: 
+determines the type of method:
 \begin{itemize}
-\item {\fontsize{12pt}{12pt}\texttt{'lu'}} for a sparse direct (LU decomposition) method, 
+\item {\fontsize{12pt}{12pt}\texttt{'lu'}} for a sparse direct (LU decomposition) method,
 \item {\fontsize{12pt}{12pt}\texttt{'cg'}} for the Conjugate Gradient (CG) method, which is
 applicable if {\fontsize{12pt}{12pt}\texttt{A}} is symmetric and positive definite,
 \item {\fontsize{12pt}{12pt}\texttt{'gmres'}} for
@@ -3808,7 +3808,7 @@ iterative solvers, and preconditioners. Given a linear system
 $AU=b$, represented by a {\fontsize{12pt}{12pt}\texttt{Matrix}} instance {\fontsize{12pt}{12pt}\texttt{A}},
 and two {\fontsize{12pt}{12pt}\texttt{Vector}} instances {\fontsize{12pt}{12pt}\texttt{U}} and {\fontsize{12pt}{12pt}\texttt{b}}, the purpose is to
 set up a solver using the Aztec Conjugate Gradient method from
-Trilinos' Aztec library and combine that solver with the 
+Trilinos' Aztec library and combine that solver with the
 algebraic multigrid preconditioner ML
 from the ML library in Trilinos.
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
@@ -3867,9 +3867,9 @@ plot(u)
 \label{langtangen:prepro}
 
 Up to now we have been very fond of the unit square as domain,
-which is an appropriate choice for initial versions of a 
+which is an appropriate choice for initial versions of a
 PDE solver. The strength of the finite element method, however, is its
-ease of handling domains with complex shapes. This section 
+ease of handling domains with complex shapes. This section
 shows some methods that can be used to create different types of
 domains and meshes.
 
@@ -3893,7 +3893,7 @@ shape:
 and
 {\fontsize{12pt}{12pt}\texttt{UnitCube}}.
 Some of these names have been briefly met in previous sections.
-The hopefully self-explanatory code snippet below summarizes 
+The hopefully self-explanatory code snippet below summarizes
 typical constructions of meshes with the aid of these tools:
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
@@ -3917,7 +3917,7 @@ mesh = UnitCube(6, 10, 5)
 mesh = Box(-1, -1, -1, 1, 0, 2, 6, 10, 5)
 
 # 10 divisions in radial directions
-mesh = UnitCircle(10)  
+mesh = UnitCircle(10)
 mesh = UnitSphere(10)
 \end{Verbatim}
 \noindent
@@ -3933,11 +3933,11 @@ $\eta = \xi^s$, for some $s>1$, stretches the mesh toward $\xi=0$ ($x=a$),
 while $\eta = \xi^{1/s}$ makes a stretching toward $\xi=1$ ($x=b$).
 Mapping the $\eta\in[0,1]$ coordinates back to $[a,b]$ gives new,
 stretched $x$ coordinates,
-\begin{equation} 
+\begin{equation}
 \bar x = a + (b-a)\left({x-a\over b-a}\right)^s
 \end{equation}
 toward $x=a$, or
-\begin{equation} 
+\begin{equation}
 \bar x = a + (b-a)\left({x-a\over b-a}\right)^{1/s}
 \end{equation}
 toward $x=b$
@@ -3950,7 +3950,7 @@ coordinates to Cartesian coordinates can be used to generate the
 hollow cylinder. Given a rectangle in $(\bar x, \bar y)$ space such that
 $a\leq \bar x\leq b$ and $0\leq \bar y\leq 1$, the mapping
 \[ \hat x = \bar x\cos (\Theta \bar y),\quad \hat y = \bar x\sin (\Theta \bar y),\]
-takes a point in the rectangular $(\bar x,\bar y)$ 
+takes a point in the rectangular $(\bar x,\bar y)$
 geometry and maps it to a point
 $(\hat x, \hat y)$ in a hollow cylinder.
 
@@ -3989,14 +3989,14 @@ interactive()
 \noindent
 The result of calling {\fontsize{12pt}{12pt}\texttt{denser}} and {\fontsize{12pt}{12pt}\texttt{cylinder}} above is a list of two
 vectors, with the $x$ and $y$ coordinates, respectively.
-Turning this list into a {\fontsize{12pt}{12pt}\texttt{numpy}} array object results in a $2\times M$ 
+Turning this list into a {\fontsize{12pt}{12pt}\texttt{numpy}} array object results in a $2\times M$
 array, $M$ being the number of vertices in the mesh. However,
 {\fontsize{12pt}{12pt}\texttt{mesh.coordinates()}} is by convention an $M\times 2$ array so we
 need to take the transpose. The resulting mesh is displayed
 in Figure~\ref{langtangen:mesh:transform:cyl:fig1}.
 \begin{figure}
   \centerline{
-  {\psfig{figure=chapters/langtangen/eps/hollow_cylinder.eps,width=0.9\linewidth}}}
+  {\includegraphics[width=0.9\linewidth]{chapters/langtangen/eps/hollow_cylinder.eps}}}
   \caption{\label{langtangen:mesh:transform:cyl:fig1}
   Hollow cylinder generated by mapping a rectangular mesh, stretched toward
   the left side.
@@ -4019,10 +4019,10 @@ in Figure~\ref{langtangen:mesh:transform:cyl:fig1}.
 \section{Handling Domains with Different Materials}
 
 Solving PDEs in domains made up of different materials is a frequently
-encountered task. In \fenics, this kind of problems are handled by 
+encountered task. In \fenics, this kind of problems are handled by
 defining subdomains inside the domain. The subdomains may represent the
 various materials. We can thereafter define material properties through
-functions, known in \fenics{} as \emph{mesh functions}, 
+functions, known in \fenics{} as \emph{mesh functions},
 that are piecewise constant in each subdomain.
 A simple example with
 two materials (subdomains) in 2D will
@@ -4100,8 +4100,8 @@ the fluid differs by a factor of 10.
 \label{langtangen:possion:2D:2mat:impl}
 
 
-The new functionality in this subsection regards how to 
-to define the subdomains 
+The new functionality in this subsection regards how to
+to define the subdomains
 $\Omega_0$ and $\Omega_1$. Defining a subdomain is done by
 creating a subclass of {\fontsize{12pt}{12pt}\texttt{SubDomain}} and implementing the
 {\fontsize{12pt}{12pt}\texttt{inside}} function. In the present case we define
@@ -4119,7 +4119,7 @@ class Omega1(SubDomain):
 
 The next task is to introduce a {\fontsize{12pt}{12pt}\texttt{MeshFunction}} to mark all
 cells in $\Omega_0$ with the subdomain number 0 and all cells in $\Omega_1$
-with the subdomain number 1. 
+with the subdomain number 1.
 Our convention is to number subdomains as $0,1,2,\ldots$.
 
 A {\fontsize{12pt}{12pt}\texttt{MeshFunction}} is a discrete function that can be evaluated at a set
@@ -4131,7 +4131,7 @@ Mesh functions over vertices can be used to describe continuous fields.
 
 Since we need to define subdomains of $\Omega$
 in the present example, we must make use
-of a {\fontsize{12pt}{12pt}\texttt{MeshFunction}} over cells. The 
+of a {\fontsize{12pt}{12pt}\texttt{MeshFunction}} over cells. The
 {\fontsize{12pt}{12pt}\texttt{MeshFunction}} constructor is fed with three arguments: 1) the type
 of value: {\fontsize{12pt}{12pt}\texttt{'int'}} for integers, {\fontsize{12pt}{12pt}\texttt{'uint'}} for positive
 (unsigned) integers, {\fontsize{12pt}{12pt}\texttt{'double'}} for real numbers, and
@@ -4170,7 +4170,7 @@ Now we want a function {\fontsize{12pt}{12pt}\texttt{k}} that is piecewise const
 each subdomain $\Omega_0$ and $\Omega_1$. Since we want {\fontsize{12pt}{12pt}\texttt{k}}
 to be a finite element function, it is natural to choose
 a space of functions that are constant over each element.
-The family of discontinuous Galerkin methods, in \fenics{} 
+The family of discontinuous Galerkin methods, in \fenics{}
 denoted by {\fontsize{12pt}{12pt}\texttt{'DG'}}, is suitable for this purpose. Since we
 want functions that are piecewise constant, the value of
 the degree parameter is zero:
@@ -4224,8 +4224,8 @@ All the details can be found in the file {\fontsize{12pt}{12pt}\verb!Poisson2D_2
 \subsection{Multiple Neumann, Robin, and Dirichlet Conditions}
 \label{langtangen:poisson:mat:neumann}
 
-Let us go back to the model problem from 
-Chapter~\ref{langtangen:poisson:multiple:Dirichlet} 
+Let us go back to the model problem from
+Chapter~\ref{langtangen:poisson:multiple:Dirichlet}
 where we had both Dirichlet and Neumann conditions.
 The term {\fontsize{12pt}{12pt}\texttt{v*g*ds}} in the expression for {\fontsize{12pt}{12pt}\texttt{L}} implies a
 boundary integral over the complete boundary, or in \fenics{} terms,
@@ -4237,7 +4237,7 @@ We would like, from an efficiency point of view, to integrate {\fontsize{12pt}{1
 only over the parts of the boundary where we actually have Neumann conditions.
 And more importantly,
 in other problems one may have different Neumann conditions or
-other conditions like the Robin type condition. 
+other conditions like the Robin type condition.
 With the mesh function concept we can mark
 different parts of the boundary and integrate over specific parts.
 The same concept can also be used to treat multiple Dirichlet conditions.
@@ -4249,10 +4249,10 @@ Neumann condition at $y=0$ by a \emph{Robin condition}\footnote{The Robin condit
 most often used to model heat transfer to the surroundings and arise
 naturally from Newton's cooling law.}:
 \[ -{\partial u\over\partial n} = p(u-q),\]
-where $p$ and $q$ are specified functions. 
+where $p$ and $q$ are specified functions.
 Since we have prescribed a simple solution in our model problem,
 $u=1+x^2+y^4$, we adjust $p$ and $q$ such that the condition holds
-at $y=0$. This implies that $q=1+x^2+2y^2$ and $p$ can be arbitrary 
+at $y=0$. This implies that $q=1+x^2+2y^2$ and $p$ can be arbitrary
 (the normal derivative at $y=0$: $\partial u/\partial n = -\partial u/\partial y = -4y=0$).
 
 Now we have four parts of the boundary: $\Gamma_N$ which corresponds to
@@ -4260,11 +4260,11 @@ the upper side $y=1$, $\Gamma_R$ which corresponds to the lower part
 $y=0$, $\Gamma_0$ which corresponds to the left part $x=0$, and
 $\Gamma_1$ which corresponds to the right part $x=1$. The
 complete boundary-value problem reads
-\begin{eqnarray} 
+\begin{eqnarray}
     - \Delta u &=& -6 \mbox{ in } \Omega, \label{langtangen:poisson:2D:DN3}\\
     u &=& u_L \mbox{ on } \Gamma_0, \label{langtangen:poisson:2D:DN3:bc1}\\
     u &=& u_R \mbox{ on } \Gamma_1, \label{langtangen:poisson:2D:DN3:bc2}\\
-    - {\partial u\over\partial n} &=& p(u-q) \mbox{ on } \Gamma_R, 
+    - {\partial u\over\partial n} &=& p(u-q) \mbox{ on } \Gamma_R,
     \label{langtangen:poisson:2D:DN3:bc3}\\
     - {\partial u\over\partial n} &=& 4y \mbox{ on } \Gamma_N\langtangenep
     \label{langtangen:poisson:2D:DN3:bc4}
@@ -4322,7 +4322,7 @@ L(v) &=& \int_{\Omega} fv \dx -
 
 A natural starting point for implementation is
 the {\fontsize{12pt}{12pt}\verb!Poisson2D_DN2.py!} program, which we now copy to
-{\fontsize{12pt}{12pt}\verb!Poisson2D_DNR.py!}. 
+{\fontsize{12pt}{12pt}\verb!Poisson2D_DNR.py!}.
 The new aspects are
 \begin{enumerate}
 \item definition of a mesh function over the boundary,
@@ -4334,15 +4334,15 @@ Task 1 makes use of the {\fontsize{12pt}{12pt}\texttt{MeshFunction}} object, but
 Chapter~\ref{langtangen:possion:2D:2mat:impl}, this is not a function over
 cells, but a function over cell facets. The topological dimension of
 cell facets is one lower than the cell interiors, so in a two-dimensional
-problem the dimension 
-becomes 1. In general, the facet dimension 
+problem the dimension
+becomes 1. In general, the facet dimension
 is given as {\fontsize{12pt}{12pt}\texttt{mesh.topology().dim()-1}},
 which we use in the code for ease of direct reuse in other problems.
 The construction of a {\fontsize{12pt}{12pt}\texttt{MeshFunction}} instance to mark boundary parts
 now reads
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
 fontfamily=tt,xleftmargin=7mm]
-boundary_parts = \ 
+boundary_parts = \
   MeshFunction("uint", mesh, mesh.topology().dim()-1)
 \end{Verbatim}
 \noindent
@@ -4387,7 +4387,7 @@ Gamma_1.mark(boundary_parts, 3)
 \end{Verbatim}
 \noindent
 Specifying the {\fontsize{12pt}{12pt}\texttt{DirichletBC}} instances may now make use of
-the mesh function (instead of a {\fontsize{12pt}{12pt}\texttt{SubDomain}} subclass object) 
+the mesh function (instead of a {\fontsize{12pt}{12pt}\texttt{SubDomain}} subclass object)
 and an indicator for which subdomain each condition
 should be applied to:
 \begin{Verbatim}[fontsize=\fontsize{10pt}{10pt},tabsize=8,baselinestretch=1.05,
@@ -4475,7 +4475,7 @@ with associated constant $k$ values $k_0,k_1,\ldots,k_{s-1}$,
 as illustrated in Figure~\ref{langtangen:possion:nD:nmat:fig1}.
 \begin{figure}
 \centerline{
-\psfig{figure=chapters/langtangen/eps/layers.eps,width=0.7\linewidth}
+\includegraphics[width=0.7\linewidth]{chapters/langtangen/eps/layers.eps}
   }
   \caption{\label{langtangen:possion:nD:nmat:fig1}
   Sketch of a multi-material problem.
@@ -4512,18 +4512,18 @@ The complete boundary-value problem is then
 The domain $\Omega$ is divided into $s$ materials $\Omega_i$, $i=0,\ldots,s-1$,
 where
 \[ \Omega_i = \{ (x_0,\ldots,x_{d-1}\, |\, L_i \leq x_0 < L_{i+1}\} \]
-for given $x_0$ values $0=L_0<L_1<\cdots< L_s=1$ 
+for given $x_0$ values $0=L_0<L_1<\cdots< L_s=1$
 of the material (subdomain) boundaries.
 The $k(x_0)$ function takes on the value $k_i$ in $\Omega_i$.
 
 The exact solution of the basic PDE in \langtangenrefeq{langtangen:poisson:2D:varcoeff3} is
-\[ u(x_0,\ldots,x_{d-1}) = 
+\[ u(x_0,\ldots,x_{d-1}) =
 {\int_0^{x_0} (k(\tau ))^{-1}d\tau\over \int_0^1 (k(\tau ))^{-1}d\tau}\langtangenep
 \]
 For a piecewise constant $k(x_0)$ as explained, we get
-\begin{equation} 
-u(x_0,\ldots,x_{d-1}) = 
-{(x_0-L_i)k_i^{-1} + \sum_{j=0}^{i-1} (L_{j+1}-L_j)k_j^{-1}\over 
+\begin{equation}
+u(x_0,\ldots,x_{d-1}) =
+{(x_0-L_i)k_i^{-1} + \sum_{j=0}^{i-1} (L_{j+1}-L_j)k_j^{-1}\over
 \sum_{j=0}^{s-1} (L_{j+1}-L_j)k_j^{-1}},\quad L_i\leq x_0 \leq L_{i+1}\langtangenep
 \label{langtangen:poisson:2D:varcoeff2:exact}
 \end{equation}
@@ -4582,7 +4582,7 @@ class Material(SubDomain):
         self.number = subdomain_number
         self.boundaries = subdomain_boundaries
         SubDomain.__init__(self)
-        
+
     def inside(self, x, on_boundary):
         i = self.number
         L = self.boundaries         # short form (cf. the math)
@@ -4593,7 +4593,7 @@ class Material(SubDomain):
 \end{Verbatim}
 \noindent
 The {\fontsize{12pt}{12pt}\texttt{<=}} in the test if a point is inside a subdomain is important as
-{\fontsize{12pt}{12pt}\texttt{x}} will equal vertex coordinates in the elements, and many of these 
+{\fontsize{12pt}{12pt}\texttt{x}} will equal vertex coordinates in the elements, and many of these
 will lie
 on the subdomain boundaries. All vertices {\fontsize{12pt}{12pt}\texttt{x}}
 in a cell must be lead to a {\fontsize{12pt}{12pt}\texttt{True}} return value from {\fontsize{12pt}{12pt}\texttt{inside}}
@@ -4623,7 +4623,7 @@ a mesh function defining the subdomain. It is smart to put this code
 in a separate file, say {\fontsize{12pt}{12pt}\verb!define_layers.py!},
 and view the code as a preprocessing step.
 We must then store the computed mesh and mesh function in files.
-Another program may load the files and perform the actually 
+Another program may load the files and perform the actually
 actually solve the boundary-value problem.
 
 Storing the mesh itself and the mesh function in XML format is done by
@@ -4773,14 +4773,14 @@ many external software packages.\gln
 Viper: a \fenics{} component for quick visualization of finite element
 meshes and solutions.\gln
 
-UFL: a \fenics{} component implementing the \emph{unified form language} 
+UFL: a \fenics{} component implementing the \emph{unified form language}
 for specifying finite element forms in \fenics{} programs.
 The definition of the forms, typically called {\fontsize{12pt}{12pt}\texttt{a}} and {\fontsize{12pt}{12pt}\texttt{L}} in
 this tutorial, must have legal UFL syntax. The same applies to
 the definition of functionals (see Chapter~\ref{langtangen:poisson1:functionals}).
 \hpl{More references to UFL chapter and website!}\gln
 
-Class (Python): a programming construction for creating objects 
+Class (Python): a programming construction for creating objects
 containing a set of
 variables and functions. Most
 types of \fenics{} objects are defined through the class concept.\gln
@@ -4788,8 +4788,8 @@ types of \fenics{} objects are defined through the class concept.\gln
 Instance (Python): an object of a particular type, where the type is
 implemented as a class. For instance,
 {\fontsize{12pt}{12pt}\texttt{mesh = UnitInterval(10)}} creates
-an instance of class {\fontsize{12pt}{12pt}\texttt{UnitInterval}}, which is reached by the 
-the name {\fontsize{12pt}{12pt}\texttt{mesh}}. (Class {\fontsize{12pt}{12pt}\texttt{UnitInterval}} is actually just 
+an instance of class {\fontsize{12pt}{12pt}\texttt{UnitInterval}}, which is reached by the
+the name {\fontsize{12pt}{12pt}\texttt{mesh}}. (Class {\fontsize{12pt}{12pt}\texttt{UnitInterval}} is actually just
 an interface to a corresponding C++ class in the \dolfin{} C++ library.)\gln
 
 Class method (Python): a function in a class, reached by dot notation: {\fontsize{12pt}{12pt}\verb!instance_name.method_name!}\gln
@@ -4832,7 +4832,7 @@ are divided into two cells of triangular shape.\gln
 {\fontsize{12pt}{12pt}\texttt{Interval}}, {\fontsize{12pt}{12pt}\texttt{Rectangle}}, and {\fontsize{12pt}{12pt}\texttt{Box}}: generate mesh over
 domains of simple geometric shape, see Chapter~\ref{langtangen:prepro}.\gln
 
-{\fontsize{12pt}{12pt}\verb!FunctionSpace(mesh, element_type, degree)!}: 
+{\fontsize{12pt}{12pt}\verb!FunctionSpace(mesh, element_type, degree)!}:
 a function space defined over a mesh, with a given element type
 (e.g., {\fontsize{12pt}{12pt}\texttt{'CG'}} or {\fontsize{12pt}{12pt}\texttt{'DG'}}), with basis functions as polynomials of
 a specified degree.\gln
@@ -4858,7 +4858,7 @@ boundary conditions (see Chapter~\ref{langtangen:poisson:mat:neumann}).\gln
 boundary conditions via a function space {\fontsize{12pt}{12pt}\texttt{V}}, a function
 {\fontsize{12pt}{12pt}\texttt{value(x)}} for computing the value of the condition at a point {\fontsize{12pt}{12pt}\texttt{x}},
 and a specification {\fontsize{12pt}{12pt}\texttt{where}} of the boundary, either as a
-{\fontsize{12pt}{12pt}\texttt{SubDomain}} subclass instance, a plain function, or as a 
+{\fontsize{12pt}{12pt}\texttt{SubDomain}} subclass instance, a plain function, or as a
 {\fontsize{12pt}{12pt}\texttt{MeshFunction}} instance.
 In the latter case, a 4th argument is provided to describe which subdomain
 number that describes the relevant boundary.\gln
@@ -4998,14 +4998,14 @@ techniques.
 
 When defining a function in terms of a mathematical expression inside
 a string formula, the expression will be turned into a C++ function
-and compiled to gain efficiency. Therefore, 
+and compiled to gain efficiency. Therefore,
 the syntax used in the expression must be valid C++ syntax.
 Most Python syntax for mathematical expressions are also valid C++ syntax,
 but power expressions make an exception: {\fontsize{12pt}{12pt}\texttt{p**a}} must be written as
 {\fontsize{12pt}{12pt}\texttt{pow(p,a)}} in C++ (this is also an alternative Python syntax).
 The following mathematical functions can be used directly
 in C++
-expressions for {\fontsize{12pt}{12pt}\texttt{Function}} objects: 
+expressions for {\fontsize{12pt}{12pt}\texttt{Function}} objects:
 {\fontsize{12pt}{12pt}\texttt{cos}}, {\fontsize{12pt}{12pt}\texttt{sin}}, {\fontsize{12pt}{12pt}\texttt{tan}}, {\fontsize{12pt}{12pt}\texttt{acos}}, {\fontsize{12pt}{12pt}\texttt{asin}},
 {\fontsize{12pt}{12pt}\texttt{atan}}, {\fontsize{12pt}{12pt}\texttt{atan2}}, {\fontsize{12pt}{12pt}\texttt{cosh}}, {\fontsize{12pt}{12pt}\texttt{sinh}}, {\fontsize{12pt}{12pt}\texttt{tanh}}, {\fontsize{12pt}{12pt}\texttt{exp}},
 {\fontsize{12pt}{12pt}\texttt{frexp}}, {\fontsize{12pt}{12pt}\texttt{ldexp}}, {\fontsize{12pt}{12pt}\texttt{log}}, {\fontsize{12pt}{12pt}\texttt{log10}}, {\fontsize{12pt}{12pt}\texttt{modf}},
@@ -5014,12 +5014,12 @@ Moreover, the number $\pi$ is available as the symbol {\fontsize{12pt}{12pt}\tex
 All the listed functions are taken from the {\fontsize{12pt}{12pt}\texttt{cmath}} C++ header file, and
 one may hence
 consult documentation of {\fontsize{12pt}{12pt}\texttt{cmath}} for more information on the
-various functions. 
+various functions.
 
 
 \paragraph{Acknowledgments.}
-The author is very thankful to Johan Hake, Anders Logg, 
-Kent-Andre Mardal, and Kristian Valen-Sendstad 
+The author is very thankful to Johan Hake, Anders Logg,
+Kent-Andre Mardal, and Kristian Valen-Sendstad
 for promptly answering all my questions about
 \fenics{} functionality and for implementing all my requests.
 Professor Douglas Arnold is thanked for valuable feedback on
