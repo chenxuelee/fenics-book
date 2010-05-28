@@ -2,6 +2,8 @@
 
 \index{important term}
 
+\newcommand{\Hset}{FIXME: This is undefined!}
+\newcommand{\Nset}{FIXME: This is undefined!}
 
 %------------------------------------------------------------------------------
 \section{Introduction}
@@ -59,7 +61,7 @@ If we for simplicity assume homogeneous Dirichlet boundary conditions the follow
 \label{eq:Bu2}
 \end{equation}
 conditioned that the velocity is divergence free ($\vec{u}\in \Hset_{div}$). In other words, if the standard convective form is adopted, then the divergence free velocity field ensures that
-\begin{equation} 
+\begin{equation}
 \bigl( B(\vec{u}, \vec{a}), \vec{a} \bigr) = 0,
 \label{eq:B0}
 \end{equation}
@@ -114,10 +116,10 @@ The middle scheme is merely first order, whereas the remaining two are second or
 Equations (\ref{eq:NS_d}) and (\ref{eq:cont_d}) contain (in three-dimensional space) four unknown fields and four PDEs. However, there is no separate equation for $p$. One solution to this problem is to take the divergence of the momentum equation and use continuity to arrive at an equation for $p$. The most common approach, though, is to use a fractional step method (c.f., Kim and Moin \cite{kim85}). The fractional step method can be summarized (neglecting boundary conditions) in three steps
 \begin{itemize}
  \item[(i)] Solve the momentum equation for an intermediate velocity field $\hat{\vec{u}}_{n+1}$ using the latest available $p$. The resulting velocity field is not necessarily divergence free.\\
-\begin{equation} 
+\begin{equation}
 \label{eq:NS_FS} \frac{\hat{\vec{u}}_{n+1}-\vec{u}_{n}}{\triangle t} = - B(\tilde{\vec{u}},\overline{\vec{u}}) + \nu \nabla^2 \hat{\vec{u}}_{n+\alpha} -\nabla p + \text{f}
 \end{equation}
- \item[(ii)] The second step is a Darcy problem for $\vec{u}_{n+1}$ and a pressure correction $\hat{p}$ 
+ \item[(ii)] The second step is a Darcy problem for $\vec{u}_{n+1}$ and a pressure correction $\hat{p}$
 \begin{align}
  \label{eq:vel_Darcy} \frac{\vec{u}_{n+1} - \hat{\vec{u}}_{n+1}}{\triangle t} &=  - \nabla \hat{p}, \\
   \nabla \cdot \vec{u}_{n+1} &= 0.
@@ -160,7 +162,7 @@ The solvers and problems under investigation are implemented to fit in the probl
          k*inner(div(v), p)*dx + kappa*inner(q,div(u))*dx
     a = lhs(F); L = rhs(F)
 \end{verbatim}
-\end{small} 
+\end{small}
 The three alternative versions of the convective term discussed in Sec. \ref{sec:Convection} have be implemented in the method \emph{conv} as
 \begin{small}
 \begin{verbatim}
@@ -187,7 +189,7 @@ The fractional step Navier-Stokes solver is somewhat more elaborate than the ful
 % In the implementation $\hat{\vec{u}}_{n+1}$ and $\hat{p}$ are represented with the trial-functions u and p. If we assume that the mesh class has been created in a problem class, where all parameters specific for the problem under investigation are defined, then necessary functions and functionspaces are created as
 % \begin{small}
 % \begin{verbatim}
-%     
+%
 %     v = TestFunction(V)
 %     q = TestFunction(Q)
 %     u = TrialFunction(V)
@@ -225,7 +227,7 @@ The fractional step Navier-Stokes solver is somewhat more elaborate than the ful
 % \end{verbatim}
 % \end{small}
 % where p1 is the recently computed pressure correction.
-% 
+%
 % The Navier-Stokes equations are integrated in time using a while loop as
 % \begin{small}
 % \begin{verbatim}
@@ -284,7 +286,7 @@ The nonlinear Burger's equation is considered here as an initial boundary value 
 \end{equation}
 The initial value is set as $u(x,0)=-\text{sin}(\pi x)+\kappa \xi$, where $\kappa$ is a parameter and $\xi$ is a random number between 0 and 1 that is used to create a fluctuating velocity field resembling turbulence. %Like for the NS equations there is accumulation, a nonlinear convection term and diffusion, yet there is no pressure-velocity coupling, which makes Burger's equation easier to implement and solve. Furthermore, several analytical solutions are known for a variety of initial conditions. In this work, though, we will only use conservation of the solution's kinetic energy as a measure of accuracy.
 
-% For the current initialization and $\kappa=0$, the Burger's equation allows a series analytical solution \cite{} 
+% For the current initialization and $\kappa=0$, the Burger's equation allows a series analytical solution \cite{}
 % \begin{equation}
 %  u(x,t)=4\pi \nu \frac{\sum_{n=1}^{\infty} n a_n \exp(-\nu n^2 \pi^2 t) \sin(n \pi x)}{a_0 + 2\sum_{n=1}^{\infty} n a_n \exp(-\nu n^2 \pi^2 t) \cos(n \pi x)},
 % \end{equation}
@@ -413,7 +415,7 @@ To our disposal we have an Orr-Sommerfeld eigenvalue solver that uses spectral c
 \begin{small}
 \begin{verbatim}
     # Using 80 Chebyshev points and Reynolds number of 8000:
-    u = U0(element=V.ufl_element(),defaults={'Re':8000.,'N':80}) 
+    u = U0(element=V.ufl_element(),defaults={'Re':8000.,'N':80})
     u0 = interpolate(u,V)
     p0 = Constant(0.)
 \end{verbatim}
@@ -475,7 +477,7 @@ To validate the more interesting (from a turbulence instability point of view) l
 \label{fig:OS_long_time}
 \end{figure}
 
-\subsection{Taylor-Green vortex} 
+\subsection{Taylor-Green vortex}
 Finally we consider a real transition to turbulence problem. The Taylor-Green vortex is characterized by an initialization based on an asymptotic expansion in time in a triply periodic domain. The deterministic initial condition that is left to evolve and destabilize into a chaotic turbulent flow is given by
 \begin{align}
  u(x,y,t)&=\sin(x)\cos(y)\cos(z),\\
