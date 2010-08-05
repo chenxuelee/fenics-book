@@ -1,17 +1,462 @@
-\fenicschapter{SyFi: Symbolic Construction of Finite Element Basis Functions}
-              {SyFi: Symbolic Construction of Finite Element Basis Functions}
-              {Martin S. Aln\ae{}s and Kent-Andre Mardal}
+\fenicschapter{SyFi -- Symbolic Finite Elements -- and its Form Compiler SFC  }
+              {SyFi and SFC}
+              {Martin Sandve Aln\ae s and Kent-Andre Mardal}
               {alnes-3}
 
-SyFi is a C++ library for definition of finite elements based on
-symbolic computations. By solving linear systems of equations
-symbolically, symbolic expressions for the basis functions of a finite
-element can be obtained. SyFi contains a collection of such elements.
+\renewcommand{\AA}{\mathbf{A}}
+\newcommand{\LL}{\mathbf{L}}
+\newcommand{\JJ}{\mathbf{J}}
 
-The SyFi Form Compiler, SFC, is a Python module for generation of fi-
-nite element code based on symbolic computations. Using equations in
-UFL format as input and basis functions from SyFi, SFC can generate
-C++ code which implements the UFC interface for computation of the
-discretized element tensors. SFC supports generating code based on
-quadrature or using symbolic integration prior to code generation to
-produce highly optimized code.
+\section{Introduction}
+
+This chapter concerns the finite element library SyFi and its form compiler SFC. 
+SyFi is a framework for defining finite elements symbolically, using the 
+C++ library GiNaC~\cite{BauerFrinkEtAl2000} and its Python interface Swiginac~\cite{www:swiginac}. In many respects, SyFi is 
+the equivalent of \fiat~\cite{Kirby2006}, whereas SFC corresponds to \ffc~\cite{KirbyLogg2008b,Logg2007d}. SyFi and SFC comes with
+an extensive manual \cite{AlnaesMardal2009a} and can be found on the \fenics\ webpage \cite{AlnaesMardal2009c}. 
+SFC can be used in \fenics\ as a form compiler. Similar to \ffc\ it translates \ufl\ code
+into UFC code~\cite{logg-4,AlnaesLangtangenEtAl2007, AlnaesLoggEtAl2009}, which can be used by the \dolfin\ assembler described in Chapter~\cite{logg-3}. 
+
+This chapter is deliberately short and only gives the reader a taste of the capabilities of SyFi and SFC. 
+However, most features are covered by the more comprehensive manual. 
+This chapter is organized as follows: We begin with a short description of GiNaC 
+and Swiginac, before we present how finite elements are used and defined by using SyFi.   
+Then, we present how to use SFC in the Dolfin environment, and end with a short description of the basic structure of SFC. 
+The code examples accompanying this chapter can be found in  
+\emp{\$FENICSBOOK/src/syfi-sfc}.
+
+\section{GiNaC and Swiginac}
+
+GiNaC~\cite{BauerFrinkEtAl2000} is an open source C++ library for symbolic calculations. 
+It contains the tools for doing basic manipulations of polynomials, like algebraic operations, 
+differentiation, and integration. 
+The following example shows basic use of the library,  
+\begin{code}
+  // create a polynomial function
+  symbol x("x");
+  ex f = x*(1-x);
+
+  // evaluate f
+  ex fvalue = f.subs(x == 0.5);
+  std::cout <<" f(0.5) = "<<fvalue <<std::endl;
+
+  // differentiation
+  ex dfdx  = diff(f,x);
+  std::cout <<" df/dx = "<<dfdx <<std::endl;
+
+  // integration
+  ex intf  = integral(x,0,1,f).eval_integ();
+  std::cout <<" integral of f from 0 to 1 is: "<<intf<<std::endl;
+\end{code}
+We will not go deeply into GiNaC here, but refer the reader to the 
+GiNaC tutorial and reference which can be found on its webpage. There are, however, a few
+issues we need to address to explain basic GiNaC usage. First of all, GiNaC 
+contains many different types like \emp{symbol}, \emp{matrix}, \emp{function}, etc. 
+Normally, one does not need to worry about these types since the type \emp{ex}, which
+was used above, can represent any mathematical object (\emp{ex} is basically a place-holder for the underlying 
+object). Still, there are mathematical operations that can only be applied on particular 
+types. For instance, functions can only differentiated with respect to symbols, as shown above.  
+
+Symbolic calculations can be computationally demanding. Therefore, GiNaC separates between 
+the construction and evaluation of expressions. This is illustrated in the above example by
+the fact that we create and integral object using the function \emp{integral}, but we 
+need to explicitly call the function \emp{eval\_integ} to compute the integral. In a similar
+fashion you may use functions like \emp{eval}, \emp{evalm}, \emp{expand}, \emp{simplify}, 
+and  \emp{collect\_common\_factors}  etc. to evaluate and simplify expressions. 
+Finally, GiNaC implements its own memory management system using reference counting.   
+The complete code can be found at \emp{syfi-sfc/ginac}.
+
+Swiginac is a Python interface to GiNaC created using SWIG.  
+Swiginac provides a more or less direct translation of GiNaC to Python, 
+but has features that makes it easy to program in a Pythonic way. 
+The following code translates the above C++ example to Python, using Swiginac:
+\begin{code}
+from swiginac import *
+x = symbol('x')
+f = x*(1-x) 
+
+fvalue = f.subs(x == 0.5)
+print "fvalue = ", fvalue 
+
+dfdx = diff(f,x)
+print "df/dx = ", dfdx 
+
+intf = integral(x,0,1,f).eval_integ()
+print "integral of f from 0 to 1 is:", intf 
+\end{code}
+
+\section{SyFi - Symbolic Finite Elements}
+
+GiNaC provides the basic utilities for SyFi in the sense
+that it provides manipulation of polynomials, as well as differentiation and integration  
+with respect to one variable. SyFi extends GiNaC with polynomial spaces and 
+differentiation operators like $\nabla$, $\nabla\cdot$, and $\nabla\times$, 
+in addition to integration over a number of polygonal domains. 
+With these utilities it is easy to define finite elements. 
+
+Some elements that have been implemented include:
+continuous and discontinuous Lagrangian elements, 
+the Crouzeix-Raviart element, the Raviart-Thomas element, various H(div) and H(curl) Nedelec 
+elements, and the Hermite elements. A complete list of elements can be found
+in the user manual. The mentioned elements are defined for arbitrary order, except for
+the Crouzeix-Raviart and Hermite elements. Not all of these elements are, however, 
+supported by the form compiler. 
+
+The following example illustrates how to use SyFi to do finite element calculations in Python. 
+Here, we create a Langrange element of second order and use the basis functions to compute a 
+stiffness element matrix on a reference triangle. We also print both the integrand and 
+the element matrix entries to the screen. 
+\begin{code}
+from swiginac import *
+from SyFi import * 
+
+#initialize SyFi in 2D
+initSyFi(2)
+
+# create reference triange 
+t = ReferenceTriangle() 
+
+# create second order Langrange element
+fe = Lagrange(t,2)
+
+for i in range(0, fe.nbf()):
+    for j in range(0, fe.nbf()):
+	integrand = inner(grad(fe.N(i)), grad(fe.N(j)))
+	print "integrand[%d, %d]  =%s;" % (i,j,integrand.printc())
+	integral = t.integrate(integrand) 
+	print "A[%d, %d]          =%s;" % (i,j,integral.printc())
+\end{code}
+The output from executing the above code is: 
+\begin{code}
+integrand[0, 0]  =2.0*pow( 4.0*y+4.0*x-3.0,2.0);
+A[0, 0]          =1.0;
+integrand[0, 1]  = -4.0*( 4.0*y+4.0*x-3.0)*x+-4.0*( y+2.0*x-1.0)*( 4.0*y+4.0*x-3.0);
+A[0, 1]          =-(2.0/3.0);
+integrand[0, 2]  =( 4.0*y+4.0*x-3.0)*( 4.0*x-1.0);
+A[0, 2]          =(1.0/6.0);
+integrand[0, 3]  = -4.0*y*( 4.0*y+4.0*x-3.0)+-4.0*( 4.0*y+4.0*x-3.0)*( 2.0*y+x-1.0);
+A[0, 3]          =-(2.0/3.0);
+....
+\end{code}
+Here, we see that the expressions are printed to the screen as symbolic expressions
+in C++ syntax. Hence, the output is very reader--friendly and this can be very useful during debugging.  
+We remark that also Python and LaTeX output can be generated using the \emp{printpython} and \emp{printlatex} functions. 
+
+All elements in SyFi are implemented in C++. Here, however, for simplicity we list a definition 
+of the Crouzeix-Raviart element in Python.  The following code is the complete
+finite element definition: 
+\begin{code}
+class CrouzeixRaviart: 
+  """Python implementation of the Crouzeix-Raviart element.""" 
+
+  def __init__(self, polygon):  
+    """ Constructor """
+    self.Ns = []
+    self.dofs = []
+    self.polygon = polygon 
+    self.compute_basis_functions()
+
+  def compute_basis_functions(self): 
+    """ Compute the basis functions and degrees of freedom  
+    and put them in Ns and dofs, respectively.  """
+
+    # create the polynomial space
+    N, coeff, basis = bernstein(1,triangle,"a")
+
+    # define the degrees of freedom 
+    for i in range(0,3): 
+      edge = triangle.line(i)
+      dofi = edge.integrate(N) 
+      self.dofs.append(dofi)
+
+    # compute and solve the system of linear equations
+    for i in range(0,3): 
+      equations = []
+      for j in range(0,3): 
+        equations.append(self.dofs[j] == dirac(i,j))
+      sub = lsolve(equations, variables) 
+      Ni = N.subs(sub) 
+      self.Ns.append(Ni); 
+
+  def N(self,i): return self.Ns[i]
+  def dof(self,i): return self.dofs[i]
+  def nbf(self): return len(self.Ns)
+\end{code}
+The process of defining a finite element in SyFi is similar for all elements and,
+as the above code shows,  it resembles the Ciarlet definition closely, see also Chapter \cite{kirby-1}. 
+First, we construct a polynomial space. In the code above, this is performed by calling the \emp{bernstein}
+function. The \emp{bernstein} functions takes as input a simplex and the order of the bernstein polynomial, 
+which can be of arbitrary order. This function produces a tuple consisting of 
+the polynomial, its coefficients (or degrees of freedom), and the basis functions
+representing the polynomial space $P$: 
+\begin{code}
+In  : bernstein(1, triangle, "a")
+Out : [-a0_2*(-1+y+x)+y*a0_0+x*a0_1, [a0_0, a0_1, a0_2], [y, x, 1-y-x]]
+\end{code}
+In the above code, we used a triangle and the order of the polynomial was one. The next task is to 
+define a set of degrees of freedom, i.e., a set of functionals $L_j : P \rightarrow \R$. 
+For the Crouzeix-Raviart element, the degrees of freedom are simply the integrals 
+over an edge, i.e., $L_j(P) = \int_{E_i} P \dx$, where $E_i$ for $i=(0,1,2)$ are the edges of 
+the triangle. Alternatively we could have used
+the value at the midpoint of the edges since the polynomial $P$ is linear. 
+Finally, the different basis functions $\{N_i\}$ are determined by the  
+set of equations $L_j(N_i) = \delta_{ij}$. 
+These equations are then solved, using \emp{lsolve}, to compute the basis functions of the elements, i.e., the
+coefficients \emp{[a0\_0, a0\_1, a0\_2]}  are determined for each specific basis function.
+
+The basis functions of this element can then be displayed as follows: 
+\begin{code}
+p0 = [0,0,0]; p1 = [1,0,0]; p2 = [0,1,0]; 
+triangle = Triangle(p0, p1, p2) 
+
+fe = CrouzeixRaviart(triangle)
+for i in range(0,fe.nbf()): 
+  print "N(%d)       = "%i,   fe.N(i)
+  print "grad(N(%d)) = "%i,   grad(fe.N(i))
+\end{code}
+giving the following output: 
+\begin{code}
+N(0)       =  1/6*(-3+3*x+3*y+z)*2**(1/2)+1/6*2**(1/2)*(3*x-z)+1/6*2**(1/2)*(3*y-z)
+grad(N(0)) =  [[2**(1/2)],[2**(1/2)],[-1/6*2**(1/2)]]
+N(1)       =  1-2*x-1/3*z
+grad(N(1)) =  [[-2],[0],[-1/3]]
+...
+\end{code}
+
+
+
+\section{SFC -- SyFi Form Compiler}
+
+As mentioned earlier, SFC translates UFL code to UFC code. Consider the 
+following UFL code for defining the a variational problem for solving
+the Poisson problem, implemented in a file \emp{Poisson.ufl}:
+\begin{code}
+cell = triangle
+element = FiniteElement("CG", cell, 1)
+
+u = TrialFunction(element)
+v = TestFunction(element)
+c = Coefficient(element)
+f = Coefficient(element)
+g = Coefficient(element)
+
+a = c*dot(grad(u),grad(v))*dx
+L = -f*v*dx + g*v*ds
+\end{code}
+SFC translates this UFL form to UFC code as follows: 
+\begin{code}
+sfc -w1  -ogenerated_code Poisson.ufl
+\end{code}
+The generated code can be utilized in Dolfin in a standard fashion. 
+For a complete example consider the demo \emp{demo/Poisson2D/cpp} that
+comes with the SyFi package. 
+
+In PyDolfin, the form compiler may be chosen at run time by setting:  
+\begin{code}
+  parameters["form_compiler"]["name"]="sfc"
+\end{code}
+The form compiler can be tuned with a range of options. A complete list of options is obtained as follows:  
+\begin{code}
+import sfc 
+from sfc.common.options import default_options
+sfc_options = default_options()
+\end{code}
+The object \emp{sfc\_options} is of type \emp{ParameterDict}, which is a dictionary with some 
+additional functionality. One may use the following forms to set options before passing them to \emp{assemble}.  
+\begin{code}
+sfc_options.code.integral.integration_method = "symbolic" # default is "quadrature"  
+# alternatively:  
+# sfc_options["code"]["integral"]["integration_method"] = "symbolic"  
+A = assemble(a, form_compiler_parameters=sfc_options)
+\end{code}
+
+Earlier versions of SFC was slow for complicated nonlinear equations as shown in \cite{AlnaesMardal2009b}.
+However, with the introduction of UFL \cite{AlnaesThesis, AlnaesA.Logg2009}, quite complicated 
+equations can be handled without loosing computational efficiency. Consider for example an elasticity problem 
+where the constitutive law is a quite complicated variant of Fung, described by 
+the following equations: 
+\begin{eqnarray}
+\mathbf{F} &=& \mathbf{I} + (\nabla \mathbf{u})^T, \\  
+\mathbf{CC} &=& \mathbf{F}^T: \mathbf{F}, \\
+\mathbf{E} &=& (\mathbf{C}-\mathbf{I})/2, \\ 
+\psi &=& \frac{\lambda}{2} \, \mbox{tr}(\mathbf{E})^2 + K\exp((\mathbf{E}\mathbf{A},\mathbf{E})), \\  
+\mathbf{P} &=& \frac{\partial \psi}{\partial \mathbf{E}}, \\
+\LL &=& \int_\Omega \mathbf{P}: (\nabla \mathbf{v})^T \, dx, \\  
+\JJ_F &=& \frac{\partial \LL}{\partial \mathbf{u}} . 
+\end{eqnarray}
+Here, $\mathbf{u}$ is the unknown displacement, $\mathbf{v}$ is a test function, $\mathbf{I}$ is the identity matrix, $\mathbf{A}$ 
+is a matrix, $\lambda$ and $K$  are  material parameters, $\LL$ is the system of nonlinear equations to be solved, and 
+$\JJ_F$ is the corresponding Jacobian. 
+This variational form is implemented as follows: 
+\begin{code}
+  mesh = UnitSquare(N, N)
+  V = VectorFunctionSpace(mesh, "CG", order)
+  Q = FunctionSpace(mesh, "CG", order)
+  
+  U = Function(V)
+  
+  v = TestFunction(V)
+  u = TrialFunction(V)
+  
+  lamda = Constant(1.0)
+  mu = Constant(1.0)
+  
+  g       = Function(V)
+  sigma_0 = Function(Q)
+  
+  A = Expression ((('1.0', '0.3'), ('0.3', '2.3')))
+  K = Constant(1.0)
+  n = U.cell().n
+  
+  I = Identity(U.cell().d)
+  F = I + grad(U).T
+  Finv = inv(F)
+  J = det(F)
+  
+  C = F.T*F
+  E = (C-I)/2
+  E = variable(E)
+  
+  psi = lamda/2 * tr(E)**2  +  K*exp(inner(A*E,E))
+  P = F*diff(psi, E)
+  a_f = psi*dx
+  L = inner(P, grad(v).T)*dx 
+  J = derivative(F, U, u)
+  
+  A = assemble(J)
+\end{code}
+
+To test the computational efficiency of the generated code
+for this problem, we compare the assembly of $\JJ_F$ with the assembly a corresponding linear
+elasticity problem with the following matrix $\JJ_L$:
+\[
+\JJ_L = \int_\Omega \lambda \nabla \cdot \mathbf{u} \nabla \cdot \mathbf{v} + (\lambda + \mu)\nabla \mathbf{u}:\nabla \mathbf{v} \, dx . 
+\]
+In Table \ref{SFCtest} we see a comparison of the efficiency for the above examples. 
+Clearly, the nonlinear example is no more then 4 times as slow as the linear problem when using linear elements, and only a factor 2 when 
+using quadratic elements. 
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|} \hline
+$N$              & 100   & 200  & 400    \\ \hline 
+$\JJ_L, p=1$     & 0.08  & 0.27  & 1.04     \\ \hline 
+$\JJ_L, p=2$     & 0.36  & 1.41  & 5.45      \\ \hline 
+$\JJ_F, p=1$     & 0.33  & 0.84  & 3.36     \\ \hline 
+$\JJ_F, p=2$     & 0.68  & 2.26  & 8.55     \\ \hline 
+\end{tabular}
+\caption{Comparison of the time (in seconds) for computing the Jacobian matrix for 
+the two elasticity problems on a $N\times N$ unit square mesh for linear ($p=1$) and quadratic elements ($p=2$).} 
+\label{SFCtest}
+\end{center}
+\end{table}
+
+We refer to \cite{AlnaesMardal2009b,OlgaardLoggEtAl2008,KirbyLogg2008b,oelgaard:2010}   
+for more discussions on the topic of efficient compiling of linear and nonlinear variational formulations. 
+
+
+
+\section{Code generation design}
+Finally, we shortly describe the overall design of the code generation software.
+UFC defines the interface of the code produced by SFC. 
+In SFC, each UFC class is mirrored by  subclasses of the class \emp{CodeGenerator} called 
+\emp{FormCG}, \emp{DofMapCG}, \emp{FiniteElementCG}, and \emp{CellIntegralCG}, etc. 
+These classes are used 
+to generate code for the corresponding UFC classes, \emp{form}, \emp{dof\_map}, \emp{finite\_element}, 
+\emp{cell\_integral}, etc. These classes have 
+a common function for generating the code, called \emp{generate\_code\_dict}.  
+The function \emp{generate\_code\_dict} generates a dictionary containing named
+pieces of UFC code, most of which are function body implementations.
+This dictionary with code is then combined with format strings from the
+UFC utility Python module to generate UFC compliant code.  
+An example of a format string is shown below.
+
+\begin{code}
+cell_integral_implementation = """\
+/// Constructor
+%(classname)s::%(classname)s() : ufc::cell_integral()
+{
+%(constructor)s
+}
+
+/// Destructor
+%(classname)s::~%(classname)s()
+{
+%(destructor)s
+}
+
+/// Tabulate the tensor for the contribution from a local cell
+void %(classname)s::tabulate_tensor(double* A,
+                                    const double * const * w,
+                                    const ufc::cell& c) const
+{
+%(tabulate_tensor)s
+}
+"""
+\end{code}
+Using this template, the code generation in SFC is then performed as follows:  
+\begin{code}
+def generate_cell_integral_code(integrals, formrep):
+    sfc_debug("Entering generate_cell_integral_code")
+    itgrep = CellIntegralRepresentation(integrals, formrep)
+    
+    cg = CellIntegralCG(itgrep)
+    vars = cg.generate_code_dict()
+    supportcode = cg.generate_support_code()
+
+    hcode = ufc_utils.cell_integral_header % vars
+    ccode = supportcode + "\n"*3 + ufc_utils.cell_integral_implementation % vars
+    
+    includes = cg.hincludes() + cg.cincludes()
+
+    system_headers = common_system_headers()
+    
+    hincludes = "\n".join('#include "%s"' % inc for inc in cg.hincludes())
+    cincludes =  "\n".join('#include <%s>' % f for f in system_headers)
+    cincludes += "\n"
+    cincludes += "\n".join('#include "%s"' % inc for inc in cg.cincludes())
+    
+    hcode = _header_template         % \
+             { "body": hcode, "name": itgrep.classname, "includes": hincludes }
+    ccode = _implementation_template % \ 
+             { "body": ccode, "name": itgrep.classname, "includes": cincludes }
+    sfc_debug("Leaving generate_cell_integral_code")
+    return itgrep.classname, (hcode, ccode), includes
+\end{code}
+
+As seen above, the \emp{CellIntegralCG} class is again mirrored by a corresponding class \emp{CellIntegralRepresentation}, 
+\begin{code}
+class CellIntegralRepresentation(IntegralRepresentation):
+    def __init__(self, integrals, formrep):
+        IntegralRepresentation.__init__(self, integrals, formrep, False)
+    
+    def compute_A(self, data, iota, facet=None):
+        "Compute expression for A[iota]."
+        
+        if data.integration_method == "quadrature":
+            if self.options.safemode:
+                integrand = data.integral.integrand()
+                data.evaluator.update(iota)
+                integrand = data.evaluator.visit(integrand)
+            else:
+                n = len(data.G.V())
+                integrand = data.vertex_data_set[iota][n-1]
+            
+            D = self.formrep.D_sym
+            A = integrand * D
+            ...     
+\end{code}
+The representation classes are quite involved, in particular when using quadrature since
+the graph structures from UFL is parsed and used to build up an efficient representation 
+for the code generation. The details of this is, however, beyond the scope of the current chapter.  
+
+
+
+\section{Conclusion}
+
+This chapter presents a short overview of the SyFi and SFC package. It demonstrates the ease of defining 
+elements in a symbolic fashion and shows that also complicated nonlinear PDEs are handled efficiently
+by the form compiler.  
+
+
+
+
