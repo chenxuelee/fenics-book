@@ -38,8 +38,9 @@ its way along the spinal canal. \index{spinal canal}
 
 \begin{figure}\begin{center}
 \includegraphics[width=100mm]{chapters/hentschel/eps/chiara_about.eps} 
-\caption{Illustration of the cerebrospinal fluid system in a the normal case and with Chiari I malformation and syringomyelia (FIXME get permission to use this, found 
-\emp{http://www.chiariinstitute.com/chiari\_malformation.html})}
+\caption{Illustration of the cerebrospinal fluid system in a the normal case and with Chiari I malformation and syringomyelia.} 
+\editornote{Get permission to use this, found 
+\emp{http://www.chiariinstitute.com/chiari\_malformation.html}}
 \label{fig:anatomy}
 \end{center}\end{figure}
 
@@ -48,7 +49,7 @@ main structures in the brain of a healthy individual. In about 0.6\%
 of the population the lower part of the cerebellum occupies parts of
 the CSF space in the upper spinal SAS and obstructs the flow. This
 so-called Chiari I malformation \index{Chiari I malformation} (or
-Arnold-Chiari malformation) (Milhorat et al. \cite{Milhorat1999}) is
+Arnold-Chiari malformation) is
 shown in the right picture in Figure \ref{fig:anatomy}. A variety of
 symptoms is related to this malformation, including headache, abnormal
 eye-movement, motor or sensor-dysfunctions, etc. If the malformation
@@ -56,35 +57,34 @@ is not treated surgically, the condition may become more severe and
 will eventually cause more serious neurological deterioration, or even
 lead to death. Many people with the Chiari I malformation develop
 fluid filled cavities within the spinal cord, \index{spinal cord} a
-disease called syringomyelia (Oldfield \cite{Oldfield1994}). The exact
+disease called syringomyelia. The exact
 relation between the Chiari I malformation and syringomyelia is
 however not known. It is believed that obstructions, that is abnormal
 anatomies cause abnormal flow leading to the development of
-syringomyelia (Oldfield \cite{Oldfield1994}). Several authors have
+syringomyelia~\cite{Oldfield1994}. Several authors have
 analyzed the relations between abnormal flow and syringomyelia
 development based on measurements in patients and healthy volunteers
-(Heiss ~\cite{Heiss1999}, Pinna ~\cite{Pinna2000}, Hofmann
-~\cite{Hofmann2000}, Hentschel ~\cite{Hentschel2003}). The mentioned
+~\cite{Heiss1999,Pinna2000,Hofmann2000,Haughton2003}. The mentioned
 studies also compare the dynamics before and after decompressive
 surgery. The latter is an operation, where the SAS lumen around the
 obstructed area is increased by removing parts of the surrounding
-tissue and bones (Milhorat and Bolognese \cite{Milhorat2003}). Control
+tissue and bones~\cite{Milhorat2003}. Control
 images taken some weeks or months after the intervention often show a
 reduction of the size of the cavity in the spinal canal and patients
 usually report improvement of their condition. In some cases, the
-syrinx disappeared completely after some months (Oldfield \cite{1994},
-Pinna \cite{Pinna2000}, Heiss \cite{Heiss1999}).\\
+syrinx disappeared completely after some months~\cite{Oldfield1994,Pinna2000,Heiss1999}.
 
 The studies mentioned above are all based on a small amount of
 individuals characterized by remarkable variations. CFD simulations
 may help to test the initial assumptions in generalized
-settings. Gupta ~\cite{Gupta2009} and Roldan ~\cite{Roldan2008}
-demonstrated the usefulness of CFD to quantify and visualize CSF flow
-in patient specific cases in great detail. It is the purpose of this
+settings. In \cite{Gupta2009,Roldan2008} the  
+usefulness of CFD to quantify and visualize CSF flow
+in patient specific cases in great detail was demostrated. 
+It is the purpose of this
 chapter to describe the implementation of such a CFD solver in
 \fenics\ and to compare the simulation results with results obtained
 from Star-CD. Note that the Navier-Stokes solvers are discussed in
-detail in Chapter ~\cite{NS-bench}.\\
+detail in Chapter [kvs-1].\\
 
 \section{Mathematical Description}
 
@@ -115,7 +115,7 @@ The coordinate system is chosen so that the tubular axis points downwards, resul
     \hline
     Symbol & Meaning & Entity & Chosen Value & Reference Value\\ \hline\hline
 	$\mathbf{v}$	& velocity variable & $\mathrm{ \frac{cm}{s}}$ & --- & $-1.3\pm 0.6 \ldots 2.4 \pm 1.4$ \footnote{Hofmann et al. ~\cite{Hofmann2000}; Maximum absolute anterior CSF flow in both directions from controls and patients at foramen Magnum} \\ 
-	$p$		& pressure	variable & mmHg & --- & \ldots\\
+	$p$		& pressure	variable & kPa & --- & \ldots\\
 	$\rho$	& density & $\mathrm{\frac{g}{cm^3}}$ & --- &0.993 \footnote{at $37^\circ$ C }\\ %\textcelsius
 	$\mu$	& dynamic viscosity	&  $\mathrm{\frac{g s}{cm}}$ & --- & 0.0007\\
 	$\nu$	& kinematic viscosity & $\mathrm{ \frac{cm^2}{s}}$ & $0.7 10^{-2}$ & $0.7 10^{-2}$ \\ 	\hline %$(\nu = \frac{\mu}{\rho})$
@@ -135,12 +135,12 @@ The coordinate system is chosen so that the tubular axis points downwards, resul
 
 \section{Numerical Experiments} 
 \subsection{Implementation}
-We refer to Chapter ~\cite{NS} for a complete description of the solvers
+We refer to Chapter [kvs-1] for a complete description of the solvers
 and schemes implemented. In this chapter we concentrate on the use of
 these solvers in a few examples.  
 
 The problem is defined in a separate python script and can be found in: \\
- \emp{fenics-bok/csf/code/FILENAME}. The main parts are presented below.
+ \emp{fenics-bok/csf/code/csf.py}. The main parts are presented below.
 %FIXME
 
 \paragraph{Mesh boundaries.}  The mesh boundaries at the inlet cross section, the outlet cross section, and the SAS boundaries are defined by the respective classes \emp{Top}, \emp{Bottom}, and \emp{Contour}. They are implemented as subclasses of \emp{SubDomain}, similarily to the given example of \emp{Top}.
@@ -201,7 +201,7 @@ differently. The details of how different problems can easily be
 defined in separate classes can be found in:
 \emp{src/mesh\_definitions/}. %FIXME
 
-\paragraph{Inflow and outflow pulse.} According to Gupta et al. ~\cite{Gupta2009}, a volume of 0.27 ml is transported back and forth through the spinal SAS cross sections during the cardiac cycle. For the average human, we assumed a heart rate of 70 beats per minute. Furthermore, we defined the cross sectional area to be 0.93 $\mathrm{cm^2}$, which matches the segment from 20 to 40 cm down from the foramen magnum (Loth et al ~\cite{Loth2001}). In this region of the spinal canal, the cross sectional area varies little. In addition, the dura and the cord shape resemble a simple tube more than in other regions. According to Oldfield et al. ~\cite{Oldfield1994}, syrinxes start at around 5 cm below the foramen magnum and reach down up to 28 cm below the foramen magnum. 
+\paragraph{Inflow and outflow pulse.} According \cite{Gupta2009}, a volume of 0.27 ml is transported back and forth through the spinal SAS cross sections during the cardiac cycle. For the average human, we assumed a heart rate of 70 beats per minute. Furthermore, we defined the cross sectional area to be 0.93 $\mathrm{cm^2}$, which matches the segment from 20 to 40 cm down from the foramen magnum~\cite{Loth2001}. In this region of the spinal canal, the cross sectional area varies little. In addition, the dura and the cord shape resemble a simple tube more than in other regions. According to \cite{Oldfield1994}, syrinxes start at around 5 cm below the foramen magnum and reach down up to 28 cm below the foramen magnum. 
 
 Further, we define a velocity pulse on the inflow and outflow
 boundaries and since we are modeling incompressible flow between rigid
@@ -216,7 +216,7 @@ transport of 0.27 ml.
 \label{fig:sin_pulse}. 
 \end{center}\end{figure}
 
-Smith et al. \cite{Smith2006} introduced a function describing the varying blood pressure in a heart chamber(see Figure \ref{fig:sin_pulse}). With some adjustment and additional parameters, the function was adapted to approximate the CSF flow pulse. The systole of the pulse function is characterized by a high amplitude with a short duration while the negative counter movement has a reduced amplitude and lasts considerably longer. 
+In \cite{Smith2006} they introduced a function describing the varying blood pressure in a heart chamber(see Figure \ref{fig:sin_pulse}). With some adjustment and additional parameters, the function was adapted to approximate the CSF flow pulse. The systole of the pulse function is characterized by a high amplitude with a short duration while the negative counter movement has a reduced amplitude and lasts considerably longer. 
 The global function for defining the pulse is:
 \begin{code}
 def get_pulse_input_function(V, z_index, factor, A, HR_inv, HR, b, f1):
@@ -386,7 +386,7 @@ associated with their velocity function space and the belonging sub
 domain. The additional functions \emp{boundary\_conditions} and
 \emp{initial\_conditions} define the respective conditions for the
 problem that are called by the solver. Boundary conditions for
-velocity, pressure and psi (???) are collected in the lists \emp{bcv},
+velocity and pressure  are collected in the lists \emp{bcv},
 \emp{bcp} and \emp{bcpsi}.
 
 \begin{code}
@@ -424,11 +424,11 @@ Applying the "Chorin" solver, the Problem is started by typing :
 
 \emp{unix>./ns csf\_flow chorin}. 
 
-It approximates the Navier--Stokes equation with Chorin's method. The progress of different simulation steps and results, including maximum calculated pressure and velocity per time step, are printed out on the terminal. In addition, the solution for pressure and velocity are dumped to a file for each (by default?) time step. Before investigating the results, we introduce how the mesh is generated. 
+It approximates the Navier--Stokes equation with Chorin's method. The progress of different simulation steps and results, including maximum calculated pressure and velocity per time step, are printed out on the terminal. In addition, the solution for pressure and velocity are dumped to a file for each  time step. Before investigating the results, we introduce how the mesh is generated. 
 
 
 \subsection{Example 1. Simulation of a Pulse in the SAS.} 
-In the first example we represent the spinal cord and the surrounding dura mater as two straight cylinders.  These cylinders can easily be generated by using NetGen ~\cite{netgen} or Gmsh ~\cite{gmsh}.  In NetGen meshes can be constructed by adding or subtracting geometrical primitives from each other. It also supports \dolfin\ mesh generation. Examples for mesh generation with NetGen can be found in \ldots. 
+In the first example we represent the spinal cord and the surrounding dura mater as two straight cylinders.  These cylinders can easily be generated by using NetGen ~\cite{netgen} or Gmsh ~\cite{gmsh}.  In NetGen meshes can be constructed by adding or subtracting geometrical primitives from each other. It also supports \dolfin\ mesh generation. 
 
 In Gmsh, constructing the basic shapes requires a more complex geometrical description, however it is easier to control how the geometry is meshed. The following code example shows the construction of a circular cylinder (representing the pia on the spinal cord) within an elliptic cylinder (representing the dura). The dura is defined by the ellipse vectors a=0.65 mm and b=0.7 mm in x and y direction respectively. The cord has a radius of 4 mm with its center moved 0.8 mm in positive x-direction  Since Gmsh only allows to draw circular or elliptic arcs for angles smaller than $pi$, the basic ellipses were constructed from four arcs each. Every arc is defined by the starting point, the center, another point on the arc and the end point. The value $lc$  defines the maximal edge length in vicinity to the point.
 
@@ -510,13 +510,12 @@ The simulation results for an appropriate mesh (see verification below) can be f
 
 
 \subsubsection{Comparing different solvers.}
-For the first example, we applied the Chorin solver (WRITE ABOUT
-MODIFICATIONS WITH TOLERANCES!). For verifying the result, we also
-applied the solvers G2 and Uzawa. We picked an arbitrary point in the
+For the first example, we applied the Chorin solver. For verifying the result, we also
+applied the solver G2. We picked an arbitrary point in the
 mesh to compare its pressure value at the time step of peak
 velocity. The results shown in Table \ref{tab:entities} reveal
-remarkable differences for \ldots Due to its simplicity with rather
-high accuracy, we have chosen the Chorin solver for further
+remarkable differences between Chorin and G2. Due to its simplicity, 
+we have chosen the Chorin solver for further
 simulations.
 
 \begin{table}\begin{center}
@@ -524,8 +523,7 @@ simulations.
     \hline
     Solver & $p$ in Pa & $\mathbf{v}_{max}$ in cm/s  & $t$ in s \\ \hline\hline
 	Chorin & 4.03 & 1.35 & 0.233 	\\ \hline
-	G2	&	6.70 & 0.924 & 0.217	\\ \hline
-	Uzawa	&	& 		&\\	
+	G2	& 6.70 & 0.924 & 0.217	\\ \hline
     \hline
     \end{tabular}
 	\label{tab:solvers}
@@ -573,7 +571,7 @@ Besides controling the numbers of nodes in tubular direction, extruded meshes re
 
 
 The test meshes of 1.75 cm showed seemed to have a fully developed region around the mid-cross sections, where want to observe the flow profile. Testing different numbers of tubular layers for the length of 1.75, 2.5 and 5 cm showed that the above mentioned observations of wave-like structures occurred less for longer pipes, even though the number of layers was low compared to the pipe length.
-The presented results were simulated on meshes of length 5 cm with 30 layers in z-direction and three layers on the side boundaries.The complete code can be found in \emp{mesh\_generation/FILENAME}%FIXME
+The presented results were simulated on meshes of length 5 cm with 30 layers in z-direction and three layers on the side boundaries. The complete code can be found in \emp{csf/mesh\_generation/gmsh}%FIXME
 .\\
 
 
@@ -583,7 +581,7 @@ The presented results were simulated on meshes of length 5 cm with 30 layers in 
 
 \subsection{Example 2. Simplified Boundary Conditions.} 
 
-Many researchers apply the sine function as inlet and outlet boundary condition, since its integral is zero over one period. However, itss shape is not in agreement with measurements of the cardiac flow pulse (Loth et al. \cite{Loth2001}). To see the influence of the applied boundary condition for the defined mesh, we replace the more realistic pulse function with a sine, scaled to the same amount of volume transport per cardiac cycle. The code example below implements the alternative pulse function in the object function \emp{boundary\_conditions}. The variable \emp{sin\_integration\_factor} describes the integral of the first half of a sine.
+Many researchers apply the sine function as inlet and outlet boundary condition, since its integral is zero over one period. However, itss shape is not in agreement with measurements of the cardiac flow pulse~\cite{Loth2001}. To see the influence of the applied boundary condition for the defined mesh, we replace the more realistic pulse function with a sine, scaled to the same amount of volume transport per cardiac cycle. The code example below implements the alternative pulse function in the object function \emp{boundary\_conditions}. The variable \emp{sin\_integration\_factor} describes the integral of the first half of a sine.
 \begin{code}
 self.HR = 1.16 # heart rate in beats per second; from 70 bpm
 self.HR_inv = 1.0/self.HR
@@ -601,14 +599,12 @@ def get_sine_input_function(V, z_index, HR, HR_inv, v_max):
 	vel[z_index] = v_z
 	class Sine(Function):
 		cpparg = tuple(vel)
-		defaults = {'HR}:HR, \emp{v_max}:v_max, \emp{T}:HR_inv}		
-
+		defaults = {'HR':HR, 'v_max':v_max, 'T':HR_inv}		
 	return Sine(V)
 \end{code}
-that is called instead of \emp{get\_pulse\_input\_function} in the function named \emp{boundary\_conditions}:
+that is called instead of \emp{get\_pulse\_input\_function} in the function \emp{boundary\_conditions}:
 \begin{code}
-self.g1 = get_sine_input_function(V, self.z_index, self.factor, self.A, self.HR_inv, self.HR,\
-                                  self.b, self.f1).
+self.g1 = get_sine_input_function(V, self.z_index, self.factor, self.A, self.HR_inv, self.HR, self.b, self.f1)
 \end{code}
 
 
@@ -632,7 +628,7 @@ The pulse and the sine are sketched in Figure \ref{fig:sin_pulse}. Both function
 
 \subsection{Example 3. Cord Shape and Position.} 
 
-According to ~\cite{Loth2001}, ~\cite{Alperin2006}, the present flow is inertia dominated, meaning that the shape of the cross section should not influence the pressure gradient. Changing the length of vectors describing the ellipse from
+According to ~\cite{Loth2001,Alperin2006}, the present flow is inertia dominated, meaning that the shape of the cross section should not influence the pressure gradient. Changing the length of vectors describing the ellipse from
 \begin{code}
 c = 0.4;
 d = 0.4;
@@ -709,6 +705,7 @@ Reynholds number. These numbers help to quantify the changes
 introduced by variations in the model. For the chosen model, the shape
 of the pulse function at the boundary condition as well as the cross
 sectional area have great influence on the simulation results. As
-earlier shown by Loth et al. \cite{Loth2001}, altering the shape of
+earlier shown in ~\cite{Loth2001}, altering the shape of
 the cross sections does not seem to influence the flow greatly.
-%\subsection{Example 5. Flow Around in a Patient-Specific Geometry.} 
+
+
