@@ -648,7 +648,7 @@ triangulations of the unit square, one can do as follows:
   # Construct a family of mixed function spaces
   meshsizes = [2, 4, 6, 8, 10]
   meshes = [UnitSquare(n, n) for n in meshsizes]
-  W_hs = [VectorFunctionSpace(mesh, "CG", 1) + FunctionSpace(mesh, "CG", 1)
+  W_hs = [VectorFunctionSpace(mesh, "CG", 1) * FunctionSpace(mesh, "CG", 1)
           for mesh in meshes]
 \end{python}
 Note that the reliability of the computed stability characterization
@@ -676,38 +676,49 @@ functionality for the computation of these constants: the functions
 \rognescodeintext{compute\_brezzi\_coercivity} and
 \rognescodeintext{compute\_brezzi\_infsup}.
 
-Let us take a closer look at the implementation of
-\rognescodeintext{compute\_brezzi\_infsup}: The input consists of the
-form $b$, the inner products $(m, n)$, and a function space $W_h$. The
-aim is to construct the eigenvalue problem given
-by~\eqref{rognes:eq:eigenvalue:infsup} and then solve this problem
-efficiently. To accomplish this, the basis functions on the function
-space $W_h$ are defined first. The left and right-hand sides of the
-eigenvalue problems are specified through the forms defined
-by~\eqref{rognes:eq:eigenvalue:infsup}. These forms are sent to an
+Let us take a closer look at the implementation
+of \rognescodeintext{compute\_brezzi\_infsup}. The input consists of
+the form $b$, the inner products $(m, n)$, and a function space $W_h$
+(and optionally, an essential boundary
+condition \rognescodeintext{bc}). The aim is to construct the
+eigenvalue problem given by~\eqref{rognes:eq:eigenvalue:infsup} and
+then solve this problem efficiently. To accomplish this, the basis
+functions on the function space $W_h$ are defined first. The left and
+right-hand sides of the eigenvalue problems are specified through the
+forms defined by~\eqref{rognes:eq:eigenvalue:infsup}. These forms are
+sent to an
 \rognescodeintext{EigenProblem}, and the resulting eigenvalues are then
 used to initialize an \rognescodeintext{InfSupConstant}. The
 \rognescodeintext{InfSupConstant} class is a part of the
 characterization machinery and will be discussed further in the next
 subsection.
 \begin{python}
-def compute_brezzi_infsup(b, (m, n), W_h):
+def compute_brezzi_infsup(b, (m, n), W, bc=None):
+    """
+    For a given form b: V x Q \rightarrow \R and inner products m and
+    n defining V and Q respectively and a function space W = V_h x
+    Q_h, compute the Brezzi inf-sup constant.
+    """
 
     # Define forms for eigenproblem
-    (u, p) = TrialFunctions(W_h)
-    (v, q) = TestFunctions(W_h)
+    (u, p) = TrialFunctions(W)
+    (v, q) = TestFunctions(W)
     lhs = m(v, u) + b(v, p) + b(u, q)
     rhs = - n(q, p)
 
+    # Get parameters
+    params = ascot_parameters["brezzi_infsup"]
+    num = ascot_parameters["number_of_eigenvalues"]
+
     # Compute eigenvalues
-    eigenvalues = EigenProblem(lhs, rhs).solve()
-    return InfSupConstant(W_h.mesh().hmax(), eigenvalues, sqrt)
+    eigenvalues = EigenProblem(lhs, rhs, params, bc).solve(num)
+    return InfSupConstant(W.mesh().hmax(), eigenvalues, operator=sqrt)
 \end{python}
-The computation of the Brezzi coercivity constant takes a virtually
-identical form, only differing in the definition of the left and right
-hand sides (lhs and rhs). If only a single form $c$ and a single inner
-product $m$ is specified, the Babu\v ska condition is tested by
-similar constructs.
+The computation of the Brezzi coercivity constant takes a
+virtually identical form, only differing in the definition of the left
+and right hand sides (lhs and rhs). If only a single form $c$ and a
+single inner product $m$ is specified, the Babu\v ska condition is
+tested by similar constructs.
 
 The \rognescodeintext{EigenProblem} class is a simple wrapper class for the
 \dolfin{} \rognescodeintext{SLEPcEigenSolver}, taking either a single form,
@@ -725,15 +736,15 @@ generalized, possibly singular eigenvalue
 problems~\cite{HernandezRomanEtAl2005, slepc_users_manual}. The type
 of eigensolver can be specified through the \dolfin{} parameter
 interface. For our purposes, two solver types are particularly
-relevant: the 'lapack' and the 'krylov-schur' solvers.  The 'lapack'
-solver is a direct method. This solver is very robust. However, it
-computes all of the eigenvalues, and it is thus only suited for
-relatively small problems. In contrast, the krylov-schur method offers
-the possibility of only computing a given number of eigenvalues. Since
-the Brezzi constants are related to the eigenvalue closest to zero, it
+relevant: the Lapack and the Krylov-Schur solvers.  The Lapack solver
+is a direct method. This solver is very robust. However, it computes
+all of the eigenvalues, and it is thus only suited for relatively
+small problems. In contrast, the Krylov-Schur method offers the
+possibility of only computing a given number of eigenvalues. Since the
+Brezzi constants are related to the eigenvalue closest to zero, it
 seems meaningful to only compute the eigenvalue of smallest
 magnitude. This solver is therefore set as the default solver type in
-\rognesascot. Unfortunately, the krylov-schur solver is less robust
+\rognesascot. Unfortunately, the Krylov-Schur solver is less robust
 for singular problems: it may fail to converge. A partial remedy may
 be to apply a shift-and-invert spectral transform with an appropriate
 shift factor to the eigenvalue problem. For more details on spectral
@@ -761,15 +772,15 @@ inf-sup constant and, if computed, the reduced inf-sup constant and
 the number of zero eigenvalues. The latter two items are most useful
 for careful analysis purposes.
 
-A collection of \rognescodeintext{InfSupConstant}s forms an
-\rognescodeintext{InfSupCollection}. An \rognescodeintext{InfSupCollection}'s main
-purpose is to identify whether or not the stability condition
-associated with the inf-sup constants holds. The method
-\rognescodeintext{is\_stable} returns a boolean answer. The stability
-condition will not hold if any of the inf-sup constants is zero, and
-it will probably not hold if the inf-sup constants seem to decay with
-the mesh size $h$.  The rate of decay $r_i$ between two subsequent
-constants $c_i$ and $c_{i+1}$ is defined as:
+A collection of \rognescodeintext{InfSupConstant}s forms
+an \rognescodeintext{InfSupCollection}. An \rognescodeintext{InfSupCollection}'s
+main purpose is to identify whether or not the stability condition
+associated with the inf-sup constants holds. The
+method \rognescodeintext{is\_stable} returns a boolean answer. The
+stability condition will not hold if any of the inf-sup constants is
+zero, and it will probably not hold if the inf-sup constants seem to
+decay with the mesh size $h$.  The rate of decay $r_i$ between two
+subsequent constants $c_i$ and $c_{i+1}$ is defined as:
 \begin{equation*}
   r_i = \frac{\log_2(c_i) - \log_2(c_{i+1})}{\log_2(h_i) -
     \log_2(h_{i+1})}
@@ -777,8 +788,8 @@ constants $c_i$ and $c_{i+1}$ is defined as:
 where $h_i$ is the corresponding mesh size. Currently, \rognesascot{}
 classifies a discretization as stable if there are no singularities
 (no zero eigenvalues for all meshes), and the decay rates are below
-$1$ and consistently decrease or the rate corresponding to the finest
-mesh is less than a given number ($0.1$ by default).
+$1$ and consistently decrease, or the rate corresponding to the finest
+mesh is less than a heuristically chosen small number.
 
 Finally, the \rognescodeintext{StabilityResult} class holds a list of
 possibly several \rognescodeintext{InfSupCollections}, each
@@ -971,10 +982,10 @@ degree between $1$ and $4$ matched with $L^2$ conforming functions of
 polynomial degrees between $0$ and $3$ on a given set of meshes,
 define
 \begin{python}
-  specifications = {"value_dimension": (2, 1),
-                    "degree": (range(1,5), range(4)),
-                    "space": ("H1", "L2")}
-  spaces = create_spaces(meshes, specifications)
+  specifications = {"value_dimensions": (2, 1),
+                    "degrees": (range(1,5), range(4)),
+                    "spaces": ("H1", "L2")}
+  spaces = create_spaces(meshes, **specifications)
 \end{python}
 
 For the equations~\eqref{rognes:eq:stokes}, the Brezzi coercivity
@@ -1097,9 +1108,9 @@ the computed constants. The conjecture may in some cases be erroneous,
 and the reliability of this conjecture may be low if only a few meshes
 are considered. Second, solving generalized, singular eigenvalue
 problems can be nontrivial. For the Brezzi coercivity constants, the
-krylov-schur solver easily fails to converge even with an applied
+Krylov-Schur solver easily fails to converge even with an applied
 shift-and-invert spectral transform. In such a case, one must either
-return to use a lapack-type solver or consider the Babu\v ska constant
+return to use a Lapack-type solver or consider the Babu\v ska constant
 directly.
 
 
