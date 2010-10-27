@@ -1,11 +1,5 @@
-FILE="book"
+# Call a shell script to build the book. Doesn't seem to work to set
+# TEXINPUTS in the Makefile.
 
 all:
-	latex $(FILE).tex
-#	latex -interaction=nonstopmode $(FILE).tex
-
-final:
-	./final.sh $(FILE)
-
-clean:
-	-rm -f *~
+	./build.sh
