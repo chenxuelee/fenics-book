@@ -1,5 +1,5 @@
 #!/bin/sh
 
-export TEXINPUTS=".:packages:"
+export TEXINPUTS=".:"`pwd`"/packages:"
 
-latex book.tex
+pdflatex book.tex

@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# Convert all EPS figures to PDF figures, needed for pdflatex
+
+cd chapters
+for CHAPTER in *; do
+    echo "Converting EPS to PDF for chapter [$CHAPTER]"
+    cd $CHAPTER
+    if [ -d eps ]; then
+        cd eps
+        for F in *.eps; do
+            G=`echo $F | cut -d'.' -f1`
+            mkdir -p ../pdf
+            echo "  Converting $F to PDF..."
+            epstopdf -o ../pdf/$G.pdf $F
+        done
+        cd ..
+    fi
+    cd ..
+done
