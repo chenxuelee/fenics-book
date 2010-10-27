@@ -9,7 +9,7 @@
 \newcommand{\intoverdomain}[2]{\int_{#2}{#1}{d#2}}
 %
 \newcommand{\twobytwo}[4]{\begin{bmatrix} #1 & #2\\#3 & #4\end{bmatrix}}
-\newcommand{\twobyone}[2]{\begin{Bmatrix}#1\\#2\end{Bmatrix}}   
+\newcommand{\twobyone}[2]{\begin{Bmatrix}#1\\#2\end{Bmatrix}}
 
 \editornote{Reduce the number of macros.}
 
@@ -113,11 +113,11 @@ waveguide and $z$ the coordinate along the length of the waveguide.
 
 \begin{figure}
  \centering
- \psfrag{x}[b1][1][2][0]{$x$}
- \psfrag{y}[b1][1][2][0]{$y$}
- \psfrag{z}[b1][1][2][0]{$z$}
- \psfrag{G}[b1][1][2][0]{$\Gamma_{e}$}
- \psfrag{domain}[b1][1][2][0]{$\Omega$}
+ %\psfrag{x}[b1][1][2][0]{$x$}
+ %\psfrag{y}[b1][1][2][0]{$y$}
+ %\psfrag{z}[b1][1][2][0]{$z$}
+ %\psfrag{G}[b1][1][2][0]{$\Gamma_{e}$}
+ %\psfrag{domain}[b1][1][2][0]{$\Omega$}
  \resizebox{0.55\textwidth}{!}{\includegraphics{chapters/lezar/pdf/arbitrary_waveguide_cross_section.pdf}}
  \caption{A long waveguide with an arbitrary cross-section aligned with the $z$-axis.}
  \label{lezar:fig:long_waveguide}
@@ -135,7 +135,7 @@ texts
     +\frac{1}{\mu_r}(\nabla_t{E_z} + \gamma\mathbf{E}_t)\cdot(\nabla_t{E_z} + \gamma\mathbf{E}_t)
     -k_o^2\epsilon_r E_z{E_z} d\Omega,
 \end{multline}
-with 
+with
 \begin{equation}
     \nabla_t = \frac{\partial}{\partial x}\hat{\mathbf{x}} + \frac{\partial}{\partial
     y}\hat{\mathbf{y}}
@@ -244,7 +244,7 @@ which results in the modified functional
 Using the same discretisation as for cutoff analysis discussed in \ref{lezar:sec:cutoff_formulation}, the matrix equation associated with the solution of the variational problem is given by
 \begin{equation}
     \label{lezar:eqn:matrix_equation_dispersion}
-    \begin{bmatrix} A_{tt} & 0\\0 & 0\end{bmatrix}\begin{Bmatrix}e_t\\e_z\end{Bmatrix} = 
+    \begin{bmatrix} A_{tt} & 0\\0 & 0\end{bmatrix}\begin{Bmatrix}e_t\\e_z\end{Bmatrix} =
     \gamma^2\begin{bmatrix} B_{tt} & B_{tz}\\B_{zt} &
     B_{zz}\end{bmatrix}\begin{Bmatrix}e_t\\e_z\end{Bmatrix},
 \end{equation}
@@ -259,7 +259,7 @@ to the square of the complex propagation constant ($\gamma$).
 
 The matrices $S_{tt}$, $T_{tt}$, $S_{zz}$, and $T_{zz}$ are identical
 to those defined in \ref{lezar:sec:cutoff_formulation} with entries given by
-\eqref{lezar:eqn:s_tt_ij}, \eqref{lezar:eqn:t_tt_ij}, \eqref{lezar:eqn:s_zz_ij}, and \eqref{lezar:eqn:t_zz_ij} respectively.  
+\eqref{lezar:eqn:s_tt_ij}, \eqref{lezar:eqn:t_tt_ij}, \eqref{lezar:eqn:s_zz_ij}, and \eqref{lezar:eqn:t_zz_ij} respectively.
 The entries of the other sub-matrices, $B_{tt}$, $B_{tz}$, and
 $B_{zt}$, are defined by
 \begin{align}
@@ -312,51 +312,29 @@ calculated as
 \begin{equation}
     \gamma^2 = \frac{1 - \lambda}{\lambda}\theta^2,
 \end{equation}
-and thus $\gamma^2 \rightarrow \infty$ as $\lambda \rightarrow 0$, which moves the spurious modes out of the region of interest. 
+and thus $\gamma^2 \rightarrow \infty$ as $\lambda \rightarrow 0$, which moves the spurious modes out of the region of interest.
 
 \section{Implementation}
 \label{lezar:sec:Implementation}
 
-\lstset{
-language=python,
-basicstyle=\ttfamily\scriptsize,
-%stringstyle=\color{green},
-showstringspaces=false,
-alsoletter={1234567890},
-%otherkeywords={\ , \}, \{},
-keywordstyle=\color{blue},
-emph={access,and,as,break,class,continue,def,del,elif,else,%
-except,exec,finally,for,from,global,if,import,in,is,%
-lambda,not,or,pass,print,raise,return,try,while,assert},
-emphstyle=\bfseries,
-emph={[2]self},
-emphstyle=[2]\itshape,
-upquote=false,
-%morecomment=[s][\color{lightgreen}]{"""}{"""},
-commentstyle=\slshape,
-% literate={>>>}{\textbf{\textcolor{darkred}{>{>}>}}}3%
-%          {...}{{\textcolor{gray}{...}}}3,
-procnamekeys={def,class},
-framexleftmargin=1mm, framextopmargin=1mm, frame=single
-}
-This section considers the details of the
-implementation of a \fenics-based solver for waveguide cutoff mode and
-dispersion curve problems as described in \ref{lezar:sec:cutoff_formulation}
-and \ref{lezar:sec:propagation_curves}. A number of code snippets illustrate
-some of the finer points of the implementation.
+This section considers the details of the implementation of
+a \fenics-based solver for waveguide cutoff mode and dispersion curve
+problems as described in \ref{lezar:sec:cutoff_formulation}
+and \ref{lezar:sec:propagation_curves}. A number of code snippets
+illustrate some of the finer points of the implementation.
 
 \subsection{Formulation}
 \lstlistingname{}~\ref{lezar:listing:function_spaces} shows the definitions of the function spaces used in the solution of the problems considered here. \nedelec{} basis functions of the first kind ({\tt N\_v} and {\tt N\_u}) are used to approximate the transverse component of the electric field. This ensures that the tangential continuity required at element and material boundaries can be enforced~\cite{Jin2002}.  The axial component of the field is modelled using a set of Lagrange basis functions ({\tt M\_v}, and {\tt M\_u}). Additionally, a discontinuous Galerkin function space is included to allow for the modelling of material parameters such as dielectrics.
-\begin{lstlisting}[float=ht,caption=Function spaces and basis functions.,label=lezar:listing:function_spaces]
-V_DG = FunctionSpace(mesh, "DG", 0) 
-V_N = FunctionSpace(mesh, "Nedelec 1st kind H(curl)", transverse_order) 
+\begin{python}
+V_DG = FunctionSpace(mesh, "DG", 0)
+V_N = FunctionSpace(mesh, "Nedelec 1st kind H(curl)", transverse_order)
 V_M = FunctionSpace(mesh, "Lagrange", axial_order)
 
 combined_space = V_N * V_L
 
 (N_v, M_v) = TestFunctions(combined_space)
 (N_u, M_u) = TrialFunctions(combined_space)
-\end{lstlisting}
+\end{python}
 
 In order to deal with material properties, the {\tt Expression} class is
 subclassed and the {\tt eval()} method overridden. This is illustrated
@@ -367,7 +345,7 @@ discontinuous Galerkin function space already discussed. For constant
 material properties (such as the inverse of the magnetic permittivity
 $\mu_r$, in this case) a JIT-compiled expression is used.
 
-\begin{lstlisting}[float=ht, caption=Material properties and expressions., label=lezar:listing:material_properties]
+\begin{python}
 class HalfLoadedDielectric(Expression):
     def eval(self, values, x):
         if x[1] < 0.25:
@@ -380,7 +358,7 @@ one_over_u_r = Expression("1.0")
 
 k_o_squared = Expression("value", {"value" : 0.0})
 theta_squared = Expression("value", {"value" : 0.0})
-\end{lstlisting}
+\end{python}
 
 The basis functions declared in \lstlistingname{}
  \ref{lezar:listing:function_spaces} and the desired material property
@@ -400,7 +378,7 @@ The basis functions declared in \lstlistingname{}
  considered since the same calculation is performed for a range of
  operating frequencies.
 
-\begin{lstlisting}[float=hb, caption=Forms for matrix entries., label=lezar:listing:forms]
+\begin{python}
 s_tt = one_over_u_r*dot(curl_t(N_v), curl_t(N_u))
 t_tt = e_r*dot(N_v, N_u)
 
@@ -415,7 +393,7 @@ a_tt = s_tt - k_o_squared*t_tt
 b_zz = s_zz - k_o_squared*t_zz
 
 rhs = b_tt + b_tz + b_zt + b_zz + 1.0/theta_squared*a_tt
-\end{lstlisting}
+\end{python}
 
 From \eqref{lezar:eqn:electric_wall_BC} it follows that the tangential
 component of the electric field must be zero on perfectly electrical
@@ -436,14 +414,14 @@ magnetic walls and the symmetry of a problem are often used to
 decrease the size of the computational domain although this does limit
 the solution obtained to even modes~\cite{Jin2002}.
 
-\begin{lstlisting}[float=h, caption=Boundary conditions., label=lezar:listing:boundary_conditions]
+\begin{python}
 class ElectricWalls(SubDomain):
     def inside(self, x, on_boundary):
         return on_boundary
 
 zero = Expression(("0.0","0.0","0.0")
 dirichlet_bc = DirichletBC(combined_space, zero, ElectricWalls())
-\end{lstlisting}
+\end{python}
 
 Once the required matrices have been assembled and the boundary
 conditions applied, the resultant eigenproblem can be solved. This can
@@ -461,7 +439,7 @@ operations on the eigenvalues of the system. For the calculation of
 dispersion curves and visualisation of the resultant field components
 the process is slightly more complex.
 
-\subsubsection{Dispersion Curves}
+\paragraph{Dispersion Curves}
 \index{dispersion curves}
 
 For dispersion curves the computed value of the propagation constant
@@ -479,7 +457,7 @@ the $f_o$-axis.  This procedure is followed in~\cite{PelCoc1998} and
 other literature and allows for quick comparisons and validation of
 results.
 
-\subsubsection{Field Visualisation}
+\paragraph{Field Visualisation}
 
 In order to visualise the fields associated with a given solution, the
 basis functions need to be weighted with coefficients corresponding to
@@ -491,14 +469,14 @@ axial components of the field is given in \lstlistingname{}
 x} assigned to the function vector is one of the eigenvectors obtained
 by solving the eigenvalue problem.
 
-\begin{lstlisting}[float=h, caption=Extraction and visualisation of transverse and axial field components., label=lezar:listing:field_component_visualisation]
+\begin{python}
 f = Function(combined_space, x)
 
 (transverse, axial) = f.split()
 
 plot(transverse)
 plot(axial)
-\end{lstlisting}
+\end{python}
 
 The {\tt eval()} method of the {\tt transverse} and {\tt axial}
 functions can also be called in order to evaluate the functions at a
@@ -529,10 +507,10 @@ hollow rectangular waveguide. For the purpose of this chapter a guide
 with dimensions $a = 1\text{m}$ and $b = 0.5\text{m}$ is considered.
 \begin{figure}[ht]
     \centering
-    \psfrag{epsilon}{$\epsilon_r = 1$}
-    \psfrag{mu}{$\mu_r = 1$}
-    \psfrag{a}{$a$}
-    \psfrag{b}{$b$}
+    %\psfrag{epsilon}{$\epsilon_r = 1$}
+    %\psfrag{mu}{$\mu_r = 1$}
+    %\psfrag{a}{$a$}
+    %\psfrag{b}{$b$}
     \resizebox{0.4\textwidth}{!}{\includegraphics{chapters/lezar/pdf/hollow_rectangular_waveguide.pdf}}
     \caption{A diagram showing the cross section and dimensions of a hollow rectangular waveguide.}
     \label{lezar:fig:hollow_rectangular_guide}
@@ -565,7 +543,7 @@ with $k_o$ the operating wavenumber dependent on the operating frequency, and
 \end{equation}
 the analytical solution for the square of the cutoff wavenumber\index{wavenumber!cutoff} for both the TE$_{mn}$ and TM$_{mn}$ modes.
 
-\subsubsection{Cutoff Analysis}
+\paragraph{Cutoff Analysis}
 \index{waveguide!cutoff analysis}
 
 Figure \ref{lezar:fig:rectangular_cutoff_TE} shows the first two calculated
@@ -610,11 +588,11 @@ agreement between the values.
     TM$_{11}$ & 49.3480 & 49.4048 & 1.1514e-03 \\
     TM$_{21}$ & 78.9568 & 79.2197 & 3.3295e-03\\
     TM$_{31}$ & 128.3049 & 129.3059 & 7.8018e-03\\
-    \hline 
+    \hline
     \end{tabular}
 \end{table}
 \clearpage
-\subsubsection{Dispersion Analysis}
+\paragraph{Dispersion Analysis}
 \index{waveguide!dispersion analysis}
 
 When considering the calculation of the dispersion curves for the
@@ -629,10 +607,14 @@ predicted by \eqref{lezar:eqn:rectangular_propagation} and
 six curves. There is excellent agreement between the analytical and
 computed results.
 \begin{figure}[h]
- \centering
- \resizebox{0.55\textwidth}{!}{\includegraphics{chapters/lezar/pdf/hollow_dispersion_curve.pdf}}
- \caption{\index{dispersion curves}Dispersion curves for the first 10 modes of a $1$~m~$\times~0.5$~m hollow rectangular waveguide. Markers are used to indicate the analytical results with $\blacksquare$ and $\blacklozenge$ indicating TE and TM modes respectively.}
- \label{lezar:fig:hollow_rectangular_dispersion_curves}
+  \centering
+  \includegraphics[width=\largefig]{chapters/lezar/pdf/hollow_dispersion_curve.pdf}
+  \caption{Dispersion curves for the first 10 modes of a
+    $1$~m~$\times~0.5$~m hollow rectangular waveguide. Markers are
+    used to indicate the analytical results with $\blacksquare$ and
+    $\blacklozenge$ indicating TE and TM modes respectively.}
+  \index{dispersion curves}
+  \label{lezar:fig:hollow_rectangular_dispersion_curves}
 \end{figure}
 \index{waveguide!hollow rectangular|)}
 \subsection{Half-Loaded Rectangular Waveguide}
@@ -653,18 +635,18 @@ the hollow rectangular waveguide used in the previous section, but its
 lower half is filled with an $\epsilon_r = 4$ dielectric material.
 \begin{figure}
     \centering
-    \psfrag{epsilon}{$\epsilon_r = 1$}
-    \psfrag{mu}{$\mu_r = 1$}
-    \psfrag{edielectric}{$\epsilon_r = 4$}
-    \psfrag{a}{$a$}
-    \psfrag{b}{$b$}
-    \psfrag{d}{$d$}
+    %\psfrag{epsilon}{$\epsilon_r = 1$}
+    %\psfrag{mu}{$\mu_r = 1$}
+    %\psfrag{edielectric}{$\epsilon_r = 4$}
+    %\psfrag{a}{$a$}
+    %\psfrag{b}{$b$}
+    %\psfrag{d}{$d$}
     \resizebox{0.45\textwidth}{!}{\includegraphics{chapters/lezar/pdf/half_loaded_rectangular_waveguide.pdf}}
     \caption{A diagram showing the cross section and dimensions of a half-loaded rectangular waveguide.  The lower half of the guide is filled with an $\epsilon_r = 4$ dielectric material.}
     \label{lezar:fig:half_filled_rectangular_guide}
 \end{figure}
 
-\subsubsection{Cutoff Analysis}
+\paragraph{Cutoff Analysis}
 \index{waveguide!cutoff analysis}
 
 Figure~\ref{lezar:fig:half_filled_rectangular_cutoff_modes} shows the first
@@ -682,7 +664,7 @@ interface~\cite{Poz2005, Smi1997}.
 \label{lezar:fig:half_filled_rectangular_cutoff_modes}
 \end{figure}
 
-\subsubsection{Dispersion Analysis}
+\paragraph{Dispersion Analysis}
 \index{waveguide!dispersion analysis}
 
 The dispersion curves for the first 8 modes of the half-loaded
@@ -702,10 +684,16 @@ fall on the $f_o$-axis.  These complex modes are discussed further in
 \ref{lezar:sec:shielded_microstrip}.
 \begin{figure}
  \centering
- \psfrag{yaxis}{$(\frac{\gamma}{k_o})^2$}
- \psfrag{xaxis}{$x$}
- \resizebox{0.55\textwidth}{!}{\includegraphics{chapters/lezar/pdf/half_loaded_dispersion_curve.pdf}}
- \caption{\index{dispersion curves}Dispersion curves for the first 8 modes of a $1$~m~$\times~0.5$~m rectangular waveguide with its lower half filled with an $\epsilon_r = 4$ dielectric material.  Reference values for the first 4 modes from~\cite{Jin2002} are shown as $\blacksquare$.  The presence of complex mode pairs are indicated by $\blacktriangle$ and $\bullet$.}
+ %\psfrag{yaxis}{$(\frac{\gamma}{k_o})^2$}
+ %\psfrag{xaxis}{$x$}
+ \includegraphics[width=\largefig]{chapters/lezar/pdf/half_loaded_dispersion_curve.pdf}
+ \caption{Dispersion curves for the first 8 modes of a
+   $1$~m~$\times~0.5$~m rectangular waveguide with its lower half
+   filled with an $\epsilon_r = 4$ dielectric material.  Reference
+   values for the first 4 modes from~\cite{Jin2002} are shown as
+   $\blacksquare$.  The presence of complex mode pairs are indicated
+   by $\blacktriangle$ and $\bullet$.}
+ \index{dispersion curves}
  \label{lezar:fig:half_loaded_rectangular_dispersion_curves}
 \end{figure}
 \index{waveguide!half-loaded rectangular|)}
@@ -727,14 +715,14 @@ results discussed here are given in
 Table~\ref{lezar:tab:shielded_microstrip_dimensions}.
 \begin{figure}[t]
     \centering
-    \psfrag{epsilon}{$\epsilon_r = 1$}
-    \psfrag{mu}{$\mu_r = 1$}
-    \psfrag{edielectric}{$\epsilon_r = 8.875$}
-    \psfrag{a}{$a$}
-    \psfrag{b}{$b$}
-    \psfrag{d}{$d$}
-    \psfrag{t}{$t$}
-    \psfrag{w}{$w$}
+    %\psfrag{epsilon}{$\epsilon_r = 1$}
+    %\psfrag{mu}{$\mu_r = 1$}
+    %\psfrag{edielectric}{$\epsilon_r = 8.875$}
+    %\psfrag{a}{$a$}
+    %\psfrag{b}{$b$}
+    %\psfrag{d}{$d$}
+    %\psfrag{t}{$t$}
+    %\psfrag{w}{$w$}
     \resizebox{0.5\textwidth}{!}{\includegraphics{chapters/lezar/pdf/shielded_microstrip_waveguide.pdf}}
     \caption{A diagram showing the cross section and dimensions of a shielded microstrip line.  The microstrip is etched on a dielectric material with a relative permittivity of $\epsilon_r = 8.75$.  The plane of symmetry is indicated by a dashed line and is modelled as a magnetic wall in order to reduce the size of the computational domain.}
     \label{lezar:fig:shielded_microstrip}
@@ -754,7 +742,7 @@ Table~\ref{lezar:tab:shielded_microstrip_dimensions}.
  \end{tabular}
 \end{table}
 
-\subsubsection{Cutoff Analysis}
+\paragraph{Cutoff Analysis}
 
 Since the shielded microstrip structure consists of two conductors, it
 supports a dominant transverse electromagnetic (TEM) wave that has no
@@ -767,7 +755,7 @@ are hybrid TE-TM modes~\cite{Poz2005}) can however be determined from
 the dispersion curves by the intersection of a curve with the
 $f_o$-axis.
 
-\subsubsection{Dispersion Analysis}
+\paragraph{Dispersion Analysis}
 \index{waveguide!dispersion analysis}
 
 The dispersion analysis presented in~\cite{PelCoc1998} is repeated
@@ -788,8 +776,9 @@ complex modes are expected but do not necessarily occur in conjugate
 pairs~\cite{PelCoc1998}.
 \begin{figure}[h]
  \centering
- \resizebox{0.55\textwidth}{!}{\includegraphics{chapters/lezar/pdf/shielded_microstrip_dispersion_curve.pdf}}
- \caption{\index{dispersion curves}Dispersion curves for the first 7 even modes of shielded microstrip line using a magnetic wall to enforce symmetry.  Reference values from~\cite{PelCoc1998} are shown as $\blacksquare$.  The presence of complex mode pairs are indicated by $\blacktriangle$ and $\bullet$.}
+ \includegraphics[width=\largefig]{chapters/lezar/pdf/shielded_microstrip_dispersion_curve.pdf}
+ \caption{Dispersion curves for the first 7 even modes of shielded microstrip line using a magnetic wall to enforce symmetry.  Reference values from~\cite{PelCoc1998} are shown as $\blacksquare$.  The presence of complex mode pairs are indicated by $\blacktriangle$ and $\bullet$.}
+ \index{dispersion curves}
  \label{lezar:fig:shielded_microstrip_dispersion_curves}
 \end{figure}
 \label{lezar:sec:shielded_microstrip|)}
@@ -831,21 +820,22 @@ the results obtained show excellent agreement with the analytical
 ones.
 \begin{figure}
  \centering
- \resizebox{0.5\textwidth}{!}{\includegraphics{chapters/lezar/pdf/hollow_h_plane_S_parameters.pdf}}
- \caption{\index{S-parameters}Magnitude (solid line) and phase (dashed line) of the transmission coefficient (S$_{21}$) of a length of rectangular waveguide with dimensions $a=18.35\text{mm}$, $b=9.175\text{mm}$, and $l = 10\text{mm}$. The analytical results for the same structure are indicated by markers with $\blacksquare$ and $\bullet$ indicating the magnitude and phase respectively.}
+ \includegraphics[width=\largefig]{chapters/lezar/pdf/hollow_h_plane_S_parameters.pdf}
+ \caption{Magnitude (solid line) and phase (dashed line) of the transmission coefficient (S$_{21}$) of a length of rectangular waveguide with dimensions $a=18.35\text{mm}$, $b=9.175\text{mm}$, and $l = 10\text{mm}$. The analytical results for the same structure are indicated by markers with $\blacksquare$ and $\bullet$ indicating the magnitude and phase respectively.}
+ \index{S-parameters}
  \label{lezar:fig:hollow_h_plane_S_parameters}
 \end{figure}
 
 \begin{figure}[!h]
  \centering
- \psfrag{a}{$a$}
- \psfrag{c}{$c$}
- \psfrag{p}{$d$}
- \psfrag{l}{$l$}
- \psfrag{s}{$s$}
- \psfrag{w}{$w$}
- \psfrag{port1}[b1][1][1][0]{port 1}
- \psfrag{port2}[b1][1][1][0]{port 2}
+ %\psfrag{a}{$a$}
+ %\psfrag{c}{$c$}
+ %\psfrag{p}{$d$}
+ %\psfrag{l}{$l$}
+ %\psfrag{s}{$s$}
+ %\psfrag{w}{$w$}
+ %\psfrag{port1}[b1][1][1][0]{port 1}
+ %\psfrag{port2}[b1][1][1][0]{port 2}
  {\resizebox{0.45\textwidth}{!}{\includegraphics{chapters/lezar/pdf/h_plane_iris.pdf}}}
  \caption{Schematic of an H-plane iris in a rectangular waveguide dimensions: $a=18.35\text{mm}$, $c=4.587\text{mm}$, $d=1\text{mm}$, $s=0.5\text{mm}$, and $w=9.175\text{mm}$. The guide has a height of $b=9.175\text{mm}$. The ports are indicated by dashed lines on the boundary of the device.}
  \label{lezar:fig:h_plane_iris}
@@ -861,10 +851,17 @@ published in~\cite{PelCoc1998} with good agreement between the two
 sets of data.
 \begin{figure}[h]
 \centering
- \subfigure[Magnitude.]{\resizebox{0.48\textwidth}{!}{\includegraphics{chapters/lezar/pdf/h_plane_iris_S_parameters_magnitude.pdf}}}
- \subfigure[Phase.]{\resizebox{0.48\textwidth}{!}{\includegraphics{chapters/lezar/pdf/h_plane_iris_S_parameters_phase.pdf}}}
-\caption{\index{S-parameters}Results for the magnitude and phase of the reflection coefficient (S$_{11}$ -- solid line) and transmission coefficient (S$_{21}$ -- dashed line) of an H-plane iris in a rectangular waveguide shown in Figure~\ref{lezar:fig:h_plane_iris}. Reference results from~\cite{PelCoc1998} are indicated by markers with $\blacksquare$ and $\bullet$ indicating the reflection and transmission coefficient respectively.}
-\label{lezar:fig:h_plane_iris_S_parameters}
+ \subfigure[Magnitude.]{\includegraphics[width=\smallfig]{chapters/lezar/pdf/h_plane_iris_S_parameters_magnitude.pdf}}
+ \subfigure[Phase.]{\includegraphics[width=\smallfig]{chapters/lezar/pdf/h_plane_iris_S_parameters_phase.pdf}}
+ \caption{Results for the magnitude and phase of the reflection
+   coefficient (S$_{11}$ -- solid line) and transmission coefficient
+   (S$_{21}$ -- dashed line) of an H-plane iris in a rectangular
+   waveguide shown in Figure~\ref{lezar:fig:h_plane_iris}. Reference
+   results from~\cite{PelCoc1998} are indicated by markers with
+   $\blacksquare$ and $\bullet$ indicating the reflection and
+   transmission coefficient respectively.}
+ \index{S-parameters}
+ \label{lezar:fig:h_plane_iris_S_parameters}
 \end{figure}
 \index{waveguide!discontinuities|)}
 \section{Conclusion}

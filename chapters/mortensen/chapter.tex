@@ -1,3 +1,8 @@
+\fenicschapter{Simulations of transitional flows}
+              {Simulations of transitional flows}
+              {Mikael Mortensen, Kent-Andr\'{e} Mardal and Hans Petter Langtangen}
+              {mortensen}
+
 %\newcommand{\hpl}[1]{{\bf hpl: #1}}
 %\newcommand{\mmo}[1]{{\bf mmo: #1}}
 %\newcommand{\kentc}[1]{\marginpar{\tiny KAM: #1}}
@@ -11,12 +16,27 @@
 \newcommand{\Cset}{\ensuremath{\mathbb{C}}\xspace}
 \newcommand{\Hset}{\ensuremath{\mathbb{H}}\xspace}
 
-
-\fenicschapter{Simulations of transitional flows}{Mikael Mortensen, Kent-Andr\'{e} Mardal and Hans Petter Langtangen}
-
 %------------------------------------------------------------------------------
 \section{Introduction}
-The purpose of this work is to validate Navier-Stokes (NS) solvers implemented in FEniCS for unstable, transitional flows. Solvers for the NS equations have already been discussed in the benchmark chapter \cite{nsbench} for laminar flows. In this chapter focus is put more directly on flow energy and energy conservation, features of primary importance in turbulence applications. We emphasize the treatment of the nonlinear convection term, where various forms (standard, divergence and skew-symmetric) are implemented and tested for both accuracy and stability. The algorithm chosen to advance the momentum and pressure in time is a fractional step approach that is memory efficient, but incurs a splitting error due to the uncoupling of velocity and pressure. The significance of this splitting error is validated through comparison with a more accurate fully coupled solver that, due to its higher memory cost, is less suited for large-scale turbulence applications. The performance of the solvers is validated with the one-dimensional Burger's equation, the Orr-Sommerfeld perturbation in two dimensions and finally the full-blown three-dimensional unstable and transitional Taylor-Green vortex.
+
+The purpose of this work is to validate Navier-Stokes (NS) solvers
+implemented in FEniCS for unstable, transitional flows. Solvers for
+the NS equations have already been discussed in the benchmark chapter
+\cite{nsbench} for laminar flows. In this chapter focus is put more
+directly on flow energy and energy conservation, features of primary
+importance in turbulence applications. We emphasize the treatment of
+the nonlinear convection term, where various forms (standard,
+divergence and skew-symmetric) are implemented and tested for both
+accuracy and stability. The algorithm chosen to advance the momentum
+and pressure in time is a fractional step approach that is memory
+efficient, but incurs a splitting error due to the uncoupling of
+velocity and pressure. The significance of this splitting error is
+validated through comparison with a more accurate fully coupled solver
+that, due to its higher memory cost, is less suited for large-scale
+turbulence applications. The performance of the solvers is validated
+with the one-dimensional Burger's equation, the Orr-Sommerfeld
+perturbation in two dimensions and finally the full-blown
+three-dimensional unstable and transitional Taylor-Green vortex.
 
 The solvers and problems are implemented to fit in the problem solving environment described in the benchmark chapter \cite{nsbench}. Source code can be found in the folder \cite{folder}.
 
@@ -44,7 +64,7 @@ The computational cost of DNS can (at the expense of accuracy) be reduced by cap
 
 It should be mentioned that some practitioners of LES use numerical dissipation to model the unresolved physical dissipation (see, e.g., a review of implicit LES given by \cite{iles}). In this paper, though, we will only consider central numerical schemes with little or no dissipation applicable for DNS and regular LES.
 
-%Laminar flows may under the right circumstances undergo transition to turbulence. The transition can be triggered by several factors, but the physical process are not yet fully understood for many cases. 
+%Laminar flows may under the right circumstances undergo transition to turbulence. The transition can be triggered by several factors, but the physical process are not yet fully understood for many cases.
 Turbulent flows and the physical mechanisms responsible for transition to turbulence from a laminar flow are not very well understood and has been the source of extensive research for centuries. At the turn of the 19'th century Osbourne Reynolds discovered that for cylindrical pipes the transition to turbulence occurred at a Reynolds number of 2300 ($Re=U\cdot h/\nu$, where $U$ is the average velocity and $h$ half the pipe diameter). Later, with very carefully executed experiments in highly smooth pipes, scientists have been able to increase this number considerably, revealing that velocity is not really the triggering factor, even though there clearly is a strong correlation (follows since as the Reynolds number increases, the stabilizing viscous damping term becomes comparatively less than the unstable nonlinear convection term.) Another example of transition can be found in the wakes downstream bluff bodies placed in an incoming laminar flow. Here the transition is promoted by the strong shear layer formed by the recirculation region aft the body. In any case, in order for transition to occur, imposed disturbances triggered by, e.g., obstacles, a sudden pressure fluctuation, or even a soundwave, must grow and become unstable and finally chaotic. By introducing systematic perturbations of the NS equations one can study these phenomena and watch how they experience resonance and grow or gracefully die. Here, the numerical scheme will be of utmost importance to the experiment, because a dissipative scheme will damp (kill) the imposed perturbations.
 
 The most famous early work aimed to study perturbations of the NS equations was conducted more than 100 years ago by William McFadden Orr and Arnold Sommerfeld. The epitome of their analytical work is the celebrated Orr-Sommerfeld equation, which is an eigenvalue problem describing the linear two-dimensional modes of disturbance to a viscous parallel shear flow. Although the Orr-Sommerfeld equation only represents one simplified class of laminar-to-turbulence transition, it nevertheless constitutes a powerful method to assess numerical schemes since it provides an analytical transient solution to the NS equations that remains non-trivial for long integration times. The Orr-Sommerfeld testcase will be further discussed in Sec. \ref{sec:OS}, but first we need to turn our attention to the NS solvers, the numerical methods, and their implementation in FEniCS.
@@ -62,9 +82,9 @@ Let $\Omega \subset \Rset^d$ be an open and bounded region in $\Rset^d$, where $
 \end{equation}
 where $\vec{a}$ and $\vec{u}$ are arbitrary vector fields on $\Omega$. Furthermore, let \Hset be the space of $L_2(\Omega)$-smooth vector fields and denote by $\Hset_{div}$ the subspace of divergence-free vector fields.
 
-Let the convection of any vector field be written in general form as $B(\vec{u},\vec{a})$. Here, $\vec{u}$ is the \emph{convecting velocity}, while $\vec{a}$ is the \emph{convected vector field}. Then the standard convective term, 
+Let the convection of any vector field be written in general form as $B(\vec{u},\vec{a})$. Here, $\vec{u}$ is the \emph{convecting velocity}, while $\vec{a}$ is the \emph{convected vector field}. Then the standard convective term,
 \begin{equation}
-B(\vec{u},\vec{a}) = \vec{u}\cdot \nabla \vec{a}, 
+B(\vec{u},\vec{a}) = \vec{u}\cdot \nabla \vec{a},
 \end{equation}
 can be multiplied by the vector $\vec{b}$ and integrated by parts to yield
 \begin{equation}
@@ -76,9 +96,9 @@ If we for simplicity assume homogeneous Dirichlet boundary conditions the last t
 \bigl( B(\vec{u},\vec{a}), \vec{b} \bigr) = -\bigl( \vec{a}, B(\vec{u},\vec{b}) \bigr).
 \label{eq:Bu2}
 \end{equation}
-This equation implies that if 
+This equation implies that if
 the standard convective form is adopted and $\nabla\cdot\vec{u}$, then
-\begin{equation} 
+\begin{equation}
 \bigl( B(\vec{u}, \vec{a}), \vec{a} \bigr) = 0,
 \label{eq:B0}
 \end{equation}
@@ -89,7 +109,7 @@ transparent if we rewrite the convective term to show that it in fact
 represents transport of kinetic energy:
 \begin{equation}
 \label{eq:conv:K}
-\left(B(\vec{u}, \vec{u}), \vec{u} \right) 
+\left(B(\vec{u}, \vec{u}), \vec{u} \right)
 = \int_\Omega (\vec{u}\cdot\nabla\vec{u})\cdot\vec{u}d\Omega
 = \int_\Omega \vec{u}\cdot\nabla K(\vec{u}) d\Omega
 = B(\vec{u}, \vec{u}\cdot\vec{u}),
@@ -103,7 +123,7 @@ The result (\ref{eq:conv:K})  means that the integral
 contribution from the convection of momentum to the accumulation of
 kinetic energy will be zero.
 
-There are several alternative representations of the convective term. The divergence form 
+There are several alternative representations of the convective term. The divergence form
 \begin{equation}
 B(\vec{u},\vec{a})=\nabla \cdot (\vec{u} \otimes \vec{a})
 \end{equation}
@@ -125,7 +145,7 @@ It can easily be shown, by multiplying (\ref{eq:skew}) with $\vec{a}$ and integr
 \label{sec:kinetic}
 A dynamic equation for $K(\vec{u})$ can be derived from (\ref{eq:NS}) simply through taking the scalar product of the momentum equation and $\vec{u}$, and thereafter rearranging using the divergence constraint to arrive at
 \begin{equation}
- \frac{\partial K(\vec{u})}{\partial t} + \nabla \cdot [\vec{u}K(\vec{u})] = \nu \nabla^2 K(\vec{u}) -\nu \nabla \vec{u} : \nabla \vec{u} - \frac{1}{\rho}\nabla \cdot \left(\vec{u}p \right) +\text{f}\cdot \vec{u}. 
+ \frac{\partial K(\vec{u})}{\partial t} + \nabla \cdot [\vec{u}K(\vec{u})] = \nu \nabla^2 K(\vec{u}) -\nu \nabla \vec{u} : \nabla \vec{u} - \frac{1}{\rho}\nabla \cdot \left(\vec{u}p \right) +\text{f}\cdot \vec{u}.
 % \frac{\partial K(\vec{u})}{\partial t} + B\left(\vec{u},K(\vec{u})\right) = \nu \nabla^2 K(\vec{u}) -\nu \| \nabla \vec{u} \|^2 - \frac{1}{\rho}\nabla \cdot \left(\vec{u}p \right) +\text{f}\cdot \vec{u}.
  \label{eq:K(u)}
 \end{equation}
@@ -156,17 +176,17 @@ a one-dimensional conservation equation
 =0,
 \label{eq:phi:pde}
 \end{equation}
-with initial value 
+with initial value
 \[ \phi(x,0)=f(x) . \thinspace\]
 Equation~(\ref{eq:phi:pde}) expresses pure non-dissipative transport
 in the direction of the $x$ axis (if $v>0$), which means that the initial
-shape just moves with velocity $v$: 
+shape just moves with velocity $v$:
 \[ \phi(x,t) = f(x-vt).\]
 An energy measure $\int_{-\infty}^\infty\phi(x,t)^2dx$ remains obviously
 constant in time.
 
 We can build an arbitrary shape of $\phi$ as a Fourier
-series and study the behavior of one Fourier component. 
+series and study the behavior of one Fourier component.
 A complex Fourier component
 $\phi (x,t)=A\exp{(ik(x - ct))}$ is a solution of (\ref{eq:phi:pde})
 for an arbitrary amplitude $A$ and frequency $k$, provided $c = v$.
@@ -175,10 +195,10 @@ with constant velocity $v$ and the energy of each component is constant
 in time.
 
 Many finite difference schemes for (\ref{eq:phi:pde}) also allow
-Fourier components as solutions. More precisely, we have 
+Fourier components as solutions. More precisely, we have
 \[ \phi_j^n = A\exp{(i(kx - \tilde c t))},\]
 where $j$ counts grid points along the $x$ axis and $n$ counts time levels.
-Now, the numerical wave velocity $\tilde c \neq v$ is a function of 
+Now, the numerical wave velocity $\tilde c \neq v$ is a function of
 $k$, $\triangle t$, and $\Delta x$.
 When $\tilde c$ is real,
 but deviates from the exact value $v$, the Fourier component moves
@@ -193,7 +213,7 @@ but the discrete energy $\sum_j |\phi_j^n|^2$ decreases in time and the
 wave is said to dissipate.
 For this model problem,
 the error in $\tilde c$ usually depends on the non-dimensional
-Courant number $C\equiv v\triangle t/\Delta x$. 
+Courant number $C\equiv v\triangle t/\Delta x$.
 
 Using a central difference in space and time for (\ref{eq:phi:pde})
 results in a real $\tilde c$ if $C\leq 1$.
@@ -205,11 +225,11 @@ component, which implies $C\leq1$ for numerical stability.
 
 Looking at a forward scheme in time and upward scheme in space, i.e.,
 two asymmetric differences, the numerical wave velocity $\tilde c$ becomes
-complex: $\tilde c = \tilde c_r + i\tilde c_i$. 
+complex: $\tilde c = \tilde c_r + i\tilde c_i$.
 The value of $c_r$ deviates from the exact velocity $v$, implying
 dispersion, while the imaginary value $c_i$ is positive, giving rise
 to a decreasing amplitude $A\exp{(-ikc_i n\triangle t)}$ in time.
-This is a dissipative effect of the asymmetric difference(s). 
+This is a dissipative effect of the asymmetric difference(s).
 With a decreasing amplitude of the various
 Fourier components, the integral of the squared numerical solution will
 naturally decrease, and energy is lost.
@@ -226,7 +246,7 @@ Navier-Stokes (RANS) equations, where the kinetic energy is solved for
 through a separate PDE and not implied by the computed deterministic
 mean velocity field. A Galerkin finite element method, where the basis functions
 of the test and trial spaces are the same (modulo boundary conditions),
-will produce discrete equations that correspond to central differencing 
+will produce discrete equations that correspond to central differencing
 in space. Therefore, we employ the standard Galerkin method for spatial
 discretization. For the temporal
 discretiztion we will here follow Simo and Armero \cite{simo94} and describe a family of solvers for the transient NS equations.
@@ -238,15 +258,15 @@ Let $t_n \subset \Rset$ denote a discrete point in time. The velocity $\vec{u}_k
 \begin{equation}
  \label{eq:cont_d} \nabla \cdot \vec{u}_{n-\alpha} =0,
 \end{equation}
-where 
+where
 \[ \vec{u}_{n-\alpha}=(1-\alpha) \vec{u}_{n} + \alpha \vec{u}_{n-1},\]
 for $\alpha \in [0,1]$.
 The idea is to discretize all terms
-at the time level $n-\alpha$. The nature of the time difference 
+at the time level $n-\alpha$. The nature of the time difference
 over
 the interval $\triangle t = t_{n}-t_{n-1}$ depends
 on $\alpha$. For $\alpha =1/2$ we have a centered scheme in time, while
-$\alpha =1$ and $\alpha=0$ are fully explicit and fully implicit schemes, 
+$\alpha =1$ and $\alpha=0$ are fully explicit and fully implicit schemes,
 respectively. Note that at any time the pressure can be determined from the velocity, and as such it is not directly a function of time. However, since it appears only on the right hand side it is common to place the pressure using a staggered grid in time, i.e., the pressure is computed at $t_{n-1/2}, t_{n-3/2}, \ldots$.
 
 The convecting and convected velocity fields $\tilde{\vec{u}}$ and $\overline{\vec{u}}$ in the
@@ -264,10 +284,10 @@ $\tilde{\vec{u}}
 = \overline{\vec{u}} = \vec{u}_{n-1}$.
 A linear implicit scheme requires that $\vec{u}_{n}$ is present
 (linearly) in either $\tilde{\vec{u}}$ or $\overline{\vec{u}}$, but
-not in both. 
+not in both.
 
 In this work we will make use of one explicit and two
-implicit discretizations of the convection term $B$. 
+implicit discretizations of the convection term $B$.
 The explicit  Adams-Bashforth scheme
 (\ref{eq:EX}) below is chosen primarily because of its
 popularity in the fluid mechanics community. The implicit schemes use
@@ -278,19 +298,19 @@ forward
 Euler (\ref{eq:IM1}) and Adams-Bashforth projection (\ref{eq:IM2}) for
 the convecting velocity:
 \begin{align}
-\label{eq:EX} 
+\label{eq:EX}
 B(\tilde{\vec{u}},\overline{\vec{u}}) &=
 \frac{3}{2}B(\vec{u}_{n-1},\vec{u}_{n-1})-
 \frac{1}{2}B(\vec{u}_{n-2},\vec{u}_{n-2}), \\
-\label{eq:IM1} 
+\label{eq:IM1}
 B(\tilde{\vec{u}},\overline{\vec{u}}) &=
 B(\vec{u}_{n-1},\vec{u}_{n-\alpha}), \\
- \label{eq:IM2} 
+ \label{eq:IM2}
 B(\tilde{\vec{u}},\overline{\vec{u}}) &=
 B(\frac{3}{2}\vec{u}_{n-1}-\frac{1}{2}\vec{u}_{n-2},\vec{u}_{n-\alpha}).
 \end{align}
-The middle scheme (\ref{eq:IM1}) is merely first order, 
-whereas the remaining two are second order accurate in time 
+The middle scheme (\ref{eq:IM1}) is merely first order,
+whereas the remaining two are second order accurate in time
 (see, for instance, Figure~3 in \cite{simo94}).
 
 Equations (\ref{eq:NS_d}) and (\ref{eq:cont_d}) contain (in
@@ -305,18 +325,18 @@ methods.
 The fundamental problem in (\ref{eq:NS_d}) is that the pressure
 $p_{n-1/2}$ is unknown. One approximation is then to use the
 known pressure gradient $\nabla p_{n-3/2}$ from the previous timestep as a first guess. Then (\ref{eq:NS_d}) can
-be solved for $\vec{u}_n$. Unfortunately, this $\vec{u}_n$ will most 
+be solved for $\vec{u}_n$. Unfortunately, this $\vec{u}_n$ will most
 likely not also fulfill
 (\ref{eq:cont_d}). Moreover, there is no obvious way to advance $p$
 to time $t_{n-1/2}$. Still, we may correct the solution of (\ref{eq:NS_d})
 found by using an old pressure. Let us denote this tenative or
 intermediate solution
 by $\vec{u}_I$ ($I$ for intermediate). Its equation is
-\begin{equation} 
-\label{eq:NS_FS} 
-\frac{{\vec{u}}_{I}-\vec{u}_{n-1}}{\triangle t} = 
-- B_I(\tilde{\vec{u}},\overline{\vec{u}}) + 
-\nu \nabla^2 ((1-\alpha) {\vec{u}}_{I} + \alpha \vec{u}_{n-1}) 
+\begin{equation}
+\label{eq:NS_FS}
+\frac{{\vec{u}}_{I}-\vec{u}_{n-1}}{\triangle t} =
+- B_I(\tilde{\vec{u}},\overline{\vec{u}}) +
+\nu \nabla^2 ((1-\alpha) {\vec{u}}_{I} + \alpha \vec{u}_{n-1})
 -\nabla p_{n-3/2} + \text{f}_{n-\alpha} . \thinspace
 \end{equation}
 Note that in the expressions for $B(\tilde{\vec{u}},\overline{\vec{u}})$
@@ -329,7 +349,7 @@ $\alpha = 0$ from
 (\ref{eq:NS_FS}) yields an estimate of the error:
 \begin{equation}
 \label{eq:NS_FS:error}
-\frac{{\vec{u}}_{n}-\vec{u}_{I}}{\triangle t} = 
+\frac{{\vec{u}}_{n}-\vec{u}_{I}}{\triangle t} =
 -\nabla\Phi + B - B_I + (1-\alpha )\nabla^2(\vec{u}_n-\vec{u}_I),
 \end{equation}
 where $\Phi = p_{n-1/2} - p_{n-3/2} $ is a pressure correction.
@@ -340,7 +360,7 @@ the terms $B - B_I + (1-\alpha)\nabla^2(\vec{u}_n-\vec{u}_I)$.
 One therefore considers the simplified equation
 \begin{equation}
 \label{eq:NS_FS:error2}
-\frac{{\vec{u}}_{n}-\vec{u}_{I}}{\triangle t} = 
+\frac{{\vec{u}}_{n}-\vec{u}_{I}}{\triangle t} =
 -\nabla\Phi,
 \end{equation}
 coupled with the requirement that the new velocity must fulfill
@@ -350,7 +370,7 @@ $\nabla\cdot\vec{u}=0$:
 \end{equation}
 We can easily eliminate $\vec{u}_{n}$ from (\ref{eq:NS_FS:error2})
 and (\ref{eq:NS_FS:cont}) by solving for $\vec{u}_{n}$ in the former
-and inserting in the latter. This procedure results in a 
+and inserting in the latter. This procedure results in a
 Poisson equation for $\Phi$:
 \begin{equation}
  \label{eq:PC} \nabla^2 \Phi = -\frac{1}{\triangle t} \nabla \cdot {\vec{u}}_{I} . \thinspace
@@ -382,7 +402,7 @@ a discontinuous field. Solving (\ref{eq:vel_update}) by projection
 is then a viable alternative. Also in this case, we can take advantage
 of the fact that (\ref{eq:vel_update}) are three decoupled
 scalar equations, and solve each scalar equation separately.
-The resulting linear system, involving a ``mass matrix'', then has the size 
+The resulting linear system, involving a ``mass matrix'', then has the size
 corresponding to a scalar partial differential equation and not the
 triple size corresponding to the vector formulation in (\ref{eq:vel_update}).
 
@@ -393,7 +413,7 @@ exactly as when decoupling (\ref{eq:vel_update}).
 For $\alpha <1$ the convective term may lead to coupling of the
 component equations. Treating the convective term explicitly, but
 allowing implicitness in the viscosity term implies decoupled
-component equations and a possibility to solve a scalar heat or 
+component equations and a possibility to solve a scalar heat or
 diffusion equation, with source terms, for each component separately.
 The size of coefficient matrices in the decoupled cases is one third
 of the size for a coupled vector equation, leading to much less
@@ -402,7 +422,7 @@ storage and more efficient solutions.
 
 The disadvantage of the fractional step method is
 that even though the resulting velocity field should be divergence
-free due to the pressure correction (\ref{eq:PC}), 
+free due to the pressure correction (\ref{eq:PC}),
 the corrected velocity field will
 no longer satisfy the discretized momentum equation. This 'splitting
 error' associated with the fractional step method is known to be first
@@ -412,7 +432,7 @@ step \cite{Gue06}. To eliminate the splitting error it is possible to iterate ov
 the three steps, a practice that is rarely followed for incompressible
 flows. Another formally superior approach, which will be explored in
 this work, is to solve for the velocity and pressure
-simultaneously, i.e., in a fully coupled manner. 
+simultaneously, i.e., in a fully coupled manner.
 Naturally, such a coupled solver incurs a much larger
 memory cost which makes it  less suitable for large-scale turbulence
 applications. However, there is no splitting error and thus the method
@@ -438,18 +458,18 @@ introduces additional coupling between the velocity components, which
 makes it less suitable for exploiting enhanced computational efficiency
 through solving the component equations one by one.
 
-\subsubsection{Implementation in FEniCS}
+\paragraph{Implementation in FEniCS}
 \label{sec:impl_fenics}
 The solvers and problems under investigation are implemented much in the
 same way as described in the benchmark chapter \cite{nsbench}, but the naming
 convention for the variables is somewhat different. Here we introduce
 {\fontsize{12pt}{12pt}\texttt{u}} and {\fontsize{12pt}{12pt}\texttt{p}} for the unknown velocity $\vec{u}_n$ and pressure $p$
 in the
-variational formulation of the governing equations. 
+variational formulation of the governing equations.
 The compound
 $(\vec{u},p)$ field is named {\fontsize{12pt}{12pt}\texttt{up}} and
 defined on the composite space of the velocity and
-pressure spaces. Such a compound field is needed in the 
+pressure spaces. Such a compound field is needed in the
 fully coupled formulation.
 Both {\fontsize{12pt}{12pt}\texttt{u}} and {\fontsize{12pt}{12pt}\texttt{p}} are
 {\fontsize{12pt}{12pt}\texttt{TrialFunction}} objects, while {\fontsize{12pt}{12pt}\texttt{up}} is of type {\fontsize{12pt}{12pt}\texttt{TrialFunctions}}.
@@ -458,24 +478,20 @@ the most recently computed
 approximation to {\fontsize{12pt}{12pt}\texttt{u}}, {\fontsize{12pt}{12pt}\texttt{p}}, and {\fontsize{12pt}{12pt}\texttt{up}}:
 {\fontsize{12pt}{12pt}\verb!u_!}, {\fontsize{12pt}{12pt}\verb!p_!}, and {\fontsize{12pt}{12pt}\verb!up_!}, all of which are {\fontsize{12pt}{12pt}\texttt{Function}} objects.
 The velocities at previous time steps, $\vec{u}_{n-1}$, $\vec{u}_{n-2}$, $\ldots$, are denoted by {\fontsize{12pt}{12pt}\verb!u_1!}, {\fontsize{12pt}{12pt}\verb!u_2!}, $\ldots$. These are
-{\fontsize{12pt}{12pt}\texttt{Function}} objects. Similarly, {\fontsize{12pt}{12pt}\verb!p_1!} represents the old (corresponding to $p_{n-3/2}$)  pressure 
+{\fontsize{12pt}{12pt}\texttt{Function}} objects. Similarly, {\fontsize{12pt}{12pt}\verb!p_1!} represents the old (corresponding to $p_{n-3/2}$)  pressure
 ({\fontsize{12pt}{12pt}\texttt{Function}}).
 The quantities $\tilde{\vec{u}}$ and $\overline{\vec{u}}$ are
 named {\fontsize{12pt}{12pt}\verb!u_tilde!} and {\fontsize{12pt}{12pt}\verb!u_bar!}, respectively, in the code.
 
 Below we only show some key snippets from the FEniCS implementation.
 The complete source code used for the investigations in the present chapter
-can be found in the folder \cite{folder}.  
+can be found in the folder \cite{folder}.
 
 Given a {\fontsize{12pt}{12pt}\texttt{Mesh}} object {\fontsize{12pt}{12pt}\texttt{mesh}}, a string {\fontsize{12pt}{12pt}\texttt{mode}} describing the
 type of formulation of the convective term, and {\fontsize{12pt}{12pt}\texttt{Constant}} objects
 {\fontsize{12pt}{12pt}\texttt{dt}} and {\fontsize{12pt}{12pt}\texttt{nu}} for the time step and viscosity, the key steps in formulating the variational
 problem for the coupled problem go as follows.
-\providecommand{\fenicscode}{}
-\renewenvironment{fenicscode}[1]{
-\center\tabular{c}\hline\\ \footnotesize
-\minipage{#1\textwidth}\verbatim}
-{\endverbatim\endminipage\\ \\ \hline\endtabular\endcenter}\begin{fenicscode}{0.9}
+\begin{python}
 V = VectorFunctionSpace(mesh, "CG", 2)  # velocity space
 Q = FunctionSpace(mesh, "CG", 1)        # pressure space
 VQ = V * Q  # composite space (Taylor-Hood element)
@@ -489,7 +505,7 @@ u_1, p_1 = up_1.split()
 u_2, p_2 = up_2.split()
 u_tilde = 1.5*u_1 - 0.5*u_2
 u_bar = 0.5*(u + u_1)
-    
+
 F  = inner(u - u_1, v)*dx + dt*nu*inner(grad(u_bar), grad(v))*dx + \
      dt*conv(u_tilde, u_bar, v, mode)*dx - dt*inner(f, v)*dx - \
      dt*inner(p, div(v))*dx + inner(div(u), q)*dx
@@ -497,7 +513,7 @@ a = lhs(F); L = rhs(F)
 
 x_ = up_.vector()   # unknown solution vector (u,p)
 dx = Function(VQ)  # correction vector in Newton system
-\end{fenicscode}
+\end{python}
 Note that the unknown vector {\fontsize{12pt}{12pt}\verb!x_!} in the nonlinear algebraic
 equations is just the vector of degrees of freedom in the
 {\fontsize{12pt}{12pt}\verb!up_!} finite element function so that {\fontsize{12pt}{12pt}\verb!up_!} and {\fontsize{12pt}{12pt}\verb!x_!}
@@ -509,17 +525,20 @@ or the velocity part {\fontsize{12pt}{12pt}\verb!u_!} or pressure part {\fontsiz
 in memory there is no duplication of velocity and pressure data.
 
 The three alternative versions of the convective term discussed in Sec. \ref{sec:Convection} have be implemented in the method {\fontsize{12pt}{12pt}\texttt{conv}} as
-\begin{fenicscode}{0.9}
+\begin{python}
 def conv(u_tilde, u_bar, v, mode='standard'):
-    if (mode == 'standard'):
+    if mode == 'standard':
         return inner(grad(u_bar)*u_tilde, v)
-    elif (mode == 'divergence'):
+    elif mode == 'divergence':
         return inner(div(outer(u_bar,u_tilde)), v)
-    elif (mode == 'skew'):
+    elif mode == 'skew':
         return 0.5*(inner(grad(u_bar)*u_tilde, v) + \
         inner(div(outer(u_bar, u_tilde)), v))
-\end{fenicscode}
-The fractional step Navier-Stokes solver is somewhat more elaborate than the fully coupled, since there are more steps involved. The details of several fractional step solvers have already been given in the benchmark chapter \cite{nsbench}, and are thus not repeated here.
+\end{python}
+The fractional step Navier-Stokes solver is somewhat more elaborate
+than the fully coupled, since there are more steps involved. The
+details of several fractional step solvers have already been given in
+the benchmark chapter \cite{nsbench}, and are thus not repeated here.
 
 % If Eqs. (\ref{eq:NS_FS}) and (\ref{eq:PC}) are multiplied by the testfunctions $\vec{v}$ and $q$ respectively and integrated over the domain we obtain the variational forms
 % \begin{equation}
@@ -531,7 +550,7 @@ The fractional step Navier-Stokes solver is somewhat more elaborate than the ful
 % \end{equation}
 % In the implementation $\hat{\vec{u}}_{n+1}$ and $\hat{p}$ are represented with the trial-functions u and p. If we assume that the mesh class has been created in a problem class, where all parameters specific for the problem under investigation are defined, then necessary functions and functionspaces are created as
 % bcod
-%     
+%
 %     v = TestFunction(V)
 %     q = TestFunction(Q)
 %     u = TrialFunction(V)
@@ -562,7 +581,7 @@ The fractional step Navier-Stokes solver is somewhat more elaborate than the ful
 %     L2 = inner(v, u2)*dx - k*inner(v, grad(p1))*dx
 % ecod
 % where p1 is the recently computed pressure correction.
-% 
+%
 % The Navier-Stokes equations are integrated in time using a while loop as
 % bcod
 %     t=0
@@ -594,7 +613,7 @@ implementation of a coupled vector and scalar equation in FEniCS,
 using mixed finite elements.  Examining the structure of the NS
 equations, one realizes that many of the terms give rise to similar
 block matrices in the coefficient matrix for the complete linear
-system. The linear system has size $(n_vd+n_p)\times (n_vd+n_p)$ 
+system. The linear system has size $(n_vd+n_p)\times (n_vd+n_p)$
 if $d$ is the number
 of space dimensions, $n_v$ is the number of degrees of freedom for
 a velocity component field, and $n_p$ is the number of degrees of
@@ -603,7 +622,7 @@ Several blocks of size $n_v\times n_v$ are identical since there are
 three scalar time-derivative terms, giving rise to three identical
 mass matrix blocks, and
 three scalar viscosity (or similarly convection) terms, giving rise to three
-Laplacian ``stiffness matrix'' blocks. 
+Laplacian ``stiffness matrix'' blocks.
 Moreover, these blocks are constant
 in time and do not have to be reassembled every timestep.
 
@@ -627,7 +646,7 @@ to be reassembled at every timestep. The matrices for the linear,
 constant-in-time accumulation and diffusion terms can be assembled
 before going into the time loop.
 
-\item[(2)] For known convecting velocity, 
+\item[(2)] For known convecting velocity,
  the velocity components in the momentum equation (\ref{eq:NS})
  are decoupled and can as such be solved for in a
  memory efficient segregated manner, treating one component equation
@@ -641,17 +660,17 @@ before going into the time loop.
  component equation and insert it into the relevant places in
  the total coefficient matrix.
  For example, to assemble a convection matrix for one component, define
- a {\fontsize{12pt}{12pt}\texttt{FunctionSpace}} for a scalar velocity component from the 
+ a {\fontsize{12pt}{12pt}\texttt{FunctionSpace}} for a scalar velocity component from the
  vector space {\fontsize{12pt}{12pt}\texttt{V}} by grabbing a component space {\fontsize{12pt}{12pt}\texttt{Vc}}:
-\begin{fenicscode}{0.9}
+\begin{python}
 Vc = V.sub(0)  # grab space for the 1st velocity component
 uc = TrialFunction(Vc)
 vc = TestFunction(Vc)
 Ac = assemble(conv(u_1, uc, vc)*dx)
-\end{fenicscode}
+\end{python}
 Here {\fontsize{12pt}{12pt}\verb!u_1!} is the {\fontsize{12pt}{12pt}\texttt{Function}} on the space {\fontsize{12pt}{12pt}\texttt{V}}
 holding the approximation of the
-convecting velocity (taken as $\vec{u}_{n-1}$ in this example). 
+convecting velocity (taken as $\vec{u}_{n-1}$ in this example).
 The matrix {\fontsize{12pt}{12pt}\texttt{Ac}} is of size $n_v\times n_v$ ($n_v$ equals
 {\fontsize{12pt}{12pt}\texttt{Vc.dim()}}).
 The large matrix for the complete velocity vector field can now be
@@ -674,7 +693,7 @@ product {\fontsize{12pt}{12pt}\verb!Ac*u_1.vector()!}.
 
 \item[(4)] The sparse coefficient matrix can be compressed by removing
 redundant zeroes. For 3D problems the
-assembled diffusion matrix (using a {\fontsize{12pt}{12pt}\texttt{VectorFunctionSpace}}) 
+assembled diffusion matrix (using a {\fontsize{12pt}{12pt}\texttt{VectorFunctionSpace}})
 contains approximately 3 times as many zeroes as non-zeros, since
 the sparsity pattern of the matrix is determined by the connectivity of
 the degrees of freedom of the finite element fields. The
@@ -702,9 +721,9 @@ The nonlinear Burger's equation is considered here as an initial-boundary value 
  u(x,0) &=-\text{sin}(\pi x)+\kappa \xi,
 \label{eq:burgers}
 \end{align}
-wher $\xi$ is a random number between 0 and 1, which is used to create a 
+wher $\xi$ is a random number between 0 and 1, which is used to create a
 discrete ``white noise'' (uncorrelated) fluctuating velocity field resembling turbulence, and $\kappa$ is the amplitude of the perturbation. %Like for the NS equations there is accumulation, a nonlinear convection term and diffusion, yet there is no pressure-velocity coupling, which makes Burger's equation easier to implement and solve. Furthermore, several analytical solutions are known for a variety of initial conditions. In this work, though, we will only use conservation of the solution's kinetic energy as a measure of accuracy.
-% For the current initialization and $\kappa=0$, the Burger's equation allows a series analytical solution \cite{} 
+% For the current initialization and $\kappa=0$, the Burger's equation allows a series analytical solution \cite{}
 % \begin{equation}
 %  u(x,t)=4\pi \nu \frac{\sum_{n=1}^{\infty} n a_n \exp(-\nu n^2 \pi^2 t) \sin(n \pi x)}{a_0 + 2\sum_{n=1}^{\infty} n a_n \exp(-\nu n^2 \pi^2 t) \cos(n \pi x)},
 % \end{equation}
@@ -722,7 +741,7 @@ We have used Crank-Nicolson-style time discretization ($\alpha=0.5$) in all our 
 Initialization of the FEniCS
 {\fontsize{12pt}{12pt}\texttt{Function u0}} can be performed by subclassing  class
 {\fontsize{12pt}{12pt}\texttt{Expression}} as
-\begin{fenicscode}{0.9}
+\begin{python}
 from numpy import sin
 from numpy.random import randn
 class U0(Expression):
@@ -734,11 +753,11 @@ class U0(Expression):
             values[0] = -sin(pi*x[0])+self.kappa*randn()
 u0 = U0(element=V.ufl_element()); u0.kappa = 0.2
 u0 = interpolate(u0,V)
-\end{fenicscode}
+\end{python}
 %\hpl{Is it necessary anymore to have the element argument? I think it's sufficient to define the formula. A space is not needed before you call interpolate.}
 %\mmo{I min versjon er det ihvertfall n\o{}dvendig}
 The variational problem can be implemented and solved as
-\begin{fenicscode}{0.9}
+\begin{python}
 bc = DirichletBC(V, Constant(0), DomainBoundary())
 
 T = 0.25; Nt = 200; k = Constant(T/Nt); t = 0
@@ -758,7 +777,7 @@ while t < T:
     bc.apply(A, b)
     solve(A, u_.vector(), b, 'gmres', 'ilu')
     u_2.assign(u_1); u_1.assign(u_)
-\end{fenicscode}
+\end{python}
 %\hpl{Why do we write u\_bar.dx(0) etc and not just inner(grad(u), grad(v))
 %as usual?}
 %\mmo{Fordi det ikke funker med min Fenics \aa{} skrive det slik i en dimensjon. Kan eventuelt skrive grad(u)[0]. }
@@ -810,7 +829,7 @@ where $\epsilon$ is the perturbation amplitude, which needs to be much smaller t
 
 The Orr-Sommerfeld disturbance evolves very slowly and for $Re=8000$ it takes approximately $2 \pi/\text{Real}(\lambda)\approx 25$ time-units to travel through the domain. In other words, the NS equations typically need to be integrated for very long times and the stability of the numerical time integration scheme thus becomes an important factor. Furthermore, the Reynolds number may be varied over decades (both the viscous and the inviscid limits), and a wide range of different solutions may be explored, as any mode (not just the unstable one) yields a different analytical solution. Alltogether, this makes the OS equation an ideal testcase for NS solvers.
 
-\subsubsection{Solution of the Orr-Sommerfeld equation}
+\paragraph{Solution of the Orr-Sommerfeld equation}
 
 The Orr-Sommerfeld eigenvalue problem must, like many eigenvalue problems, be solved with high numerical accuracy. Here the equations are solved using spectral collocation with Chebyshev polynomials as described by Trefethen \cite{tref06}. We consider a channel with Reynolds number $Re=1/\nu=8000$, where the mean pressure gradient is a constant equal to $2/Re$. Using 80 Chebyshev points the eigenvalues for this problem is plotted in Figure \ref{fig:OS_init} (b). Note the eigenvalue in white ($\lambda = 0.24707506+0.00266441 i$), which is the only eigenvalue with a positive imaginary part. Since the imaginary part is positive it is evident that this represents an unstable mode that will grow in time. Hence one might argue that eventually this disturbance will become unstable and lead to transition from laminar to turbulent flow.
 
@@ -818,14 +837,14 @@ The Orr-Sommerfeld equation is derived directly from the NS equations simply by 
 \begin{equation}
   E(t)= \int_0^{2\pi}\int_{-1}^{1} \left( \left[u-(1-y^2)\right]^2 + v^2 \right) dx dy.
 \end{equation}
-The exact analytical perturbation energy at any time should be 
+The exact analytical perturbation energy at any time should be
 \[ \frac{E(t)}{E(0)}=\text{exp}(i \text{Imag}(\lambda) t).\]
 Note, however, that we are here looking at the energy of the \textit{disturbance} only. In other words we are looking at an energy transfer drained from the mean field ($\overline{U}=1-y^2$) into the perturbation. This is a very different situation than looking at the total energy of the field, which should be conserved. The energy of the perturbation increases with time and as such it is no longer evident that an energy conserving scheme like the skew form has any significant advantage over the not necessarily conservative standard convection form.
 
-\subsubsection{Initialization in FEniCS}
+\paragraph{Initialization in FEniCS}
 
 The implementation of the Orr-Sommerfeld test-case in FEniCS requires a two-dimensional (rectangular) computational mesh with associated parameters, like viscosity, etc. The  mesh and some necessary parameters are declared as
-\begin{fenicscode}{0.9}
+\begin{python}
     from dolfin import *
     from numpy import arctan
     mesh = Rectangle(0.,-1.,2*pi,1.,40, 40)
@@ -833,19 +852,17 @@ The implementation of the Orr-Sommerfeld test-case in FEniCS requires a two-dime
     x[:,1] = arctan(2.*(x[:,1]))/arctan(2.)  # stretch mesh toward wall
     Re = 8000.; nu = Constant(1./Re)
     f = Constant((2./Re,0.)) # Pressure gradient
-\end{fenicscode}
-where the constant pressure gradient is implemented as a body force to enable the use of periodic boundary conditions for both velocity and pressure. 
+\end{python}
+where the constant pressure gradient is implemented as a body force to enable the use of periodic boundary conditions for both velocity and pressure.
 
 At our disposal we have an Orr-Sommerfeld eigenvalue solver that uses spectral collocation in $n+1$ Chebyshev points. The details of this solver is given by Trefethen~\cite{tref06} and not repeated here, and the source code can be found in the file {\fontsize{12pt}{12pt}\verb!OrrSommerfeld_eig.py!} in \cite{folder}. For the initialization of DOLFIN {\fontsize{12pt}{12pt}\texttt{Functions}} with the Orr-Sommerfeld solution, a subclass called {\fontsize{12pt}{12pt}\texttt{U0}} of the DOLFIN class {\fontsize{12pt}{12pt}\texttt{Expression}} is implemented such that it solves the eigenvalue problem on creation and overloads the eval function with the equivalence of Eq.~(\ref{eq:channel}). To initialize the specified initial velocity field we need to create an instance of the {\fontsize{12pt}{12pt}\texttt{U0}} class and interpolate it onto the appropriate function space: {\fontsize{12pt}{12pt}\texttt{V}} for fractional step and {\fontsize{12pt}{12pt}\texttt{VQ}} for the coupled solver. The procedure for the fractional step solver is
-\begin{fenicscode}{0.9}
+\begin{python}
     # Using 80 Chebyshev points and Reynolds number of 8000:
-    u = U0(element=V.ufl_element(),defaults={'Re':8000.,'N':80}) 
+    u = U0(element=V.ufl_element(),defaults={'Re':8000.,'N':80})
     u_ = interpolate(u,V)
     p_ = Constant(0.)
-\end{fenicscode}
-%\hpl{Do we need the element argument? Too tired to check out...Kent knows this ;-)}
-%\mmo{Min versjon ja.}
-The {\fontsize{12pt}{12pt}\texttt{defaults}} dictionary is used to set any parameter required by the 
+\end{python}
+The {\fontsize{12pt}{12pt}\texttt{defaults}} dictionary is used to set any parameter required by the
 expressions in the {\fontsize{12pt}{12pt}\texttt{U0}} class. In the end, the pressure is set to zero, which finalizes the initialization process. For the coupled solver, {\fontsize{12pt}{12pt}\texttt{VQ}} is used in place of {\fontsize{12pt}{12pt}\texttt{V}} and the pressure needs to be set in {\fontsize{12pt}{12pt}\texttt{U0}}. The Orr-Sommerfeld perturbation leads to a non-trivial solution that evolves in time. The initial perturbed velocity field is illustrated in Figure \ref{fig:OS_init} (a).
 \begin{figure}
  \centering
@@ -859,7 +876,7 @@ expressions in the {\fontsize{12pt}{12pt}\texttt{U0}} class. In the end, the pre
  \label{fig:OS_init}
 \end{figure}
 
-\subsubsection{Results}
+\paragraph{Results}
 In this section we consider first the transient behavior of the Navier-Stokes solver using all three forms of convection discretization (standard, divergence and skew). The spatial discretization is kept well resolved with a Rectangle mesh class using N=48 and the CFL number based on the mean velocity ($\overline{U}=1$ m/s) is varied from 0.5 to 0.025. Figure \ref{fig:OS_init_cfl}  shows the accumulated error in the perturbation flow energy computed as
 \begin{equation}
  \text{Error} = \sum_{k=0}^N \frac{|E(t_k)-\text{exp}(i \text{Imag}(\lambda) t_k)|}{N}.
@@ -895,15 +912,15 @@ To investigate the spatial discretization with the P2/P1 elements we keep the ti
 To validate the more interesting (from a turbulence instability point of view) long term performance of the solvers, we integrate the equations as long as it takes for the perturbation to travel through the domain two times (end time $\approx$ 50). One single well resolved mesh size is used (N = 40 in the {\fontsize{12pt}{12pt}\texttt{Rectangle}} class) and the CFL number is set to 0.05 or 0.1 to limit the temporal discretization errors. Figure \ref{fig:OS_long_time} shows the evolution of the perturbation energy using both the fully coupled and fractional step solvers with the second order implicit convection (\ref{eq:IM2}) and the second order explicit scheme (\ref{eq:EX}). Evidently, the standard form of convection is more stable than the divergence (most unstable) and skew forms for long integration times. The divergence and skew forms cannot capture the true evolution of the instability and the solution quickly blows up into a chaotic 2D 'turbulence' field. The standard form seems to capture the instability with ease and evolves more or less exactly according to the true solution of the eigenvalue problem. There are only minor differences between the fractional step and the fully coupled solver, which is not unexpected since we are using a very short timestep and the (second order in time) error in fractional step splitting (the only difference between the two methods) is thus minimized. By increasing the CFL number it can be shown that the fully coupled solver remains accurate for longer time-steps. Note that the total kinetic energy remains more or less constant for all the simulations shown in Figure~\ref{fig:OS_long_time}, even for the divergence and skew forms. Hence, the ability of the skew form to maintain total kinetic energy does not seem to be all that important when we are really interested in solving instability problems, where the most important physical process is that energy changes form (from the mean flow to the perturbation). Also shown in Figure~\ref{fig:OS_long_time} with circles is the result of using the same number of degrees of freedom and timestep with a cell-vertex based finite volume solver. The finite volume solver is discretized in a similar manner as our FEniCS solvers with implicit convection (\ref{eq:IM2}) using Adams-Bashforth projection and Crank-Nicholson diffusion. The integration method is fractional step, which is here slightly dissipative due to the collocated nature of the pressure and velocity. The implicit higher-order (P2/P1) FEniCS solvers are evidently much better at capturing this instability than the lower-order finite volume method, which is not surprising. The difficulties that low-order finite difference methods face when trying to capture the Orr-Sommerfeld instability have earlier been reported also by Malik \cite{Malik1984} and Canuto \cite{canuto07}.
 \begin{figure}
  \centering
- \subfigure[Explicit convection, Eq.~(\ref{eq:EX}), CFL=0.1]{\includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0.1_model_1.pdf}}
- \subfigure[Implicit convection, Eq.~(\ref{eq:IM2}), CFL=0.1]{\includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0.1_model_0.pdf}}
- \subfigure[Explicit convection, Eq.~(\ref{eq:EX}), CFL=0.05]{\includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0.05_model_1.pdf}}
- \subfigure[Implicit convection, Eq.~(\ref{eq:IM2}), CFL=0.05]{\includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0.05_model_0.pdf}}
+ \subfigure[Explicit convection, Eq.~(\ref{eq:EX}), CFL=0.1]{\includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0_1_model_1.pdf}}
+ \subfigure[Implicit convection, Eq.~(\ref{eq:IM2}), CFL=0.1]{\includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0_1_model_0.pdf}}
+ \subfigure[Explicit convection, Eq.~(\ref{eq:EX}), CFL=0.05]{\includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0_05_model_1.pdf}}
+ \subfigure[Implicit convection, Eq.~(\ref{eq:IM2}), CFL=0.05]{\includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0_05_model_0.pdf}}
  \caption{ Temporal evolution of the perturbation energy. The gray and black lines correspond to the fully coupled and fractional step solvers respectively and the solid, dashed and dotted lines correspond to the standard, divergence and skew forms of the convection respectively. The symbolic dots represent the solution from a low order finite volume solver and the squares represent the true solution. Note that for explicit convection and the standard implicit form the gray and black curves are practically identical. }
 \label{fig:OS_long_time}
 \end{figure}
 
-\subsection{Taylor-Green vortex} 
+\subsection{Taylor-Green vortex}
 Finally we consider a real transition to turbulence problem. The Taylor-Green vortex is characterized by an initialization based on an asymptotic expansion in time in a triply periodic domain spanning $[-\pi,\pi]$ in all threee directions. The deterministic initial condition that is left to evolve and destabilize into a chaotic turbulent flow is given by
 \begin{align}
  u(x,y,t)&=\sin(x)\cos(y)\cos(z),\\
@@ -918,9 +935,9 @@ Note that due to the large memory requirements of this three-dimensional problem
  \varepsilon &= \nu \int_{\Omega} \nabla \vec{u}: \nabla \vec{u}. \label{eq:diss}
 \end{align}
 The average rate of dissipation is, as already mentioned, the single most important measure of a turbulent flow. It is implemented in FEniCS as
-\begin{fenicscode}{0.9}
+\begin{python}
    assemble(nu*inner(grad(u_),grad(u_))*dx)/(2*pi)**3.
-\end{fenicscode}
+\end{python}
 
 Since the Taylor-Green vortex is (eventually) a turbulent flow there is no analytical solution that can be used to compare our results with. Hence, for validation the Taylor-Green vortex has also been simulated with Semtex \cite{semtex}, which is a well tested open-source spectral element Navier-Stokes solver that runs in parallel. Semtex uses quadrilateral spectral elements with standard nodal Gauss-Lobatto-Legendre basis functions and Fourier expansions in one homogeneous direction. To validate the Taylor-Green case we use 30 times 30 homogeneous elements of order 6 in both x and y-directions and 144 planes in the $z$-direction that is solved using Fourier expansions. The timestep in the second order timestepping routine is set to 0.005.
 
@@ -928,10 +945,10 @@ Figure \ref{fig:dissipation} shows the error in average rate of dissipation and 
 \begin{figure}
   \centering
   \subfigure[]{
-  \includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/TG_disserror_model_0_cfl_0.05_Re_100_dofs.pdf}
+  \includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/TG_disserror_model_0_cfl_0_05_Re_100_dofs.pdf}
 }
   \subfigure[]{
-  \includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/TG_energyerror_model_0_cfl_0.05_Re_100_dofs.pdf}
+  \includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/TG_energyerror_model_0_cfl_0_05_Re_100_dofs.pdf}
 }
   \caption{Relative errors in dissipation rate (\ref{eq:diss}) is shown in (a) and the energy (\ref{eq:q}) in (b). The results are displayed for implicit convection (\ref{eq:IM2}), and the squares, diamonds and pluses are used to represent standard, divergence and skew forms respectively. The open circles represent the solution obtained with a low-order finite volume code and the reference solution upon which the error is based is computed with Semtex \cite{semtex}. }
   \label{fig:dissipation}
@@ -982,7 +999,7 @@ intermediate velocity, as opposed to the divergence-free, end-of-step,
 velocity field. For the long integration times often associated with
 turbulence applications, though, we find that the implicit form
 remains stable and accurate where the explicit form cannot maintain
-sufficient stability. 
+sufficient stability.
 
 For the Orr-Sommerfeld test case the standard form of convection seems
 to be the only form that remains stable for long integration times,

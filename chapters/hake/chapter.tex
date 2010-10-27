@@ -4,7 +4,7 @@
 \newcommand{\Cl}{\ensuremath{\mbox{Cl}^{-}}\xspace}
 \newcommand{\Mg}{\ensuremath{\mbox{Mg}^{2+}}\xspace}
 \newcommand{\MgC}{\ensuremath{\left[\mbox{Mg}^{2+}\right]}\xspace}
-
+\newcommand{\PEe}{\mathrm{PE}_{\mathrm{e}}}
 \newcommand{\T}{\ensuremath{\mathcal{T}}\xspace}
 
 % positional numbers
@@ -28,7 +28,7 @@
 \label{sec:intro}
 From the time we are children, we are told that we should drink milk because it is an important source of calcium (\Ca), and that \Ca is vital for a strong bone structure. What we do not hear as frequently, is that \Ca is one of the most important cellular messengers in the human body \cite{AlbertsBrayEtAl2002}. In particular, \Ca controls cell death, neural signaling, secretion of different chemical substances to the body, and the focus of this chapter: the contraction of cells in the heart.\par
 
-In this chapter, we will present a computational model that can be used to model \Ca dynamics in a small sub-cellular domain called the dyadic cleft. The model includes \Ca diffusion, which is described by an advection-diffusion partial differential equation, and discrete channel dynamics, which is described by stochastic Markov models. Numerical methods implemented in \pydolfin solving the partial differential equation will also be pregsented. In the last section, we describe a time stepping scheme that is used to solve the stochastic and deterministic models. We will also present a solver framework, \diffsim, that implements the time stepping scheme together with the numerical methods solving the computational model described above.\par
+In this chapter, we will present a computational model that can be used to model \Ca dynamics in a small sub-cellular domain called the dyadic cleft. The model includes \Ca diffusion, which is described by an advection-diffusion partial differential equation, and discrete channel dynamics, which is described by stochastic Markov models. Numerical methods implemented in \pydolfin solving the partial differential equation will also be pregsented. In the last section, we describe a time stepping scheme that is used to solve the stochastic and deterministic models. We will also present a solver framework, \texttt{diffsim}, that implements the time stepping scheme together with the numerical methods solving the computational model described above.\par
 
 \section{Biological background}
 \index{sarcoplasmic reticulum}
@@ -71,7 +71,7 @@ The dyadic cleft is the volume between a structure called the t-tubule (TT) and 
 \subsection*{\Ca Diffusion}
 \label{sec:ca-diffusion}
 
-\subsubsection*{Electro-Diffusion}
+\paragraph*{Electro-Diffusion}
 \index{Fick's second law}
 \index{screening}
 \index{electro-diffusion}
@@ -103,7 +103,7 @@ The strength of $\psi$ is defined by the amount of charge at the cell membrane a
 \end{equation}
 Here $\psi_0$ is the non-dimensional potential at the membrane, $\kappa$ the inverse Debye length and $z$ the distance from the cell membrane. We will use $\psi_0=-2.2$ and $\kappa=1$ nm.\par
 
-\subsubsection*{Boundary fluxes}
+\paragraph*{Boundary fluxes}
 \index{stochastic channel}
 \index{t-tubule}
 \index{sarcoplasmic reticulum}
@@ -161,12 +161,12 @@ where $c$ is the concentration in the cleft at the boundary, $c_0$ the concentra
 \index{propensity functions}
 Discrete and stochastic Markov chain models are used to describe single channel dynamics. Such models are described by a certain number of discrete states. Each channel can be in either one of these states. A transition between two states is a stochastic event. The frequency of these events are determined by the propensity functions associated with each transition. These functions, which may vary with time, characterize the probability per unit time that the corresponding transition event occurs. Each Markov model defines its own propensity functions. \par
 
-\subsubsection*{L-type \Ca channel}
+\paragraph*{L-type \Ca channel}
 \label{sec:lcc}
 \index{L-type \Ca channels}
 The LCC opens when an action potential arrives at the cell. The channel inactivates when single \Ca ions bind to binding sites on the intracellular side of the channel. An LCC is composed of a complex of four transmembrane subunits. Each of these can be permissive or non-permissive. For the whole channel to be open, all four subunits need to be permissive and the channel then has to undergo a last conformational change to an opened state \cite{Hille2001}. In this chapter we are going to use a Markov model of the LCC that incorporates a voltage dependent activation together with a \Ca dependent inactivation \cite{JafriRiceEtAl1998,Gree_2002_2918}. The state diagram of this model is presented in Fig.~\ref{fig:markov-models} \textbf{A}. It consists of 12 states, where state 6 and 12 are the only conducting states, hence defineing the open states. The transition propensities are defined by a set of functions and constants, which are all described in \citet{GreensteinWinslow2002}.\par
 
-\subsubsection*{Ryanodine Receptors}
+\paragraph*{Ryanodine Receptors}
 \label{sec:ryr}
 \index{ryanodine receptor}
 RyRs are \Ca specific channels that are gathered in clusters at the SR membrane in the dyadic cleft. These clusters can consist of several hundreds of RyRs \cite{BeuckelmannWier1988,Franzini-ArmstrongProtasiEtAl1999}. They open by single \Ca ions attaching to the receptors at the cytosolic side. We will use a modified version of a phenomenological RyR model that mimics the physiological functions of the channel \cite{SternSongEtAl1999}. The model consists of four states where only one is conducting, state 2, see Fig.~\ref{fig:markov-models} \textbf{B}. The $\alpha$ and $\gamma$ propensities are \Ca dependent, representing the activation and inactivation dependency of cytosolic \CaC. The $\beta$ and $\delta$ propensities are constants. For specific values for the propensities, see \citet{SternSongEtAl1999}.\par
@@ -431,7 +431,7 @@ In Fig.~\ref{fig:time-line} we show an example of a possible realization of this
 \section{Discussion}
 We have presented a computational model of the \Ca dynamics of the dyadic cleft in heart cells. It consists of a coupled stochastic and continuous system. We have showed how one can use \pydolfin to discretise and solve the continuous system using a finite element method. The continuous system is an advection-diffusion equation that produce unstable discretizations. We investigate how one can use the streamline upwind/Petrov-Galerkin method to stabilize the discretized system. We use three different meshes and find an L$^2$-optimal global stabilization parameters $\tau$ for each mesh.\par
 
-We do not present a solver for the stochastic system. However we outline a time stepping scheme that can be used to couple the stochastic solver with the presented solver for the continuous system. A simulator \diffsim is briefly introduced, which implements the presented time stepping scheme together with the presented solver for the continuous system.
+We do not present a solver for the stochastic system. However we outline a time stepping scheme that can be used to couple the stochastic solver with the presented solver for the continuous system. A simulator \texttt{diffsim} is briefly introduced, which implements the presented time stepping scheme together with the presented solver for the continuous system.
 %\section{Introduction}
 %\label{sec:intro}
 %
@@ -471,7 +471,7 @@ We do not present a solver for the stochastic system. However we outline a time 
 %\label{sec:ca-diffusion}
 %%\think{Include an introduction of \Ca diffusion?}
 %
-%\subsubsection{Electro-Diffusion}
+%\paragraph{Electro-Diffusion}
 %The cell membrane, also called the sarcolemma, consists of a lipid bi-layer, which produce an electric potential in the solution. This potential is due to negatively charged phospholipid head-groups \cite{McLa_1971_667,Lang_1990_335}. Therefore in close proximity to the sarcolemma, an electric double layer is produced \cite{Bard_2001_book}. I am going to use the Gouy-Chapman method, which defines a \textit{diffuse layer} to describe this double layer \cite{Grah_1947_441}. The theory introduces an advection term to the ordinary diffusion equation, which makes the resulting equation harder to solve. \par
 %
 %The ion flux in a solution that experience an electric field is governed by the Nernst-Planck equation,
@@ -498,7 +498,7 @@ We do not present a solver for the stochastic system. However we outline a time 
 %\editornote{Check formula in (\ref{eq:electric_potential}). Got undefined control sequence when comping
 %so needed to edit.}
 %
-%\subsubsection{Boundary fluxes}
+%\paragraph{Boundary fluxes}
 %The SR and TT membrane is impermeable for ions, effectively making $\partial\Omega_{\scriptscriptstyle\text{0}}$, in Fig.~\ref{fig:morphology}, a no-flux boundary, giving us,
 %\begin{equation}
 %  \label{eq:no-flux}
@@ -547,11 +547,11 @@ We do not present a solver for the stochastic system. However we outline a time 
 %\label{sec:stochastic-models}
 %Discrete and stochastic Markov chain models are used to describe single channels dynamics. Such models consists of a variable that can be in a certain number of discrete states. The transition between these states is a stochastic event. The frequency of these events are determined by the propensity functions associated to each transition. These functions characterize the probability per unit time that the corresponding transition event occurs and are dependent on the chosen Markov chain model and they may vary with time.\par
 %
-%\subsubsection{L-type \Ca channel}
+%\paragraph{L-type \Ca channel}
 %\label{sec:lcc}
 %The LCC is the main source for extracellular \Ca into the cleft. The channel opens when an action potential arrives to the cell and inactivates when single \Ca ions binds to binding sites on the intracellular side of the channel. An LCC is composed by a complex of four transmembrane subunits, which each can be permissive or non-permissive. For the whole channel to be open, all four subunits need to be permissive and the channel then has to undergo a last conformational change to an opened state \cite{Hill_2001_book}. In this chapter I am going to use a Markov model of the LCC that incorporates a voltage dependent activation together with a \Ca dependent inactivation \cite{JafriRiceEtAl1998,Gree_2002_2918}. The state diagram of this model is presented in Fig.~\ref{fig:markov-models} \textbf{A}. It consists of 12 states, where state 6 and 12 are the only conducting states, i.e., when the channel is in one of these states it is open. The transition propensities are defined by a set of functions and constants, which are all described in \cite{Gree_2002_2918}.\par
 %
-%\subsubsection{Ryanodine Receptors}
+%\paragraph{Ryanodine Receptors}
 %\label{sec:ryr}
 %RyRs are \Ca specific channels that are situated on the SR in clusters of several channels \cite{Beuc_1988_233,Fran_1999_1528}. They open by single \Ca ions attaching to the receptors at the cytosolic side. A modified version of a phenomenological model that mimics the physiological functions of the RyRs, first presented by \cite{Ster_1999_469}, will be used. The model consists of four states where one is conducting, state 2, see Fig.~\ref{fig:markov-models} \textbf{B}. The $\alpha$ and $\gamma$ propensities are \Ca dependent, representing the activation and inactivation dependency of cytosolic \CaC. The $\beta$ and $\delta$ propensities are constants. For specific values for the propensities consider \cite{Ster_1999_469}.\par
 %
