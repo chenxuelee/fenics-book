@@ -35,7 +35,6 @@ original mesh from the smaller distributed sub meshes, it is essential
 that the information for the shared entities are the same on all
 processors.
 
-
 \section{Local mesh refinement}
 \index{Parallel adaptive mesh refinement}
 
@@ -125,14 +124,16 @@ communication. With less communication overhead it should also scale
 better for a large number of processors.
 
 \begin{figure}[htb]
- \psfrag{_1._}[l][bl][0.8]{1.}  \psfrag{_2._}[l][bl][0.8]{2.}
- \psfrag{_3._}[l][bl][0.8]{3.}  \begin{center}
- \includegraphics[width=1.0\columnwidth]{chapters/hoffman-4/pdf/mref.pdf}
- \end{center} \caption{An example of the refinement algorithm
- used. First a set of elements are marked for refinement (1). The
- longest edges are found (2), and all elements connected to these
- edges are finally bisected, the dashed lines in (3).}
- \label{hoffman-4:fig:bisectexample}
+  \begin{center}
+    %\psfrag{_1._}[l][bl][0.8]{1.}  %\psfrag{_2._}[l][bl][0.8]{2.}
+    %\psfrag{_3._}[l][bl][0.8]{3.}  \begin{center}
+    \includegraphics[width=1.0\columnwidth]{chapters/hoffman-4/pdf/mref.pdf}
+    \caption{An example of the refinement algorithm
+      used. First a set of elements are marked for refinement (1). The
+      longest edges are found (2), and all elements connected to these
+      edges are finally bisected, the dashed lines in (3).}
+    \label{hoffman-4:fig:bisectexample}
+  \end{center}
 \end{figure}
 
 When this work started, DOLFIN did not have a pure longest edge
@@ -146,9 +147,9 @@ only propagate the refinement onto all elements (processors) connected
 to that edge, but then no further propagation is possible (see figure
 \ref{hoffman-4:fig:prop}).
 \begin{figure}[htb]
- \psfrag{Cpu 0}[l][cl][0.7]{Cpu 0}
- \psfrag{Cpu 1}[l][cl][0.7]{Cpu 1}
- \psfrag{Cpu 2}[l][cl][0.7]{Cpu 2}
+ %\psfrag{Cpu 0}[l][cl][0.7]{Cpu 0}
+ %\psfrag{Cpu 1}[l][cl][0.7]{Cpu 1}
+ %\psfrag{Cpu 2}[l][cl][0.7]{Cpu 2}
   \begin{center}
     \includegraphics[width=0.95\columnwidth]{chapters/hoffman-4/pdf/prop.pdf}
   \end{center}
@@ -168,12 +169,15 @@ figure \ref{hoffman-4:fig:prop}). In this case the propagation is done
 implicitly but the processors must decide which new information
 to use.
 \begin{figure}[htb]
- \psfrag{Cpu 0}[l][cl][0.7]{Cpu 0} \psfrag{Cpu 1}[l][cl][0.7]{Cpu 1}
- \psfrag{Cpu 2}[l][cl][0.7]{Cpu 2} \begin{center}
- \includegraphics[width=0.65\columnwidth]{chapters/hoffman-4/pdf/propprob.pdf}
- \end{center} \caption{An example of the problematic case with
- multiple propagations. The dashed lines refers to how processors
- wants to bisect the elements.}  \label{hoffman-4:fig:propprob}
+  \begin{center}
+    %\psfrag{Cpu 0}[l][cl][0.7]{Cpu 0} %\psfrag{Cpu 1}[l][cl][0.7]{Cpu 1}
+    %\psfrag{Cpu 2}[l][cl][0.7]{Cpu 2} \begin{center}
+    \includegraphics[width=0.65\columnwidth]{chapters/hoffman-4/pdf/propprob.pdf}
+    \caption{An example of the problematic case with
+      multiple propagations. The dashed lines refers to how processors
+      wants to bisect the elements.}
+    \label{hoffman-4:fig:propprob}
+  \end{center}
 \end{figure}
 
 A more complicated case is when an element receives multiple
@@ -185,7 +189,7 @@ adds a difficulty to the simple algorithm. How should the processors
 decide upon which edge to be refined? Clearly this could not be done
 arbitrarily, since when a propagation is forbidden, all refinement
 done around that edge must be removed. Thus, in the worst case it
-could destroy the entire refinement. 
+could destroy the entire refinement.
 
 To solve the edge selection problem perfectly one needs an algorithm
 with a global view of the mesh. In two dimensions with a triangular
@@ -219,9 +223,9 @@ edge votes from each other, the exchange of votes will in this case
 not help with selecting an edge that would work for both processors.
 
 \begin{figure}[htb]
- \psfrag{Cpu 0}[l][cl][0.7]{Cpu 0}
- \psfrag{Cpu 1}[l][cl][0.7]{Cpu 1}
- \psfrag{Cpu 2}[l][cl][0.7]{Cpu 2}
+ %\psfrag{Cpu 0}[l][cl][0.7]{Cpu 0}
+ %\psfrag{Cpu 1}[l][cl][0.7]{Cpu 1}
+ %\psfrag{Cpu 2}[l][cl][0.7]{Cpu 2}
   \begin{center}
    \includegraphics[width=0.65\columnwidth]{chapters/hoffman-4/pdf/probmissing.pdf}
   \end{center}
@@ -296,7 +300,7 @@ imbalanced if
   W_\textrm{max} /  W_\textrm{avg}  > \kappa
   %      \frac{W_{max}}{ W_{avg}}   > \epsilon
 \end{equation}
-where the threshold value $\kappa$ is based on the problem or machine characteristics. 
+where the threshold value $\kappa$ is based on the problem or machine characteristics.
 
 This model suits the modified longest edge algorithm (section
 \ref{hoffman-4:sect:modlong}) perfectly. Since the modifications reduces the
@@ -367,7 +371,7 @@ pattern, all processors would always be busy sending and receiving
 data, thus no idle time.
 \begin{algorithm}
   \begin{algorithmic}
-    \For { i =1 \textbf{to} p-1}
+    \For {i =1 \textbf{to} p-1}
     \State src $\leftarrow$ (rank - 1 + p) $\mod$ p
     \State dest $\leftarrow$ (rank + 1) $\mod$ p
     \State sendrecv(send sendbuff(dest) to dest and recv from src)
@@ -418,7 +422,7 @@ efficiently express the refinement of shared entities in algorithm
     \ForAll {received votes on edge $e$} \State increase vote($e$) \EndFor
     \ForAll {$c \in \mathcal{B}$} \State mark $ \max_{e \in c}\left( \textrm{vote}(e) \right)$ for refinement \EndFor
     \State exchange refinement with algorithm \ref{hoffman-4:alg:cpattern}
-    \ForAll {received refinement} 
+    \ForAll {received refinement}
     \If {$e$ is not refined and not part of a refined element}
     \State mark edge and propagate refinement
     \Else
@@ -474,7 +478,7 @@ prefix calculation and a parallel swap phase (when the elements are
 moved to the new ``sorted'' locations).
 \begin{algorithm}
   \begin{algorithmic}
-    \For {i = 0 to $\beta$} 
+    \For {i = 0 to $\beta$}
     \For {j = 0 to N}
     \State count[i byte of data(j)] $\leftarrow$ count[i byte of data(j)] + 1
     \EndFor
@@ -572,27 +576,27 @@ number of processors are used. The question is why? Is it solely due
 to the increased communication cost? Or is the load balancer's
 computational cost to blame?
 \begin{figure}[hbt]
-  \psfrag{r}[c][l][0.75]{Speedup}
-  \psfrag{p}[c][c][0.75]{Number of processors}
-  \psfrag{1}[c][c][0.7]{1}
-  \psfrag{2}[c][c][0.7]{2}
-  \psfrag{3}[c][c][0.7]{3}
-  \psfrag{4}[c][c][0.7]{4}
-  \psfrag{5}[c][c][0.7]{5}
-  \psfrag{6}[c][c][0.7]{6}
-  \psfrag{7}[c][c][0.7]{7}
-  \psfrag{8}[c][c][0.7]{8}
+  %\psfrag{r}[c][l][0.75]{Speedup}
+  %\psfrag{p}[c][c][0.75]{Number of processors}
+  %\psfrag{1}[c][c][0.7]{1}
+  %\psfrag{2}[c][c][0.7]{2}
+  %\psfrag{3}[c][c][0.7]{3}
+  %\psfrag{4}[c][c][0.7]{4}
+  %\psfrag{5}[c][c][0.7]{5}
+  %\psfrag{6}[c][c][0.7]{6}
+  %\psfrag{7}[c][c][0.7]{7}
+  %\psfrag{8}[c][c][0.7]{8}
 
-  \psfrag{32}[c][c][0.7]{32}
-  \psfrag{64}[c][c][0.7]{64}
-  \psfrag{128}[c][c][0.7]{128}
-  \psfrag{256}[c][c][0.7]{256}
-  \psfrag{512}[c][c][0.7]{512}
-  \psfrag{1024}[c][c][0.7]{1024}
+  %\psfrag{32}[c][c][0.7]{32}
+  %\psfrag{64}[c][c][0.7]{64}
+  %\psfrag{128}[c][c][0.7]{128}
+  %\psfrag{256}[c][c][0.7]{256}
+  %\psfrag{512}[c][c][0.7]{512}
+  %\psfrag{1024}[c][c][0.7]{1024}
 
-  \psfrag{cyl1}[c][c][0.7]{cyl1}
-  \psfrag{cyl2}[c][c][0.7]{cyl2}
-  \psfrag{hill}[c][c][0.7]{hill}
+  %\psfrag{cyl1}[c][c][0.7]{cyl1}
+  %\psfrag{cyl2}[c][c][0.7]{cyl2}
+  %\psfrag{hill}[c][c][0.7]{hill}
 
   \begin{center}
       \includegraphics[width=0.55\columnwidth]{chapters/hoffman-4/pdf/speedup.pdf}
@@ -634,8 +638,9 @@ again performance drops between 512 and 1024 processors.
       1024 & 19.24 & 1.74 \\
       \hline
     \end{tabular}
+    \caption{Refinement time for a nine million vertices mesh}
+    \label{hoffman-4:tab:reftime}
   \end{center}
-  \caption{\label{hoffman-4:tab:reftime} Refinement time for a nine million vertices mesh}
 \end{table}
 
 However, despite the decrease in speedup, one could see that the
