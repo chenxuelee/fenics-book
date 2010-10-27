@@ -1,18 +1,9 @@
 \fenicschapter{FFC: The FEniCS Form Compiler}
               {FFC: The FEniCS Form Compiler}
               {Anders Logg, Kristian B. \O{}lgaard, Marie E. Rognes and Garth N. Wells}
+              {logg-1}
 
-%\newcommand{\largewidth}{10cm}
-%\newcommand{\smallwidth}{5cm}
-
-%\newcommand{\ffc}{FFC}
-%\newcommand{\ufl}{UFL}
-%\newcommand{\ufc}{UFC}
-\renewcommand{\dolfin}{DOLFIN}
-\newcommand{\ferari}{FErari}
-\newcommand{\pythonlang}{Python}
 \newcommand{\commandline}[1]{\medskip\noindent\framebox[\textwidth][l]{\texttt{#1}}\medskip}
-%\newcommand{\emp}[1]{\texttt{#1}}
 
 One of the key features of FEniCS is automated code generation for the
 general and efficient solution of finite element variational
@@ -74,7 +65,7 @@ illustrated schematically in Figure~\ref{fig:formcompiler}.
 %------------------------------------------------------------------------------
 \section{Compiler interfaces}
 
-FFC provides three interfaces: a \pythonlang{} interface, a
+FFC provides three interfaces: a Python interface, a
 command-line interface, and a just-in-time (JIT) compilation
 interface. The first two are presented here, while the third is
 discussed in Section~\ref{sec:jit}.
@@ -82,8 +73,8 @@ discussed in Section~\ref{sec:jit}.
 %------------------------------------------------------------------------------
 \subsection{Python interface}
 
-The \pythonlang{} interface to \ffc{} takes the form of a standard
-\pythonlang{} module. There are two main entry point functions to the
+The Python interface to \ffc{} takes the form of a standard
+Python module. There are two main entry point functions to the
 functionality of \ffc{}: \emp{compile\_element} and
 \emp{compile\_form}, to compile elements and forms, respectively.
 
@@ -102,7 +93,7 @@ finite element spaces and their corresponding degree-of-freedom maps. The
 \emp{prefix} argument can be used to control the prefix of the
 file containing the generated code; the default is "Element". The
 suffix ".h" will be added automatically. The second optional argument
-\emp{parameters} should be a \pythonlang{} dictionary with code
+\emp{parameters} should be a Python dictionary with code
 generation parameters and is described further below.
 
 Similarly, the \emp{compile\_form} function expects a form or a list
@@ -128,7 +119,7 @@ to allow a user to refer to any coefficients in a form by their names
 As an illustration, we list in Figure~\ref{fig:python:element} the
 specification and compilation of a piecewise continuous quartic finite
 element (Lagrange element of degree $4$) in three dimensions using the
-\ffc{} \pythonlang{} interface. The two first lines import the \ufl{}
+\ffc{} Python interface. The two first lines import the \ufl{}
 and \ffc{} modules respectively. The third line specifies the finite
 element in the \ufl{} syntax. The last line calls the \ffc{}
 \emp{compile\_element} function. The generated code is written to
@@ -147,7 +138,7 @@ compile_element(element, prefix="P4tet")
 
 In Figure~\ref{fig:python:form}, we illustrate the specification
 and compilation of a variational formulation of Poisson's equation in
-two dimensions using the \pythonlang{} interface. The last line
+two dimensions using the Python interface. The last line
 calls the \emp{compile\_form} function. When run, code will be
 generated for the forms \emp{a} and \emp{L}, and the finite
 element and degree-of-freedom map associated with the element
@@ -193,7 +184,7 @@ f = Coefficient(V)
 a = inner(grad(v), grad(u))*dx
 L = v*f*dx
 \end{python}
-The contents of each form file are wrapped in a \pythonlang{} script
+The contents of each form file are wrapped in a Python script
 and then executed. Such a script is simply a copy of the form file
 that includes the required imports of FFC and UFL and calls
 \emp{compile\_element} or \emp{compile\_form} from the FFC
@@ -362,7 +353,6 @@ available as part of the UFC module \emp{ufc\_utils}. \\*[1ex]
 \end{tabular}
 \end{description}
 
-\begin{comment}
 %------------------------------------------------------------------------------
 \subsection{Compiler stage 0: Language (parsing)}
 
@@ -465,7 +455,6 @@ the UFC format, generating as output one or more \emp{.h}/\emp{.cpp} files
 conforming to the UFC format. This is where the actual writing of C++
 code takes place. This stage relies on templates for UFC code
 available as part of the UFC module \emp{ufc\_utils}.
-\end{comment}
 
 %------------------------------------------------------------------------------
 \section{Form representation}
@@ -554,7 +543,7 @@ tensor~$A_T$.
 Due to the dissimilar nature of the quadrature and tensor representations,
 the optimizations applied to the two representations are different.
 To optimize the tensor representation,
-\ffc{} relies on the \pythonlang{} module \ferari{} (see Chapter~[kirby-3])
+\ffc{} relies on the Python module \ferari{} (see Chapter~[kirby-3])
 to perform the optimizations. Optimization strategies for the quadrature
 representation are implemented as part of the
 \ffc{} module itself and are described in~Chapter~[oelgaard-2].
@@ -564,7 +553,7 @@ variational forms, hardware limitations can make the compilation
 impossible.
 
 Optimizations are switched on by using the command-line
-option \emp{-O} or through the \pythonlang{} interface by setting the
+option \emp{-O} or through the Python interface by setting the
 parameter \emp{optimize} equal to \emp{True}. For the quadrature
 representation, there exist four optimization strategy options,
 and these can be selected through the command-line interface by giving

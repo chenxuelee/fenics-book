@@ -1,22 +1,19 @@
-\long\def\COMMENT#1{\par\vbox{\hrule\vskip1pt#1\vskip1pt\hrule}}
-
 \fenicschapter{Lessons Learned in Mixed Language Programming Using Python, C++ and \swig}
-{Mixed Language Programming} 
-{Johan Hake and Kent-Andre Mardal}
-{mixedlanguage}
-
+              {Mixed Language Programming}
+              {Johan Hake and Kent-Andre Mardal}
+              {mixedlanguage}
 
 \section{Introduction}
-Python~\cite{www:python} has in the last decade become an established platform for scientific computing. Widely used scientific software like, e.g., \petsc\cite{www:petsc}, \hypre\cite{www:hypre}, \trilinos\cite{pytrilinos}, \vtk\cite{www:vtk}, \itk, \ginac\cite{BauerFrinkEtAl2000} have all been equipped with Python interfaces. In addition many packages like for instance the \fenics packages \ferrari, \fiat \cite{Kirby2006}, \ffc\cite{FFC}, \ufl\cite{UFL}, \viper, as well as other packages like \sympy\cite{Sympy}, \scipy\cite{SciPy} are pure Python packages. The \dolfin library has both a C++ and a Python user-interface. Python makes application building on top of \dolfin more user friendly, but the Python interface also introduces additional complexity and new problems. This chapter describes some lessons learned during the development of \pydolfin, and is intentionally quite technical. We assume that the reader has basic knowledge of both C++ and Python. A suitable textbook on Python for scientific computing is \cite{Simula.SC.63}, which cover both Python and its C interface. SWIG is well documented and we refer to the user manual that can be found on its web page~\cite{SWIG}. Finally, we refer to \citet{SC.5.Langtangen.2003.a} and \citet{pytrilinos} for a description of how \swig can be used to generate Python interfaces for Diffpack and Trilinos.\par
+Python~\cite{www:python} has in the last decade become an established platform for scientific computing. Widely used scientific software like, e.g., \petsc\cite{www:petsc}, \hypre\cite{www:hypre}, \trilinos\cite{pytrilinos}, \vtk\cite{www:vtk}, \itk, \ginac\cite{BauerFrinkEtAl2000} have all been equipped with Python interfaces. In addition many packages like for instance the \fenics packages \ferari, \fiat \cite{Kirby2006}, \ffc\cite{FFC}, \ufl\cite{UFL}, \viper, as well as other packages like \sympy\cite{Sympy}, \scipy\cite{SciPy} are pure Python packages. The \dolfin library has both a C++ and a Python user-interface. Python makes application building on top of \dolfin more user friendly, but the Python interface also introduces additional complexity and new problems. This chapter describes some lessons learned during the development of \pydolfin, and is intentionally quite technical. We assume that the reader has basic knowledge of both C++ and Python. A suitable textbook on Python for scientific computing is \cite{Simula.SC.63}, which cover both Python and its C interface. SWIG is well documented and we refer to the user manual that can be found on its web page~\cite{SWIG}. Finally, we refer to \citet{SC.5.Langtangen.2003.a} and \citet{pytrilinos} for a description of how \swig can be used to generate Python interfaces for Diffpack and Trilinos.\par
 
-All the code examples in this chapter can found in 
-\emp{\$FENICSBOOK/mixed\_language/}. 
+All the code examples in this chapter can found in
+\emp{\$FENICSBOOK/mixed\_language/}.
 
 \section{Using \swig}
 Python and C++ are two very different languages, but they can be glued together as specified by the Python C-API~\cite{www:python-capi}, also see \citet{www:python-extending}. The code that glues together C++ and Python is commonly called wrapper code. Writing wrapper code manually is often cumbersome, therefore wrapper code generators such as e.g. F2PY~\cite{F2Py}, SIP~\cite{SIP}, Siloon~\cite{Siloon}, or \swig~\cite{SWIG} are usually used.  Common for all these code generators are that they create a Python extension module in the form of a shared library. This module can then be imported and accessed as any Python module. \swig has been used to create \pydolfin. \swig is a mature wrapper code generator that support many languages and is extensively documented.\par
 
 \subsection{Basic \swig}
-To get a basic understanding of \swig, consider the following definition of an Array class defined in \emp{Array.h}. 
+To get a basic understanding of \swig, consider the following definition of an Array class defined in \emp{Array.h}.
 \codeinput{chapters/mardal-2/code/Array.h}
 A first attempt to make the Array accessible in Python using \swig, is to write a \swig interface file \emp{Array\_1.i}.
 \codeinput{chapters/mardal-2/code/Array_1.i}
@@ -43,9 +40,9 @@ The Python proxy class resembles the C++ class in many ways. Simple methods like
 Hence, a number of different problems arise even in such a simple example. Fortunately, these problems are fairly common and simple, and general solutions to these problems can be implemented quite easily. We will go through each of these issues.\par
 
 \subsection{The \texttt{operator[]}}
-The first problem is that \swig does not wrap the \texttt{operator[]} from C++ to Python. 
-One basic observation here is that Python does not have 'const' types. Hence, 
-the \texttt{operator[]} would in this case be ambiguous\footnote{In general will \swig solve such ambiguities by ignoring one of the methods while issuing a warning.}. 
+The first problem is that \swig does not wrap the \texttt{operator[]} from C++ to Python.
+One basic observation here is that Python does not have 'const' types. Hence,
+the \texttt{operator[]} would in this case be ambiguous\footnote{In general will \swig solve such ambiguities by ignoring one of the methods while issuing a warning.}.
 In Python the operator should map to two different special methods: \texttt{\_\_setitem\_\_} and \texttt{\_\_getitem\_\_}. To implement this operator properly, we ignore both version of the \texttt{operator[]} with
 \begin{code}
 %ignore Array::operator[];
@@ -63,7 +60,7 @@ void __setitem__(int i, double v) {
 ...
 };
 \end{code}
-Notice that all \swig directives start with '\texttt{\%}'. 
+Notice that all \swig directives start with '\texttt{\%}'.
 Furthermore, the access to the actual instance is provided by the \texttt{self} pointer, which in this case is a C++ pointer that points to an \texttt{Array} instance. The pointer is comparable to the \texttt{this} pointer in a C++ class, but with only public attributes available. \swig also extends the python proxy class with the same methods.\par
 
 %A basic observation here is that Python does not have \texttt{const} types. This means that if \swig would have wrapped the \texttt{operator[]} methods in the \texttt{Array} class ...
@@ -99,13 +96,13 @@ The same script will report the same \texttt{id} for all objects after the sugge
 
 \subsection{ \texttt{std::ostream \& operator<<}}%>>
 \swig ignores the \texttt{operator <<}, %>>
-and this operator is therefore useless from Python. However, we can again use the \texttt{\%extend} directive to make this operator available from Python. We do this by extending the C++ extension layer with a \texttt{\_\_str\_\_} method. 
+and this operator is therefore useless from Python. However, we can again use the \texttt{\%extend} directive to make this operator available from Python. We do this by extending the C++ extension layer with a \texttt{\_\_str\_\_} method.
 \begin{code}
 \begin{code}
 %extend Array {
 ...
   std::string __str__() {
-    std::ostringstream s; 
+    std::ostringstream s;
     s << (*self);
     return s.str();
   }
@@ -115,21 +112,21 @@ This method use the \texttt{operator<<} %>>
 to pipe the stream representation of array to a \texttt{std::ostringstream} and then return a \texttt{std::string} representation of the stream. To make \swig able to convert a \texttt{std::string} to a Python string, we need to include the \texttt{std\_string.i} file in the \texttt{Array\_2.i} file. In Python we can then call \texttt{print} on an instance of \texttt{Array}, with the result of displaying the content of the \texttt{Array}.\par
 
 \subsection{The constructor: \texttt{Array(int n\_, double* a\_);}}
-The fourth problem is related to pointer handling in C/C++ and how \swig deals with pointers.  From the constructor signature alone, it is not clear whether \emp{double *} points to a single value or to the first element of an array. 
-Therefore, \swig takes a conservative approach and handles pointers as pointers, not assuming anything about the length. 
-In this example, we do of course know that 
-\emp{double* a} points to the first element of an array of length \emp{n}.  
-%In the \emp{Array(int n\_, double* a\_)} constructor, \emp{a\_} is a pointer to the first element in an array of length \emp{n\_}. 
-However, \swig provides the concept 'typemap' to enable mappings between C/C++ types and Python objects. 
+The fourth problem is related to pointer handling in C/C++ and how \swig deals with pointers.  From the constructor signature alone, it is not clear whether \emp{double *} points to a single value or to the first element of an array.
+Therefore, \swig takes a conservative approach and handles pointers as pointers, not assuming anything about the length.
+In this example, we do of course know that
+\emp{double* a} points to the first element of an array of length \emp{n}.
+%In the \emp{Array(int n\_, double* a\_)} constructor, \emp{a\_} is a pointer to the first element in an array of length \emp{n\_}.
+However, \swig provides the concept 'typemap' to enable mappings between C/C++ types and Python objects.
 The following code demonstrates how to map a Numpy array
-to, e.g., the \emp{(int n\_, double* a\_)} constructor. 
+to, e.g., the \emp{(int n\_, double* a\_)} constructor.
 \begin{code}
 %typemap(in) (int n_, double* a_){
-  if (!PyArray_Check($input)) { 
+  if (!PyArray_Check($input)) {
     PyErr_SetString(PyExc_TypeError, "Not a NumPy array");
     return NULL; ;
   }
-  PyArrayObject* pyarray = reinterpret_cast<PyArrayObject*>($input); 
+  PyArrayObject* pyarray = reinterpret_cast<PyArrayObject*>($input);
   if (!(PyArray_TYPE(pyarray) == NPY_DOUBLE)) {
     PyErr_SetString(PyExc_TypeError, "Not a NumPy array of doubles");
     return NULL; ;
@@ -140,11 +137,11 @@ to, e.g., the \emp{(int n\_, double* a\_)} constructor.
 \end{code}
 A reader not familiar with the C-APIs of Python and \numpy will probably consider this typemap code as fairly technical, but it is a good example as it demonstrates some of the possibilities with typemaps. \par
 The first line specifies that the typemap should be applied to input \texttt{(in)} arguments to the C++ library, which has the signature \emp{int n\_,double* a\_}. The \$ prefixed variables are used to map in and output variables in the typemap. The variables \$1 and \$2 maps to the first and second argument of the typemap, i.e., \emp{n\_} and \emp{a\_}. Furthermore, \$input maps to a pointer to the Python object a user is calling the \swig generated method with. \par
-In the next three lines we check if the input Python object is a \numpy array, and raise an exception if not. 
+In the next three lines we check if the input Python object is a \numpy array, and raise an exception if not.
 Note that any Python C-API function that returns \emp{NULL} tells the Python interpreter that an exception has occurred. Python will then raise the error set by the \texttt{PyErr\_SetString} statement. Next, we cast the Python object pointer to a \numpy array pointer and check if the data type of the \numpy array is correct, i.e. that it contains doubles. Then, we acquire the data from the \numpy array and assign the two input variables.\par
 
-A user defined typemap should be followed by a \texttt{\%typecheck} directive 
-in case of overloading. \swig rely on such directives to resolve which of the overloaded C++ methods that should be 
+A user defined typemap should be followed by a \texttt{\%typecheck} directive
+in case of overloading. \swig rely on such directives to resolve which of the overloaded C++ methods that should be
 called when the corresponding Python method is called\footnote{In Python you cannot overload class methods, i.e., only one method with the same name per class is allowed. You can define several methods with the same name in Python, however, only one of them will actually exist.}. If a wrapped C++ class has overloaded methods, \swig dynamically needs to figure out which one of them it should call. This process is called dynamic dispatch. \swig first check the number of arguments. If several methods has the same number of arguments \swig use a priority system, based on an internal type priority numbering. See the \swig documentation~\cite{SWIG} for more information on the built in type priorities \swig uses. When a user define a typemap for a new type he also need to associate the typemap with such a priority number, which is done by the \texttt{\%typecheck} directive.\par
 A suitable typecheck for our example typemap looks like:
 \begin{code}
@@ -182,8 +179,8 @@ The next two blocks in \texttt{dolfin.i} defines code that will be inserted into
 import_array();
 %}
 \end{code}
-\swig will insert any code that resides in a \texttt{\%\{$\ldots$\}\%} block, verbatim at the top of the generated C++ wrapper file (\texttt{\%\{$\ldots$\}\%} is short for \texttt{\%header\%\{$\ldots$\}\%}). 
-Hence, the first block of code is similar to the include statements you would put in a standard C++ program.  
+\swig will insert any code that resides in a \texttt{\%\{$\ldots$\}\%} block, verbatim at the top of the generated C++ wrapper file (\texttt{\%\{$\ldots$\}\%} is short for \texttt{\%header\%\{$\ldots$\}\%}).
+Hence, the first block of code is similar to the include statements you would put in a standard C++ program.
 The code in the second block, \texttt{\%init\%\{$\ldots$\}\%}, is inserted in the code for the Python module initialization. The \texttt{import\_array()} function is needed to initialize the C-API of \numpy. \swig provides several such blocks, each inserting verbatim code into the wrapper file at different positions, see \swig documentation for more alternatives\cite{SWIG}.\par
 
 \subsection{Reference counting using shared\_ptr}
@@ -207,7 +204,7 @@ As instances of \texttt{FunctionSpace} in \pydolfin is stored using \texttt{shar
 \subsection{Typemaps}
 The types included in the \texttt{kernel\_module.i} file are mostly wrapped nicely with \swig. However, as in the \texttt{Array} example above, there exists corner-cases which are problematic. In \texttt{dolfin.i} we include three different types of global typemaps: \textit{i)} general-, \textit{ii)} \numpy- and, \textit{iii)} std\_vector-typemaps. These are implemented in the interface files: \texttt{typemaps.i}, \texttt{numpy\_}\texttt{typemaps.i} and \texttt{std\_}\texttt{vector\_}\texttt{typemaps.i}. We will here present some of the typemaps defined in these files.\par
 
-\subsubsection{\texttt{typemaps.i:}}
+\paragraph{\texttt{typemaps.i:}}
 In \texttt{typemaps.i} we define typemaps for four different basic types. In- and out-typemaps for \texttt{dolfin::uint}, and \texttt{dolfin::real}, an in-typemap for \texttt{int}, and an out-typemap macro for \texttt{std::pair<dolfin::uint,}\-\texttt{dolfin::uint>}.\par
 
 We start with the simplest typemap, an out-typemap for \emp{dolfin::uint} (notice that Python does not have \texttt{unsigned int}):
@@ -242,14 +239,14 @@ The out-typemap for \texttt{std::pair<dolfin::uint,}\texttt{dolfin::uint>} retur
 %$ here to fool emacs highlightings
 This is an example of a short and comprehensive typemap. It uses the Python C-API function \texttt{Py\_BuildValue} to build a tuple of the two values in the \texttt{std::pair} object.\par
 
-\subsubsection{\texttt{numpy\_typemaps.i:}}
+\paragraph{\texttt{numpy\_typemaps.i:}}
 In \texttt{numpy\_typemaps.i} we define in-typemaps for arrays of primitive types: \texttt{double}, \texttt{int} and \texttt{dolfin::uint}. As in the \texttt{Array} example above, we define in-typemaps for these types so one can pass a \numpy array of the corresponding type as the argument. Instead of writing one typemap for each primitive type, we write a \swig macro, which is called using the different types as argument. The code in the typemaps are inserted directly in the wrapper code, with the different variable names \texttt{\$1} \texttt{\$2}, \texttt{\$input}, substituted with the actual argument names. This can produce a lot of code as some of these typemaps are used frequently. We have therefore put the typemap code into a function, which is called from the typemap instead. The whole macro looks like:
 \begin{code}
 %define UNSAFE_NUMPY_TYPEMAPS(TYPE,TYPE_UPPER,NUMPY_TYPE,TYPE_NAME,DESCR)
 %{
 SWIGINTERN bool convert_numpy_to_ ## TYPE_NAME ## _array_no_check(PyObject* input, TYPE*& ret)
 {
-  if PyArray_Check(input) 
+  if PyArray_Check(input)
   {
     PyArrayObject *xa = reinterpret_cast<PyArrayObject*>(input);
     if ( PyArray_TYPE(xa) == NUMPY_TYPE )
@@ -302,7 +299,7 @@ The \texttt{\%apply TYPE* \{TYPE* \_array\}} directive means that we want the ty
 
 In \texttt{numpy\_typemaps.i} we define an other typemap macro too: \texttt{SAFE\_}\-\texttt{NUMPY\_}\-\texttt{TYPEMAPS}, which will instantiate typemaps that check the length of the incoming \numpy array. The information is passed to the C++ function by the instantiated typemap.\par
 
-\subsubsection{\texttt{std\_vector\_typemaps.i:}}
+\paragraph{\texttt{std\_vector\_typemaps.i:}}
 In \texttt{std\_vector\_typemaps.i} we define two typemap macros for passing \texttt{std::}\-\texttt{vector<Type>} between Python and C++. One is an in-typemap macro for passing a std::vector of pointers of \dolfin objects to a C++ function, and the other one is an out-typemap macro for passing a \texttt{std::vector} of primitives, using \numpy arrays, to Python. It is not strictly necessary to add these typemaps as \swig provides a \texttt{std::vector} type. These types works more or less as a Python versions of the \texttt{std::vector}. Unfortunately are objects of these types quite static and not very Pythonic. The amount of wrapper code that is constructed when a \texttt{std::vector} type is declared is also comparable high. We have therefore chosen to include our own typemaps to handle \texttt{std::vector} arguments.\par
 
 The first typemap macro makes it possible to use a Python list of \dolfin objects instead of a \texttt{std:vector} of pointers to such objects. We do not know if the handed \dolfin objects are stored using a \texttt{shared\_ptr} or not, so we need to provide a typemap that works for both situations. We also need to create typemaps for signatures where \texttt{const} is used differently. Typically a signature can look like:
@@ -328,12 +325,12 @@ IN_TYPEMAP_STD_VECTOR_OF_POINTERS(TYPE,const,const)
 %typemap (in) CONST_VECTOR std::vector<CONST dolfin::TYPE *> & (std::vector<CONST dolfin::TYPE *> tmp_vec)
 {
   if (PyList_Check($input))
-  {  
+  {
     int size = PyList_Size($input);
     int res = 0;
     PyObject * py_item = 0;
     void * itemp = 0;
-    int newmem = 0;    
+    int newmem = 0;
     tmp_vec.reserve(size);
     for (int i = 0; i < size; i++)
     {
@@ -344,11 +341,11 @@ IN_TYPEMAP_STD_VECTOR_OF_POINTERS(TYPE,const,const)
       }
       else
       {
-	// If failed with normal pointer conversion then 
+	// If failed with normal pointer conversion then
 	// try with shared_ptr conversion
 	newmem = 0;
 	res = SWIG_ConvertPtrAndOwn(py_item, &itemp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< dolfin::TYPE > *), 0, &newmem);
-	if (SWIG_IsOK(res)) 
+	if (SWIG_IsOK(res))
 	{
 	  tmp_vec.push_back(reinterpret_cast<SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<dolfin::TYPE> *>(itemp)->get() );
 	}
@@ -369,7 +366,7 @@ IN_TYPEMAP_STD_VECTOR_OF_POINTERS(TYPE,const,const)
 \end{code}
 In the typemap we first check that we get a Python list. We then iterate over the items and try to acquire the specified C++ object by converting the Python object to the underlying C++ pointer. This is done by:
 \begin{code}
-res = SWIG_ConvertPtrAndOwn(py_item, &itemp, $descriptor(dolfin::TYPE *), 0, &newmem);  
+res = SWIG_ConvertPtrAndOwn(py_item, &itemp, $descriptor(dolfin::TYPE *), 0, &newmem);
 \end{code}
 %$ here to fool emacs...
 If the conversion is successful we push the C++ pointer to the \texttt{tmp\_vec}. If the conversion fails we try to acquire a \texttt{shared\_ptr} version of the C++ object instead. If neither of the two conversions succeed we raise an error.\par
@@ -395,7 +392,7 @@ The second typemap defined for \texttt{std::vector} arguments is a so called arg
     data[i] = (*$1)[i];
   o0 = PyArray_Return(ret);
   // If the $result is not already set
-  if ((!$result) || ($result == Py_None)) 
+  if ((!$result) || ($result == Py_None))
   {
     $result = o0;
   }
@@ -403,7 +400,7 @@ The second typemap defined for \texttt{std::vector} arguments is a so called arg
   else
   {
     // If the the argument is set but is not a tuple make one and put the result in it
-    if (!PyTuple_Check($result)) 
+    if (!PyTuple_Check($result))
     {
       o1 = $result;
       $result = PyTuple_New(1);
@@ -437,7 +434,7 @@ columns, values = A.getrow(row)
 \subsection{Specializations of kernel modules}
 \dolfin is divided into kernel modules that follows the directory structure of the \texttt{dolfin} directory. As mentioned above we have organized the \swig directives for these modules into a \texttt{$\ldots$\_pre.i} and \texttt{$\ldots$\_post.i}. Not all modules have such files, which means that we have not implemented any specializations for these modules. Here we will highlight some \swig directives we have used to specialize the \texttt{mesh} and \texttt{la} modules. We encourage users, who want to get a full overview of all the specializations we have done in \pydolfin, to take a look into the different \swig interface files included in the distribution.\par
 
-\subsubsection{The \texttt{mesh} module}
+\paragraph{The \texttt{mesh} module}
 The \texttt{mesh} module defines the \texttt{Mesh} class, the \texttt{MeshFunctions}, all \texttt{MeshEntities}, and built-in meshes. In \dolfin,  the geometrical and topological information of a \texttt{Mesh} is stored using contiguous arrays. These are directly accessible from Python using access methods that returns \numpy arrays of the underlying data. This means that a user have direct access to the contiguous arrays and any changes to the \numpy arrays that wrap the data will change the underlying data too. This means that a user can easily move a mesh 1 unit to the right by:
 \begin{code}
 mesh.coordinates()[:,0] += 1
@@ -448,7 +445,7 @@ Here, \texttt{coordinates} returns a \numpy array of the coordinates of the vert
   PyObject* coordinates() {
     int m = self->num_vertices();
     int n = self->geometry().dim();
-    
+
     MAKE_ARRAY(2, m, n, self->coordinates(), NPY_DOUBLE)
 
     return reinterpret_cast<PyObject*>(array);
@@ -472,7 +469,7 @@ This code tells \swig that we want to extend the C++ extension layer of the \tex
   PyArray_INCREF(array);
 % enddef
 \end{code}
-The macro takes five arguments: \texttt{dim\_size}, \texttt{m}, and \texttt{n} set the dimension of the \numpy array. 
+The macro takes five arguments: \texttt{dim\_size}, \texttt{m}, and \texttt{n} set the dimension of the \numpy array.
 The pointer \texttt{dataptr} points to the first element of the contiguous array, and \texttt{TYPE} is the type of the elements in the array. The \numpy macro \texttt{PyArray\_}\texttt{SimpleNewFromData} creates a \numpy array that just wraps the data pointer passed to it. When the \numpy array is destroyed the data is not, so we will not corrupt any coordinate data in the \texttt{Mesh} object when the \numpy array get out of scope. \par
 
 In a similar fashion, we use the \texttt{MAKE\_}\texttt{ARRAY} macro to wrap the connectivity information to Python. This is done with the following \swig directives found in the \texttt{mesh\_pre.i} files.
@@ -545,7 +542,7 @@ for cell in cells(mesh):
     ...
 \end{code}
 
-\subsubsection{The \texttt{la} module}
+\paragraph{The \texttt{la} module}
 The vector and matrix classes that comes in the \texttt{la} module is heavily specialized in \pydolfin. This is because we want the linear algebra interface to be intuitive and integrate nicely with \numpy.\par
 
 We start the specializations by ignoring all of the implemented C++ operators, just like we did for the \texttt{operator+=()} in the \texttt{Array} example above. This is done in the \texttt{la\_pre.i} file:
@@ -564,7 +561,7 @@ This code snippet from \texttt{la\_post.i}, shows how we implement two special m
 %extend dolfin::GenericVector {
   void _scale(double a)
   {(*self)*=a;}
-  
+
   void _vec_mul(const GenericVector& other)
   {(*self)*=other;}
 
@@ -603,7 +600,7 @@ Vectors and matrices in \pydolfin support access and assignments using slices, \
         if i == 0 and (j >= len(self) or j == -1):
             return self.copy()
         return self.__getitem__(slice(i, j, 1))
-    
+
     def __getitem__(self, indices):
         from numpy import ndarray, integer
         from types import SliceType
@@ -667,7 +664,7 @@ The class name is also here generated from a hash of the passed string. The code
 
 %\section{Memory Management}
 %
-%Common problem: 
+%Common problem:
 %\begin{code}
 %def create_Dirichlet_bc():
 %    # Define boundary condition in terms of a local variable u0
@@ -676,58 +673,58 @@ The class name is also here generated from a hash of the passed string. The code
 %    bc = DirichletBC(V, u0, DirichletBoundary())
 %    return bc
 %\end{code}
-%Include typical output code . 
+%Include typical output code .
 %
 %
-%Shared Pointers. 
+%Shared Pointers.
 
 \section{Debugging Mixed Language Applications}
-Debugging mixed language applications, in this case written in 
+Debugging mixed language applications, in this case written in
 Python and C++, can be more challenging than debugging application
 written in one language. The main reason being that most debuggers are written
-for either compiled languages or scripting languages. However, as 
-we will show, mixed language applications can be debugged in much of the same way 
+for either compiled languages or scripting languages. However, as
+we will show, mixed language applications can be debugged in much of the same way
 as compiled languages. In fact, the combination of the interactive environment
 of Python and the debugging capabilities of \emp{ddd} is more flexible than typical
 debugging environment for compiled languages. We will demonstrate setting breakpoints and
-printing out the entries in the element matrix in the standard \dolfin demo, 
+printing out the entries in the element matrix in the standard \dolfin demo,
 solving Poisson equation on the unit square, see \texttt{demo/pde/}\texttt{poisson/python/}\texttt{demo.py}. We start by running
 \begin{code}
 ddd python
 \end{code}
-The crucial next step is to start the Python session in a separate execution window by clicking on \emp{View->Execution Window} as shown in the uppermost picture in  Figure \ref{figure12}. 
-The Python session may then be started by typing 'run' in the gdb shell. 
+The crucial next step is to start the Python session in a separate execution window by clicking on \emp{View->Execution Window} as shown in the uppermost picture in  Figure \ref{figure12}.
+The Python session may then be started by typing 'run' in the gdb shell.
 After this the session runs in two threads, the debugging thread and the
-Python thread. We start by importing \dolfin in the Python shell. After this we can inspect the \dolfin source code by clicking at \emp{File->Open Source ...} and \emp{Load Shared Object Library Symbols} (always remember to load the shared library) as shown in the lower-most picture in Figure \ref{figure12}. In this case we choose to look at the file \emp{Assembler.cpp} as shown in the uppermost picture in Figure \ref{figure34}. We may then search for e.g. \emp{tabulate\_tensor} as shown in lower-most picture of Figure \ref{figure34} and 
-setting a break point by a right click on the appropriate line as shown in \ref{fig5}. Finally, in Figure 6 
+Python thread. We start by importing \dolfin in the Python shell. After this we can inspect the \dolfin source code by clicking at \emp{File->Open Source ...} and \emp{Load Shared Object Library Symbols} (always remember to load the shared library) as shown in the lower-most picture in Figure \ref{figure12}. In this case we choose to look at the file \emp{Assembler.cpp} as shown in the uppermost picture in Figure \ref{figure34}. We may then search for e.g. \emp{tabulate\_tensor} as shown in lower-most picture of Figure \ref{figure34} and
+setting a break point by a right click on the appropriate line as shown in \ref{fig5}. Finally, in Figure 6
 we print out the first entry of the element matrix after \emp{tabulate\_tensor} is done.
 \begin{code}
 (gdb) run
 \end{code}
 \begin{figure}[htbp]
-  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pics/fig1.pdf}} \\
-  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pics/fig2.pdf}}
+  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pdf/fig1.pdf}} \\
+  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pdf/fig2.pdf}}
   \caption{Upper Picture: Starting a separate thread for the Python session in ddd.
            Lower Picture: Opening the source code after the \dolfin library has been loaded into Python.}
   \label{figure12}
 \end{figure}
 \begin{figure}
-  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pics/fig3.pdf}} \\
-  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pics/fig4.pdf}}
-\caption{Upper Picture: Navigating through the source code for finding the assembly loop. 
+  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pdf/fig3.pdf}} \\
+  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pdf/fig4.pdf}}
+\caption{Upper Picture: Navigating through the source code for finding the assembly loop.
          Lower Picture: Searching for the function \emp{tabulate\_tensor.} }
 \label{figure34}
 \end{figure}
 
 \begin{figure}
-  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pics/fig5.pdf}} \\
-  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pics/fig6.pdf}}
+  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pdf/fig5.pdf}} \\
+  \subfigure{ \includegraphics[width=8cm]{chapters/mardal-2/pdf/fig6.pdf}}
 \caption{Setting a breakpoint after tabulate tensor and printing out the first element matrix entry.}
 \label{fig5}
 \end{figure}
 
 
-%%% Local Variables: 
+%%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "../../book"
-%%% End: 
+%%% End:

@@ -1,65 +1,42 @@
-%\documentclass[11pt]{article}
-%\usepackage{graphicx}
-%\RequirePackage{psfrag}
-%\RequirePackage{fancyhdr}
-%\RequirePackage{fancybox}
-%\RequirePackage{fancyvrb}
-%\RequirePackage{sectsty}
-%\RequirePackage{amsmath}
-%\RequirePackage{amssymb}
-%\RequirePackage{makeidx}
-%\usepackage{moreverb,relsize,ttname}
-%\RequirePackage{url}
-%\RequirePackage[latin1]{inputenc}
-%\RequirePackage[colorlinks]{hyperref}
-
-%\newcommand{\emp}[1]{{\smaller\texttt{#1}}}
-%\DefineVerbatimEnvironment{code}{Verbatim}{frame=single,rulecolor=\color{blue},fontsize=\small}
-
 \fenicschapter{Instant: Just-in-Time Compilation of C/C++ Code in Python}
               {Instant: Just-in-Time Compilation of C/C++ Code in Python}
               {Ilmar M. Wilbers, Kent-Andre Mardal and Martin S. Aln{\ae}s}
               {wilbers}
 
-%\label{Instant}
-%\begin{document}
-
-%\maketitle
-%\vspace{-0.3cm}
-
-%\thispagestyle{empty}
-
 \section{Introduction}
 
 Instant is a small Python module for just-in-time compilation (or inlining) of
 C/C++ code based on \index{SWIG}SWIG~\cite{www:swig} and
-\index{Distutils}Distutils\footnote{http://www.python.org/doc/2.5.2/lib/module-distutils.html}. 
-Just-in-time compilation can significantly speed up, e.g., your NumPy~\cite{www:numpy} code in a clean and
-readable way. This makes Instant a very convenient tool in combination with code
-generation. Before we demonstrate the use of Instant in a series of examples,
-we briefly step through the basic ideas behind the implementation.
-Instant relies on SWIG for the generation of wrapper code needed for making the
-C/C++ code usable from Python~\cite{www:python}. SWIG is a mature and well-documented tool
-for wrapping C/C++ code in many languages. We refer to its website for a comprehensive 
-user manual and we also discuss some common tricks and troubles in Chapter~\ref{chap:mardal-2}. 
-The code to be inlined, in addition to the
-wrapper code, is then compiled into a Python extension module (a shared library
-with functionality as specified by the Python C-API) by using
-Distutils. To check whether the C/C++ code has changed since the last
-execution, Instant computes the SHA1
-sum\footnote{http://www.apps.ietf.org/rfc/rfc3174.html} of the code and compares it to
-the SHA1 checksum of the code used in the previous execution. Finally, Instant has
-implemented a set of SWIG \index{typemaps}typemaps, allowing the user to
-transfer NumPy arrays between the Python code and the C/C++ code.
+\index{Distutils}Distutils\footnote{http://www.python.org/doc/2.5.2/lib/module-distutils.html}.
+Just-in-time compilation can significantly speed up, e.g., your
+NumPy~\cite{www:numpy} code in a clean and readable way. This makes
+Instant a very convenient tool in combination with code
+generation. Before we demonstrate the use of Instant in a series of
+examples, we briefly step through the basic ideas behind the
+implementation.  Instant relies on SWIG for the generation of wrapper
+code needed for making the C/C++ code usable from
+Python~\cite{www:python}. SWIG is a mature and well-documented tool
+for wrapping C/C++ code in many languages. We refer to its website for
+a comprehensive user manual and we also discuss some common tricks and
+troubles in Chapter~\ref{chap:mardal-2}.  The code to be inlined, in
+addition to the wrapper code, is then compiled into a Python extension
+module (a shared library with functionality as specified by the Python
+C-API) by using Distutils. To check whether the C/C++ code has changed
+since the last execution, Instant computes the SHA1
+sum\footnote{http://www.apps.ietf.org/rfc/rfc3174.html} of the code
+and compares it to the SHA1 checksum of the code used in the previous
+execution. Finally, Instant has implemented a set of
+SWIG \index{typemaps}typemaps, allowing the user to transfer NumPy
+arrays between the Python code and the C/C++ code.
 
-There exist several packages that are similar to Instant. 
-Worth mentioning here are \index{Weave}Weave~\cite{www:weave}, 
-\index{Cython}Cython~\cite{www:cython}, and \index{F2PY}F2PY~\cite{Peterson}. 
+There exist several packages that are similar to Instant.
+Worth mentioning here are \index{Weave}Weave~\cite{www:weave},
+\index{Cython}Cython~\cite{www:cython}, and \index{F2PY}F2PY~\cite{Peterson}.
 Weave allows us to inline C code directly in our Python
 code. Unlike Instant, Weave does not require the specification of the function
 signature and the return argument. For specific examples of Weave and the
 other mentioned packages, we refer to~\cite{WilbersLangtangenEtAl2009,www:weave}. Weave is part of
-SciPy~\cite{www:scipy}. 
+SciPy~\cite{www:scipy}.
 %FIXME this needs to be put another place:
 %Indexing multi-dimensional arrays in Instant and Weave must
 %be done by using striding as the different dimensions are stored in
@@ -69,7 +46,7 @@ SciPy~\cite{www:scipy}.
 %achieved with Weave by using Blitz++ arrays, at the cose of speed.
 F2PY is currently part of NumPy, and is primarily intended
 for wrapping Fortran code. F2PY can also be used for wrapping C
-code. 
+code.
 %FIXME: this needs to be put another place:
 %By including special comment lines, we can specify how the arguments
 %sent back and forth between Python and the Fortran code should be
@@ -79,7 +56,7 @@ code.
 Cython is a rather new project, branched from the more well-known Pyrex
 project~\cite{www:pyrex}. Cython is attractive because of  its integration
 with NumPy arrays. Cython differs from the other projects by being a programming
-language of its own. Cython extends Python with concepts such as static typing,  
+language of its own. Cython extends Python with concepts such as static typing,
 hence allowing the user to incrementally speed up the code.
 
 Instant accepts plain C/C++. This makes it particularly attractive to combine
@@ -89,9 +66,9 @@ tools like these have been the main motivation behind Instant, and both FFC
 and SFC employ Instant. Instant is released under a BSD license, see the
 file \emp{LICENSE} in the source directory.
 
-In this chapter we will begin with several examples in Section \ref{wilbers:sec:examples}.  
-Section \ref{wilbers:sec:explained} explains how Instant works, while 
-Section \ref{wilbers:sec:api} gives a detailed description of the API. 
+In this chapter we will begin with several examples in Section \ref{wilbers:sec:examples}.
+Section \ref{wilbers:sec:explained} explains how Instant works, while
+Section \ref{wilbers:sec:api} gives a detailed description of the API.
 
 
 \section{Examples}
@@ -112,7 +89,7 @@ Mercurial~\cite{www:mercurial}:
 hg clone http://www.fenics.org/hg/instant
 \end{code}
 Installing Instant
-from the source code is done with a regular Distutils script, i.e,  
+from the source code is done with a regular Distutils script, i.e,
 \begin{code}
 python setup.py install
 \end{code}
@@ -121,9 +98,9 @@ installing Instant, one can verify the installation by running the scripts
 \emp{run\_\-tests.py} followed by \emp{rerun\_\-tests.py} in the
 \emp{tests}-directory of the source code. The first will run all the examples after having
 cleaned the Instant cache, the second will run all examples using the
-compiled modules found in the Instant cache from the previous execution. 
+compiled modules found in the Instant cache from the previous execution.
 %If PyChecker\footnote{http://pychecker.sourceforge.net/} is installed, one can
-%also run \emp{run\_\-pychecker.py}. 
+%also run \emp{run\_\-pychecker.py}.
 
 
 \subsection{Hello World}
@@ -141,12 +118,12 @@ sum = add_func(3, 4.5)
 print 'The sum of 3 and 4.5 is', sum
 \end{code}
 Here Instant will wrap the C-function \emp{add} into a Python extension module by using
-SWIG and Distutils. 
+SWIG and Distutils.
 The inlined function is written in standard C. SWIG supports almost
 all of C and C++, including object orientation and templates. When running
 this Python snippet the first time, compiling the C code takes a few seconds. Next time we run
 it, however, the compilation is omitted, given that no changes are made to the
-C source code. 
+C source code.
 
 Note that a raw string is used in this example, to avoid
 Python interpreting escape sequences such as '\verb@\@\emp{n}'. Alternatively,
@@ -159,11 +136,11 @@ other Instant functions:
 \begin{code}
 from instant import output
 output.set_logging_level('DEBUG')
-\end{code} 
-The intrinsic Python module \emp{logging} is used. First, the 
+\end{code}
+The intrinsic Python module \emp{logging} is used. First, the
 \emp{build\_\-function} arguments are displayed, whereafter the different steps
 performed by Instant are shown in detail, e.g whether the module is found in
-cache and the arguments to the Distutils file when building the module. 
+cache and the arguments to the Distutils file when building the module.
 This example can be found in the file \emp{\$examples/ex1.py}.
 
 
@@ -172,13 +149,13 @@ One basic problem with wrapping C and C++ code is how to handle dynamically
 allocated arrays. Arrays allocated
 dynamically are typically represented in C/C++ by a pointer to the first element
 of an array and a separate integer variable holding the array size. In Python
-the array variable is itself an object contains the data array, array size, 
+the array variable is itself an object contains the data array, array size,
 type information etc. However, a pointer in C/C++ does not necessarily
-represent an array. Therefore, SWIG provides the typemap functionality 
+represent an array. Therefore, SWIG provides the typemap functionality
 that allows the user to specify a mapping between Python and C/C++ types. We
-will not go into details on typemaps in this chapter, but the reader 
-should be aware that it is a powerful tool that may greatly enhance your 
-code, but also lead to mysterious bugs when used wrongly. Typemaps 
+will not go into details on typemaps in this chapter, but the reader
+should be aware that it is a powerful tool that may greatly enhance your
+code, but also lead to mysterious bugs when used wrongly. Typemaps
 are discussed in Chapter~\ref{chap:mardal-2} and at length at the SWIG
 webpage. In this chapter, it is sufficient to illustrate how to deal
 with arrays in Instant using the NumPy module. More details on how Instant
@@ -189,21 +166,21 @@ We introduce a
 solver for an ordinary differential equation (ODE) modeling blood pressure by
 using a \index{Windkessel model}Windkessel model. The ODE is as follows:
 \begin{eqnarray}
-\frac{d}{dt}p(t) &=& B Q(t) - A p(t), \quad t \in (0,1), \\ 
-p(0) &=& p0.   
+\frac{d}{dt}p(t) &=& B Q(t) - A p(t), \quad t \in (0,1), \\
+p(0) &=& p0.
 \end{eqnarray}
-Here $p(t)$ is the blood pressure, $Q(t)$ is the volume flux of blood,  
-$A$ is $\ldots$ and $B$ is $\ldots$.  
+Here $p(t)$ is the blood pressure, $Q(t)$ is the volume flux of blood,
+$A$ is $\ldots$ and $B$ is $\ldots$.
 An explicit scheme is:
 \begin{eqnarray}
-p_i &=& p_{i-1} + \Delta t (B Q_i - A p_{i-1}), \quad \mbox{for}\quad i=1,\ldots,N-1,  \\ 
+p_i &=& p_{i-1} + \Delta t (B Q_i - A p_{i-1}), \quad \mbox{for}\quad i=1,\ldots,N-1,  \\
 p_0 &=& p0.
 \end{eqnarray}
 The scheme can be implemented in Python as follows using NumPy arrays:
 \begin{code}
-def time_loop_py(p, Q, A, B, dt, N, p0): 
-    p[0] = p0 
-    for i in range(1, N): 
+def time_loop_py(p, Q, A, B, dt, N, p0):
+    p[0] = p0
+    for i in range(1, N):
         p[i] = p[i-1] + dt*(B*Q[i] - A*p[i-1])
 \end{code}
 The C code given as argument to the Instant function \emp{inline\_\-with\_\-numpy}
@@ -230,7 +207,7 @@ void time_loop_c(int n, double* p,
 In this example, \emp{(int n, double* p)} represents an array of doubles with
 length $n$. However, this can not be determined by the function signature:
 \begin{code}
-void time_loop_C(int n, double* p, int m, double* Q, ...) 
+void time_loop_C(int n, double* p, int m, double* Q, ...)
 \end{code}
 For example, \emp{double* p} may be an array of length $m$ or it may simply be
 output. In Instant
@@ -240,11 +217,11 @@ time_loop_c = inline_with_numpy(c_code,
                                 arrays = [['n', 'p'],
                                           ['m', 'Q']])
 \end{code}
-Here we tell Instant that \emp{(int n, double* p)} and  
+Here we tell Instant that \emp{(int n, double* p)} and
 \emp{(int m, double* Q)} are NumPy arrays (and Instant then employs
-a few typemaps). 
+a few typemaps).
 We may then call the \emp{time\_\-loop}
-function as follows: 
+function as follows:
 \begin{code}
 time_loop_c(p, Q, 1.0, 1.0, 1.0/(N-1), N, 1.0)
 \end{code}
@@ -270,11 +247,11 @@ use Instant instead~\cite{WilbersLangtangenEtAl2009}.
 \begin{table}[h]
 \begin{center}
 \begin{tabular}{|l|c|c|c|c|c|} \hline
-N                     & 100     & 1000   & 10000  & 100000 & 1000000 \\ \hline 
-CPU time with NumPy   & 3.9e-4  & 3.9e-3 & 3.8e-2 & 3.8e-1 & 3.8     \\ \hline 
-CPU time with Python  & 0.7e-4  & 0.7e-3 & 0.7e-2 & 0.7e-1 & 0.7     \\ \hline 
+N                     & 100     & 1000   & 10000  & 100000 & 1000000 \\ \hline
+CPU time with NumPy   & 3.9e-4  & 3.9e-3 & 3.8e-2 & 3.8e-1 & 3.8     \\ \hline
+CPU time with Python  & 0.7e-4  & 0.7e-3 & 0.7e-2 & 0.7e-1 & 0.7     \\ \hline
 CPU time with Instant & 5.0e-6  & 1.4e-5 & 1.0e-4 & 1.0e-3 & 1.1e-2  \\ \hline
-CPU time with C       & 4.0e-6  & 1.1e-5 & 1.0e-4 & 1.0e-3 & 1.1e-2  \\ \hline 
+CPU time with C       & 4.0e-6  & 1.1e-5 & 1.0e-4 & 1.0e-3 & 1.1e-2  \\ \hline
 \end{tabular}
 \caption{CPU times of Windkessel model for different implementations (in seconds).}
 \label{wilbers:fig:speed-up}
@@ -285,7 +262,7 @@ The complete code for this example can be found in \emp{\$examples/ex2.py}
 
 \subsection{Numpy Arrays and OpenMP}
 It is easy to speed up code on parallel computers with OpenMP. We will not
-describe \index{OpenMP}OpenMP in 
+describe \index{OpenMP}OpenMP in
 any detail here, the reader is referred to~\cite{www:openmP}. However, note
 that preprocessor directives like '\emp{\#pragma omp \ldots}' are OpenMP directives and
 that OpenMP functions start with \emp{omp}.
@@ -300,7 +277,7 @@ rectangular domain $\Omega = (0,1) \times (0,1)$. Further, $u$ has the initial
 value $I(x,y)$ at $t = 0$ while $\partial u/ \partial t = 0$.
 We solve the wave equation using the following finite difference scheme:
 \begin{align}
-u_{i,j}^l = 
+u_{i,j}^l =
 &\left(\frac{\Delta t}{\Delta x}\right)^2
 [k_{i+\frac{1}{2},j}(u_{i+1,j} - u_{i,j}) - k_{i-\frac{1}{2},j}(u_{i,j} - u_{i-1,j})]^{l-1}\notag\\
 +&\left(\frac{\Delta t}{\Delta y}\right)^2
@@ -325,7 +302,7 @@ void stencil(double dt, double dx, double dy,
 #define index(u, i, j) u[(i)*m + (j)]
   int i=0, j=0, m = ux, n = uy;
   double hx, hy, k_c, k_ip, k_im, k_jp, k_jm;
-  hx = pow(dt/dx, 2); 
+  hx = pow(dt/dx, 2);
   hy = pow(dt/dy, 2);
   j = 0;   for (i=0; i<m; i++) index(up, i, j) = 0;
   j = n-1; for (i=0; i<m; i++) index(up, i, j) = 0;
@@ -339,29 +316,29 @@ void stencil(double dt, double dx, double dy,
       k_im = 0.5*(k_c + index(k, i-1, j));
       k_jp = 0.5*(k_c + index(k, i, j+1));
       k_jm = 0.5*(k_c + index(k, i, j-1));
-      index(up, i, j) = 2*index(u, i, j) - index(um, i, j) + 
-        hx*(k_ip*(index(u, i+1, j) - index(u, i, j)) - 
-             k_im*(index(u, i, j) - index(u, i-1, j))) + 
-        hy*(k_jp*(index(u, i, j+1) - index(u, i, j)) - 
+      index(up, i, j) = 2*index(u, i, j) - index(um, i, j) +
+        hx*(k_ip*(index(u, i+1, j) - index(u, i, j)) -
+             k_im*(index(u, i, j) - index(u, i-1, j))) +
+        hy*(k_jp*(index(u, i, j+1) - index(u, i, j)) -
             k_jm*(index(u, i, j) - index(u, i, j-1)));
     }
   }
 }
 \end{code}
 We also need to add the OpenMP header \emp{omp.h} and compile
-with the flag \emp{-fopenmp} and link with the OpenMP shared 
-library, e.g. \emp{libgomp.so} for Linux (specified with \emp{-lgomp}). 
+with the flag \emp{-fopenmp} and link with the OpenMP shared
+library, e.g. \emp{libgomp.so} for Linux (specified with \emp{-lgomp}).
 This can be done as follows:
 \begin{code}
 instant_ext = \
-  build_module(code=c_code, 
-               system_headers=['numpy/arrayobject.h', 
+  build_module(code=c_code,
+               system_headers=['numpy/arrayobject.h',
                                'omp.h'],
                include_dirs=[numpy.get_include()],
                init_code='import_array();',
-               cppargs=['-fopenmp'], 
+               cppargs=['-fopenmp'],
                lddargs=['-lgomp'],
-               arrays=[['ux', 'uy', 'u'], 
+               arrays=[['ux', 'uy', 'u'],
                ['umx', 'umy', 'um'],
                ['kx', 'ky', 'k'],
                ['upn', 'up', 'out']])
@@ -385,11 +362,11 @@ primary objective is to examplify different Instant features.
 %\begin{table}[h]
 %\begin{center}
 %\begin{tabular}{|l|c|c|} \hline
-%N                     & 1e+8     &2e+8 \\ \hline 
-%CPU time with Instant 1 CPU & 0.80  & 1.59  \\ \hline 
-%CPU time with Instant 2 CPU & 0.42  & 0.81  \\ \hline 
-%CPU time with Instant 3 CPU & 0.37  & 0.75  \\ \hline 
-%CPU time with Instant 4 CPU & 0.34  & 0.67  \\ \hline 
+%N                     & 1e+8     &2e+8 \\ \hline
+%CPU time with Instant 1 CPU & 0.80  & 1.59  \\ \hline
+%CPU time with Instant 2 CPU & 0.42  & 0.81  \\ \hline
+%CPU time with Instant 3 CPU & 0.37  & 0.75  \\ \hline
+%CPU time with Instant 4 CPU & 0.34  & 0.67  \\ \hline
 %\end{tabular}
 %\caption{CPU times for Instant with OpenMP (in seconds).}
 %label{speed-up2}
@@ -404,26 +381,26 @@ primary objective is to examplify different Instant features.
 %here in a simple situation. We will assume that we want to solve the Poisson
 %equation
 %\begin{equation}
-%-\Delta u = f,   
+%-\Delta u = f,
 %\end{equation}
 %and that we want to use the so-called 'method of manufactured solution' to check the
-%convergence of the error as a function of the mesh size parameter $h$. This method 
-%include the following steps: 
+%convergence of the error as a function of the mesh size parameter $h$. This method
+%include the following steps:
 %\begin{enumerate}
-%\item find an analytical expression for $u$, 
-%\item compute $f=-\Delta u$, 
+%\item find an analytical expression for $u$,
+%\item compute $f=-\Delta u$,
 %\item solve the Poisson equation using the source
-%term $f$ and Dirichlet boundary conditions set as $u$ on the whole boundary, 
+%term $f$ and Dirichlet boundary conditions set as $u$ on the whole boundary,
 %\item compute the difference between the analytical solution $u$ and the computed
-%solution $u_h$, as a function of $h$. 
+%solution $u_h$, as a function of $h$.
 %\end{enumerate}
-%The following code, found in \emp{\$examples/ex7.py}, shows how  
+%The following code, found in \emp{\$examples/ex7.py}, shows how
 %we can compute the source term $f$ as a function of the analytical solution
 %$u$, using \index{Swiginac}Swiginac~\cite{Swiginac}
 %\begin{code}
 %from swiginac import *
 %x = symbol('x'); y = symbol('y')
-%u = sin(x*x)*cos(y); 
+%u = sin(x*x)*cos(y);
 %f = - diff(diff(u,x),x) - diff(diff(u,y),y)
 %\end{code}
 %In the following we generate code for a Dolfin \emp{Function}
@@ -432,12 +409,12 @@ primary objective is to examplify different Instant features.
 %    c_code = """
 %    #include <dolfin.h>
 %    using namespace dolfin;
-%    class %s : public Function 
+%    class %s : public Function
 %    {
-%        virtual double eval(const double* p) { 
-%            const double x = p[0];  
-%            const double y = p[1];  
-%            return %s; 
+%        virtual double eval(const double* p) {
+%            const double x = p[0];
+%            const double y = p[1];
+%            return %s;
 %        }
 %    };
 %    """ % expression.printc()
@@ -445,20 +422,20 @@ primary objective is to examplify different Instant features.
 %\end{code}
 %Finally, we inline this Dolfin function using Instant as follows
 %\begin{code}
-%(includes, flags, libraries, libdirs) = \ 
+%(includes, flags, libraries, libdirs) = \
 %            instant.header_and_libs_from_pkgconfig("dolfin")
 %U_module = instant.inline_module(expression2string("u", u), \
 %         system_headers=includes, cppargs=flags, lddargs=libraries,\
-%         library_dirs=libdirs) 
+%         library_dirs=libdirs)
 %U = U_module.U
 %F_module = instant.inline_module(expression2string("f", f), \
-%         system_headers=includes, cppargs=flags, lddargs=libraries,\ 
-%         library_dirs=libdirs) 
+%         system_headers=includes, cppargs=flags, lddargs=libraries,\
+%         library_dirs=libdirs)
 %F = F_module.F
 %
 %\end{code}
 %
-%Since, \emp{U} and \emp{F} are now standard Dolfin functions they can be used 
+%Since, \emp{U} and \emp{F} are now standard Dolfin functions they can be used
 %in a standard fashion and solving the Poisson equation is then done as follows
 %\begin{code}
 %# Define boundary condition
@@ -477,12 +454,12 @@ primary objective is to examplify different Instant features.
 %The complete code is found in \emp{\$examples/ex8.py}).
 %
 %Notice that Instant is also used in assembly here, where either FFC or SFC translate the UFL
-%description of the variational problem into (UFC-compliant) C++ code that is inlined with 
+%description of the variational problem into (UFC-compliant) C++ code that is inlined with
 %Instant. We refer to the Chapters~\ref{FFC},~\ref{SFC},~\ref{UFC},
-%and~\ref{UFL} for more information on this.   
+%and~\ref{UFL} for more information on this.
 %We also remark that Dolfin has functionality for compiling functions and that the above
 %code is only meant for illustration. The reader is encouraged to use this functionality instead
-%of the more manual approach described above. It is done as follows:     
+%of the more manual approach described above. It is done as follows:
 %\begin{code}
 %# Source term, using compiled C++ expression
 %class Source(Function):
@@ -498,8 +475,8 @@ primary objective is to examplify different Instant features.
 
 The previous section concentrated on the usage of Instant and it may
 appear mysterious how it actually works since it is unclear what
-files that are made during execution and where they are located. 
-In this section we explain this. 
+files that are made during execution and where they are located.
+In this section we explain this.
 
 We will again use our first example, but this time with
 the keyword argument \emp{modulename} set explicitely. The file can be found
@@ -509,10 +486,10 @@ from instant import inline
 code = r'''
 double add(double a, double b)
 {
-  printf("Hello world! C function add is being called...\n"); 
+  printf("Hello world! C function add is being called...\n");
   return a+b;
 }'''
-add_func = inline(code, modulename='ex4_cache') 
+add_func = inline(code, modulename='ex4_cache')
 sum = add_func(3, 4.5)
 print 'The sum of 3 and 4.5 is', sum
 \end{code}
@@ -530,7 +507,7 @@ either in cache or locally, and further whether we need to rebuild these files
 based on the checksum of the source files and the arguments to the Instant
 function. This means that Instant will perform the compile step \emph{only} if
 changes are made to the source code or arguments. More details about the
-different caching options can be found in Section \ref{wilbers:sec:msc}. 
+different caching options can be found in Section \ref{wilbers:sec:msc}.
 
 The resulting module files can be found in a directory reflecting the name of
 the module, in this case \emp{ex4\_\-cache}:
@@ -552,10 +529,10 @@ drwxr-xr-x 4 ilmarw  4096 2009-05-18 16:52 build
 -rw-r--r-- 1 ilmarw   448 2009-05-18 16:53 setup.py
 \end{code}
 \normalsize
-When building a new module, Instant creates a new directory with 
+When building a new module, Instant creates a new directory with
 a number of files. The first file it generates is the SWIG interface file, named
 \emp{ex4\_\-cache.i} in this example. Then the Distutils file \emp{setup.py} is generated based
-and executed. During execution, \emp{setup.py} first runs SWIG in the interface file, 
+and executed. During execution, \emp{setup.py} first runs SWIG in the interface file,
 producing \emp{ex4\_\-cache\_\-wrap.cxx} and \emp{ex4\_\-cache.py}. The first file
 is then compiled into a shared library  \emp{\_\-ex4\_\-cache.so}
 (note the leading underscore). A file \\\emp{ex4\_\-cache-0.0.0.egg-info}
@@ -565,7 +542,7 @@ steps. The output from executing the Distutils file is stored in the file
 \emp{ex4\_\-cache.checksum} is generated, containing a checksum based on
 the files present in the directory. The final step consists of moving the whole
 directory from its temporary location to either cache or a user-specified
-directory. The \emp{\_\-\_\-init\_\-\_\-.py} imports the module \emp{ex4\_\-cache}. 
+directory. The \emp{\_\-\_\-init\_\-\_\-.py} imports the module \emp{ex4\_\-cache}.
 
 
 The script \index{\emp{instant-clean}}\emp{instant-clean} removes
@@ -633,7 +610,7 @@ double sum (int len_a, double* a,
 The order of the arrays can be changed, as long as the arguments in the Python
 function are changed as well accordingly.
 
-\subsubsection{Data Types}
+\paragraph{Data Types}
 Default, all arrays are assumed to be of type \emp{double}, but several other
 types are supported. These
 are \emp{float}, \emp{short}, \emp{int}, \emp{long}, \emp{long
@@ -656,7 +633,7 @@ as \emp{float64}. For integer arrays, the mapping
 between NumPy types and C types depends on your system. Using \emp{long} as
 the C type will work in most cases.
 
-\subsubsection{Input/Output Arrays}
+\paragraph{Input/Output Arrays}
 All arrays are assumed to be both input and output arrays, i.e. any changes to
 arrays in the C code result in the NumPy array being changed in-place. For
 performace purposes, this is desirable, as we avoid unecessary copying of
@@ -679,7 +656,7 @@ an array in the Python code and sending it as an in-place array to the C
 code, the array is created by the wrapper code and returned. If there are are
 multiple output arrays or the C function has a return argument, the wrapper
 function returns a tuple with the different arguments. This approach is more
-Python-like than changing arrays in-place. 
+Python-like than changing arrays in-place.
 
 We only need to specify the length of the array when calling the wrapper
 function. The limitation is that only 1-dimensional arrays are supported,
@@ -727,7 +704,7 @@ print c2
 \end{code}
 
 
-\subsubsection{Multi-dimensional Arrays}
+\paragraph{Multi-dimensional Arrays}
 If one needs to work with arrays that are more than 3-dimensional, this is
 possible. However, the typemaps used for this employ less error checking, and
 can only be used for the C type \emp{double}. The list describing the array
@@ -764,7 +741,7 @@ directory of the user. It is possible to specify a different directory, but the
 The three keyword arguments \emp{modulename}, \emp{signature}, and
 \emp{cache\_\-dir} are connected. If none of them are given, the default behaviour is to
 create a signature from the contents of the files and arguments to the
-\emp{build\_\-module} function, resulting in a name starting with 
+\emp{build\_\-module} function, resulting in a name starting with
 \emp{instant\_\-module\_\-} followed by a long checksum. The
 resulting code is copied to Instant cache unless \emp{cache\_\-dir} is set to
 a specific directory. Note that changing the arguments or any of the files will
@@ -841,9 +818,9 @@ interaction with SWIG, some of the keywords require a good knowledge of SWIG
 in order to make sense. In this way, Instant can be used both by programmers
 new to the use of extension languages for Python, as well as by experienced
 SWIG programmers. The keywords arguments are as follows:
-\bit
+\begin{itemize}
 \item \emp{modulename}
-  \bit 
+  \begin{itemize}
   \item Default: \emp{None}
   \item Type: String
   \item Comment: The name you want for the module.
@@ -852,32 +829,32 @@ SWIG programmers. The keywords arguments are as follows:
     a checksum of the other arguments, and the module
     will be placed in the global cache. See Section \ref{wilbers:sec:msc} for more
     details.
-  \eit
+  \end{itemize}
 \item \emp{source\_\-directory}
-  \bit
+  \begin{itemize}
     \item Default: '.'
     \item Type: String
     \item Comment: The directory where user supplied files reside. The files
       given in \emp{sources}, \emp{wrap\_\-headers}, and \emp{local\_\-headers}
       are expected to exist in this directory.
-  \eit
+  \end{itemize}
 \item \emp{code}
-  \bit
+  \begin{itemize}
     \item Default: \emp{''}
     \item Type: String
     \item Comment: The C or C++ code to be compiled and wrapped.
-  \eit
+  \end{itemize}
 \item \emp{init\_\-code}
-  \bit
+  \begin{itemize}
     \item Default: \emp{''}
     \item Type: String
     \item Comment: Code that should be executed when the Instant module is
       imported. This code is inserted in the SWIG interface file, and is
       used for instance for calling \emp{import\_\-array()} used for the
       initialization of NumPy arrays.
-  \eit
+  \end{itemize}
 \item \emp{additional\_\-definitions}
-  \bit
+  \begin{itemize}
     \item Default: \emp{''}
     \item Type: String
     \item Comment: Additional definitions (typically needed for inheritance)
@@ -885,27 +862,27 @@ SWIG programmers. The keywords arguments are as follows:
       strings in the case they span multiple lines, and are placed both in the
       initial block for C/C++ code (\emp{\%\{,\%\}}-block), and the main section
       of the interface file.
-  \eit
+  \end{itemize}
 \item \emp{additional\_\-declarations}
-  \bit
+  \begin{itemize}
     \item Default: \emp{''}
     \item Type: String
     \item Comment: Additional declarations (typically needed for inheritance)
       for interface file. These declarations should be given as triple-quoted
       strings in the case they span multiple lines, and are placed in the main
       section of the interface file.
-  \eit
+  \end{itemize}
 \item \emp{sources}
-  \bit
+  \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: Source files to compile and link with the module. These
       files are compiled togehter with the SWIG-generated wrapper file into
       the final library file. Should reside in directory specified in
       \emp{source\_\-directory}.
-  \eit
+  \end{itemize}
 \item \emp{wrap\_\-headers}
-  \bit
+  \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: Local header files that should be wrapped by SWIG. The
@@ -913,82 +890,82 @@ SWIG programmers. The keywords arguments are as follows:
       (with a C directive) and in the main section of the interface file (with
       a SWIG directive). Should reside in directory specified in
       \emp{source\_\-directory}.
-  \eit
+  \end{itemize}
 \item \emp{local\_\-headers}
-  \bit
+  \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: Local header files required to compile the wrapped
       code. The files specified will be included in the initial block for C/C++ code
       (with a C directive). Should reside in directory specified in
       \emp{source\_\-directory}.
-  \eit
+  \end{itemize}
 \item \emp{system\_\-headers}
-  \bit
+  \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: System header files required to compile the wrapped
       code. The files specified will be included in the initial block for C/C++
       code (with a C directive).
-  \eit
+  \end{itemize}
 \item \emp{include\_\-dirs}
-  \bit
+  \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: Directories to search for header files for building the
       extension module. Needs to be absolute path names.
-  \eit
+  \end{itemize}
 \item \emp{library\_\-dirs}
-  \bit
+  \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: Directories to search for libraries (\emp{-l}) for building
-      the extension module. Needs to be absolute paths. 
-  \eit
+      the extension module. Needs to be absolute paths.
+  \end{itemize}
 \item \emp{libraries}
-  \bit
+  \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: Libraries needed by the Instant module. The libraries will
       be linked in from the shared object file. The initial \emp{-l} is added
       automatically.
-  \eit
+  \end{itemize}
 \item \emp{swigargs}
-  \bit
+  \begin{itemize}
     \item Default: \emp{['-c++', '-fcompact', '-O', '-I.', '-small']}
     \item Type: List of strings
     \item Comment: Arguments to swig, e.g. \emp{['-lpointers.i']}
       to include the SWIG pointers.i library.
-  \eit
+  \end{itemize}
 \item \emp{swig\_\-include\_\-dirs}
-  \bit
+  \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: Directories to include in the 'swig' command.
-  \eit
+  \end{itemize}
 \item \emp{cppargs}
-  \bit
+  \begin{itemize}
     \item Default: \emp{['-O2']}
     \item Type: List of strings
     \item Comment: Arguments to the C++ compiler, other than include
       directories, e.g. \emp{['-Wall', '-fopenmp']}.
-  \eit
+  \end{itemize}
 \item \emp{lddargs}
-  \bit
+  \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: Arguments to the linker, other than libraries and library
       directories, e.g. \emp{['-E', '-U']}.
-  \eit
+  \end{itemize}
 %\item \emp{object\_\-files}
-%  \bit
+%  \begin{itemize}
 %    \item Default: \emp{[]}
 %    \item Type: List of strings
 %    \item Comment: If you want to compile the files yourself. TODO: Not yet
 %      supported.
-%  \eit      
+%  \end{itemize}
 \item \emp{arrays}
-  \bit
+  \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: A nested list describing the C arrays to be made from NumPy arrays.
@@ -1002,38 +979,36 @@ SWIG programmers. The keywords arguments are as follows:
         contain strings with variable names for the number of dimensions,
         the length in each dimension as a pointer, and the array itself,
         respectively. For more details, see Section \ref{wilbers:sec:arrays}.
-  \eit
+  \end{itemize}
 \item \emp{generate\_\-interface}
-  \bit
+  \begin{itemize}
     \item Default: \emp{True}
     \item Type: Boolean
     \item Comment: Indicate whether you want to generate the interface files.
-  \eit
+  \end{itemize}
 \item \emp{generate\_\-setup}
-  \bit
+  \begin{itemize}
     \item Default: \emp{True}
     \item Type: Boolean
     \item Comment: Indicate if you want to generate the setup.py file.
-  \eit
+  \end{itemize}
 \item \emp{signature}
-  \bit
+  \begin{itemize}
     \item Default: \emp{None}
     \item Type: String
     \item Comment: A signature string to identify the form instead of the
       source code. See Section \ref{wilbers:sec:msc}.
-  \eit
+  \end{itemize}
 \item \emp{cache\_\-dir}
-  \bit
+  \begin{itemize}
     \item Default: None
     \item Type: String
     \item Comment: A directory to look for cached modules and place new ones.
       If missing, a default directory is used. Note that the module
       will not be cached if \emp{modulename} is specified.
       The cache directory should not be used for anything else.
-  \eit
-\eit
-
-
+  \end{itemize}
+\end{itemize}
 
 \subsection[inline]{\emp{inline}}
 The function \emp{inline} creates a module given that the input is a valid C/C++ function. It is only
@@ -1097,7 +1072,7 @@ The imported module, if found, is also placed in the memory cache.
 This function returns a list of include files, flags, libraries and library
 directories obtain from a
 pkg-config~\cite{www:pkg-config} file. It takes any
-number of arguments, one string for every package name. 
+number of arguments, one string for every package name.
 It returns four or five arguments. Unless the keyword
 argument \emp{returnLinkFlags} is given with the value \emp{True}, it returns
 lists with the include directories, the compile flags, the libraries, and the library
@@ -1106,8 +1081,8 @@ is \emp{True}, the link flags are returned as a fifth list. Let's look at an
 example:
 \begin{code}
 inc_dirs, comp_flags, libs, lib_dirs, link_flags = \
-header_and_libs_from_pkgconfig('ufc-1', 'libxml-2.0', 
-                               'numpy-1', 
+header_and_libs_from_pkgconfig('ufc-1', 'libxml-2.0',
+                               'numpy-1',
                                returnLinkFlags=True)
 \end{code}
 This makes it a easy to write C code that makes use of a package providing a
