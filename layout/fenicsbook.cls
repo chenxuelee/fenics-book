@@ -2,7 +2,8 @@
 % modifications:
 %
 % 1. Remove large margins
-% 2. Add FEniCS book-specific commands
+% 2. Number parts and chapters
+% 3. Add FEniCS book-specific commands
 
 \NeedsTeXFormat{LaTeX2e}[1994/06/01]
 \ProvidesClass{fenicsbook}[2010/10/21 v1.0 FEniCS book class]
