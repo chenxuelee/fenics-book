@@ -1,6 +1,14 @@
 \documentclass{article}
 
 \usepackage{url}
+\usepackage{longtable}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\newcommand{\inner}[2]{\langle #1, #2 \rangle}
+\newcommand{\dx}{\, \mathrm{d}x}
+\newcommand{\ds}{\, \mathrm{d}s}
+\newcommand{\dt}{\, \mathrm{d}t}
 
 \title{Instructions for FEniCS book authors}
 \date{\today}
@@ -115,73 +123,71 @@
   where possible.
 \end{itemize}
 
+\section*{Variable names}
+
+Note two important changes relative to earlier versions of the
+book. First, the order of test and trial functions has changed. The
+canonical variational is now $a(u, v) = L(v)$. Second, the name
+notation of a cell/element has changed from $K$ to $T$.
+
 \section*{Names of variables}
-
-
-\section*{Useful macros}
-
-
-\end{document}
-
-\section*{Names of variables}
-
 
 \small \linespread{1.2}
   \begin{longtable}{ccl}
     $A$ &--&
     the \emph{global tensor} with entries $\{A_i\}_{i\in\mathcal{I}}$ \\
-    $A^K$ &--&
-    the \emph{element tensor} with entries $\{A^K_i\}_{i\in\mathcal{I}_K}$ \\
+    $A_T$ &--&
+    the \emph{element tensor} with entries $\{A^T_i\}_{i\in\mathcal{I}_T}$ \\
     $A^0$ &--&
-    the \emph{reference tensor} with entries $\{A^0_{i\alpha}\}_{i\in\mathcal{I}_K,\alpha\in\mathcal{A}}$ \\
+    the \emph{reference tensor} with entries $\{A^0_{i\alpha}\}_{i\in\mathcal{I}_T,\alpha\in\mathcal{A}}$ \\
     $a$ &--&
     a multilinear form \\
-    $a_K$ &--&
-    the local contribution to a multilinear form $a$ from a cell $K$ \\
+    $a_T$ &--&
+    the local contribution to a multilinear form $a$ from a cell $T$ \\
     $\mathcal{A}$ &--&
     the set of \emph{secondary indices} \\
     $\mathcal{B}$ &--&
     the set of \emph{auxiliary indices} \\
     $e$ &--&
     the \emph{error}, $e = u_h - u$ \\
-    $F_K$ &--&
-    the mapping from the reference cell $K_0$ to $K$ \\
-    $G_K$ &--&
-    the \emph{geometry tensor} with entries $\{G_K^{\alpha}\}_{\alpha\in\mathcal{A}}$ \\
+    $F_T$ &--&
+    the mapping from the reference cell $T_0$ to $T$ \\
+    $G_T$ &--&
+    the \emph{geometry tensor} with entries $\{G_T^{\alpha}\}_{\alpha\in\mathcal{A}}$ \\
     $\mathcal{I}$ &--&
     the set $\prod_{j=1}^{\rho} [1,N^j]$ of indices for the global tensor $A$ \\
-    $\mathcal{I}_K$ &--&
-    the set $\prod_{j=1}^{\rho} [1,n_K^j]$ of indices for the element tensor $A^K$ (\emph{primary indices}) \\
-    $\iota_K$ &--&
-    the \emph{local-to-global mapping} from $[1,n_K]$ to $[1,N]$ \\
-    $K$ &--&
+    $\mathcal{I}_T$ &--&
+    the set $\prod_{j=1}^{\rho} [1,n_T^j]$ of indices for the element tensor $A^T$ (\emph{primary indices}) \\
+    $\iota_T$ &--&
+    the \emph{local-to-global mapping} from $[1,n_T]$ to $[1,N]$ \\
+    $T$ &--&
     a \emph{cell} in the mesh~$\mathcal{T}$ \\
-    $K_0$ &--&
+    $T_0$ &--&
     the \emph{reference cell} \\
     $L$ &--&
     a linear form (functional) on $\hat{V}$ or $\hat{V}_h$ \\
     $\mathcal{L}$ &--&
     the degrees of freedom (linear functionals) on $V_h$ \\
-    $\mathcal{L}_K$ &--&
-    the degrees of freedom (linear functionals) on $\mathcal{P}_K$ \\
+    $\mathcal{L}_T$ &--&
+    the degrees of freedom (linear functionals) on $\mathcal{P}_T$ \\
     $\mathcal{L}_0$ &--&
     the degrees of freedom (linear functionals) on $\mathcal{P}_0$ \\
     $N$ &--&
     the dimension of $\hat{V}_h$ and $V_h$ \\
-    $n_K$ &--&
-    the dimension of $\mathcal{P}_K$ \\
+    $n_T$ &--&
+    the dimension of $\mathcal{P}_T$ \\
     $\ell_i$ &--&
     a degree of freedom (linear functional) on $V_h$ \\
-    $\ell^K_i$ &--&
-    a degree of freedom (linear functional) on $\mathcal{P}_K$ \\
+    $\ell^T_i$ &--&
+    a degree of freedom (linear functional) on $\mathcal{P}_T$ \\
     $\ell^0_i$ &--&
     a degree of freedom (linear functional) on $\mathcal{P}_0$ \\
-    $\mathcal{P}_K$ &--&
-    the local function space on a cell $K$ \\
+    $\mathcal{P}_T$ &--&
+    the local function space on a cell $T$ \\
     $\mathcal{P}_0$ &--&
-    the local function space on the reference cell $K_0$ \\
-    $P_q(K)$ &--&
-    the space of polynomials of degree $\leq q$ on $K$ \\
+    the local function space on the reference cell $T_0$ \\
+    $P_q(T)$ &--&
+    the space of polynomials of degree $\leq q$ on $T$ \\
     $r$ &--&
     the (weak) residual, $r(v) = a(v, u_h) - L(v)$ or $r(v) = F(u_h; v)$ \\
     $u_h$ &--&
@@ -206,55 +212,33 @@
     a basis function in $V_h$ \\
     $\hat{\phi}_i$ &--&
     a basis function in $\hat{V}_h$ \\
-    $\phi_i^K$ &--&
-    a basis function in $\mathcal{P}_K$ \\
+    $\phi_i^T$ &--&
+    a basis function in $\mathcal{P}_T$ \\
     $\Phi_i$ &--&
     a basis function in $\mathcal{P}_0$ \\
     $z$ &--&
     the \emph{dual solution}, $z \in V^*$ \\
     $\mathcal{T}$ &--&
-    the \emph{mesh}, $\mathcal{T} = \{K\}$ \\
+    the \emph{mesh}, $\mathcal{T} = \{T\}$ \\
     $\Omega$ &--&
-    a bounded domain in~$\R^d$ \\
+    a bounded domain in~$\mathbb{R}^d$ \\
+    $k_n$ &--&
+    time step \\
+    $I_n$ &--&
+    time interval of length $k_{n} - k_{n-1}$ \\
+    $R_T$ &--&
+    strong residual on element $T$ \\
+    $R_{\partial T}$ &--&
+    strong residual on facet $\partial T$ \\
+    $u_{hk}$ &--&
+    the finite element solution in space-time \\
+    $S_n = \mathcal{T}\times I_n$ &--&
+    space-time slab \\
+    $\inner{v}{w}$ &--&
+    inner product, use macro \verb|\inner| \\
+    $\dx, \ds, \dt$ &--&
+    integration, use macros \verb|\dx|, \verb|\ds|, \verb|\dt| \\
   \end{longtable}
 \linespread{1.0}
-
-
-\end{document}
-
-
-\newcommand{\inner}[2]{\langle #1, #2 \rangle}
-\llbracket  \cdot \rrbracket  - jump  terms
-k_n - time step
-I_n  - time interval of length k_{n-1} - k_{n}
-S_n - space-time slab \mathcal{T}\times I_n
-R_K - strong residual on element K
-R_{\partial K} - strong residual on facet \partial K
-u_{hk} - the finite element solution in space-time
-
-Space-time slab S_n = \mathcal{T}\times I_n
-
-\section*{Variable names}
-
-\begin{tabular}{ccl}
-  $T$ &--&
-  cell (note: changed from $K$) \\
-  $A_T$ &--&
-  element tensor (note: changed from $A^K$) \\
-\end{tabular}
-
-\section*{Math notation}
-
-\begin{tabular}{ccl}
-  $\inner{v}{w}$ &--&
-  inner product, use command \texttt{inner} \\
-\end{tabular}
-
-\section*{Other notation}
-
-\begin{itemize}
-\item
-  $a(v, u)$ or $a(u, v)$?
-\end{itemize}
 
 \end{document}
