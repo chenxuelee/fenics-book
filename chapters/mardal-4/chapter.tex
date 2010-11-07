@@ -29,32 +29,26 @@
 
 %\thispagestyle{empty}
 
-\section{Introduction}
+%\section{Introduction}
 
 In this chapter we will describe the implementation of block preconditioned
 Krylov solvers for systems of partial differential equations (PDEs) using
-the Python interfaces of Dolfin and Trilinos. We remark that
-an alternative to PyTrilinos is PyAMG~\cite{pyamg} which can be used together with PyDolfin. 
-
-An outline of this paper is as follows: First, we review the
-abstract theory of constructing preconditioners by considering the
+the Python interfaces of Dolfin and Trilinos\index{Trilinos}. 
+We will start by reviewing the
+abstract theory of constructing preconditioners\index{preconditioner} by considering the
 differential operators as mappings in properly chosen Sobolev spaces. 
-Second, we will
+We will then
 present several examples, namely the Poisson problem, the Stokes problem, 
 the time-dependent Stokes problem and finally a mixed formulation
-of the Hodge Laplacian. The code examples related to this chapter can
-be found in FENICSBOOK/src/block-prec. 
-The code examples presented in this chapter differ slightly from the source
-code, in the sense that import statements,  safety checks, command-line arguments, definitions of \emp{Functions}
-and \emp{Subdomains} are often removed to shorten the presentation. 
+of the Hodge Laplacian. 
 
 \section{Abstract Framework for Constructing Preconditioners}
 
 This presentation of preconditioning is largely taken from the
 review paper~\cite{M-W-09}, where a more comprehensive mathematical
 presentation is given. Consider the following abstract formulation
-of a linear PDE problem: \\ 
-Find $u$ in the Hilbert space $H$ such that: 
+of a linear PDE problem:  
+Find $u$ in a Hilbert space $H$ such that: 
 \[
 \mathcal{A} u = f,  
 \]
@@ -67,10 +61,10 @@ that $\mathcal{A} : H \rightarrow H^*$ is a bounded invertible operator in the s
 \]
 The reader should notice that this operator is bounded only when 
 viewed as an operator from $H$ to $H^*$. 
-On the other hand, the spectrum of the operator is unbounded. Analogously,  
+The spectrum of the operator is unbounded and   
 discretizations of the operator will typically have  
 condition numbers that increase 
-in powers of $h$, where $h$ is the
+in negative powers of $h$, where $h$ is the
 characteristic cell size, as the mesh is refined. 
 The remedy for the unbounded spectrum is to introduce a preconditioner. 
 Let the preconditioner $B$ be an operator
@@ -90,13 +84,21 @@ preconditioned operator,
 \[
 \kappa(\mathcal{B}\mathcal{A}) = \|\mathcal{B}\mathcal{A}\|_{\mathcal{L}(H, H)} \|(\mathcal{B}\mathcal{A})^{-1}\|_{\mathcal{L}(H, H)} \le C^4  
 \]
-is bounded.  
+is bounded.  One example of such a preconditioner is the Riesz operator $\mathcal{R}$, i.e.,  the identity mapping between $H^*$ and $H$.  
+In this case 
+\[
+\|\mathcal{R}\|_{\mathcal{L}(H^*, H)} = 1 \quad \mbox{and} \quad   
+\|\mathcal{R}^{-1}\|_{\mathcal{L}(H, H^*)} = 1. 
+\]
+In fact, in most of our examples the preconditioner approximate Riesz mappings.  
+
 Given that the discretized operators  $\mathcal{A}_h$ and $\mathcal{B}_h$ are stable, in the sense
 that the operator norms are bounded, then the condition number of the discrete preconditioned
-operator, $\kappa(\mathcal{B}_h \mathcal{A}_h)$, will be bounded independent of $h$. The number of iterations required 
+operator, $\kappa(\mathcal{B}_h \mathcal{A}_h)$, will be bounded independent of $h$. 
+Furthermore, the number of iterations required 
 by a Krylov solver to reach a certain convergence criterion can typically be bounded by
 the condition number. Hence, when the condition number of the discrete problem is bounded independent
-of $h$, the Krylov solvers will have a converges rate independent of $h$. 
+of $h$, the Krylov solvers will have a convergence rate independent of $h$. 
 If then $\mathcal{B}_h$ is similar to $\mathcal{A}_h$ in terms of storage and evaluation, 
 we will then have an \emph{order-optimal} solution algorithm. 
 We remark that it is crucial that $\mathcal{A}_h$
@@ -105,6 +107,12 @@ Finally we will see that $\mathcal{B}_h$ often can be constructed
 using multigrid techniques. 
 
 \section{Numerical Examples}
+In all examples the mesh will be refinements of the unit square or unit cube. 
+The code examples presented in this chapter differ slightly from the source
+code, in the sense that import statements,  safety checks, command-line arguments, definitions of \emp{Functions}
+and \emp{Subdomains} are often removed to shorten the presentation. 
+
+
 \subsection{The Poisson problem with homogeneous Neumann conditions}
 The Poisson equation with Neumann conditions reads: \\ 
 Find $u$ such that
@@ -128,12 +136,14 @@ such that the preconditioner is spectrally equivalent with the inverse of $A$, i
 characteristic size of the cells in the mesh~\cite{JHBramble_1993a,Hackbusch, TOS2001}. 
 
 In this example, we will construct a multigrid preconditioner based on the algebraic multigrid
-package ML which is contained in PyTrilinos. Furthermore, we will estimate the eigenvalues
-of the preconditioned system. 
+package ML which is contained in PyTrilinos\index{PyTrilinos}. Furthermore, we will estimate the eigenvalues
+of the preconditioned system. We use continuous piecewise linear elements and
+compute the condition number of the preconditioned system and corresponding 
+number of iteration required for convergence using the Conjugate Gradient method\index{Conjugate Gradient method} for various refinements of the unit square. 
 
 
 First of all, the ML preconditioner is constructed as follows,  
-\begin{code}
+\begin{python}
 from PyTrilinos import Epetra, AztecOO, TriUtils, ML 
 from dolfin import down_cast, Vector 
 
@@ -157,14 +167,14 @@ class MLPreconditioner:
         err = self.ml_prec.ApplyInverse(down_cast(b).vec(),
                                         down_cast(x).vec())
         return x
-\end{code}
+\end{python}
 The linear algebra backends uBlas, PETSc and Trilinos all have 
 a wide range of Krylov solvers. Here, we implement
 these solvers in Python because we would like to store the intermediate
 variables and  used them to compute an estimate of the condition number. 
 The following code shows the implementation of the Conjugate Gradient method
 using the Python linear algebra interface in Dolfin:
-\begin{code}
+\begin{python}
 def precondconjgrad_eigest(B, A, x, b, tolerance=1.0E-05, 
                            relativeconv=False, maxiter=500):
 
@@ -194,14 +204,14 @@ def precondconjgrad_eigest(B, A, x, b, tolerance=1.0E-05,
 
     e = eigenvalue_estimates(alphas, betas)
     return x, e, iter
-\end{code}
+\end{python}
 The intermediate variables called alphas and betas can then be used to estimate the condition number of
-the preconditioned matrix as follows, see e.g. cite{}. 
-Notice that since the preconditioned CG method 
-converges quite fast when using AMG as a preconditioner, there will be only a small
+the preconditioned matrix as follows, see eg.~\cite{Saad2003}. 
+Notice that since the preconditioned Conjugate Gradient method 
+converges quite fast when using algebraic multigrid (AMG)\index{AMG} as a preconditioner, there will be only a small
 number of alphas and betas and we may therefore use the dense linear algebra tools in 
 NumPy.
-\begin{code}
+\begin{python}
 def eigenvalue_estimates(alphas, betas):
     # eigenvalues estimates in terms of alphas and betas
     import numpy
@@ -217,14 +227,14 @@ def eigenvalue_estimates(alphas, betas):
     e.sort()
 
     return x, e
-\end{code}
+\end{python}
 The following code shows the implementation of a Poisson problem solver, using the
-above mentioned ML preconditioner and CG algorithm. We remark here that it
+above mentioned ML preconditioner and Conjungate Gradient algorithm. We remark here that it
 is essential for the convergence of the method that both the start vector 
 and the right-hand side are both in $L^2_0$. For this reason we subtract the 
 mean value from the right hand-side.  The start vector is zero and does therefore
 have mean value zero. 
-\begin{code}
+\begin{python}
 import Krylov 
 import MLPrec 
 
@@ -262,7 +272,7 @@ x, e, iter = Krylov.precondconjgrad_eigest(B, A, x, b, 10e-6, True, 100)
 print "Number of iterations ", iter
 print "Eigenvalues ", e 
 print "kappa(BA) ", e[len(e)-1]/e[0]
-\end{code}
+\end{python}
 In Table \ref{tabel:neumann} we list the number of iterations for convergence and
 the estimated condition number of the preconditioned system based on the code 
 shown above, see also the source code \emp{poisson\_neumann.py}. 
@@ -275,7 +285,7 @@ $\kappa$ & 1.56 & 1.26 & 2.09 & 1.49 & 1.20 \\ \hline
 $\#iterations$ & 8 & 8 & 9 & 9 & 8 \\ \hline 
 \end{tabular}
 \caption{The estimated condition number $\kappa$ and the number of iterations for 
-  convergence with respect to various mesh refinements.}\label{tabel:neumann} 
+  convergence with respect to various mesh refinements for the Poisson problem with Neumann conditions.}\label{tabel:neumann} 
 \end{center}
 \end{table}
 
@@ -330,23 +340,27 @@ described in the previous example (A simple Jacobi preconditioner
 would be sufficient for $L$).
 For symmetric  indefinite problems the \emph{Minimum Residual Method} is
 the fastest method. Preconditioners of this form has been studied by
-many~\cite{E-S-W-text,R-W-92,S-W-93,S-W-94}. In Table \ref{stokes:ex}, 
+many~\cite{E-S-W-text,R-W-92,S-W-93,S-W-94}. 
+
+In Table \ref{stokes:ex} 
 we present the number of iterations needed for convergence 
 and estimates on the condition number $\kappa$ with 
 respect to different discretization methods and different characteristic cell sizes $h$. 
+We different mixed methods, namely  the  $\mathrm{CG}_2-\mathrm{CG}_1$, $\mathrm{CG}_2-\mathrm{DG}_0$  
+$\mathrm{CG}_1-\mathrm{CG}_1$, and  $\mathrm{CG}_1-\mathrm{CG}_1$ stabilized.  
 The MinRes iteration is stopped when 
 $(\mathcal{B}_h r_k, r_k)/(\mathcal{B}_h r_0, r_0) \le 10^{-10}$, where $r_k$ is the residual at
 iteration $k$. 
-The condition numbers, $\kappa$, were estimated using the CG method on the
+The condition numbers, $\kappa$, were estimated using the Conjugate Gradient method on the
 normal equation. This condition number will always be less 
 than the real condition number and is probably too low
-for the last columns for the $P_1-P_1$ method without stabilization. 
+for the last columns for the $\mathrm{CG}_1-\mathrm{CG}_1$ method without stabilization. 
 for all the. 
-Notice that for the stable methods $P_2-P_1$ and $P_2-P_0$,
+Notice that for the stable methods $\mathrm{CG}_2-\mathrm{CG}_1$ and $\mathrm{CG}_2-\mathrm{DG}_0$,
 the number of iterations and the condition number seems to be bounded
-independently of $h$. For the unstable $P_1-P_1$ method, the number of iterations
+independently of $h$. For the unstable $\mathrm{CG}_1-\mathrm{CG}_1$ method, the number of iterations
 and the condition number increases as $h$ decreases. However, for 
-the stabilized $P_1-P_1$ method, where the pressure is stabilized by 
+the stabilized $\mathrm{CG}_1-\mathrm{CG}_1$ method, $\mathrm{CG}_1-\mathrm{CG}_1$-stab , where the pressure is stabilized by 
 \[
 \int_\Omega \nabla \cdot u \, q  - \alpha h^2 \, \nabla p \cdot \nabla q \, dx,       
 \]
@@ -357,26 +371,26 @@ the number of iterations and the condition number appear to be bounded.
 \begin{tabular}{|c|c||c|c|c|c|c|c|}
 \hline
 method & $h$ & $2^{-4}$ & $2^{-5}$ & $2^{-6}$ & $2^{-7}$ & $2^{-8}$ \\ \hline\hline
-$P_2-P_1$ &  iterations & 34 & 43 & 49 & 52 & 58 \\ \hline 
-$P_2-P_1$ & $\kappa $ & 13.3 & 13.5 & 13.6 & 13.6 & 13.6 \\ \hline 
-$P_2-P_0$ &  iterations & 27 & 35 & 42 & 47 & 54 \\ \hline 
-$P_2-P_0$ & $\kappa $ & 6.9 & 7.9 & 8.8 & 9.5 & 10.3 \\ \hline 
-$P_1-P_1$ & iterations & 36 & 118 & 200+ & 200+ & 200+ \\ \hline 
-$P_1-P_1$ & $\kappa$ & 147 & 308 & 696 & 827 & 671 \\ \hline 
-$P_1-P_1$-stab& iterations & 29 & 34 & 33 & 33 & 31 \\ \hline 
-$P_1-P_1$-stab& $\kappa $ & 11.0 & 12.3 & 12.5 & 12.6 & 12.7 \\ \hline 
+$\mathrm{CG}_2-\mathrm{CG}_1$ &  iterations & 34 & 43 & 49 & 52 & 58 \\ \hline 
+$\mathrm{CG}_2-\mathrm{CG}_1$ & $\kappa $ & 13.3 & 13.5 & 13.6 & 13.6 & 13.6 \\ \hline 
+$\mathrm{CG}_2-\mathrm{DG}_0$ &  iterations & 27 & 35 & 42 & 47 & 54 \\ \hline 
+$\mathrm{CG}_2-\mathrm{DG}_0$ & $\kappa $ & 6.9 & 7.9 & 8.8 & 9.5 & 10.3 \\ \hline 
+$\mathrm{CG}_1-\mathrm{CG}_1$ & iterations & 36 & 118 & 200+ & 200+ & 200+ \\ \hline 
+$\mathrm{CG}_1-\mathrm{CG}_1$ & $\kappa$ & 147 & 308 & 696 & 827 & 671 \\ \hline 
+$\mathrm{CG}_1-\mathrm{CG}_1$-stab& iterations & 29 & 34 & 33 & 33 & 31 \\ \hline 
+$\mathrm{CG}_1-\mathrm{CG}_1$-stab& $\kappa $ & 11.0 & 12.3 & 12.5 & 12.6 & 12.7 \\ \hline 
 \end{tabular}
 \caption{The number of iterations for 
   convergence with respect to mesh refinements.
-  The methods $P_2-P_1$, $P_2-P_0$, and $P_1-P_1$-stab are stable, while $P_1-P_1$ is not.}\label{stokes:ex} 
+  The methods $\mathrm{CG}_2-\mathrm{CG}_1$, $\mathrm{CG}_2-\mathrm{DG}_0$, and $\mathrm{CG}_1-\mathrm{CG}_1$-stab are stable, while $\mathrm{CG}_1-\mathrm{CG}_1$ is not.}\label{stokes:ex} 
 \end{center}
 \end{table}
 
 We will now describe the code in detail. 
 In this case, the preconditioner consists of two preconditioners.
-The following shows how to implement this block preconditioner
+The following shows how to implement this block preconditioner\index{block preconditioner}
 based on the ML preconditioner defined in the previous example.
-\begin{code}
+\begin{python}
 class SaddlePrec: 
     def __init__(self, K, L):  
         self.K = K
@@ -398,9 +412,9 @@ class SaddlePrec:
         x[n:n+m]  = self.L_prec*b[n:n+m] 
 
         return x 
-\end{code}
+\end{python}
 The Stokes problem is then specified and solved as follows: 
-\begin{code}
+\begin{python}
 mesh = UnitSquare(40,40)
 V = VectorFunctionSpace(mesh, "CG", 2)
 Q = FunctionSpace(mesh, "CG", 1)
@@ -419,10 +433,10 @@ bc_func = BoundaryFunction(V)
 bc = DirichletBC(V, bc_func, Boundary()) 
 
 A, b = assemble_system(a, L, bc)
-\end{code}
+\end{python}
 And finally, we create a block preconditioner and solve the problem with 
-the MinRes method.
-\begin{code}
+the MinRes method\index{Minimal Residual Method}.
+\begin{python}
 u, p = TrialFunction(V), TrialFunction(Q)
 v, q = TestFunction(V), TestFunction(Q)
 
@@ -440,7 +454,7 @@ x.zero()
 B = SaddlePrec(K, L)
 
 x, i, rho  = MinRes.precondMinRes(B, A, x, b, 10e-8, False, 200)
-\end{code}
+\end{python}
 We refer to \emp{stokes.py} for the complete code. 
 
 \subsection{The time-dependent Stokes Problem}
@@ -520,13 +534,14 @@ $k\backslash h$ & $2^{-4}$ & $2^{-5}$ & $2^{-6}$ & $2^{-7}$ & $2^{-8}$ \\ \hline
 0.01 & 10.3 & 11.0 & 12.8 & 13.2 & 13.4 \\ \hline 
 0.001 & 7.3 & 9.1 & 11.0 & 12.3  & 13.0 \\ \hline 
 \end{tabular}
-\caption{The  convergence with respect to $k$ and mesh refinements.}\label{timestokes:ex} 
+\caption{The convergence with respect to $k$ and mesh refinements for the time-dependent Stokes problem 
+when using the $\mathrm{CG}_2-\mathrm{CG}_1$ method.}\label{timestokes:ex} 
 \end{center}
 \end{table}
 
 Creating the preconditioner in this example is completely analogous to the Stokes
 example except that we need three matrices based on three bilinear forms: 
-\begin{code}
+\begin{python}
 k = dot(u, v)*dx +  k*inner(grad(u), grad(v))*dx 
 l = kinv*p*q*dx 
 m = dot(grad(p),grad(q))*dx 
@@ -536,10 +551,10 @@ L1 = q*g*dx
 K, b0 = assemble_system(k,L0,bc)
 L, b1 = assemble_system(l,L1)
 M, b1 = assemble_system(m,L1)
-\end{code}
+\end{python}
 Also the code for the block preconditioner is analogous, except that
 it is based on three matrices: 
-\begin{code}
+\begin{python}
 class SaddlePrec2: 
     def __init__(self, K, L, M):  
         self.K_prec = MLPrec.MLPreconditioner(K)
@@ -562,7 +577,7 @@ class SaddlePrec2:
         x[n:n+m]   = y0 + y1  
 
         return x 
-\end{code}
+\end{python}
 The complete code can be found in \emp{timestokes.py}
 
 \subsection{Mixed form of the Hodge Laplacian}
@@ -579,7 +594,7 @@ Find $u, p \in H_0(\operatorname{curl}) \times H^1_0$ such that
 \begin{eqnarray}
 \int_\Omega \nabla \times u \cdot \nabla \times v \, dx    
 - \int_\Omega \nabla p v \, dx  &=& \int_\Omega f v \, dx  \quad \forall v \in H_0(\operatorname{curl}) \\
- \int_\Omega u  \nabla q  \, dx - \int_\Omega p q \, dx   &=& 0 \quad \forall q \in H^1_0 . \\
+ \int_\Omega u  \nabla q  \, dx - \int_\Omega p q \, dx   &=& 0 \quad \forall q \in H^1_0 . 
 \end{eqnarray}
 Hence, it is natural to consider preconditioner a for $H(\operatorname{curl})$ problems
 (in addition to $H^1$ preconditioners). Such preconditioners have
@@ -674,7 +689,7 @@ to use the functionality of Epetra/Trilinos we down\_cast the Dolfin \emp{Epetra
 to its underlying type \emp{Epetra\_FECrsMatrix}. We may then use PyTrilions. 
 The following code demonstrate how to perform matrix matrix products, mass lump inversion  etc. using 
 PyTrilinos. 
-\begin{code}
+\begin{python}
 V = FunctionSpace(mesh, "N1curl", 1)
 Q = FunctionSpace(mesh, "CG", 1)
 
@@ -704,7 +719,7 @@ err = EpetraExt.Multiply(BB_epetra, False, BF_epetra, True, CC)
 DD = EpetraMatrix(CC)
 
 EE = assemble(aa, DD, reset_sparsity=False, add_values=True)
-\end{code}
+\end{python}
 The complete code can be found in \emp{hodge8.py} and \emp{hodge9.py}. 
 
 
@@ -715,6 +730,9 @@ algebra interface in Dolfin  allow us to write  Krylov solvers and customize the
 in the language which these algorithms are typically expressed in books. 
 Furthermore, it is relatively simple to employ state--of--the--art algebraic multigrid 
 algorithms in Python using Trilinos. 
+We remark that
+an alternative to PyTrilinos is PyAMG~\cite{pyamg} which can be used together with PyDolfin. 
+
 
 In this chapter we have shown the implementation of block preconditioners for a few selected problems. 
 Block preconditioners have been used in a varity of applications, we refer to \cite{M-W-09}
