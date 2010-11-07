@@ -3,17 +3,18 @@
               {Ilmar M. Wilbers, Kent-Andre Mardal and Martin S. Aln{\ae}s}
               {wilbers}
 
-\section{Introduction}
 
-Instant is a small Python module for just-in-time compilation (or inlining) of
-C/C++ code based on \index{SWIG}SWIG~\cite{www:swig} and
-\index{Distutils}Distutils\footnote{http://www.python.org/doc/2.5.2/lib/module-distutils.html}.
-Just-in-time compilation can significantly speed up, e.g., your
-NumPy~\cite{www:numpy} code in a clean and readable way. This makes
-Instant a very convenient tool in combination with code
-generation. Before we demonstrate the use of Instant in a series of
-examples, we briefly step through the basic ideas behind the
-implementation.  Instant relies on SWIG for the generation of wrapper
+Instant is a small Python module for just-in-time compilation (JIT)\index{JIT} (or inlining) of
+C/C++ code.
+Instant accepts plain C/C++. This makes it particularly attractive to combine
+Instant with tools generating C/C++ code such as Dolfin, FFC, and  
+SFC.  
+
+
+
+
+\section{Brief Overview of Design}
+Instant relies on SWIG for the generation of wrapper
 code needed for making the C/C++ code usable from
 Python~\cite{www:python}. SWIG is a mature and well-documented tool
 for wrapping C/C++ code in many languages. We refer to its website for
@@ -21,7 +22,7 @@ a comprehensive user manual and we also discuss some common tricks and
 troubles in Chapter~\ref{chap:mardal-2}.  The code to be inlined, in
 addition to the wrapper code, is then compiled into a Python extension
 module (a shared library with functionality as specified by the Python
-C-API) by using Distutils. To check whether the C/C++ code has changed
+C-API) by using Distutils or CMake. To check whether the C/C++ code has changed
 since the last execution, Instant computes the SHA1
 sum\footnote{http://www.apps.ietf.org/rfc/rfc3174.html} of the code
 and compares it to the SHA1 checksum of the code used in the previous
@@ -29,83 +30,46 @@ execution. Finally, Instant has implemented a set of
 SWIG \index{typemaps}typemaps, allowing the user to transfer NumPy
 arrays between the Python code and the C/C++ code.
 
-There exist several packages that are similar to Instant.
-Worth mentioning here are \index{Weave}Weave~\cite{www:weave},
-\index{Cython}Cython~\cite{www:cython}, and \index{F2PY}F2PY~\cite{Peterson}.
-Weave allows us to inline C code directly in our Python
-code. Unlike Instant, Weave does not require the specification of the function
-signature and the return argument. For specific examples of Weave and the
-other mentioned packages, we refer to~\cite{WilbersLangtangenEtAl2009,www:weave}. Weave is part of
-SciPy~\cite{www:scipy}.
-%FIXME this needs to be put another place:
-%Indexing multi-dimensional arrays in Instant and Weave must
-%be done by using striding as the different dimensions are stored in
-%consecutive order in a single, one-dimensional array. Hence, indexing the
-%element $i,j,k$ in the three-dimensionsl array $u$ is done by writing $u[i*m +
-%j*n + k]$ instead of the more natural $u(i,j,k)$. The latter syntax can be
-%achieved with Weave by using Blitz++ arrays, at the cose of speed.
-F2PY is currently part of NumPy, and is primarily intended
-for wrapping Fortran code. F2PY can also be used for wrapping C
-code.
-%FIXME: this needs to be put another place:
-%By including special comment lines, we can specify how the arguments
-%sent back and forth between Python and the Fortran code should be
-%treated. Since Fortran using column-major storage, while Python (and C) use
-%row-major storage, it is important to specify the storage of the NumPy arrays
-%correctly in order to gain the maximum speed-up.
-Cython is a rather new project, branched from the more well-known Pyrex
-project~\cite{www:pyrex}. Cython is attractive because of  its integration
-with NumPy arrays. Cython differs from the other projects by being a programming
-language of its own. Cython extends Python with concepts such as static typing,
-hence allowing the user to incrementally speed up the code.
-
-Instant accepts plain C/C++. This makes it particularly attractive to combine
-Instant with tools capable of generating C/C++ code such as FFC (see Chapter~\ref{chap:logg-1}),
-SFC (see Chapter~\ref{chap:alnes-3}), Swiginac~\cite{www:swiginac}, and Sympy~\cite{Certik2009}.  In fact,
-tools like these have been the main motivation behind Instant, and both FFC
-and SFC employ Instant. Instant is released under a BSD license, see the
-file \emp{LICENSE} in the source directory.
-
-In this chapter we will begin with several examples in Section \ref{wilbers:sec:examples}.
-Section \ref{wilbers:sec:explained} explains how Instant works, while
-Section \ref{wilbers:sec:api} gives a detailed description of the API.
-
+%In this chapter we will begin with several examples in Section \ref{wilbers:sec:examples}.
+%Section \ref{wilbers:sec:explained} explains how Instant works, while
+%Section \ref{wilbers:sec:api} gives a detailed description of the API.
+%
 
 \section{Examples}
 \label{wilbers:sec:examples}
-All code from the examples in this section can be found
-online\footnote{http://www.fenics.org/pub/documents/book/instant/examples}.
-We will refer
-to this location as \emp{\$examples}.
-
-\subsection{Installing Instant}
-Before trying to run the examples, you need to install Instant.
-The latest Instant release can be downloaded from the FEniCS
-website~\cite{www:fenics}. It is
-available both as a source code tarball and as a Debian package. In addition, the latest
-source code can be checked out using
-Mercurial~\cite{www:mercurial}:
-\begin{code}
-hg clone http://www.fenics.org/hg/instant
-\end{code}
-Installing Instant
-from the source code is done with a regular Distutils script, i.e,
-\begin{code}
-python setup.py install
-\end{code}
-After successfully
-installing Instant, one can verify the installation by running the scripts
-\emp{run\_\-tests.py} followed by \emp{rerun\_\-tests.py} in the
-\emp{tests}-directory of the source code. The first will run all the examples after having
-cleaned the Instant cache, the second will run all examples using the
-compiled modules found in the Instant cache from the previous execution.
-%If PyChecker\footnote{http://pychecker.sourceforge.net/} is installed, one can
-%also run \emp{run\_\-pychecker.py}.
-
-
+%All code from the examples in this section can be found
+%online\footnote{http://www.fenics.org/pub/documents/book/instant/examples}.
+%We will refer
+%to this location as \emp{\$examples}.
+%
+%\subsection{Installing Instant}
+%Before trying to run the examples, you need to install Instant.
+%The latest Instant release can be downloaded from the FEniCS
+%website~\cite{www:fenics}. It is
+%available both as a source code tarball and as a Debian package. In addition, the latest
+%source code can be checked out using
+%Mercurial~\cite{www:mercurial}:
+%\begin{code}
+%hg clone http://www.fenics.org/hg/instant
+%\end{code}
+%Installing Instant
+%from the source code is done with a regular Distutils script, i.e,
+%\begin{code}
+%python setup.py install
+%\end{code}
+%After successfully
+%installing Instant, one can verify the installation by running the scripts
+%\emp{run\_\-tests.py} followed by \emp{rerun\_\-tests.py} in the
+%\emp{tests}-directory of the source code. The first will run all the examples after having
+%cleaned the Instant cache, the second will run all examples using the
+%compiled modules found in the Instant cache from the previous execution.
+%%If PyChecker\footnote{http://pychecker.sourceforge.net/} is installed, one can
+%%also run \emp{run\_\-pychecker.py}.
+%
+%
 \subsection{Hello World}
 Our first example demonstrate the usage of Instant in a very simple case:
-\begin{code}
+\begin{python}
 from instant import inline
 c_code = r'''
 double add(double a, double b)
@@ -116,7 +80,7 @@ double add(double a, double b)
 add_func = inline(c_code)
 sum = add_func(3, 4.5)
 print 'The sum of 3 and 4.5 is', sum
-\end{code}
+\end{python}
 Here Instant will wrap the C-function \emp{add} into a Python extension module by using
 SWIG and Distutils.
 The inlined function is written in standard C. SWIG supports almost
@@ -133,10 +97,10 @@ Although Instant notifies the user when it is compiling, it might
 sometimes be necessary, e.g. when debugging, to see the details of the Instant
 internals. We can do this by setting the logging level before calling any
 other Instant functions:
-\begin{code}
+\begin{python}
 from instant import output
 output.set_logging_level('DEBUG')
-\end{code}
+\end{python}
 The intrinsic Python module \emp{logging} is used. First, the
 \emp{build\_\-function} arguments are displayed, whereafter the different steps
 performed by Instant are shown in detail, e.g whether the module is found in
@@ -177,15 +141,15 @@ p_i &=& p_{i-1} + \Delta t (B Q_i - A p_{i-1}), \quad \mbox{for}\quad i=1,\ldots
 p_0 &=& p0.
 \end{eqnarray}
 The scheme can be implemented in Python as follows using NumPy arrays:
-\begin{code}
+\begin{python}
 def time_loop_py(p, Q, A, B, dt, N, p0):
     p[0] = p0
     for i in range(1, N):
         p[i] = p[i-1] + dt*(B*Q[i] - A*p[i-1])
-\end{code}
+\end{python}
 The C code given as argument to the Instant function \emp{inline\_\-with\_\-numpy}
 looks like:
-\begin{code}
+\begin{python}
 void time_loop_c(int n, double* p,
                  int m, double* Q,
                  double A, double B,
@@ -203,28 +167,28 @@ void time_loop_c(int n, double* p,
         p[i] = p[i-1] + dt*(B*Q[i] - A*p[i-1]);
     }
 }
-\end{code}
+\end{python}
 In this example, \emp{(int n, double* p)} represents an array of doubles with
 length $n$. However, this can not be determined by the function signature:
-\begin{code}
+\begin{python}
 void time_loop_C(int n, double* p, int m, double* Q, ...)
-\end{code}
+\end{python}
 For example, \emp{double* p} may be an array of length $m$ or it may simply be
 output. In Instant
 you can specify 1-dimensional arrays as follows:
-\begin{code}
+\begin{python}
 time_loop_c = inline_with_numpy(c_code,
                                 arrays = [['n', 'p'],
                                           ['m', 'Q']])
-\end{code}
+\end{python}
 Here we tell Instant that \emp{(int n, double* p)} and
 \emp{(int m, double* Q)} are NumPy arrays (and Instant then employs
 a few typemaps).
 We may then call the \emp{time\_\-loop}
 function as follows:
-\begin{code}
+\begin{python}
 time_loop_c(p, Q, 1.0, 1.0, 1.0/(N-1), N, 1.0)
-\end{code}
+\end{python}
 In the above example we obtain a speed-up of about a factor 400 when using
 100000 time steps compared to the pure Python with NumPy version, see Table
 \ref{wilbers:fig:speed-up}. This is about the same as a pure C program. The result of
@@ -293,7 +257,7 @@ t_l &= l\Delta t,
 Also, $k_{i+\frac{1}{2},j}$ is short for $k(x_{i+\frac{1}{2}},y_j)$.
 
 The code for calculating the next time step using OpenMP looks like:
-\begin{code}
+\begin{python}
 void stencil(double dt, double dx, double dy,
              int ux, int uy, double* u,
              int umx, int umy, double* um,
@@ -324,12 +288,12 @@ void stencil(double dt, double dx, double dy,
     }
   }
 }
-\end{code}
+\end{python}
 We also need to add the OpenMP header \emp{omp.h} and compile
 with the flag \emp{-fopenmp} and link with the OpenMP shared
 library, e.g. \emp{libgomp.so} for Linux (specified with \emp{-lgomp}).
 This can be done as follows:
-\begin{code}
+\begin{python}
 instant_ext = \
   build_module(code=c_code,
                system_headers=['numpy/arrayobject.h',
@@ -342,7 +306,7 @@ instant_ext = \
                ['umx', 'umy', 'um'],
                ['kx', 'ky', 'k'],
                ['upn', 'up', 'out']])
-\end{code}
+\end{python}
 Note that the arguments \emp{include\_\-headers}, \emp{init\_\-code}, and the
 first element of \emp{system\_\-headers} could have been omitted had we chosen
 to use \emp{inline\_\-module\_\-with\_\-numpy} instead of \emp{build\_\-module}. We could also
@@ -481,7 +445,7 @@ In this section we explain this.
 We will again use our first example, but this time with
 the keyword argument \emp{modulename} set explicitely. The file can be found
 under \emp{\$examples/ex4.py}:
-\begin{code}
+\begin{python}
 from instant import inline
 code = r'''
 double add(double a, double b)
@@ -492,15 +456,15 @@ double add(double a, double b)
 add_func = inline(code, modulename='ex4_cache')
 sum = add_func(3, 4.5)
 print 'The sum of 3 and 4.5 is', sum
-\end{code}
+\end{python}
 Upon calling Instant the first time for some C/C++ code, Instant compiles this
 code and stores the resulting files in a directory \emp{ex4\_\-cache}. The
 output from running the code the first time is:
-\begin{code}
+\begin{python}
 --- Instant: compiling ---
 Hello world! C function add is being called...
 The sum of 3 and 4.5 is 7.5
-\end{code}
+\end{python}
 Next time we ask
 Instant to call this code, it will check if the compiled files are available
 either in cache or locally, and further whether we need to rebuild these files
@@ -1111,3 +1075,23 @@ output of \emp{get\_\-swig\_\-version}. Returns \emp{True} if the version of the
 installed SWIG is equal or greater than the version passed to the function. It
 also has one keyword argument, \emp{same}. If it is \emp{True}, the function
 returns \emp{True} if and only if the two versions are the same.
+
+\section{Related Works}
+There exist several packages that are similar to Instant.
+Worth mentioning here are \index{Weave}Weave~\cite{www:weave},
+\index{Cython}Cython~\cite{www:cython}, and \index{F2PY}F2PY~\cite{Peterson}.
+Weave allows us to inline C code directly in our Python
+code. Unlike Instant, Weave does not require the specification of the function
+signature and the return argument. For specific examples of Weave and the
+other mentioned packages, we refer to~\cite{WilbersLangtangenEtAl2009,www:weave}. Weave is part of
+SciPy~\cite{www:scipy}.
+F2PY is currently part of NumPy, and is primarily intended
+for wrapping Fortran code. F2PY can also be used for wrapping C
+code.
+Cython is a rather new project, branched from the more well-known Pyrex
+project~\cite{www:pyrex}. Cython is attractive because of  its integration
+with NumPy arrays. Cython differs from the other projects by being a programming
+language of its own. Cython extends Python with concepts such as static typing,
+hence allowing the user to incrementally speed up the code.
+
+
