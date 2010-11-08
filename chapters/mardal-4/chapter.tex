@@ -275,7 +275,9 @@ print "kappa(BA) ", e[len(e)-1]/e[0]
 \end{python}
 In Table \ref{tabel:neumann} we list the number of iterations for convergence and
 the estimated condition number of the preconditioned system based on the code 
-shown above, see also the source code \emp{poisson\_neumann.py}. 
+shown above. We use test different refinements of the unit square and use
+continuous piecewise linear elements, $\mathrm{CG}_1$. The source function $f= 500\exp(-((x-0.5)^2 + (y-0.5)^2)/0.02)$ and
+$g =  25 \sin(5\pi y)$ for $x=0$ and zero elsewhere, see also the source code \emp{poisson\_neumann.py}. 
 \begin{table}
 \begin{center}
 \begin{tabular}{|c||c|c|c|c|c|c|}
@@ -285,7 +287,9 @@ $\kappa$ & 1.56 & 1.26 & 2.09 & 1.49 & 1.20 \\ \hline
 $\#iterations$ & 8 & 8 & 9 & 9 & 8 \\ \hline 
 \end{tabular}
 \caption{The estimated condition number $\kappa$ and the number of iterations for 
-  convergence with respect to various mesh refinements for the Poisson problem with Neumann conditions.}\label{tabel:neumann} 
+  convergence with respect to various mesh refinements for the Poisson 
+  problem with Neumann conditions and
+  the $\mathrm{CG}_1$ method.}\label{tabel:neumann} 
 \end{center}
 \end{table}
 
@@ -296,10 +300,10 @@ Our next example is the Stokes problem,
 \begin{eqnarray}
 -\Delta u - \nabla p &=& f \quad \mbox{in} \ \Omega, \\ 
 \nabla \cdot u &=& 0 \quad \mbox{in} \  \Omega, \\
-             u &=& 0   \quad \mbox{on} \  \partial \Omega.  
+             u &=& g   \quad \mbox{on} \  \partial \Omega.  
 \end{eqnarray}
 The variational form is: \\ 
-Find $u,p \in H^1_0 \times L_0^2$ such that  
+Find $u,p \in H^1_g \times L_0^2$ such that  
 \[
 \int_\Omega \nabla u : \nabla v \,  dx + 
 \int_\Omega \nabla \cdot u \, q \,  dx +  
@@ -317,9 +321,9 @@ where
 \end{eqnarray}
 and $B^*$ is the adjoint of $B$.  
 Then it is well-known that $\mathcal{A}$ is a bounded operator from
-$H^1_0 \times L_0^2$ to its dual $H^{-1} \times L_0^2$, see e.g.~\cite{Brezzi,BrezziFortin}. Therefore, we 
+$H^1_g \times L_0^2$ to its dual $H_g^{-1} \times L_0^2$, see e.g.~\cite{Brezzi,BrezziFortin}. Therefore, we 
 construct a preconditioner, 
-$\mathcal{B}: H^{-1} \times L_0^2 \rightarrow H^1_0 \times L_0^2$
+$\mathcal{B}: H_g^{-1} \times L_0^2 \rightarrow H^1_g \times L_0^2$
 defined as 
 \[
 \mathcal{B} 
@@ -345,15 +349,16 @@ many~\cite{E-S-W-text,R-W-92,S-W-93,S-W-94}.
 In Table \ref{stokes:ex} 
 we present the number of iterations needed for convergence 
 and estimates on the condition number $\kappa$ with 
-respect to different discretization methods and different characteristic cell sizes $h$. 
-We different mixed methods, namely  the  $\mathrm{CG}_2-\mathrm{CG}_1$, $\mathrm{CG}_2-\mathrm{DG}_0$  
+respect to different discretization methods and different characteristic cell sizes $h$. The problem we
+are solving is the so-called lid driven cavity problem, ie. $f=0$ and $g = (1,0)$ for $y=1$ and zero elsewhere.   
+We different mixed methods, namely  the  $\mathrm{CG}_2-\mathrm{CG}_1$, $\mathrm{CG}_2-\mathrm{DG}_0$,  
 $\mathrm{CG}_1-\mathrm{CG}_1$, and  $\mathrm{CG}_1-\mathrm{CG}_1$ stabilized.  
 The MinRes iteration is stopped when 
 $(\mathcal{B}_h r_k, r_k)/(\mathcal{B}_h r_0, r_0) \le 10^{-10}$, where $r_k$ is the residual at
 iteration $k$. 
 The condition numbers, $\kappa$, were estimated using the Conjugate Gradient method on the
 normal equation. This condition number will always be less 
-than the real condition number and is probably too low
+than the real condition number and probably too low
 for the last columns for the $\mathrm{CG}_1-\mathrm{CG}_1$ method without stabilization. 
 for all the. 
 Notice that for the stable methods $\mathrm{CG}_2-\mathrm{CG}_1$ and $\mathrm{CG}_2-\mathrm{DG}_0$,
@@ -578,6 +583,13 @@ class SaddlePrec2:
 
         return x 
 \end{python}
+In Table~\ref{timestokes:ex} we show the condition number for the time-dependent Stokes problem descretized
+with the $\mathrm{CG}_2-\mathrm{CG}_1$ method for various mesh refinements and values of $k$. We have the 
+same boundary conditions as for the Stokes problem, ie., $f=0$ and $g = (1,0)$ for $y=1$ and zero elsewhere. 
+Clearly, the condition number appears to be bounded by $\approx 14$,  although the asymptotic limit 
+is not reached for small $k$ on these coarse meshes. 
+
+
 The complete code can be found in \emp{timestokes.py}
 
 \subsection{Mixed form of the Hodge Laplacian}
@@ -637,8 +649,7 @@ Let the discrete operator be
 \begin{pmatrix} A_h & B_h^* \\ B_h & -C_h \end{pmatrix}, 
 \]
 where we assume that the discrete system has been obtained by using a stable finite
-element method, eg. using lowest order Nedelec elements of first kind~\cite{Nedelec:1980:MFE} combined with continuous piecewise linears.
-We eliminate the pressure to obtain the matrix 
+element method. We eliminate the pressure to obtain the matrix 
 \[
 K_h  = A_h +  B_h^* C^{-1}_h B_h, 
 \]
@@ -665,7 +676,8 @@ Here, $D_h$ is a discrete Laplacian. The other preconditioner is
 \]
 
 In Table \ref{table:hodge} we list the estimated condition numbers on various mesh refinements
-on the unitcube. 
+on the unitcube. We use the  lowest order Nedelec elements of first kind~\cite{Nedelec:1980:MFE} combined with continuous piecewise linears.
+In this example we use homogeneous boundary conditions and $f=0$, but we use a random start vector. 
 \begin{table}
 \begin{center}
 \begin{tabular}{|c||c|c|c|c|c|c|}
@@ -734,9 +746,10 @@ We remark that
 an alternative to PyTrilinos is PyAMG~\cite{pyamg} which can be used together with PyDolfin. 
 
 
-In this chapter we have shown the implementation of block preconditioners for a few selected problems. 
+We have shown the implementation of block preconditioners for a few selected problems. 
 Block preconditioners have been used in a varity of applications, we refer to \cite{M-W-09}
 and the references therein for a more complete discussion on this topic. 
+For an overview of similar and alternative preconditioning techniques cf. eg.~\cite{B-G-L-05,E-S-W-text}. 
 
 
 
