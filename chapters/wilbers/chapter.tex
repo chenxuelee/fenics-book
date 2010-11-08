@@ -470,8 +470,7 @@ different caching options can be found in Section \ref{wilbers:sec:msc}.
 
 The resulting module files can be found in a directory reflecting the name of
 the module, in this case \emp{ex4\_\-cache}:
-\footnotesize
-\begin{code}
+\begin{python}
 ilmarw@multiboot:~/instant_doc/code$ cd ex4_cache/
 ilmarw@multiboot:~/instant_doc/code/ex4_cache$ ls -g
 total 224
@@ -486,8 +485,7 @@ drwxr-xr-x 4 ilmarw  4096 2009-05-18 16:52 build
 -rw-r--r-- 1 ilmarw 94700 2009-05-18 16:52 ex4_cache_wrap.cxx
 -rw-r--r-- 1 ilmarw    23 2009-05-18 16:53 __init__.py
 -rw-r--r-- 1 ilmarw   448 2009-05-18 16:53 setup.py
-\end{code}
-\normalsize
+\end{python}
 When building a new module, Instant creates a new directory with
 a number of files. The first file it generates is the SWIG interface file, named
 \emp{ex4\_\-cache.i} in this example. Then the Distutils file \emp{setup.py} is generated 
@@ -518,23 +516,17 @@ array, this means the names of the variables containing the length of the
 array (an \emp{int}), and the array pointer. The array pointer 
 can have several types, but the default is \emp{double}). For 2-dimensional arrays we need three strings, two
 for the length in each dimension. This following example illustrate the array specification:
-\begin{code}
+\begin{python}
 arrays = [['len', 'a'],
           ['len_bx', 'len_by', 'b'],
           ['len_cx', 'len_cy', 'len_cz', 'c']]
-\end{code}
+\end{python}
 These variables names specified reflect the variable names in the C function
 signature. It is important that the order of the variables in the signature is
-retained for each array, e.g. one cannot write:
-\begin{code}
-c_code = """
-double sum (int len_a, int len_bx, int len_by,
-            double* a, double* b)
-{
-  ...
-}
-"""
-\end{code}
+retained for each array, ie. the signature should be:  
+\begin{python}
+double sum (int len_a, double*a,  int len_bx, int len_by, double* b)
+\end{python}
 
 \paragraph{Data Types}
 Default, all arrays are assumed to be of type \emp{double}, but several other
@@ -543,9 +535,9 @@ are \emp{float}, \emp{short}, \emp{int}, \emp{long}, \emp{long
 long}, \emp{unsigned short}, \emp{unsigned int}, \emp{unsigned long},
 and \emp{unsigned long long}. The type can be specified by adding an
 additional value to the list describing the array, e.g.
-\begin{code}
+\begin{python}
 arrays = [['len', 'a', 'long']]
-\end{code}
+\end{python}
 It is important that there is correspondance between the type of the NumPy
 array and the type in the signature of the C function. For arrays that are
 changed in-place, the types have to match exactly. For arrays that are input or
@@ -569,7 +561,7 @@ in-place, and the vector $x$ as output. The example is only meant for
 illustrating the use of the different array options, and can be found in the
 file \emp{\$examples/ex5.py}. We verify that the result is correct by using
 the dot product from NumPy:
-\begin{code}
+\begin{python}
 from instant import inline_with_numpy
 from numpy import arange, dot
 
@@ -597,7 +589,7 @@ a.shape = (3, 3)
 b = arange(3)
 
 c = dot_c(a, b, a.shape[1])
-\end{code}
+\end{python}
 
 
 \paragraph{Multi-dimensional Arrays}
@@ -608,26 +600,16 @@ should contain the variable name for holding the number of dimensions, the
 variable name for an integer array holding the size in each dimension, the
 variable name for the array, and the argument \emp{'multi'}, indicating that
 it has more than 3 dimensions. The \emp{arrays} argument could for example be:
-\begin{code}
+\begin{python}
 arrays = [['m', 'mp', 'ar1', 'multi'],
           ['n', 'np', 'ar2', 'multi']]
-\end{code}
+\end{python}
 In this case, the C function signature should look like:
-\begin{code}
+\begin{python}
 void sum (int m, int* mp, double* ar1, int n,
           int* np, double* ar2)
-\end{code}
+\end{python}
 
-In the C code, all arrays are 1-dimensional. Indexing a 3-dimensional array
-becames rather complicated because of striding. For instance, instead of
-writing \emp{u(i,j,k)} we need to write \emp{u[i*ny*nz + j*ny + k]},
-where \emp{nx}, \emp{ny}, and \emp{nz} are the lengths of the array in each
-direction. One way of achieving a simpler syntax is to use the \emp{\#define}
-macro in C:
-\begin{code}
-#define index(u, i, j, k) u[(i)*nz*ny + (j)*ny + (k)]
-\end{code}
-which allows us to write \emp{index(u, i, j, k)} instead.
 
 \subsection{Module name, signature, and cache}\label{wilbers:sec:msc}
 \index{cache}\index{signatures}
