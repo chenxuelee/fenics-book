@@ -22,14 +22,6 @@
               {Block Preconditioning of Systems of PDEs}
               {Kent-Andre Mardal}
               {block-prec}
-%\begin{document}
-
-%\maketitle
-%\vspace{-0.3cm}
-
-%\thispagestyle{empty}
-
-%\section{Introduction}
 
 In this chapter we will describe the implementation of block preconditioned
 Krylov solvers for systems of partial differential equations (PDEs) using
@@ -49,18 +41,18 @@ review paper~\cite{M-W-09}, where a more comprehensive mathematical
 presentation is given. Consider the following abstract formulation
 of a linear PDE problem:  
 Find $u$ in a Hilbert space $H$ such that: 
-\[
+\begin{equation}
 \mathcal{A} u = f,  
-\]
-where $f\in H^*$ and $H^*$ is the dual space of $H$.  
+\end{equation}
+where $f\in H'$ and $H'$ is the dual space of $H$.  
 We will assume that the PDE problem is well-posed, i.e., 
-that $\mathcal{A} : H \rightarrow H^*$ is a bounded invertible operator in the sense that,  
-\[
-\|\mathcal{A}\|_{\mathcal{L} (H, H^*)} \le C \quad \mbox{and} \quad  
-\|\mathcal{A}^{-1}\|_{\mathcal{L} (H^*, H)} \le C. 
-\]
+that $\mathcal{A} : H \rightarrow H'$ is a bounded invertible operator in the sense that,  
+\begin{equation}
+\|\mathcal{A}\|_{\mathcal{L} (H, H')} \le C \quad \mbox{and} \quad  
+\|\mathcal{A}^{-1}\|_{\mathcal{L} (H', H)} \le C. 
+\end{equation}
 The reader should notice that this operator is bounded only when 
-viewed as an operator from $H$ to $H^*$. 
+viewed as an operator from $H$ to $H'$. 
 The spectrum of the operator is unbounded and   
 discretizations of the operator will typically have  
 condition numbers that increase 
@@ -68,43 +60,48 @@ in negative powers of $h$, where $h$ is the
 characteristic cell size, as the mesh is refined. 
 The remedy for the unbounded spectrum is to introduce a preconditioner. 
 Let the preconditioner $B$ be an operator
-mapping $H^*$ to $H$ such that  
-\[
-\|\mathcal{B}\|_{\mathcal{L}(H^*, H)} \le C \quad \mbox{and} \quad   
-\|\mathcal{B}^{-1}\|_{\mathcal{L}(H, H^*)} \le C. 
-\]
+mapping $H'$ to $H$ such that  
+\begin{equation}
+\|\mathcal{B}\|_{\mathcal{L}(H', H)} \le C \quad \mbox{and} \quad   
+\|\mathcal{B}^{-1}\|_{\mathcal{L}(H, H')} \le C. 
+\end{equation}
 Then 
 $\mathcal{B}\mathcal{A}: H \rightarrow H$ and 
-\[
+\begin{equation}
 \|\mathcal{B}\mathcal{A}\|_{\mathcal{L}(H, H)} \le C^2 \quad \mbox{and} \quad  
 \|(\mathcal{B}\mathcal{A})^{-1}\|_{\mathcal{L}(H, H)} \le C^2. 
-\]
+\end{equation}
 Hence, the spectrum and therefore the condition number of the
 preconditioned operator, 
-\[
+\begin{equation}
 \kappa(\mathcal{B}\mathcal{A}) = \|\mathcal{B}\mathcal{A}\|_{\mathcal{L}(H, H)} \|(\mathcal{B}\mathcal{A})^{-1}\|_{\mathcal{L}(H, H)} \le C^4  
-\]
-is bounded.  One example of such a preconditioner is the Riesz operator $\mathcal{R}$, i.e.,  the identity mapping between $H^*$ and $H$.  
+\end{equation}
+is bounded.  One example of such a preconditioner is the Riesz operator $\mathcal{R}$, i.e.,  the identity mapping between $H'$ and $H$.  
 In this case 
-\[
-\|\mathcal{R}\|_{\mathcal{L}(H^*, H)} = 1 \quad \mbox{and} \quad   
-\|\mathcal{R}^{-1}\|_{\mathcal{L}(H, H^*)} = 1. 
-\]
-In fact, in most of our examples the preconditioner approximate Riesz mappings.  
+\begin{equation}
+\|\mathcal{R}\|_{\mathcal{L}(H', H)} = 1 \quad \mbox{and} \quad   
+\|\mathcal{R}^{-1}\|_{\mathcal{L}(H, H')} = 1. 
+\end{equation}
+In fact, in most of our examples the preconditioners are approximate Riesz mappings.  
 
 Given that the discretized operators  $\mathcal{A}_h$ and $\mathcal{B}_h$ are stable, in the sense
-that the operator norms are bounded, then the condition number of the discrete preconditioned
-operator, $\kappa(\mathcal{B}_h \mathcal{A}_h)$, will be bounded independent of $h$. 
+that the operator norms are bounded, ie.,  
+ \begin{equation}
+\|\mathcal{A}_h\|_{\mathcal{L} (H, H')} \le C, \ \|\mathcal{A}_h^{-1}\|_{\mathcal{L} (H', H)} \le C, \ 
+\|\mathcal{B}_h\|_{\mathcal{L}(H', H)} \le C,  \  \|\mathcal{B}_h^{-1}\|_{\mathcal{L}(H, H')} \le C, 
+\end{equation}
+then the condition number of the discrete preconditioned
+operator, $\kappa(\mathcal{B}_h \mathcal{A}_h)$, will be bounded by $C^4$ independently of $h$. 
 Furthermore, the number of iterations required 
 by a Krylov solver to reach a certain convergence criterion can typically be bounded by
 the condition number. Hence, when the condition number of the discrete problem is bounded independent
-of $h$, the Krylov solvers will have a convergence rate independent of $h$. 
-If then $\mathcal{B}_h$ is similar to $\mathcal{A}_h$ in terms of storage and evaluation, 
-we will then have an \emph{order-optimal} solution algorithm. 
+of $h$, the Krylov solvers will have a convergence rate that is independent of $h$. 
+If $\mathcal{B}_h$ is similar to $\mathcal{A}_h$ in terms of storage and evaluation, 
+then the solution algorithm is \emph{order-optimal}. 
 We remark that it is crucial that $\mathcal{A}_h$
-is a stable operator and will illustrate this for the Stokes problem. 
-Finally we will see that $\mathcal{B}_h$ often can be constructed 
-using multigrid techniques. 
+is a stable operator and we will illustrate what happens for unstable operators in the example concerning Stokes problem. 
+Finally, we will see that $\mathcal{B}_h$ often can be constructed using multigrid techniques. These multigrid
+preconditioners will be spectrally equivalent with the Riesz mappings. 
 
 \section{Numerical Examples}
 In all examples the mesh will be refinements of the unit square or unit cube. 
@@ -116,27 +113,26 @@ and \emp{Subdomains} are often removed to shorten the presentation.
 \subsection{The Poisson problem with homogeneous Neumann conditions}
 The Poisson equation with Neumann conditions reads: \\ 
 Find $u$ such that
-\begin{eqnarray*}
+\begin{eqnarray}
 -\Delta u &= &f \mbox{ in } \Omega,  \\ 
     \frac{\partial u}{\partial n} &=&  g \mbox{ on } \partial \Omega . 
-\end{eqnarray*}
-The variational problem is: \\ 
-Find $u\in H^1_0 \cap L^2_0$ such that 
+\end{eqnarray}
+The corresponding variational problem is:  Find $u\in H^1 \cap L^2_0$ such that 
 \[
-\int_\Omega \nabla u \cdot \nabla v \, dx = \int_\Omega f v \, dx + \int_{\partial \Omega} g v \, ds, \quad \forall v \in H^1_0 \cap L^2_0 .      
+\int_\Omega \nabla u \cdot \nabla v \, dx = \int_\Omega f v \, dx + \int_{\partial \Omega} g v \, ds, \quad\forall v \in H^1 \cap L^2_0 .      
 \]
 Let the linear operator $\mathcal{A}$ be defined in terms of the  bilinear form,  
 \[
 (\mathcal{A} u, v) =  \int_\Omega \nabla u \cdot \nabla v \, dx.  
 \]
 It is well-known that 
-$\mathcal{A}$ is a bounded invertible operator from $H^1_0 \cap L^2_0$ into its dual space $H^{-1}\cap L^2_0$. 
+$\mathcal{A}$ is a bounded invertible operator from $H^1 \cap L^2_0$ into its dual space. 
 Furthermore, it is well-known that one can construct multigrid preconditioners for this operator
-such that the preconditioner is spectrally equivalent with the inverse of $A$, independent of the
+such that the preconditioner is spectrally equivalent with the inverse of $\mathcal{A}$, independent of the
 characteristic size of the cells in the mesh~\cite{JHBramble_1993a,Hackbusch, TOS2001}. 
 
-In this example, we will construct a multigrid preconditioner based on the algebraic multigrid
-package ML which is contained in PyTrilinos\index{PyTrilinos}. Furthermore, we will estimate the eigenvalues
+In this example, we use a multigrid preconditioner based on the algebraic multigrid
+package ML contained in PyTrilinos\index{PyTrilinos}. Furthermore, we will estimate the eigenvalues
 of the preconditioned system. We use continuous piecewise linear elements and
 compute the condition number of the preconditioned system and corresponding 
 number of iteration required for convergence using the Conjugate Gradient method\index{Conjugate Gradient method} for various refinements of the unit square. 
@@ -170,7 +166,7 @@ class MLPreconditioner:
 \end{python}
 The linear algebra backends uBlas, PETSc and Trilinos all have 
 a wide range of Krylov solvers. Here, we implement
-these solvers in Python because we would like to store the intermediate
+these solvers in Python because we need to store intermediate
 variables and  used them to compute an estimate of the condition number. 
 The following code shows the implementation of the Conjugate Gradient method
 using the Python linear algebra interface in Dolfin:
@@ -209,8 +205,8 @@ The intermediate variables called alphas and betas can then be used to estimate 
 the preconditioned matrix as follows, see eg.~\cite{Saad2003}. 
 Notice that since the preconditioned Conjugate Gradient method 
 converges quite fast when using algebraic multigrid (AMG)\index{AMG} as a preconditioner, there will be only a small
-number of alphas and betas and we may therefore use the dense linear algebra tools in 
-NumPy.
+number of alphas and betas. Therefore we use the dense linear algebra tools in 
+NumPy to compute the eigenvalue estimates. 
 \begin{python}
 def eigenvalue_estimates(alphas, betas):
     # eigenvalues estimates in terms of alphas and betas
@@ -273,11 +269,11 @@ print "Number of iterations ", iter
 print "Eigenvalues ", e 
 print "kappa(BA) ", e[len(e)-1]/e[0]
 \end{python}
-In Table \ref{tabel:neumann} we list the number of iterations for convergence and
+In Table~\ref{tabel:neumann} we list the number of iterations for convergence and
 the estimated condition number of the preconditioned system based on the code 
-shown above. We use test different refinements of the unit square and use
-continuous piecewise linear elements, $\mathrm{CG}_1$. The source function $f= 500\exp(-((x-0.5)^2 + (y-0.5)^2)/0.02)$ and
-$g =  25 \sin(5\pi y)$ for $x=0$ and zero elsewhere, see also the source code \emp{poisson\_neumann.py}. 
+shown above. We use test different refinements of the unit square and 
+continuous piecewise linear elements, $\mathrm{CG}_1$. The source function is $f= 500\exp(-((x-0.5)^2 + (y-0.5)^2)/0.02)$ and
+the boundary condition is $g =  25 \sin(5\pi y)$ for $x=0$ and zero elsewhere, see also the source code \emp{poisson\_neumann.py}. 
 \begin{table}
 \begin{center}
 \begin{tabular}{|c||c|c|c|c|c|c|}
@@ -346,30 +342,30 @@ For symmetric  indefinite problems the \emph{Minimum Residual Method} is
 the fastest method. Preconditioners of this form has been studied by
 many~\cite{E-S-W-text,R-W-92,S-W-93,S-W-94}. 
 
-In Table \ref{stokes:ex} 
+In Table~\ref{stokes:ex} 
 we present the number of iterations needed for convergence 
 and estimates on the condition number $\kappa$ with 
 respect to different discretization methods and different characteristic cell sizes $h$. The problem we
-are solving is the so-called lid driven cavity problem, ie. $f=0$ and $g = (1,0)$ for $y=1$ and zero elsewhere.   
-We different mixed methods, namely  the  $\mathrm{CG}_2-\mathrm{CG}_1$, $\mathrm{CG}_2-\mathrm{DG}_0$,  
+are solving is the so-called lid driven cavity problem, ie., $f=0$ and $g = (1,0)$ for $y=1$ and zero elsewhere.   
+We use different mixed methods, namely  the  $\mathrm{CG}_2-\mathrm{CG}_1$, $\mathrm{CG}_2-\mathrm{DG}_0$,  
 $\mathrm{CG}_1-\mathrm{CG}_1$, and  $\mathrm{CG}_1-\mathrm{CG}_1$ stabilized.  
 The MinRes iteration is stopped when 
 $(\mathcal{B}_h r_k, r_k)/(\mathcal{B}_h r_0, r_0) \le 10^{-10}$, where $r_k$ is the residual at
 iteration $k$. 
 The condition numbers, $\kappa$, were estimated using the Conjugate Gradient method on the
 normal equation. This condition number will always be less 
-than the real condition number and probably too low
+than the real condition number and is probably too low
 for the last columns for the $\mathrm{CG}_1-\mathrm{CG}_1$ method without stabilization. 
 for all the. 
 Notice that for the stable methods $\mathrm{CG}_2-\mathrm{CG}_1$ and $\mathrm{CG}_2-\mathrm{DG}_0$,
 the number of iterations and the condition number seems to be bounded
 independently of $h$. For the unstable $\mathrm{CG}_1-\mathrm{CG}_1$ method, the number of iterations
 and the condition number increases as $h$ decreases. However, for 
-the stabilized $\mathrm{CG}_1-\mathrm{CG}_1$ method, $\mathrm{CG}_1-\mathrm{CG}_1$-stab , where the pressure is stabilized by 
+the stabilized method, $\mathrm{CG}_1-\mathrm{CG}_1$-stab, where the pressure is stabilized by 
 \[
 \int_\Omega \nabla \cdot u \, q  - \alpha h^2 \, \nabla p \cdot \nabla q \, dx,       
 \]
-the number of iterations and the condition number appear to be bounded. 
+with $\alpha=0.01$, the number of iterations and the condition number appear to be bounded. 
 
 \begin{table}
 \begin{center}
@@ -494,10 +490,10 @@ For $k=1$ the problem behaves like Stokes problem, with
 a non-harmful low order term. However as $k$ approaches
 zero the problems change to the mixed formulation of 
 a Poisson equation, ie. 
-\begin{eqnarray*}
+\begin{eqnarray}
 u - \nabla p &=& f, \quad \Omega \\
 \nabla \cdot u  &=& 0, \quad \Omega
-\end{eqnarray*}
+\end{eqnarray}
 This problem is not an well-defined operator from 
 $H^1_0 \times L_0^2$ into its dual. Instead, it
 is a mapping from $H(div) \times L_0^2$  to its dual. 
@@ -505,13 +501,13 @@ However, as pointed out in \cite{M-W-04} this operator
 can also be seen as an operator $L^2 \times H^1$ to its dual.  
 In fact, in \cite{M-T-W-02,M-W-04} it was shown that 
  $A$ is a bounded operator from
-$L^2 \cap k H^1_0 \times H^1 \cap L_0^2 + k^{-1} L_0^2$ to its dual space
+$L^2 \cap k^{1/2} H^1_0 \times H^1 \cap L_0^2 + k^{-1/2} L_0^2$ to its dual space
 with a bounded inverse. Furthermore, the bounds are uniform in $k$. 
 Therefore we 
 construct a preconditioner $B$, such that  
 \[
-\mathcal{B}: L^2 \cap k H^1_0 \times H^1 \cap L_0^2 + k^{-1} L_0^2 \rightarrow 
-L^2 + k^{-1} H^{-1} \times H^{-1} \cap L_0^2 + k L_0^2  .
+\mathcal{B}: L^2 \cap k^{1/2} H^1_0 \times H^1 \cap L_0^2 + k^{-1/2} L_0^2 \rightarrow 
+L^2 + k^{-1/2} H^{-1} \times H^{-1} \cap L_0^2 + k^{1/2} L_0^2  .
 \] 
 Such a $\mathcal{B}$ can be defined as 
 \[
@@ -525,8 +521,8 @@ where
 (L p, q) &=& \int_\Omega k^{-1} p q \, dx \\   
 (M p, q) &=& \int_\Omega \nabla p \cdot  \nabla q \, dx .   
 \end{eqnarray}
-Again we refer to \cite{M-W-09} and references therein,  for an overview of the construction of such preconditioners and 
-a more comprehensive mathematical derivation.  
+Again we refer to \cite{M-W-09} and references therein,  for an overview and more comprehensive mathematical derivation 
+of the construction of such preconditioners.  
 Preconditioners of this form has been studied by many, c.f. e.g. ~\cite{C-C-88, E-S-W-text, M-W-04, M-W-09, T-99}. 
 
 \begin{table}
@@ -588,8 +584,6 @@ with the $\mathrm{CG}_2-\mathrm{CG}_1$ method for various mesh refinements and v
 same boundary conditions as for the Stokes problem, ie., $f=0$ and $g = (1,0)$ for $y=1$ and zero elsewhere. 
 Clearly, the condition number appears to be bounded by $\approx 14$,  although the asymptotic limit 
 is not reached for small $k$ on these coarse meshes. 
-
-
 The complete code can be found in \emp{timestokes.py}
 
 \subsection{Mixed form of the Hodge Laplacian}
@@ -638,8 +632,7 @@ from \eqref{mixed:hodge1}-\eqref{mixed:hodge2}, i.e.,
 \nabla \times \nabla \times u - \nabla \nabla \cdot u = f .  
 \]
 Hence, the problem is elliptic
-in nature, although this is not apparent in the mixed formulation. 
-In other words, modulo boundary conditions,  $\mathcal{A}: H^1 \times L^2 \rightarrow  H^{-1} \times L^2$.
+in nature and modulo boundary conditions,  $\mathcal{A}: H^1 \times L^2 \rightarrow  H^{-1} \times L^2$.
 
 To avoid constructing a $H(\operatorname{curl})$ preconditioner we will employ
 the observation that this is a vector Laplacian. 
@@ -653,11 +646,11 @@ element method. We eliminate the pressure to obtain the matrix
 \[
 K_h  = A_h +  B_h^* C^{-1}_h B_h, 
 \]
-A problem here is that $C^{-1}_h$ is a dense matrix, therefore we lump the $C_h$ matrix before inverting it, ie.,   
+A problem here is that $C^{-1}_h$ is a dense matrix. However, we lump $C_h$ matrix before inverting it, ie.,   
 \[
 L_h  = A_h +  B_h^* (diag(C_h))^{-1} B_h, 
 \]
-The matrix $L_h$ is in some sense a vector Laplacian, incorporating the mixed discretization technique, that is appropriate to build an AMG preconditioner upon. 
+The matrix $L_h$ is then in some sense a vector Laplacian, incorporating the mixed discretization technique. 
 To test the efficiency of this preconditioner compared with 
 more straightforward applications of AMG, we compare a couple of different problems.   
 First, we test the preconditioners for the $A_h$ and the $L_h$ operators, 
@@ -675,25 +668,8 @@ Here, $D_h$ is a discrete Laplacian. The other preconditioner is
 \begin{pmatrix} L_h & 0  \\ 0  & C_h \end{pmatrix}. 
 \]
 
-In Table \ref{table:hodge} we list the estimated condition numbers on various mesh refinements
-on the unitcube. We use the  lowest order Nedelec elements of first kind~\cite{Nedelec:1980:MFE} combined with continuous piecewise linears.
-In this example we use homogeneous boundary conditions and $f=0$, but we use a random start vector. 
-\begin{table}
-\begin{center}
-\begin{tabular}{|c||c|c|c|c|c|c|}
-\hline
-$h$ & $2^{-1}$ & $2^{-2}$ & $2^{-3}$ & $2^{-4}$  & $2^{-5}$ \\ \hline 
-$ P_1 A_h$ & 7.5 & 20.2 & 78.4 & 318.5 & 1206.3 \\ \hline
-$ P_2 L_h$ & 1.5 & 2.1  & 5.8  & 20.4 & 78.0 \\ \hline
-$\mathcal{B}_1 \mathcal{A}$ & 3.9 & 6.7 & 17.6 & 58.6 & - \\ \hline
-$\mathcal{B}_2 \mathcal{A}$ & 4.3 & 8.7 & 33.6 & 30.0 & - \\ \hline
-\end{tabular}
-\caption{The estimated condition number $\kappa$ and the number of iterations for 
-  convergence with respect to various mesh refinements.}  \label{table:hodge}
-\end{center}
-\end{table}
 
-The main problem in this example is the construction of the preconditioner
+The main implementational problem in this example is the construction of the preconditioner
 for $L_h$. This preconditioner is based on a matrix which is constructed by 
 several matrix-matrix products and Dolfin does not provide functionality for
 this. However, Epetra/Trilinos have this functionality. To be able 
@@ -733,6 +709,25 @@ DD = EpetraMatrix(CC)
 EE = assemble(aa, DD, reset_sparsity=False, add_values=True)
 \end{python}
 The complete code can be found in \emp{hodge8.py} and \emp{hodge9.py}. 
+
+In Table~\ref{table:hodge} we list the estimated condition numbers on various mesh refinements
+on the unitcube. We use the  lowest order Nedelec elements of first kind~\cite{Nedelec:1980:MFE} combined with continuous piecewise linears.
+In this example we use homogeneous boundary conditions and $f=0$, but we use a random start vector. 
+\begin{table}
+\begin{center}
+\begin{tabular}{|c||c|c|c|c|c|c|}
+\hline
+$h$ & $2^{-1}$ & $2^{-2}$ & $2^{-3}$ & $2^{-4}$  & $2^{-5}$ \\ \hline 
+$ P_1 A_h$ & 7.5 & 20.2 & 78.4 & 318.5 & 1206.3 \\ \hline
+$ P_2 L_h$ & 1.5 & 2.1  & 5.8  & 20.4 & 78.0 \\ \hline
+$\mathcal{B}_1 \mathcal{A}$ & 3.9 & 6.7 & 17.6 & 58.6 & - \\ \hline
+$\mathcal{B}_2 \mathcal{A}$ & 4.3 & 8.7 & 33.6 & 30.0 & - \\ \hline
+\end{tabular}
+\caption{The estimated condition number $\kappa$ and the number of iterations for 
+  convergence with respect to various mesh refinements and preconditioners for the mixed formulation of the Hodge Laplacian.}  \label{table:hodge}
+\end{center}
+\end{table}
+
 
 
 \section{Conclusion}
