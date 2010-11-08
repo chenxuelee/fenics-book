@@ -6,34 +6,32 @@
 
 Instant is a small Python module for just-in-time compilation (JIT)\index{JIT} (or inlining) of
 C/C++ code.
-Instant accepts plain C/C++. This makes it particularly attractive to combine
-Instant with tools generating C/C++ code such as Dolfin, FFC, and  
-SFC.  
+Instant accepts plain C/C++ and is therefore conventiently combined with the code generating tools in Dolfin, FFC, and SFC.   
 
 
+\section{Brief Overview of Instant and its role in FEniCS}
 
+In FEniCS, FFC and SFC are form compilers that generate UFC compliant C++ code based on the language UFL.  
+Similarly, \emp{Expression}s and \emp{SubDomain}s may be compiled using JIT compiler in Dolfin. 
+In all the mentioned cases, Instant is employed for to obtained a seemless integration of C++ and Python.  
 
-\section{Brief Overview of Design}
-Instant relies on SWIG for the generation of wrapper
+Instant relies on SWIG~\cite{www:swig} for the generation of wrapper
 code needed for making the C/C++ code usable from
-Python~\cite{www:python}. SWIG is a mature and well-documented tool
-for wrapping C/C++ code in many languages. We refer to its website for
-a comprehensive user manual and we also discuss some common tricks and
-troubles in Chapter~\ref{chap:mardal-2}.  The code to be inlined, in
+Python~\cite{www:python}.  The code to be inlined, in
 addition to the wrapper code, is then compiled into a Python extension
 module (a shared library with functionality as specified by the Python
 C-API) by using Distutils or CMake. To check whether the C/C++ code has changed
 since the last execution, Instant computes the SHA1
-sum\footnote{http://www.apps.ietf.org/rfc/rfc3174.html} of the code
+sum~\cite{www:sha1} of the code
 and compares it to the SHA1 checksum of the code used in the previous
 execution. Finally, Instant has implemented a set of
 SWIG \index{typemaps}typemaps, allowing the user to transfer NumPy
 arrays between the Python code and the C/C++ code.
 
-%In this chapter we will begin with several examples in Section \ref{wilbers:sec:examples}.
-%Section \ref{wilbers:sec:explained} explains how Instant works, while
-%Section \ref{wilbers:sec:api} gives a detailed description of the API.
-%
+We refer to its website for
+a comprehensive user manual. Some issues concerning SWIG is also 
+described in Chapter~[mardal-2]. 
+
 
 \section{Examples}
 \label{wilbers:sec:examples}
@@ -68,7 +66,7 @@ arrays between the Python code and the C/C++ code.
 %
 %
 \subsection{Hello World}
-Our first example demonstrate the usage of Instant in a very simple case:
+Our first example demonstrates the usage of Instant in a very simple case:
 \begin{python}
 from instant import inline
 c_code = r'''
@@ -105,8 +103,7 @@ The intrinsic Python module \emp{logging} is used. First, the
 \emp{build\_\-function} arguments are displayed, whereafter the different steps
 performed by Instant are shown in detail, e.g whether the module is found in
 cache and the arguments to the Distutils file when building the module.
-This example can be found in the file \emp{\$examples/ex1.py}.
-
+This example can be found in the file \emp{examples/ex1.py}.
 
 \subsection{NumPy Arrays}
 One basic problem with wrapping C and C++ code is how to handle dynamically
@@ -123,7 +120,7 @@ code, but also lead to mysterious bugs when used wrongly. Typemaps
 are discussed in Chapter~\ref{chap:mardal-2} and at length at the SWIG
 webpage. In this chapter, it is sufficient to illustrate how to deal
 with arrays in Instant using the NumPy module. More details on how Instant
-NumPy arrays can be found in Section \ref{wilbers:sec:arrays}.
+deals with NumPy arrays can be found in Section \ref{wilbers:sec:arrays}.
 
 \subsection{Ordinary Differential Equations}
 We introduce a
@@ -134,7 +131,7 @@ using a \index{Windkessel model}Windkessel model. The ODE is as follows:
 p(0) &=& p0.
 \end{eqnarray}
 Here $p(t)$ is the blood pressure, $Q(t)$ is the volume flux of blood,
-$A$ is $\ldots$ and $B$ is $\ldots$.
+while $A$ and $B$ are real numbers representing resistance and compliance, respectively.
 An explicit scheme is:
 \begin{eqnarray}
 p_i &=& p_{i-1} + \Delta t (B Q_i - A p_{i-1}), \quad \mbox{for}\quad i=1,\ldots,N-1,  \\
@@ -312,30 +309,28 @@ first element of \emp{system\_\-headers} could have been omitted had we chosen
 to use \emp{inline\_\-module\_\-with\_\-numpy} instead of \emp{build\_\-module}. We could also
 have used \emp{inline\_\-with\_\-numpy}, which would have returned only the
 function, not the whole module. For more details, see the next section.
-The complete code can be found in \emp{\$examples/ex3.py}. It might very well
-be possible to write more efficient code for many of these examples, but the
-primary objective is to examplify different Instant features.
+The complete code can be found in \emp{\$examples/ex3.py}. 
 
-%In Table \ref{speed-up2} we have compared the timings of running with
-%different numbers of CPUs. The timings in this table are performed on a
-%quad-core machine with 32GB memory. We see a speed-up of factor two when doubling the
-%number of CPUs, but further increasing the number of CPUs has a limited
-%effect. We have not been able to investigate this further, but suspect that
-%he physical layout of the machine with two dual cores causes this, as the two
-%PUs on the same core share some of the resources.
-%\begin{table}[h]
-%\begin{center}
-%\begin{tabular}{|l|c|c|} \hline
-%N                     & 1e+8     &2e+8 \\ \hline
-%CPU time with Instant 1 CPU & 0.80  & 1.59  \\ \hline
-%CPU time with Instant 2 CPU & 0.42  & 0.81  \\ \hline
-%CPU time with Instant 3 CPU & 0.37  & 0.75  \\ \hline
-%CPU time with Instant 4 CPU & 0.34  & 0.67  \\ \hline
-%\end{tabular}
-%\caption{CPU times for Instant with OpenMP (in seconds).}
-%label{speed-up2}
-%end{center}
-%end{table}
+In Table \ref{speed-up2} we have compared the timings of running with
+different numbers of CPUs. The timings in this table are performed on a
+quad-core machine with 32GB memory. We see a speed-up of factor two when doubling the
+number of CPUs, but further increasing the number of CPUs has a limited
+effect. We have not been able to investigate this further, but suspect that
+he physical layout of the machine with two dual cores causes this, as the two
+PUs on the same core share some of the resources.
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|l|c|c|} \hline
+N                     & 1e+8     &2e+8 \\ \hline
+CPU time with Instant 1 CPU & 0.80  & 1.59  \\ \hline
+CPU time with Instant 2 CPU & 0.42  & 0.81  \\ \hline
+CPU time with Instant 3 CPU & 0.37  & 0.75  \\ \hline
+CPU time with Instant 4 CPU & 0.34  & 0.67  \\ \hline
+\end{tabular}
+\caption{CPU times for Instant with OpenMP (in seconds).}
+\label{speed-up2}
+\end{center}
+\end{table}
 
 %\subsection{Code Generation}
 %Instant is often used together with code generation tools (or compilers) such
@@ -495,7 +490,7 @@ drwxr-xr-x 4 ilmarw  4096 2009-05-18 16:52 build
 \normalsize
 When building a new module, Instant creates a new directory with
 a number of files. The first file it generates is the SWIG interface file, named
-\emp{ex4\_\-cache.i} in this example. Then the Distutils file \emp{setup.py} is generated based
+\emp{ex4\_\-cache.i} in this example. Then the Distutils file \emp{setup.py} is generated 
 and executed. During execution, \emp{setup.py} first runs SWIG in the interface file,
 producing \emp{ex4\_\-cache\_\-wrap.cxx} and \emp{ex4\_\-cache.py}. The first file
 is then compiled into a shared library  \emp{\_\-ex4\_\-cache.so}
@@ -506,43 +501,23 @@ steps. The output from executing the Distutils file is stored in the file
 \emp{ex4\_\-cache.checksum} is generated, containing a checksum based on
 the files present in the directory. The final step consists of moving the whole
 directory from its temporary location to either cache or a user-specified
-directory. The \emp{\_\-\_\-init\_\-\_\-.py} imports the module \emp{ex4\_\-cache}.
+directory. The file \emp{\_\-\_\-init\_\-\_\-.py} imports the module \emp{ex4\_\-cache}.
 
 
 The script \index{\emp{instant-clean}}\emp{instant-clean} removes
 compiled modules from the Instant cache, located in the directory
-\emp{.instant} in the home directory of the user running it. In addition, all
-Instant modules located in the temporary directory where they were first
-generated and compiled. It does not clean modules located elsewhere.
-
-The script \index{\emp{instant-showcache}}\emp{instant-showcache} allow you to see the modules currently located in the
-Instant cache:
-\begin{code}
-Found 1 modules in Instant cache:
-test_cache
-Found 1 lock files in Instant cache:
-test_cache.lock
-\end{code}
-Arguments to this script will output the files matching the specified pattern,
-for example will \emp{instant-showcache 'test*.i'} show the content of the
-SWIG interface file for any module beginning with the letters \emp{test}.
+\emp{.instant} in the home directory of the user running it. 
+The script \index{\emp{instant-showcache}}\emp{instant-showcache} shows the modules located in the
+Instant cache.
 
 \subsection{Arrays and Typemaps}\label{wilbers:sec:arrays}
 Instant has support for converting NumPy arrays to C arrays and vice
-versa. For arrays with up to three dimensions, the SWIG interface file from
-NumPy is used, with a few modifications. When installing Instant, this file is
-included as well. \emp{arrays} should be a list, each entry containing
-information about a specific array. This entry should contain a list with
-strings, so the \emp{arrays} argument is a nested list.\index{typemaps}
-
-Each array (i.e. each element in \emp{arrays}) is a list containing the names
+versa. Each array specification is a list containing the names
 of the variables describing that array in the C code. For a 1-dimensional
 array, this means the names of the variables containing the length of the
-array (an \emp{int}), and the array pointer (can have several tpes, but the
-default is \emp{double}). For 2-dimensional arrays we need three strings, two
-for the length in each dimension, and the third for the array pointer. For
-3-dimensional arrays, there will be three variables first. This example should
-make things clearer
+array (an \emp{int}), and the array pointer. The array pointer 
+can have several types, but the default is \emp{double}). For 2-dimensional arrays we need three strings, two
+for the length in each dimension. This following example illustrate the array specification:
 \begin{code}
 arrays = [['len', 'a'],
           ['len_bx', 'len_by', 'b'],
@@ -560,19 +535,6 @@ double sum (int len_a, int len_bx, int len_by,
 }
 """
 \end{code}
-The correct code would be:
-\begin{code}
-c_code = """
-double sum (int len_a, double* a,
-            int len_bx,
-            int len_by, double* b)
-{
-  ...
-}
-"""
-\end{code}
-The order of the arrays can be changed, as long as the arguments in the Python
-function are changed as well accordingly.
 
 \paragraph{Data Types}
 Default, all arrays are assumed to be of type \emp{double}, but several other
@@ -580,7 +542,7 @@ types are supported. These
 are \emp{float}, \emp{short}, \emp{int}, \emp{long}, \emp{long
 long}, \emp{unsigned short}, \emp{unsigned int}, \emp{unsigned long},
 and \emp{unsigned long long}. The type can be specified by adding an
-additional element to the list describing the array, e.g.
+additional value to the list describing the array, e.g.
 \begin{code}
 arrays = [['len', 'a', 'long']]
 \end{code}
@@ -598,37 +560,10 @@ between NumPy types and C types depends on your system. Using \emp{long} as
 the C type will work in most cases.
 
 \paragraph{Input/Output Arrays}
-All arrays are assumed to be both input and output arrays, i.e. any changes to
-arrays in the C code result in the NumPy array being changed in-place. For
-performace purposes, this is desirable, as we avoid unecessary copying of
-data. The NumPy SWIG interface file has support for both input and output
-arrays in addition to changing arrays in-place. Input arrays do not need to be
-NumPy arrays, but can be any type of sequence, e.g. lists and tuples. The
-default behaviour of the NumPy SWIG interface file is to create new objects
-for sequences that are not NumPy arrays, while using mere pointers to the data
-of NumPy arrays. Instant deviates from this behaviour by taking copies of all
-input data, allowing for the modification of the array in the C code, as might
-be necessary for certain applications, while retaining the array as seen from
-the Python code. An array is marked as input only by adding the additional element \emp{'in'}
-to the list describing the array:
-\begin{code}
-arrays = [['len', 'a', 'in']]
-\end{code}
-
-It is also possible to create output arrays in the C code. Instead of creating
-an array in the Python code and sending it as an in-place array to the C
-code, the array is created by the wrapper code and returned. If there are are
-multiple output arrays or the C function has a return argument, the wrapper
-function returns a tuple with the different arguments. This approach is more
-Python-like than changing arrays in-place.
-
-We only need to specify the length of the array when calling the wrapper
-function. The limitation is that only 1-dimensional arrays are supported,
-which means that we need to set the shape of the array manually after calling
-the wrapper function. In the C code all arrays are treated as 1-dimensional,
-so this does not affect the C code. An array is marked as input only by adding
-the additional element \emp{'out'} to the list describing the array. The
-following code shows an example where we calculate matrix-vector
+Instant supports for both input, output and in-place 
+arrays. Default behaviour is to treat the arrays as in-place arrays, as 
+long as the input are Numpy arrays. Python lists and sequences are converted to Numpy arrays automatically.  
+The following code shows an example where we calculate matrix-vector
 multiplication $x = Ab$. The matrix $A$ is marked as input, the vector $b$ as
 in-place, and the vector $x$ as output. The example is only meant for
 illustrating the use of the different array options, and can be found in the
@@ -661,19 +596,16 @@ a = arange(9)
 a.shape = (3, 3)
 b = arange(3)
 
-c1 = dot_c(a, b, a.shape[1])
-c2 = dot(a, b)
-print c1
-print c2
+c = dot_c(a, b, a.shape[1])
 \end{code}
 
 
 \paragraph{Multi-dimensional Arrays}
-If one needs to work with arrays that are more than 3-dimensional, this is
-possible. However, the typemaps used for this employ less error checking, and
+It is possible to work with arrays that are more than 3-dimensional. 
+However, the typemaps used for this employ less error checking, and
 can only be used for the C type \emp{double}. The list describing the array
 should contain the variable name for holding the number of dimensions, the
-variable name for an integer arrays holding the size in each dimension, the
+variable name for an integer array holding the size in each dimension, the
 variable name for the array, and the argument \emp{'multi'}, indicating that
 it has more than 3 dimensions. The \emp{arrays} argument could for example be:
 \begin{code}
@@ -686,7 +618,7 @@ void sum (int m, int* mp, double* ar1, int n,
           int* np, double* ar2)
 \end{code}
 
-In the C code, all arrays are 1-dimensional. Indexing a 3-dimensional arrays
+In the C code, all arrays are 1-dimensional. Indexing a 3-dimensional array
 becames rather complicated because of striding. For instance, instead of
 writing \emp{u(i,j,k)} we need to write \emp{u[i*ny*nz + j*ny + k]},
 where \emp{nx}, \emp{ny}, and \emp{nz} are the lengths of the array in each
@@ -707,7 +639,7 @@ The three keyword arguments \emp{modulename}, \emp{signature}, and
 create a signature from the contents of the files and arguments to the
 \emp{build\_\-module} function, resulting in a name starting with
 \emp{instant\_\-module\_\-} followed by a long checksum. The
-resulting code is copied to Instant cache unless \emp{cache\_\-dir} is set to
+resulting code is copied to the Instant cache unless \emp{cache\_\-dir} is set to
 a specific directory. Note that changing the arguments or any of the files will
 result in a new directory in the Instant cache, as the checksum no longer is
 the same. Before compiling a module, Instant will always check if it is cached
@@ -722,8 +654,8 @@ ignored.
 When \emp{signature} is given as argument, Instant uses this instead of
 calculating checksums. The resulting directory has the same name as the
 signature, provided the signature does not contain more than 100 characters
-containing only letters, numbers, or a underscore. If the signature contains
-any of these characters, the module name is generated based on the checksum of
+containing only letters, numbers, or a underscore. If this is not 
+the case, the module name is generated based on the checksum of
 this string, resulting in a module name starting with \emp{instant\_\-module\_\-}
 followed by the checksum. Because the user specifies the
 signature herself, changes in the arguments or source code will not cause a
@@ -813,8 +745,8 @@ SWIG programmers. The keywords arguments are as follows:
     \item Default: \emp{''}
     \item Type: String
     \item Comment: Code that should be executed when the Instant module is
-      imported. This code is inserted in the SWIG interface file, and is
-      used for instance for calling \emp{import\_\-array()} used for the
+      imported. This code is used in the initialization of the module. An
+      example of initialization code is the call \emp{import\_\-array()} required for  
       initialization of NumPy arrays.
   \end{itemize}
 \item \emp{additional\_\-definitions}
@@ -822,7 +754,7 @@ SWIG programmers. The keywords arguments are as follows:
     \item Default: \emp{''}
     \item Type: String
     \item Comment: Additional definitions (typically needed for inheritance)
-      for interface file. These definitions should be given as triple-quoted
+      for the interface file. These definitions should be given as triple-quoted
       strings in the case they span multiple lines, and are placed both in the
       initial block for C/C++ code (\emp{\%\{,\%\}}-block), and the main section
       of the interface file.
@@ -832,7 +764,7 @@ SWIG programmers. The keywords arguments are as follows:
     \item Default: \emp{''}
     \item Type: String
     \item Comment: Additional declarations (typically needed for inheritance)
-      for interface file. These declarations should be given as triple-quoted
+      for the interface file. These declarations should be given as triple-quoted
       strings in the case they span multiple lines, and are placed in the main
       section of the interface file.
   \end{itemize}
@@ -932,14 +864,13 @@ SWIG programmers. The keywords arguments are as follows:
   \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
-    \item Comment: A nested list describing the C arrays to be made from NumPy arrays.
-        The SWIG interface for fil NumPy is used. For 1D arrays, the inner
-        list should contain strings with the variable names for the length of
-        the arrays and the array itself. 2D matrices should contain the names
+    \item Comment: A nested list describing the C arrays to be made from the NumPy arrays.
+        For 1D arrays, the list should contain strings with the variable names for the length of
+        the arrays and the array itself. Matrices should contain the names
         of the dimensions in the two directions as well as the name of the
         array, and 3D tensors should contain the names of the dimensions in
         the three directions in addition to the name of the array.
-        If the NumPy array har more than four dimensions, the inner list should
+        If the NumPy array har more than three dimensions, the list should
         contain strings with variable names for the number of dimensions,
         the length in each dimension as a pointer, and the array itself,
         respectively. For more details, see Section \ref{wilbers:sec:arrays}.
@@ -970,14 +901,12 @@ SWIG programmers. The keywords arguments are as follows:
     \item Comment: A directory to look for cached modules and place new ones.
       If missing, a default directory is used. Note that the module
       will not be cached if \emp{modulename} is specified.
-      The cache directory should not be used for anything else.
   \end{itemize}
 \end{itemize}
 
 \subsection[inline]{\emp{inline}}
 The function \emp{inline} creates a module given that the input is a valid C/C++ function. It is only
-possible to inline one C/C++ function each time. One mandatory argument, which
-is the C/C++ code to be compiled.
+possible to inline one C/C++ function each time. One argument is mandatory; the C/C++ code to be compiled.
 
 The default keyword arguments from \emp{build\_\-module} are used, with
 \emp{c\_\-code} as the C/C++ code given as argument to \emp{inline}. These keyword
@@ -989,9 +918,7 @@ it fails, the module is returned.
 
 \subsection[inline\_module]{\emp{inline\_module}}
 The same as \emp{inline}, but returns the whole module rather than a single
-function. Except for the C/C++ code being a mandatory argument, the exact same as
-\emp{build\_\-module}.
-
+function.
 
 \subsection[inline\_with\_numpy]{\emp{inline\_with\_numpy}}
 The difference between this function and the \emp{inline} function is that
@@ -1023,14 +950,13 @@ module in the following way:
 \begin{code}
 instant_ext = import_module('instant_ext')
 \end{code}
-Using an object as argument, assuming this object includes a
-function \emp{signature()} and the module is located in the
-directory \emp{/tmp}:
+An object and a directory can be used as input provided that this object includes a
+function \emp{signature()} and that the module is located in the
+directory:
 \begin{code}
-instant_ext = import_module(signature_object, '/tmp')
+instant_ext = import_module(object, dir)
 \end{code}
-The imported module, if found, is also placed in the memory cache.
-
+If the module is found, the imported module is placed in the memory cache.
 
 \subsection[header\_and\_libs\_from\_pkgconfig]{\emp{header\_and\_libs\_from\_pkgconfig}}
 This function returns a list of include files, flags, libraries and library
@@ -1056,7 +982,7 @@ our module correctly.
 \subsection[get\_status\_output]{\emp{get\_status\_output}}
 This function provides a platform-independent way of running processes in the
 terminal and extracting the output using the Python
-module \emp{subprocess}\footnote{http://docs.python.org/library/subprocess.html}. The
+module \emp{subprocess}. The
 one mandatory argument is the command we want to run. Further, there are three
 keyword arguments. The first is \emp{input}, which should be a string
 containing input to the process once it is running. The other two
@@ -1079,19 +1005,17 @@ returns \emp{True} if and only if the two versions are the same.
 \section{Related Works}
 There exist several packages that are similar to Instant.
 Worth mentioning here are \index{Weave}Weave~\cite{www:weave},
-\index{Cython}Cython~\cite{www:cython}, and \index{F2PY}F2PY~\cite{Peterson}.
+\index{Cython}Cython~\cite{Cython}, and \index{F2PY}F2PY~\cite{Peterson}.
 Weave allows us to inline C code directly in our Python
 code. Unlike Instant, Weave does not require the specification of the function
 signature and the return argument. For specific examples of Weave and the
 other mentioned packages, we refer to~\cite{WilbersLangtangenEtAl2009,www:weave}. Weave is part of
 SciPy~\cite{www:scipy}.
 F2PY is currently part of NumPy, and is primarily intended
-for wrapping Fortran code. F2PY can also be used for wrapping C
-code.
+for wrapping Fortran code although it can be used for wrapping C code.
 Cython is a rather new project, branched from the more well-known Pyrex
-project~\cite{www:pyrex}. Cython is attractive because of  its integration
+project~\cite{Pyrex}. Cython is attractive because of  its integration
 with NumPy arrays. Cython differs from the other projects by being a programming
-language of its own. Cython extends Python with concepts such as static typing,
-hence allowing the user to incrementally speed up the code.
+language of its own, which extends Python with static typing.
 
 
