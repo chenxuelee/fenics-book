@@ -12,13 +12,13 @@ Instant accepts plain C/C++ and is therefore conventiently combined with the cod
 \section{Brief Overview of Instant and its role in FEniCS}
 
 In FEniCS, FFC and SFC are form compilers that generate UFC compliant C++ code based on the language UFL.  
-Similarly, \emp{Expression}s and \emp{SubDomain}s may be compiled using JIT compiler in Dolfin. 
-In all the mentioned cases, Instant is employed for to obtained a seemless integration of C++ and Python,  
-see also the Chapters~[alnaes-3,logg-1,mardal-2]. 
+Within FFC and SFC, Instant is used to JIT-compile the C++ code to a Python module.   
+Similarly, Instant is used in Dolfin to JIT-compile \emp{Expression}s and \emp{SubDomain}s. 
+See the Chapters~[alnaes-3,logg-1,mardal-2] for more information on these topics. 
 
-Instant relies on SWIG~\cite{www:swig} for the generation of wrapper
+Instant relies on SWIG~\cite{SWIG} for the generation of wrapper
 code needed for making the C/C++ code usable from
-Python~\cite{www:python}.  The code to be inlined, in
+Python.  The code to be inlined, in
 addition to the wrapper code, is then compiled into a Python extension
 module (a shared library with functionality as specified by the Python
 C-API) by using Distutils or CMake. To check whether the C/C++ code has changed
@@ -28,10 +28,6 @@ and compares it to the SHA1 checksum of the code used in the previous
 execution. Finally, Instant has implemented a set of
 SWIG \index{typemaps}typemaps, allowing the user to transfer NumPy
 arrays between the Python code and the C/C++ code.
-
-We refer to its website for
-a comprehensive user manual. Some issues concerning SWIG is also 
-described in Chapter~[mardal-2]. 
 
 
 \section{Examples}
@@ -80,17 +76,24 @@ add_func = inline(c_code)
 sum = add_func(3, 4.5)
 print 'The sum of 3 and 4.5 is', sum
 \end{python}
+When runned this script produces the following output: 
+\begin{python}
+ > python ex1.py 
+--- Instant: compiling ---
+Hello world! C function add is being called...
+The sum of 3 and 4.5 is 7.5
+\end{python}
 Here Instant will wrap the C-function \emp{add} into a Python extension module by using
 SWIG and Distutils.
 The inlined function is written in standard C. SWIG supports almost
-all of C and C++, including object orientation and templates. When running
-this Python snippet the first time, compiling the C code takes a few seconds. Next time we run
-it, however, the compilation is omitted, given that no changes are made to the
+all of C and C++, including classes and templates. 
+The first time the Python script is runned, it will use a few second to compile the C code.  
+The next time, however, the compilation is omitted, given that no changes are made to the
 C source code.
 
-Note that a raw string is used in this example, to avoid
-Python interpreting escape sequences such as '\verb@\@\emp{n}'. Alternatively,
-special characters can be escaped using a backslash.
+%Note that a raw string is used in this example, to avoid
+%Python interpreting escape sequences such as '\verb@\@\emp{n}'. Alternatively,
+%special characters can be escaped using a backslash.
 
 Although Instant notifies the user when it is compiling, it might
 sometimes be necessary, e.g. when debugging, to see the details of the Instant
@@ -100,31 +103,28 @@ other Instant functions:
 from instant import output
 output.set_logging_level('DEBUG')
 \end{python}
-The intrinsic Python module \emp{logging} is used. First, the
-\emp{build\_\-function} arguments are displayed, whereafter the different steps
-performed by Instant are shown in detail, e.g whether the module is found in
-cache and the arguments to the Distutils file when building the module.
-This example can be found in the file \emp{examples/ex1.py}.
+%The intrinsic Python module \emp{logging} is used. First, the
+%\emp{build\_\-function} arguments are displayed, whereafter the different steps
+%performed by Instant are shown in detail, e.g whether the module is found in
+%cache and the arguments to the Distutils file when building the module.
+%This example can be found in the file \emp{examples/ex1.py}.
 
 \subsection{NumPy Arrays}
 One basic problem with wrapping C and C++ code is how to handle dynamically
 allocated arrays. Arrays allocated
 dynamically are typically represented in C/C++ by a pointer to the first element
 of an array and a separate integer variable holding the array size. In Python
-the array variable is itself an object contains the data array, array size,
-type information etc. However, a pointer in C/C++ does not necessarily
-represent an array. Therefore, SWIG provides the typemap functionality
-that allows the user to specify a mapping between Python and C/C++ types. We
+the array variable is itself an object containing the data array, array size,
+type information etc. 
+SWIG provides typemaps to specify  mappings between Python and C/C++ types. We
 will not go into details on typemaps in this chapter, but the reader
 should be aware that it is a powerful tool that may greatly enhance your
 code, but also lead to mysterious bugs when used wrongly. Typemaps
-are discussed in Chapter~\ref{chap:mardal-2} and at length at the SWIG
-webpage. In this chapter, it is sufficient to illustrate how to deal
-with arrays in Instant using the NumPy module. More details on how Instant
-deals with NumPy arrays can be found in Section \ref{wilbers:sec:arrays}.
+are discussed in Chapter~[mardal-2] and at length in the SWIG documentation.
+In this chapter, it is sufficient to illustrate how to deal
+with arrays in Instant using the NumPy module. 
 
-\subsection{Ordinary Differential Equations}
-We introduce a
+To illustrate the use of NumPy arrays with Instant, we introduce a
 solver for an ordinary differential equation (ODE) modeling blood pressure by
 using a \index{Windkessel model}Windkessel model. The ODE is as follows:
 \begin{eqnarray}
@@ -145,8 +145,7 @@ def time_loop_py(p, Q, A, B, dt, N, p0):
     for i in range(1, N):
         p[i] = p[i-1] + dt*(B*Q[i] - A*p[i-1])
 \end{python}
-The C code given as argument to the Instant function \emp{inline\_\-with\_\-numpy}
-looks like:
+The corresponding C code is: 
 \begin{python}
 void time_loop_c(int n, double* p,
                  int m, double* Q,
@@ -172,31 +171,33 @@ length $n$. However, this can not be determined by the function signature:
 void time_loop_C(int n, double* p, int m, double* Q, ...)
 \end{python}
 For example, \emp{double* p} may be an array of length $m$ or it may simply be
-output. In Instant
-you can specify 1-dimensional arrays as follows:
+output. In Instant you must therefore specify what the arrays are:
 \begin{python}
 time_loop_c = inline_with_numpy(c_code,
                                 arrays = [['n', 'p'],
                                           ['m', 'Q']])
 \end{python}
-Here we tell Instant that \emp{(int n, double* p)} and
-\emp{(int m, double* Q)} are NumPy arrays (and Instant then employs
-a few typemaps).
+Here, we tell Instant that \emp{(int n, double* p)} and
+\emp{(int m, double* Q)} are NumPy arrays (and Instant then generates the  
+proper typemaps).
 We may then call the \emp{time\_\-loop}
 function as follows:
 \begin{python}
 time_loop_c(p, Q, 1.0, 1.0, 1.0/(N-1), N, 1.0)
 \end{python}
-In the above example we obtain a speed-up of about a factor 400 when using
-100000 time steps compared to the pure Python with NumPy version, see Table
-\ref{wilbers:fig:speed-up}. This is about the same as a pure C program. The result of
-solving the ODE can be seen in Figure
-\ref{wilbers:fig:fig1}. The comparison between NumPy and Instant is not really fair, as
-NumPy  primarily gives a speed-up for code that can be vectorized, something
-that is not the case with our current ODE. In fact, utilizing pure Python
-lists instead of NumPy arrays, reduces the speed-up to a factor 100. For code
-that can be vectorized, the speed-up is about one order of magnitude when we
-use Instant instead~\cite{WilbersLangtangenEtAl2009}.
+
+In Table \ref{wilbers:fig:speed-up} we compare the above mentioned code with
+pure C code, pure Python, and NumPy.  
+We obtain a speed-up of about a factor 350 when compared with NumPy, using
+100000 time steps. The performance of the code using Instant is actually the same as a pure C program. 
+The comparison between NumPy and Instant may not be
+completely fair. NumPy is primarily intended for algorithms that can be vectorized,
+which is not the case with ODEs. In fact, utilizing pure Python
+lists instead of NumPy arrays, reduces the speed-up to a factor 65. For code
+that can be vectorized, the speed-up is about one order of magnitude, when 
+using Instant instead of NumPy~\cite{WilbersLangtangenEtAl2009}.
+The result of solving the ODE can be seen in Figure
+\ref{wilbers:fig:fig1}. 
 
 \begin{figure}
 \begin{center}
@@ -215,7 +216,7 @@ CPU time with Python  & 0.7e-4  & 0.7e-3 & 0.7e-2 & 0.7e-1 & 0.7     \\ \hline
 CPU time with Instant & 5.0e-6  & 1.4e-5 & 1.0e-4 & 1.0e-3 & 1.1e-2  \\ \hline
 CPU time with C       & 4.0e-6  & 1.1e-5 & 1.0e-4 & 1.0e-3 & 1.1e-2  \\ \hline
 \end{tabular}
-\caption{CPU times of Windkessel model for different implementations (in seconds).}
+\caption{CPU times (in seconds) for solving the ODEs from the  Windkessel model using different implementations.}
 \label{wilbers:fig:speed-up}
 \end{center}
 \end{table}
@@ -223,11 +224,9 @@ The complete code for this example can be found in \emp{\$examples/ex2.py}
 
 
 \subsection{Numpy Arrays and OpenMP}
-It is easy to speed up code on parallel computers with OpenMP. We will not
-describe \index{OpenMP}OpenMP in
-any detail here, the reader is referred to~\cite{www:openmP}. However, note
-that preprocessor directives like '\emp{\#pragma omp \ldots}' are OpenMP directives and
-that OpenMP functions start with \emp{omp}.
+It is easy to speed up code on parallel computers with OpenMP~\cite{www:openmP}. In 
+the following code preprocessor directives like '\emp{\#pragma omp \ldots}' are OpenMP directives and
+OpenMP functions always start with \emp{omp}.
 In this example, we want
 to solve a standard 2-dimensional wave equation in a heterogeneous medium with
 local wave velocity $k$:
@@ -306,10 +305,8 @@ instant_ext = \
                ['upn', 'up', 'out']])
 \end{python}
 Note that the arguments \emp{include\_\-headers}, \emp{init\_\-code}, and the
-first element of \emp{system\_\-headers} could have been omitted had we chosen
-to use \emp{inline\_\-module\_\-with\_\-numpy} instead of \emp{build\_\-module}. We could also
-have used \emp{inline\_\-with\_\-numpy}, which would have returned only the
-function, not the whole module. For more details, see the next section.
+first element of \emp{system\_\-headers} could have been omitted if we 
+used \emp{inline\_\-module\_\-with\_\-numpy} instead of \emp{build\_\-module}. 
 The complete code can be found in \emp{\$examples/ex3.py}. 
 
 In Table \ref{speed-up2} we have compared the timings of running with
@@ -328,7 +325,8 @@ CPU time with Instant 2 CPU & 0.42  & 0.81  \\ \hline
 CPU time with Instant 3 CPU & 0.37  & 0.75  \\ \hline
 CPU time with Instant 4 CPU & 0.34  & 0.67  \\ \hline
 \end{tabular}
-\caption{CPU times for Instant with OpenMP (in seconds).}
+\caption{CPU times (in seconds) for the implementation of the solution of a wave-equation 
+using Instant and OpenMP on different numbers of CPUs/threads.}
 \label{speed-up2}
 \end{center}
 \end{table}
@@ -433,7 +431,7 @@ CPU time with Instant 4 CPU & 0.34  & 0.67  \\ \hline
 \section{Errors encountered when using Instant}
 
 There are basically three different types of errors you can encounter when using Instant. 
-These are 1) errors caused by non-compilable c++ code, 2) errors caused by wrong usage of SWIG, 
+These are: 1) errors caused by non-compilable C/C++ code, 2) errors caused by wrong usage of SWIG, 
 and 3) errors related to importing the module from the cache. We will now go briefly through 
 these three different types of errors. Let us start by removing a ';' in the C++ code of
 \emp{ex2.py}, making the C++ compiler unable to compile the code. We will then get errors on the 
@@ -456,13 +454,15 @@ Traceback (most recent call last):
       RuntimeError: In instant.recompile: The module did not compile, 
       see '/tmp/tmpZ4M_ZO2010-11-9-08-24_instant/instant_module_dff946511241aab327593a2d71105c5fc/compile.log'
 \end{python}
-The error message from the compiler is located in the file \emp{compile.log}, but this compile error
-will refer to line numbers in the wrapper code generated by SWIG. You should still be able to locate
-the C++ error. 
+The error message from the compiler is located in the file \emp{compile.log} in the temporary directory 
+\emp{/tmp/tmpZ4M\_ZO2010-11-9-08-24\_instant/instant\_module\_dff946511241aab327593a2d71105c5fc/}.
+The compile error message will here refer to line numbers in the wrapper code generated by SWIG. 
+You should still be able to locate the C++ error, by looking at the error message in \emp{compile.log}
+and the file containg the wrapper code (named \emp{*\_wrap.cxx}) in the temporary directory.
 
 The second type of error occurs when SWIG is not able to parse the code. These errors  
 are easily identified by the first line in the error message, namely 
-\emp{Error: Syntax error in input(1).}.  
+\emp{Error: Syntax error in input(1).}. 
 \begin{python}
 instant_module_815d9b7181988c1596a71b62f8a17936a77e5944.i:39: Error: Syntax error in input(1).
 running build_ext
@@ -476,7 +476,9 @@ gcc -pthread -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototy
 gcc: instant_module_815d9b7181988c1596a71b62f8a17936a77e5944_wrap.cxx: No such file or directory
 gcc: no input files
 \end{python}
-In this case SWIG will not be able to generate a wrapper file and hence the extension module will not be built either. 
+SWIG reports that it is unable to parse the Instant generated interface file (named \emp{*.i}) 
+and that the problem arise at line 39.  In this case, you should have a look in the 
+generated interface file in the temporary directory. 
 
 Finally, Python may not be able to import the module from the cache. There might be numerous reasons for this; 
 the cache may be old and incompatible with the current version of Python, the cache may be corrupted due 
@@ -810,8 +812,10 @@ SWIG programmers. The keywords arguments are as follows:
   \begin{itemize}
     \item Default: \emp{''}
     \item Type: String
-    \item Comment: Additional definitions (typically needed for inheritance)
-      for the interface file. These definitions should be given as triple-quoted
+    \item Comment: Additional definitions needed in the interface file. 
+      These definitions should be additional code that is not found 
+      elsewhere, but is needed by the wrapper code. 
+      These definitions should be given as triple-quoted
       strings in the case they span multiple lines, and are placed both in the
       initial block for C/C++ code (\emp{\%\{,\%\}}-block), and the main section
       of the interface file.
@@ -820,8 +824,10 @@ SWIG programmers. The keywords arguments are as follows:
   \begin{itemize}
     \item Default: \emp{''}
     \item Type: String
-    \item Comment: Additional declarations (typically needed for inheritance)
-      for the interface file. These declarations should be given as triple-quoted
+    \item Comment: Additional declarations needed in the interface file. 
+      These declarations should be declarations of code that is found 
+      elsewhere, but is needed to make SWIG generate wrapper code properly. 
+      These declarations should be given as triple-quoted
       strings in the case they span multiple lines, and are placed in the main
       section of the interface file.
   \end{itemize}
