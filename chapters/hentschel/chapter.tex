@@ -54,7 +54,7 @@ the CSF space in the upper spinal SAS and obstructs the flow. This
 so-called Chiari I malformation \index{Chiari I malformation} (or
 Arnold-Chiari malformation) is
 shown in the right picture in Figure \ref{fig:anatomy}. A variety of
-symptoms is related to this malformation, including headache, abnormal
+symptoms are related to this malformation, including headache, abnormal
 eye-movement, motor or sensor-dysfunctions, etc. If the malformation
 is not treated surgically, the condition may become more severe and
 will eventually cause more serious neurological deterioration, or even
@@ -63,7 +63,7 @@ fluid filled cavities within the spinal cord, \index{spinal cord} a
 disease called syringomyelia. The exact
 relation between the Chiari I malformation and syringomyelia is
 however not known. It is believed that obstructions, that is abnormal
-anatomies cause abnormal flow leading to the development of
+anatomies, cause abnormal flow leading to the development of
 syringomyelia~\cite{Oldfield1994}. Several authors have
 analyzed the relations between abnormal flow and syringomyelia
 development based on measurements in patients and healthy volunteers
@@ -79,14 +79,13 @@ syrinx disappeared completely after some months~\cite{Oldfield1994,Pinna2000,Hei
 
 The studies mentioned above are all based on a small amount of
 individuals characterized by remarkable variations. CFD simulations
-may help to test the initial assumptions in generalized
+may help to test modelling assumptions in generalized
 settings. In \cite{Gupta2009,Roldan2008} the
 usefulness of CFD to quantify and visualize CSF flow
 in patient specific cases in great detail was demostrated.
 It is the purpose of this
 chapter to describe the implementation of such a CFD solver in
-\fenics\ and to compare the simulation results with results obtained
-from Star-CD. Note that the Navier-Stokes solvers are discussed in
+\fenics\. Note that the Navier-Stokes solvers are discussed in
 detail in Chapter [kvs-1].\\
 
 \section{Mathematical Description}
@@ -102,11 +101,11 @@ equations for an incompressible Newtonian fluid,
 \rho \left(\frac{\partial \mathbf{v}}{\partial t} + (\mathbf{v}\cdot\nabla) \mathbf{v}\right) &=& -\nabla p + \mu \Delta \mathbf{v} + \mathbf{g}, \quad \in \Omega, \\
 \nabla \mathbf{v} &=& 0, \quad \in \Omega,
 \end{eqnarray*}
-with the variables as indicated in Table \ref{tab:entities}, and $g$,
-the body force, i.e., gravity. We kan eliminate gravity from the
+with the variables as indicated in Table \ref{tab:entities}, and \mathbf{g},
+the body force, i.e., gravity. We can eliminate gravity from the
 equation by assuming that the body force is balanced by the
 hydrostatic pressure. As a result, pressure describes only the dynamic
-pressure. For calculating the physical correct pressure, static
+pressure. For calculating the correct physical pressure, static
 pressure resulting from body forces has to be added. This
 simplification is however not true during sudden movements such as
 raising up.
@@ -117,17 +116,17 @@ The coordinate system is chosen so that the tubular axis points downwards, resul
     \begin{tabular}{ | c | c | c | c | c | }
     \hline
     Symbol & Meaning & Entity & Chosen Value & Reference Value\\ \hline\hline
-	$\mathbf{v}$	& velocity variable & $\mathrm{ \frac{cm}{s}}$ & --- & $-1.3\pm 0.6 \ldots 2.4 \pm 1.4$ \footnote{Hofmann et al. ~\cite{Hofmann2000}; Maximum absolute anterior CSF flow in both directions from controls and patients at foramen Magnum} \\
+	$\mathbf{v}$	& velocity variable & $\mathrm{ \frac{cm}{s}}$ & --- & $-1.3\pm 0.6 \ldots 2.4 \pm 1.4$ \footnote{~\cite{Hofmann2000}; Maximum absolute anterior CSF flow in both directions from controls and patients at foramen magnum} \\
 	$p$		& pressure	variable & kPa & --- & \ldots\\
 	$\rho$	& density & $\mathrm{\frac{g}{cm^3}}$ & --- &0.993 \footnote{at $37^\circ$ C }\\ %\textcelsius
 	$\mu$	& dynamic viscosity	&  $\mathrm{\frac{g s}{cm}}$ & --- & 0.0007\\
 	$\nu$	& kinematic viscosity & $\mathrm{ \frac{cm^2}{s}}$ & $0.7 10^{-2}$ & $0.7 10^{-2}$ \\ 	\hline %$(\nu = \frac{\mu}{\rho})$
-	$SV$	& stroke volume \footnote{CSF volume that moves up and down through cross section in the SAS during one cardiac cycle}	& $\mathrm{ \frac{ml}{s}}$& $0.27$  & $0.27$\footnote{Gupta et al. \cite{Gupta2009}} \\
+	$SV$	& stroke volume \footnote{CSF volume that moves up and down through cross section in the SAS during one cardiac cycle}	& $\mathrm{ \frac{ml}{s}}$& $0.27$  & $0.27$\footnote{\cite{Gupta2009}} \\
 	$HR$	& heart rate & $\mathrm{\frac{beats}{s}}$	& 1.17 & 1.17\\
 	$A0$	& tube boundary	& $\mathrm{ cm^2}$ & $32$  & ---\\
-	$A1$,$A2$	& area of inlet/outlet & $\mathrm{ cm^2}$ &$0.93$ & 0.8 \ldots 1.1 \footnote{Loth et al. ~\cite{Loth2001}; Cross sections at 20--40 cm from the foramen magnum.}  \\
+	$A1$,$A2$	& area of inlet/outlet & $\mathrm{ cm^2}$ &$0.93$ & 0.8 \ldots 1.1 \footnote{~\cite{Loth2001}; Cross sections at 20--40 cm from the foramen magnum.}  \\
     \hline
-    $Re$    & Reynholds Number & -- & -- & ~70--200 \footnote{See more details in \ref{tab:Re_We}.}\\
+    $Re$    & Reynolds Number & -- & -- & ~70--200 \footnote{See more details in \ref{tab:Re_We}.}\\
     $We$    & Womersley Number & -- & -- & ~14--17 \\
     \hline
     \end{tabular}
@@ -160,14 +159,14 @@ class Top(SubDomain):
 \end{code}
 To define the domain correctly, we override the base class' object function \emp{inside}. It returns a boolean evaluating if the inserted point \emp{x} is part of the sub domain. The boolean \emp{on\_boundary} is very useful to easily partition the whole mesh boundary to sub domains.
 
-Physically more correct would be to require, that the no slip condition is also valid on the outermost/innermost nodes of the inflow and outflow sections as implemented below:
+Physically more correct would be to require that the no slip condition is also valid on the outermost/innermost nodes of the inflow and outflow sections as implemented below:
 \begin{code}
 def on_ellipse(x, a, b, x_index, y_index, x_move=0, y_move=0):
 	x1 = x[x_index] - x_move
 	x2 = x[y_index] - y_move
 	return bool( abs((x1/a)**2 + (x2/b)**2 - 1.0 ) < 10**(-6) )
 \end{code}
-The vectors describing the ellipses of the cord and the dura in a cross section with the corresponding axes are required. The global function \emp{on\_ellipse} checks if \emp{x} is on the ellipse defined by the x-vector \emp{a} and the y-vector \emp{b}. The variables \emp{x\_move} and \emp{y\_move} allow to define an eccentric ellipse.
+The vectors describing the ellipses of the cord and the dura in a cross section with the corresponding axes are required. The global function \emp{on\_ellipse} checks if \emp{x} is on the ellipse defined by the x-vector \emp{a} and the y-vector \emp{b}. The variables \emp{x\_move} and \emp{y\_move} allow the definition of an eccentric ellipse.
 
 Defining the inflow area at the top with excluded mantle nodes is done as follows below, the outflow area at the bottom is defined analogously.
 
@@ -204,7 +203,7 @@ differently. The details of how different problems can easily be
 defined in separate classes can be found in:
 \emp{src/mesh\_definitions/}. %FIXME
 
-\paragraph{Inflow and outflow pulse.} According \cite{Gupta2009}, a volume of 0.27 ml is transported back and forth through the spinal SAS cross sections during the cardiac cycle. For the average human, we assumed a heart rate of 70 beats per minute. Furthermore, we defined the cross sectional area to be 0.93 $\mathrm{cm^2}$, which matches the segment from 20 to 40 cm down from the foramen magnum~\cite{Loth2001}. In this region of the spinal canal, the cross sectional area varies little. In addition, the dura and the cord shape resemble a simple tube more than in other regions. According to \cite{Oldfield1994}, syrinxes start at around 5 cm below the foramen magnum and reach down up to 28 cm below the foramen magnum.
+\paragraph{Inflow and outflow pulse.} According to \cite{Gupta2009}, a volume of 0.27 ml is transported back and forth through the spinal SAS cross sections during the cardiac cycle. For the average human, we assumed a heart rate of 70 beats per minute. Furthermore, we defined the cross sectional area to be 0.93 $\mathrm{cm^2}$, which matches a segment from 20 to 40 cm down from the foramen magnum~\cite{Loth2001}. In this region of the spinal canal, the cross sectional area varies little. In addition, the dura and the cord shape resemble a simple tube more than in other regions. According to \cite{Oldfield1994}, syrinxes start at around 5 cm below the foramen magnum and reach down up to 28 cm below the foramen magnum.
 
 Further, we define a velocity pulse on the inflow and outflow
 boundaries and since we are modeling incompressible flow between rigid
@@ -325,12 +324,12 @@ Increasing the time step length usually speeds up the calculation of
 the solution. As long as the CFL number with the maximum velocity
 $v_{max}$, time step length $dt$ and minimal edge length $h_{min}$ is
 smaller than one $(CFL = \frac{v_{max} dt}{h_{min}} < 1)$, the solvers
-should (!!!) converge. For too small time steps it can however lead to
+should converge. For too small time steps it can however lead to
 an increasing number of iterations for the solver on each time step.
-As a characterization of the fluid flow, the Reynholds number $(Re =
+As a characterization of the fluid flow, the Reynolds number $(Re =
 \frac{v_c l}{\nu})$ was calculated with the maximum velocity $v_c$ at
 the inflow boundary and the characteristic length $l$ of the largest
-gap between outer and inner boundary. Comparison of Reynholds numbers
+gap between outer and inner boundary. Comparison of Reynolds numbers
 for different scenarios can be found in Table \ref{tab:Re_We}.
 
 The area of the mesh surfaces and the mesh size can be found as follows.
@@ -582,7 +581,7 @@ The presented results were simulated on meshes of length 5 cm with 30 layers in 
 
 \subsection{Example 2. Simplified Boundary Conditions.}
 
-Many researchers apply the sine function as inlet and outlet boundary condition, since its integral is zero over one period. However, itss shape is not in agreement with measurements of the cardiac flow pulse~\cite{Loth2001}. To see the influence of the applied boundary condition for the defined mesh, we replace the more realistic pulse function with a sine, scaled to the same amount of volume transport per cardiac cycle. The code example below implements the alternative pulse function in the object function \emp{boundary\_conditions}. The variable \emp{sin\_integration\_factor} describes the integral of the first half of a sine.
+Many researchers apply the sine function as inlet and outlet boundary condition, since its integral is zero over one period. However, its shape is not in agreement with measurements of the cardiac flow pulse~\cite{Loth2001}. To see the influence of the applied boundary condition for the defined mesh, we replace the more realistic pulse function with a sine, scaled to the same amount of volume transport per cardiac cycle. The code example below implements the alternative pulse function in the object function \emp{boundary\_conditions}. The variable \emp{sin\_integration\_factor} describes the integral of the first half of a sine.
 \begin{code}
 self.HR = 1.16 # heart rate in beats per second; from 70 bpm
 self.HR_inv = 1.0/self.HR
@@ -696,13 +695,13 @@ Syrinxes expand the cord so that it occupies more space of the spinal SAS. Incre
 	\caption{Characteristic values for the examples 1, 2 and 3.}
 \end{center}\end{table}
 
-Comparing Reynholds and Womersly numbers shows a clear differene for
+Comparing Reynolds and Womersly numbers shows a clear difference for
 the above described examples 1, 2 and 3. Example 2 is marked by a
 clearly lower maximum velocity at inflow and outflow boundary that
-leads to a rather low Reynholdsnumber. Due to the different inflow and
+leads to a rather low Reynolds number. Due to the different inflow and
 outflow area, Example 4 has a lower Womerley number, leading to an
 elevated maximum velocity at the boundary and clearly increased
-Reynholds number. These numbers help to quantify the changes
+Reynolds number. These numbers help to quantify the changes
 introduced by variations in the model. For the chosen model, the shape
 of the pulse function at the boundary condition as well as the cross
 sectional area have great influence on the simulation results. As
