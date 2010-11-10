@@ -168,7 +168,7 @@ void time_loop_c(int n, double* p,
 In this example, \emp{(int n, double* p)} represents an array of doubles with
 length $n$. However, this can not be determined by the function signature:
 \begin{python}
-void time_loop_C(int n, double* p, int m, double* Q, ...)
+void time_loop_c(int n, double* p, int m, double* Q, ...)
 \end{python}
 For example, \emp{double* p} may be an array of length $m$ or it may simply be
 output. In Instant you must therefore specify what the arrays are:
@@ -223,7 +223,7 @@ CPU time with C       & 4.0e-6  & 1.1e-5 & 1.0e-4 & 1.0e-3 & 1.1e-2  \\ \hline
 The complete code for this example can be found in \emp{\$examples/ex2.py}
 
 
-\subsection{Numpy Arrays and OpenMP}
+\subsection{NumPy Arrays and OpenMP}
 It is easy to speed up code on parallel computers with OpenMP~\cite{www:openmP}. In 
 the following code preprocessor directives like '\emp{\#pragma omp \ldots}' are OpenMP directives and
 OpenMP functions always start with \emp{omp}.
@@ -315,7 +315,7 @@ quad-core machine with 32GB memory. We see a speed-up of factor two when doublin
 number of CPUs, but further increasing the number of CPUs has a limited
 effect. We have not been able to investigate this further, but suspect that
 he physical layout of the machine with two dual cores causes this, as the two
-PUs on the same core share some of the resources.
+CPUs on the same core share some of the resources.
 \begin{table}[h]
 \begin{center}
 \begin{tabular}{|l|c|c|} \hline
@@ -564,10 +564,10 @@ Instant cache.
 \subsection{Arrays and Typemaps}\label{wilbers:sec:arrays}
 Instant has support for converting NumPy arrays to C arrays and vice
 versa. Each array specification is a list containing the names
-of the variables describing that array in the C code. For a 1-dimensional
+of the variables describing that array in the C code. For a 1D
 array, this means the names of the variables containing the length of the
 array (an \emp{int}), and the array pointer. The array pointer 
-can have several types, but the default is \emp{double}). For 2-dimensional arrays we need three strings, two
+can have several types, but the default is \emp{double}). For 2D arrays we need three strings, two
 for the length in each dimension. This following example illustrate the array specification:
 \begin{python}
 arrays = [['len', 'a'],                        # a 1D array / vector  
@@ -604,13 +604,13 @@ as \emp{float64}. For integer arrays, the mapping
 between NumPy types and C types depends on your system. Using \emp{long} as
 the C type will work in most cases.
 
-Instant supports for both input, output and in-place arrays. 
+Instant supports both input, output and in-place arrays. 
 The default behavior is to treat the arrays as in-place arrays, provided  
-that the input are Numpy arrays. Python lists and sequences are converted to Numpy arrays automatically.  
+that the input are NumPy arrays. Python lists and sequences are converted to NumPy arrays automatically.  
 The following code shows an example where we calculate the matrix-vector
-multiplication $x = Ab$. The integer matrix $A$ and double vector $b$ is marked as input, while 
+multiplication $x = Ab$. The integer matrix $A$ and double vector $b$ are marked as input, while 
 the double vector $x$ is output. The code is found in 
-file \emp{\$examples/ex5.py}. 
+file: \emp{\$examples/ex5.py}. 
 \begin{python}
 from instant import inline_with_numpy
 from numpy import arange, dot
@@ -728,7 +728,7 @@ applications.
 \subsection[build\_module]{\emp{build\_module}}
 This function is the most important one in Instant, and for most applications
 the only one that developers need to use (together with the wrapper functions). 
-The return argument is the compiled module which ,
+The return argument is the compiled module which,
 can be used directly in the calling code. 
 
 There are a number of keyword arguments, and we will explain them in detail
@@ -896,10 +896,10 @@ SWIG programmers. The keywords arguments are as follows:
         of the dimensions in the two directions as well as the name of the
         array, and 3D tensors should contain the names of the dimensions in
         the three directions in addition to the name of the array.
-        If the NumPy array har more than three dimensions, the list should
+        If the NumPy array has more than three dimensions, the list should
         contain strings with variable names for the number of dimensions,
         the length in each dimension as a pointer, and the array itself,
-        respectively. For more details, see Section \ref{wilbers:sec:arrays}.
+        respectively. 
   \end{itemize}
 \item \emp{generate\_\-interface}
   \begin{itemize}
