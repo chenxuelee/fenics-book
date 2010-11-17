@@ -1454,27 +1454,25 @@ cos(v)}.
 \subsection{Linearized graph representation} \label{ufl:sec:graphs}
 %Using the notation $\seq{x_i}_{i=1}^n$
 %to mean an array of length $n$ with elements $x_i$.
-\index{computational graph}
-A linearized representation of the DAG is useful for several
-internal algorithms, either to achieve a more convenient
-formulation of an algorithm or for improved performance.
-\ufl{} includes tools to build a linearized representation
-of the DAG, the \emph{computational graph}, from any expression tree.
-The computational graph $G = V, E$ is a data structure based on
-flat arrays, directly mirroring the definition of the graph in
-equations~\eqref{ufl:eq:G}-\eqref{ufl:eq:E}.
-This simple data structure makes some algorithms easier to implement or
-more efficient than the recursive tree representation.
-One array (Python list) \icode{V} is used to
-store the vertices $\seq{v_i}_{i=1}^n$ of the DAG.
-For each vertex $v_i$ an expression node $y_i$ is stored to represent it.
-Thus the expression tree for each vertex is also
-directly available, since each expression node is the root
-of its own expression tree. The edges are stored in an array
-\icode{E} with integer tuples \icode{(i,j)} representing an
-edge from $v_i$ to $v_j$, i.e. that $v_j$ is an operand of $v_i$.  The
-graph is built using a post-order traversal, which guarantees that the
-vertices are ordered such that $j < i \forall j \in \mI_i$.
+\index{computational graph} A linearized representation of the DAG is
+useful for several internal algorithms, either to achieve a more
+convenient formulation of an algorithm or for improved performance.
+\ufl{} includes tools to build a linearized representation of the DAG,
+the \emph{computational graph}, from any expression tree.  The
+computational graph $G = V, E$ is a data structure based on flat
+arrays, directly mirroring the definition of the graph in
+equations~\eqref{ufl:eq:G}-\eqref{ufl:eq:E}.  This simple data
+structure makes some algorithms easier to implement or more efficient
+than the recursive tree representation.  One array (Python list)
+\icode{V} is used to store the vertices $\seq{v_i}_{i=1}^n$ of the
+DAG.  For each vertex $v_i$ an expression node $y_i$ is stored to
+represent it.  Thus the expression tree for each vertex is also
+directly available, since each expression node is the root of its own
+expression tree. The edges are stored in an array \icode{E} with
+integer tuples \icode{(i,j)} representing an edge from $v_i$ to $v_j$,
+i.e. that $v_j$ is an operand of $v_i$.  The graph is built using a
+post-order traversal, which guarantees that the vertices are ordered
+such that $j < i \forall j \in \mI_i$.
 
 From the edges $E$, related arrays can be computed efficiently; in
 particular the vertex indices of dependencies of a vertex $v_i$ in
@@ -1506,20 +1504,19 @@ expansion.
 %------------------------------------------------------------
 \subsection{Partitioning}
 
-\ufl{} is intended as a front-end for form compilers.
-Since the end goal is generation of code from expressions, some
-utilities are provided for the code generation process.  In principle,
-correct code can be generated for an expression from its computational
-graph simply by iterating over the vertices and generating code for
-each operation separately, basically mirroring
-Algorithm~\ref{ufl:alg:program}.  However, a good form compiler should
-be able to produce better code.
-\ufl{} provides utilities for partitioning the computational
-graph into subgraphs (partitions) based on dependencies of
-subexpressions, which enables quadrature based form compilers
-to easily place subexpressions inside the right sets of loops.
-The function \icode{partition} implements this feature.
-Each partition is represented by a simple array of vertex indices.
+\ufl{} is intended as a front-end for form compilers.  Since the end
+goal is generation of code from expressions, some utilities are
+provided for the code generation process.  In principle, correct code
+can be generated for an expression from its computational graph simply
+by iterating over the vertices and generating code for each operation
+separately, basically mirroring Algorithm~\ref{ufl:alg:program}.
+However, a good form compiler should be able to produce better code.
+\ufl{} provides utilities for partitioning the computational graph
+into subgraphs (partitions) based on dependencies of subexpressions,
+which enables quadrature based form compilers to easily place
+subexpressions inside the right sets of loops.  The function
+\icode{partition} implements this feature.  Each partition is
+represented by a simple array of vertex indices.
 
 %Vin  = G.Vin()  # Vin[i]  = list of vertex indices j such that there is an edge from V[j] to V[i]
 %Vout = G.Vout() # Vout[i] = list of vertex indices j such that there is an edge from V[i] to V[j]
@@ -1575,8 +1572,8 @@ way that the form compilers are independent of the chosen
 differentiation strategy.  Before expressions are interpreted by a
 form compiler, differential operators should be evaluated such that
 the only operators left are non-differential operators\footnote{An
-exception is made for spatial derivatives of terminals which are
-unknown to \ufl{} because they are provided by the form compilers.}.
+  exception is made for spatial derivatives of terminals which are
+  unknown to \ufl{} because they are provided by the form compilers.}.
 Therefore, it is advantageous to use the same representation for the
 evaluated derivative expressions and other expressions.
 
@@ -1652,7 +1649,7 @@ computing an expression $z$ from a set of terminal values $\{ t_i \}$
 and a set of elementary operations $\{ f_i \}$. Assume for a moment
 that there are no differential operators among $\{ f_i \}$.  The
 algorithm can then be extended to compute the derivative $\frac{d z}{d
-v}$, where $v$ represents a differentiation variable of any kind.
+  v}$, where $v$ represents a differentiation variable of any kind.
 This extension gives Algorithm~\ref{ufl:alg:forwardad}.
 
 \begin{algorithm}
@@ -1671,8 +1668,8 @@ $\frac{d z}{d v} = \frac{d y_n}{d v}$
 This way of extending a program to simultaneously compute the
 expression $z$ and its derivative $\frac{d z}{d v}$ is called forward
 mode automatic differentiation (AD).  By renaming $y_i$ and $\frac{d
-y_i}{d v}$ to a new sequence of values $\seq{\hat y_j}_{j=1}^{\hat
-n}$, Algorithm~\ref{ufl:alg:forwardad} can be rewritten as shown in
+  y_i}{d v}$ to a new sequence of values $\seq{\hat y_j}_{j=1}^{\hat
+  n}$, Algorithm~\ref{ufl:alg:forwardad} can be rewritten as shown in
 Algorithm~\ref{ufl:alg:forwardadprogram}, which is isomorphic to
 Algorithm~\ref{ufl:alg:program} (they have exactly the same
 structure).
@@ -1739,14 +1736,12 @@ v_i)_{,j}$, which has one free index $j$.  If $j$ is replaced by $i$,
 the expression can still be well defined, but you would never write
 $(v_i v_i)_{,i}$ manually.  If the expression in the parenthesis is
 defined in a variable \icode{e = v[i]*v[i]}, the expression
-\icode{e.dx(i)} looks innocent. However, this
-will cause problems as derivatives (including the
-index $i$) are propagated up to terminals.
-If this case is encountered it will be detected
-and an error message will be triggered.
-To avoid it, simply use different index instances.
-In the future, this case may be handled by relabeling
-indices to change this expression into $(v_j v_j)_{,i}u_i$.
+\icode{e.dx(i)} looks innocent. However, this will cause problems as
+derivatives (including the index $i$) are propagated up to terminals.
+If this case is encountered it will be detected and an error message
+will be triggered.  To avoid it, simply use different index instances.
+In the future, this case may be handled by relabeling indices to
+change this expression into $(v_j v_j)_{,i}u_i$.
 
 %------------------------------------------------------------
 \subsection{Higher order derivatives}
@@ -1783,7 +1778,8 @@ derivative has been computed.  This routine can be an implementation
 of Algorithm~\ref{ufl:alg:forwardadprogram}.  The result of
 \icode{apply\_ad} is mathematically equivalent to the input, but with
 no derivative expression nodes left\footnote{Except direct spatial
-derivatives of form arguments, but that is an implementation detail.}.
+  derivatives of form arguments, but that is an implementation
+  detail.}.
 
 The function \icode{apply\_ad} works by traversing the tree
 recursively in post-order, discovering subtrees where the root
@@ -1792,8 +1788,7 @@ derivative subtree.  Since the children of the derivative node has
 already been visited by \icode{apply\_ad}, they are guaranteed to be
 free of derivative expression nodes and the AD routine only needs to
 handle the case discussed above with algorithms
-\ref{ufl:alg:forwardad} and
-\ref{ufl:alg:forwardadprogram}.
+\ref{ufl:alg:forwardad} and \ref{ufl:alg:forwardadprogram}.
 
 %\TODO{Is it $O(c^d n)$ instead? With c being the factor between the size of the derivative program and original expression.}
 The complexity of the \icode{ad\_routine} should be $O(n)$, with $n$
