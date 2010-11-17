@@ -1282,22 +1282,20 @@ by a \icode{BasisFunction}.
 \index{expression tree}
 \index{referential transparency}
 
-Most of the \ufl{} implementation is concerned with
-expressing, representing, and manipulating expressions.
-To explain and reason about expression representations
-and algorithms operating on them, we need an abstract
-notation for the structure of an expression.
-\ufl{} expressions are representations of programs,
-and the notation should allow us to see this connection without the
-burden of implementation details.
+Most of the \ufl{} implementation is concerned with expressing,
+representing, and manipulating expressions.  To explain and reason
+about expression representations and algorithms operating on them, we
+need an abstract notation for the structure of an expression.  \ufl{}
+expressions are representations of programs, and the notation should
+allow us to see this connection without the burden of implementation
+details.
 
 The most basic \ufl{} expressions are expressions with no dependencies
 on other expressions, called \emph{terminals}.  Other expressions are
-the result of applying some
-\emph{operator} to one or more existing expressions.
-All expressions are immutable; once constructed an
-expression will never change. Manipulating an expression
-always results in a new expression being created.
+the result of applying some \emph{operator} to one or more existing
+expressions.  All expressions are immutable; once constructed an
+expression will never change. Manipulating an expression always
+results in a new expression being created.
 
 Consider an arbitrary (non-terminal) expression $z$.  This expression
 depends on a set of terminal values $\{ t_i \}$, and is computed using
@@ -1370,17 +1368,15 @@ stiffness term $\nabla\uu :\nabla\vv$ is illustrated in
 Figure~\ref{ufl:fig:stiffness}.  The terminals $\uu$ and $\vv$ have no
 children, and the term $\nabla\uu$ is itself represented by a tree
 with two nodes.  The names in this figure, \icode{Grad}, \icode{Inner}
-and
-\icode{BasisFunction}, reflect the names of the classes used in \ufl{}
-to represent the expression nodes. Taking the gradient of an
+and \icode{BasisFunction}, reflect the names of the classes used in
+\ufl{} to represent the expression nodes. Taking the gradient of an
 expression with \icode{grad(u)} gives an expression representation
 \icode{Grad(u)}, and \icode{inner(a, b)} gives an expression
 representation \icode{Inner(a, b)}.  In general, each expression node
 is an instance of some subclass of \icode{Expr}.  The class
 \icode{Expr} is the superclass of a hierarchy containing all terminal
 types and operator types \ufl{} supports. \icode{Expr} has two direct
-subclasses,
-\icode{Terminal} and \icode{Operator}, as illustrated in
+subclasses, \icode{Terminal} and \icode{Operator}, as illustrated in
 Figure~\ref{ufl:fig:expr}.
 
 Each expression node represents a single vertex $v_i$ in the DAG.
@@ -1424,21 +1420,21 @@ set of free indices in an expression, obtained as a tuple using
 ordering, they are represented with a tuple of \icode{Index} instances
 for simplicity. Thus the ordering within the tuple carries no meaning.
 
-\ufl{} expressions are referentially transparent with
-some exceptions. Referential transparency means that a subexpression
-can be replaced by another representation of its value without
-changing the meaning of the expression.  A key point here is that the
-value of an expression in this context includes the tensor shape and
-set of free indices.  Another important point is that the derivative
-of a function $f(v)$ in a point, $f'(v)|_{v=g}$, depends on function
-values in the vicinity of $v=g$.  The effect of this dependency is
-that operator types matter when differentiating, not only the current
-value of the differentiation variable.  In particular, a
-\icode{Variable} cannot be replaced by the expression it represents,
-because \icode{diff} depends on the \icode{Variable} instance and not
-the expression it has the value of.  Similarly, replacing a
-\icode{Function} with some value will change the meaning of an
-expression that contains derivatives w.r.t. function coefficients.
+\ufl{} expressions are referentially transparent with some
+exceptions. Referential transparency means that a subexpression can be
+replaced by another representation of its value without changing the
+meaning of the expression.  A key point here is that the value of an
+expression in this context includes the tensor shape and set of free
+indices.  Another important point is that the derivative of a function
+$f(v)$ in a point, $f'(v)|_{v=g}$, depends on function values in the
+vicinity of $v=g$.  The effect of this dependency is that operator
+types matter when differentiating, not only the current value of the
+differentiation variable.  In particular, a \icode{Variable} cannot be
+replaced by the expression it represents, because \icode{diff} depends
+on the \icode{Variable} instance and not the expression it has the
+value of.  Similarly, replacing a \icode{Function} with some value
+will change the meaning of an expression that contains derivatives
+w.r.t. function coefficients.
 
 The following example illustrate this issue.
 \begin{code}
