@@ -1834,7 +1834,7 @@ type.  Derivatives of literal constants are of course always zero, and
 only spatial derivatives of geometric quantities are non-zero.  Since
 form arguments are unknown to \ufl{} (they are provided externally by
 the form compilers), their spatial derivatives ($\frac{\partial
-\phi^k}{\partial x_i}$ and $\frac{\partial w^k}{\partial x_i}$) are
+  \phi^k}{\partial x_i}$ and $\frac{\partial w^k}{\partial x_i}$) are
 considered input arguments as well.  In all derivative computations,
 the assumption is made that form coefficients have no dependencies on
 the differentiation variable.  Two more cases needs explaining, the
@@ -1927,11 +1927,10 @@ which then enables the natural Python syntax for iteration over expression nodes
 for e in post_traversal(expression):
     post_action(e)
 \end{code}
-For efficiency, the actual implementation of
-\icode{post\_traversal} in \ufl{} is not using recursion.
-Function calls are very expensive in Python,
-which makes the non-recursive implementation
-an order of magnitude faster than the above.
+For efficiency, the actual implementation of \icode{post\_traversal}
+in \ufl{} is not using recursion.  Function calls are very expensive
+in Python, which makes the non-recursive implementation an order of
+magnitude faster than the above.
 
 %------------------------------------------------------------
 \subsection{Type based function dispatch in Python} \label{ufl:sec:multifunction}
@@ -1999,26 +1998,21 @@ table are discovered automatically using the introspection capabilites
 of Python.
 
 A multifunction is declared as a subclass of
-\icode{MultiFunction}. For each type that should
-be handled particularly,
-a member function is declared in the subclass.
-The \icode{Expr} classes use the \icode{CamelCaps}
-naming convention, which is automatically converted
-to \icode{underscore\_notation} for corresponding function names,
-such as \icode{BasisFunction} and \icode{basis\_function}.
-If a handler function is not declared for a type,
-the closest superclass handler function is used instead.
-Note that the \icode{MultiFunction} implementation is
-specialized to types in the \icode{Expr} class hierarchy.
-The declaration and use of a multifunction is
-illustrated in Figure~\ref{ufl:fig:examplefunction}.
-Note that
-\icode{basis\_function} and \icode{sum} will handle
-instances of the exact types
-\icode{BasisFunction} and \icode{Sum},
+\icode{MultiFunction}. For each type that should be handled
+particularly, a member function is declared in the subclass.  The
+\icode{Expr} classes use the \icode{CamelCaps} naming convention,
+which is automatically converted to \icode{underscore\_notation} for
+corresponding function names, such as \icode{BasisFunction} and
+\icode{basis\_function}.  If a handler function is not declared for a
+type, the closest superclass handler function is used instead.  Note
+that the \icode{MultiFunction} implementation is specialized to types
+in the \icode{Expr} class hierarchy.  The declaration and use of a
+multifunction is illustrated in Figure~\ref{ufl:fig:examplefunction}.
+Note that \icode{basis\_function} and \icode{sum} will handle
+instances of the exact types \icode{BasisFunction} and \icode{Sum},
 while \icode{terminal} and \icode{operator} will handle the types
-\icode{SpatialCoordinate} and \icode{Product}
-since they have no specific handlers.
+\icode{SpatialCoordinate} and \icode{Product} since they have no
+specific handlers.
 
 %------------------------------------------------------------
 \subsection{Implementing expression transformations} \label{ufl:sec:transformer}
@@ -2041,18 +2035,17 @@ begin with applying the transformation to each child node.  Then
 return the result of some operation specialized according to the type
 of \icode{e}, using the already transformed children as input.
 
-The \icode{Transformer} class implements this pattern.
-Defining a new algorithm using this pattern involves declaring a
-\icode{Transformer} subclass, and implementing
-the type specific operations as member functions of this class just as
-with \icode{MultiFunction}.  The difference is that member functions
-take one additional argument for each operand of the expression
-node. The transformed child nodes are supplied as these additional
-arguments.  The following code replaces terminal objects with objects
-found in a dict \icode{mapping}, and reconstructs operators with the
-transformed expression trees. The algorithm is applied to an
-expression by calling the function \icode{visit}, named after the
-similar Visitor pattern.
+The \icode{Transformer} class implements this pattern.  Defining a new
+algorithm using this pattern involves declaring a \icode{Transformer}
+subclass, and implementing the type specific operations as member
+functions of this class just as with \icode{MultiFunction}.  The
+difference is that member functions take one additional argument for
+each operand of the expression node. The transformed child nodes are
+supplied as these additional arguments.  The following code replaces
+terminal objects with objects found in a dict \icode{mapping}, and
+reconstructs operators with the transformed expression trees. The
+algorithm is applied to an expression by calling the function
+\icode{visit}, named after the similar Visitor pattern.
 \begin{code}
 class Replacer(Transformer):
     def __init__(self, mapping):
@@ -2090,16 +2083,15 @@ transformations.  Note that each of these algorithms removes some
 abstractions, and hence may remove some opportunities for analysis or
 optimization.
 
-Some operators in \ufl{} are termed ``compound'' operators,
-meaning they can be represented by other elementary operators.
-Try defining an expression \icode{e = inner(grad(u), grad(v))},
-and print \icode{repr(e)}. As you will see, the representation
-of \icode{e} is \icode{Inner(Grad(u), Grad(v))} (with some more
-details for \icode{u} and \icode{v}).
-This way the input expressions are easier to recognize in the
-representation, and rendering of expressions to for example
-\LaTeX{} format can show the original compound operators
-as written by the end-user.
+Some operators in \ufl{} are termed ``compound'' operators, meaning
+they can be represented by other elementary operators.  Try defining
+an expression \icode{e = inner(grad(u), grad(v))}, and print
+\icode{repr(e)}. As you will see, the representation of \icode{e} is
+\icode{Inner(Grad(u), Grad(v))} (with some more details for \icode{u}
+and \icode{v}).  This way the input expressions are easier to
+recognize in the representation, and rendering of expressions to for
+example \LaTeX{} format can show the original compound operators as
+written by the end-user.
 
 However, since many algorithms must implement actions for each
 operator type, the function \icode{expand\_compounds} is used to
@@ -2121,9 +2113,8 @@ since free indices in its summand expression will take on multiple
 values.  In some cases, the transformation \icode{expand\_indices}
 comes in handy, the end result of which is that there are no free
 indices left in the expression.  The precondition for this algorithm
-is that
-\icode{expand\_compounds} and \icode{expand\_derivatives}
-have been applied.
+is that \icode{expand\_compounds} and \icode{expand\_derivatives} have
+been applied.
 
 %------------------------------------------------------------
 \subsection{Evaluating expressions}
@@ -2186,24 +2177,21 @@ print e((2, 3), { g: gh })
 
 %------------------------------------------------------------
 \subsection{Viewing expressions} \label{ufl:sec:viewing}
-Expressions can be formatted in various ways for inspection,
-which is particularly useful while debugging.
-The Python built in string conversion operator \icode{str(e)}
-provides a compact human readable string. If you type
-\icode{print e} in an interactive Python session,
-\icode{str(e)} is shown.
-Another Python built in string operator is \icode{repr(e)}.
-\ufl{} implements \icode{repr} correctly such that
-\icode{e == eval(repr(e))} for any expression \icode{e}.
-The string \icode{repr(e)} reflects all the exact representation types
-used in an expression, and can therefore be useful for debugging.
-Another formatting function is \icode{tree\_format(e)}, which produces
-an indented multi-line string that shows the tree structure of an
+Expressions can be formatted in various ways for inspection, which is
+particularly useful while debugging.  The Python built in string
+conversion operator \icode{str(e)} provides a compact human readable
+string. If you type \icode{print e} in an interactive Python session,
+\icode{str(e)} is shown.  Another Python built in string operator is
+\icode{repr(e)}.  \ufl{} implements \icode{repr} correctly such that
+\icode{e == eval(repr(e))} for any expression \icode{e}.  The string
+\icode{repr(e)} reflects all the exact representation types used in an
+expression, and can therefore be useful for debugging.  Another
+formatting function is \icode{tree\_format(e)}, which produces an
+indented multi-line string that shows the tree structure of an
 expression clearly, as opposed to \icode{repr} which can return quite
 long and hard to read strings.  Information about formatting of
-expressions as
-\LaTeX{} and the dot graph visualization format
-can be found in the manual.
+expressions as \LaTeX{} and the dot graph visualization format can be
+found in the manual.
 
 %==============================================================================
 %\clearpage{}
@@ -2223,24 +2211,23 @@ language. Object orientation and operator overloading is well
 supported, and this is fundamental to the design of \ufl{}. The
 functional programming features of Python (such as generator
 expressions) are useful in the implementation of algorithms and form
-compilers. The built-in data structures
-\icode{list}, \icode{dict} and \icode{set}
-play a central role in fast implementations of scalable algorithms.
+compilers. The built-in data structures \icode{list}, \icode{dict} and
+\icode{set} play a central role in fast implementations of scalable
+algorithms.
 
-There is one problem with operator overloading in Python,
-and that is the comparison operators. The problem stems from
-the fact that \icode{\_\_eq\_\_} or \icode{\_\_cmp\_\_} are
-used by the built-in data structures dict and set to compare
-keys, meaning that \icode{a == b} must return a boolean value
-for \icode{Expr} to be used as keys. The result is that
-\icode{\_\_eq\_\_} can not be overloaded to return some
-\icode{Expr} type representation such as \icode{Equals(a, b)}
-for later processing by form compilers.  The other problem is that
-\icode{and} and \icode{or} cannot be overloaded, and therefore cannot
-be used in \icode{conditional} expressions.  There are good reasons
-for these design choices in Python.  This conflict is the reason for
-the somewhat non-intuitive design of the comparison operators in
-\ufl{}.
+There is one problem with operator overloading in Python, and that is
+the comparison operators. The problem stems from the fact that
+\icode{\_\_eq\_\_} or \icode{\_\_cmp\_\_} are used by the built-in
+data structures dict and set to compare keys, meaning that \icode{a ==
+  b} must return a boolean value for \icode{Expr} to be used as
+keys. The result is that \icode{\_\_eq\_\_} can not be overloaded to
+return some \icode{Expr} type representation such as \icode{Equals(a,
+  b)} for later processing by form compilers.  The other problem is
+that \icode{and} and \icode{or} cannot be overloaded, and therefore
+cannot be used in \icode{conditional} expressions.  There are good
+reasons for these design choices in Python.  This conflict is the
+reason for the somewhat non-intuitive design of the comparison
+operators in \ufl{}.
 
 \subsection{Ensuring unique form signatures} \label{ufl:sec:signatures}
 \index{signatures}
