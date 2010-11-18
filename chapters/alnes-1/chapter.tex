@@ -243,7 +243,7 @@ a(\bphi^0, \bphi^1_k; \uu, c_1, c_2) &= \frac{\partial L}{\partial u_k}.
 \end{align}
 % \quad \forall \bphi^0 \in V_h^0
 \begin{figure}\label{ufl:fig:hypcode}
-\begin{code}
+\begin{python}
 # Finite element spaces
 cell = tetrahedron
 element = VectorElement("CG", cell, 1)
@@ -273,7 +273,7 @@ S = 2*diff(W, C)
 # Weak forms
 L = inner(F*S, grad(phi0).T)*dx
 a = derivative(L, u, phi1)
-\end{code}
+\end{python}
 \caption{\ufl{} implementation of hyperelasticity equations with a Mooney-Rivlin material law.}
 \end{figure}
 Figure~\ref{ufl:fig:hypcode} shows an implementation of these
@@ -341,7 +341,7 @@ convenience.  To print all valid families to screen from Python, call
 
 The syntax for declaring elements is best explained with some
 examples.
-\begin{code}
+\begin{python}
 cell = tetrahedron
 
 P = FiniteElement("Lagrange", cell, 1)
@@ -350,7 +350,7 @@ T = TensorElement("DG", cell, 0, symmetry=True)
 
 TH = V + P
 ME = MixedElement(T, V, P)
-\end{code}
+\end{python}
 In the first line a polygonal cell is selected from the set of
 predefined cells.  Then a scalar linear Lagrange element
 \icode{P} is declared, as well as a quadratic vector Lagrange element
@@ -387,10 +387,10 @@ a(v, u; w) &= \int_\Omega w \nabla u \cdot \nabla v \dx, \\
 L(v; f, g, h) &= \int_\Omega f v \dx + \int_{\partial\Omega_0} g^2 v \ds + \int_{\partial\Omega_1} h v \ds.
 \end{align}
 These forms can be expressed in UFL as
-\begin{code}
+\begin{python}
 a = dot(grad(u), grad(v))*dx
 L = f*v*dx + g**2*v*ds(0) + h*v*ds(1)
-\end{code}
+\end{python}
 where multiplication by the measures \icode{dx}, \icode{ds(0)} and \icode{ds(1)}
 represent the integrals $\int_{\Omega_0} (\cdot) \dx$,
 $\int_{\partial\Omega_0} (\cdot) \ds$,
@@ -456,12 +456,12 @@ representations
 \end{itemize}
 Defining a different quadrature order for each term in a form can be
 achieved by attaching meta data to measure objects, e.g.,
-\begin{code}
+\begin{python}
 dx02 = dx(0, { "integration_order": 2 })
 dx14 = dx(1, { "integration_order": 4 })
 dx12 = dx(1, { "integration_order": 2 })
 L = f*v*dx02 + g*v*dx14 + h*v*dx12
-\end{code}
+\end{python}
 Meta data can also be used to override other form compiler specific
 options separately for each term. For more details on this feature see
 the manuals of \ufl{} and the form compilers.
@@ -543,11 +543,11 @@ The exception is coefficient functions that can only be evaluated
 pointwise, which are declared with a finite element with family
 ``Quadrature''.  Basis functions are declared for an arbitrary element
 as in the following manner:
-\begin{code}
+\begin{python}
 phi = BasisFunction(element)
 v = TestFunction(element)
 u = TrialFunction(element)
-\end{code}
+\end{python}
 By using \icode{TestFunction} and \icode{TrialFunction} in
 declarations instead of \icode{Basis\-Function} you can ignore their
 relative ordering.  The only time \icode{BasisFunction} is needed is
@@ -556,30 +556,30 @@ for forms of arity $r > 2$.
 Coefficient functions are declared similarly for an arbitrary element,
 and shorthand notation exists for declaring piecewise constant
 functions:
-\begin{code}
+\begin{python}
 w = Function(element)
 c = Constant(cell)
 v = VectorConstant(cell)
 M = TensorConstant(cell)
-\end{code}
+\end{python}
 If a form argument $u$ in a mixed finite element space $V_h = V_h^0
 \times V_h^1$ is desired, but the form is more easily expressed using
 sub functions $u_0 \in V_h^0$ and $u_1 \in V_h^1$, you can split the
 mixed function or basis function into its sub functions in a generic
 way using \icode{split}:
-\begin{code}
+\begin{python}
 V = V0 + V1
 u = Function(V)
 u0, u1 = split(u)
-\end{code}
+\end{python}
 The \icode{split} function can handle arbitrary mixed elements.
 Alternatively, a handy shorthand notation for argument declaration
 followed by \icode{split} is
-\begin{code}
+\begin{python}
 v0, v1 = TestFunctions(V)
 u0, u1 = TrialFunctions(V)
 f0, f1 = Functions(V)
-\end{code}
+\end{python}
 
 
 %------------------------------------------------------------------------------
@@ -643,17 +643,17 @@ To illustrate, consider the outer product of two
 vectors $\AA = \uu\otimes\vv = u_i v_j \ee_i\otimes\ee_j$,
 and the corresponding scalar components $A_{ij}$.
 One way to implement this is
-\begin{code}
+\begin{python}
 A = outer(u, v)
 Aij = A[i, j]
-\end{code}
+\end{python}
 Alternatively, the components of $\AA$ can be expressed directly using
 index notation, such as $A_{ij} = u_i v_j$.  $A_{ij}$ can then be
 mapped to $\AA$ in the following manner:
-\begin{code}
+\begin{python}
 Aij = v[j]*u[i]
 A = as_tensor(Aij, (i, j))
-\end{code}
+\end{python}
 These two pairs of lines are mathematically equivalent, and the result
 of either pair is that the variable \icode{A} represents the tensor
 $\AA$ and the variable \icode{Aij} represents the tensor $A_{ij}$.
@@ -671,10 +671,10 @@ In addition, slices can be used in place of an index.  An example of
 using slices is \icode{A[0,:]} which is is a vector expression that
 represents row 0 of \icode{A}.  To create new indices, you can either
 make a single one or make several at once:
-\begin{code}
+\begin{python}
 i = Index()
 j, k, l = indices(3)
-\end{code}
+\end{python}
 A set of indices \icode{i}, \icode{j}, \icode{k}, \icode{l} and
 \icode{p}, \icode{q}, \icode{r}, \icode{s} are predefined,
 and these should suffice for most applications.
@@ -684,12 +684,12 @@ indices, but as separate unrelated scalar expressions, you can build a
 tensor from them using \icode{as\_tensor} and its peers.  As an
 example, lets define a 2D rotation matrix and rotate a vector
 expression by $\frac \pi 2$:
-\begin{code}
+\begin{python}
 th = pi/2
 A = as_matrix([[ cos(th), -sin(th)],
                [ sin(th),  cos(th)]])
 u = A*v
-\end{code}
+\end{python}
 
 When indices are repeated in a term, summation over those indices is
 implied in accordance with the Einstein convention.  In particular,
@@ -835,10 +835,10 @@ Section~\ref{ufl:sec:ad}.
 
 Basic spatial derivatives $\frac{\partial f}{\partial x_i}$ can be
 expressed in two equivalent ways:
-\begin{code}
+\begin{python}
 df = Dx(f, i)
 df = f.dx(i)
-\end{code}
+\end{python}
 Here, \icode{df} represents the derivative of \icode{f} in the spatial
 direction $x_i$. The index \icode{i} can either be an integer,
 representing differentiation in one fixed spatial direction $x_i$, or
@@ -870,18 +870,18 @@ writing the convection term from, e.g., the Navier-Stokes equations as
 \ww\cdot\nabla\uu = (\ww\cdot\nabla)\uu = \ww\cdot(\nabla\uu) = w_i u_{j,i},
 \end{align}
 which is expressed in \ufl{} as
-\begin{code}
+\begin{python}
 dot(w, grad(u))
-\end{code}
+\end{python}
 Another illustrative example is the anisotropic diffusion term from,
 e.g., the bidomain equations, which reads
 \begin{align}
 (\AA\nabla u)\cdot\vv = A_{ij} u_{,j} v_i,
 \end{align}
 and is expressed in \ufl{} as
-\begin{code}
+\begin{python}
 dot(A*grad(u), v)
-\end{code}
+\end{python}
 In other words, the divergence sums over the \emph{first} index of its
 operand, and the gradient \emph{prepends} an axis to the tensor shape
 of its operand.  The above definition of curl is only valid for 3D
@@ -911,26 +911,26 @@ h(v) &= \frac{\partial f(v)}{\partial v}.
 \end{align}
 Setting $g = sin(x_0)$ and $f = e^{v^2}$, gives $h = 2 v e^{v^2} = 2
 \sin(x_0) e^{\sin^2(x_0)}$, which can be implemented as follows:
-%\begin{code}
+%\begin{python}
 %g = <expression>
 %v = variable(g)
 %f = <expression(v)>
 %h = diff(f, v)
-%\end{code}
-\begin{code}
+%\end{python}
+\begin{python}
 g = sin(cell.x[0])
 v = variable(g)
 f = exp(v**2)
 h = diff(f, v)
-\end{code}
+\end{python}
 Try running this code in a Python session and print the expressions.
 The result is
-\begin{code}
+\begin{python}
 >>> print v
 var0(sin((x)[0]))
 >>> print h
 d/d[var0(sin((x)[0]))] (exp((var0(sin((x)[0]))) ** 2))
-\end{code}
+\end{python}
 Note that the variable has a label 0 (``var0''), and that \icode{h}
 still represents the abstract derivative.  Section~\ref{ufl:sec:ad}
 explains how derivatives are computed.
@@ -957,7 +957,7 @@ defined as
 These operators can only be used when integrating over the interior
 facets (\icode{*dS}).
 
-%\begin{code}
+%\begin{python}
 %element = FiniteElement("Discontinuous Lagrange",
 %                        "tetrahedron", 0)
 %
@@ -967,7 +967,7 @@ facets (\icode{*dS}).
 %f = Function(element)
 %
 %a = f('+')*dot(grad(v)('+'), grad(u)('-'))*dS
-%\end{code}
+%\end{python}
 
 %The operator \icode{jump} may be used to express the jump of a
 %function across a common facet of two cells. Two versions of the
@@ -1020,9 +1020,9 @@ The only control flow construct included in \ufl{} is
 conditional expressions. A conditional expression
 takes on one of two values depending on the result
 of a boolean logic expression. The syntax for this is
-\begin{code}
+\begin{python}
 f = conditional(condition, true_value, false_value)
-\end{code}
+\end{python}
 which is interpreted as
 \begin{align}
 f = \begin{cases}
@@ -1094,9 +1094,9 @@ inverse methods, as well as sensitivity analysis.
 
 In its simplest form, the declaration of the derivative of a form
 \icode{L} w.r.t. the coefficients of a function \icode{w} reads
-\begin{code}
+\begin{python}
 a = derivative(L, w, u)
-\end{code}
+\end{python}
 The form \icode{a} depends on an additional basis function argument
 \icode{u}, which must be in the same finite element space as the function \icode{w}.
 If the last argument is omitted, a new basis function argument is
@@ -1115,14 +1115,14 @@ F(\phi_i; w) &= \frac{\partial}{\partial w_i} f(w), \\
 J(\phi_i, \phi_j; w) &= \frac{\partial}{\partial w_j} F(\phi_i; w) .
 \end{align}
 For a concrete functional $f(w) = \int_\Omega \frac 1 2 w^2 \dx$, we can implement this as
-\begin{code}
+\begin{python}
 v = TestFunction(element)
 u = TrialFunction(element)
 w = Function(element)
 f = 0.5 * w**2 * dx
 F = derivative(f, w, v)
 J = derivative(F, w, u)
-\end{code}
+\end{python}
 This code declares two forms \icode{F} and \icode{J}.  The linear form
 \icode{F} represents the standard load vector \icode{w*v*dx} and the
 bilinear form \icode{J} represents the mass matrix \icode{u*v*dx}.
@@ -1139,7 +1139,7 @@ linear and bilinear forms derived from the functional in
 Equation~\ref{ufl:eq:harmonic} have basis function arguments in the
 mixed space $V_h^d + V_h$.  The implementation of these forms with
 automatic linearization reads
-\begin{code}
+\begin{python}
 Vx = VectorElement("CG", triangle, 1)
 Vy = FiniteElement("CG", triangle, 1)
 u = Function(Vx + Vy)
@@ -1147,7 +1147,7 @@ x, y = split(u)
 f = inner(grad(x), grad(x))*dx + y*dot(x,x)*dx
 F = derivative(f, u)
 J = derivative(F, u)
-\end{code}
+\end{python}
 Note that the functional is expressed in terms of the subfunctions
 \icode{x} and \icode{y}, while the argument to \icode{derivative} must
 be the single mixed function \icode{u}.  In this example the basis
@@ -1173,10 +1173,10 @@ defined as $a^*(u,v) = a(v,u)$, which is similar to taking the
 transpose of the assembled sparse matrix.  In \ufl{} this is
 implemented simply by swapping the test and trial functions, and can
 be written:
-\begin{code}
+\begin{python}
 a = inner(M*grad(u), grad(v))*dx
 ad = adjoint(a)
-\end{code}
+\end{python}
 which corresponds to
 \begin{align}
 a(M; v, u) = \int_\Omega (\MM\nabla \uu) : \nabla \vv \dx = \int_\Omega M_{ik}u_{j,k}v_{j,i}\dx, \\
@@ -1202,11 +1202,11 @@ L(f, g; v) = \int_\Omega (f^2 / (2g)) v \dx, \\
 L_2(f, g; v) = L(g, 3; v) = \int_\Omega (g^2 / 6) v \dx.
 \end{align}
 This feature is implemented with \icode{replace}, as illustrated in this case:
-\begin{code}
+\begin{python}
 L = f**2 / (2*g) * v * dx
 L2 = replace(L, { f: g, g: 3})
 L3 = g**2 / 6 * v * dx
-\end{code}
+\end{python}
 Here \icode{L2} and \icode{L3} represents exactly the same form. Since
 they depend only on \icode{g}, the code generated for these forms can
 be more efficient.
@@ -1236,10 +1236,10 @@ a(v, u) - L(v) = 0,
 \end{align}
 you can declare forms with both linear and bilinear terms
 and split the equations afterwards:
-\begin{code}
+\begin{python}
 pde = u*v*dx - f*v*dx
 a, L = system(pde)
-\end{code}
+\end{python}
 Here \icode{system} is used to split the PDE into its bilinear and
 linear parts.  Alternatively, \icode{lhs} and \icode{rhs} can be used
 to obtain the two parts separately.
@@ -1260,14 +1260,14 @@ and thus $\frac{\partial x}{\partial c}$ can be found by solving the
 same algebraic linear system used to compute $x$, only with a
 different right hand side.  The linear form corresponding to the right
 hand side of Equation~\eqref{ufl:eq:sL} can be written
-\begin{code}
+\begin{python}
 u = Function(element)
 sL = diff(L, c) - action(diff(a, c), u)
-\end{code}
+\end{python}
 or you can use the equivalent form transformation
-\begin{code}
+\begin{python}
 sL = sensitivity_rhs(a, u, L, c)
-\end{code}
+\end{python}
 Note that the solution \icode{u} must be represented by a
 \icode{Function}, while $u$ in $a(v, u)$ is represented
 by a \icode{BasisFunction}.
@@ -1444,12 +1444,12 @@ will change the meaning of an expression that contains derivatives
 w.r.t. function coefficients.
 
 The following example illustrate this issue.
-\begin{code}
+\begin{python}
 e = 0
 v = variable(e)
 f = sin(v)
 g = diff(f, v)
-\end{code}
+\end{python}
 Here \icode{v} is a variable that takes on the value 0, but
 \icode{sin(v)} cannot be simplified to 0 since the derivative of
 \icode{f} then would be 0.  The correct result here is \icode{g =
@@ -1491,12 +1491,12 @@ V_{in}  &= \seq{\{ j | i \in \mI_j \}}_{i=1}^{n}
 \end{split}
 \end{align}
 These data structures can be easily constructed for any expression:
-\begin{code}
+\begin{python}
 G = Graph(expression)
 V, E = G
 Vin = G.Vin()
 Vout = G.Vout()
-\end{code}
+\end{python}
 A nice property of the computational graph built by \ufl{} is that no
 two vertices will represent the same identical expression.  During
 graph building, subexpressions are inserted in a hash map (Python
@@ -1815,7 +1815,7 @@ Figure~\ref{ufl:fig:applyad}.
 %are small, so in practice it is $O(n)$
 
 \begin{figure}[ht]
-\begin{code}
+\begin{python}
 def apply_ad(e, ad_routine):
     if isinstance(e, Terminal):
         return e
@@ -1824,7 +1824,7 @@ def apply_ad(e, ad_routine):
     if isinstance(e, Derivative):
         e = ad_routine(e)
     return e
-\end{code}
+\end{python}
 \caption{Simple implementation of recursive \icode{apply\_ad} procedure.}
 \label{ufl:fig:applyad}
 \end{figure}
@@ -1873,10 +1873,10 @@ differentiation w.r.t. all coefficients $\{w_k\}$ of a function $w$.
 Consider an object \icode{element} which represents a finite element
 space $V_h$ with a basis $\{\phi_k\}$.  Next consider form arguments
 defined in this space:
-\begin{code}
+\begin{python}
 v = BasisFunction(element)
 w = Function(element)
-\end{code}
+\end{python}
 The BasisFunction instance \icode{v} represents any $v\in\{\phi_k\}$,
 while the \icode{Function} instance \icode{w} represents the sum
 \begin{align}
@@ -1910,30 +1910,30 @@ others who need to relate to \ufl{} on a technical level.
 
 Applying some action to all nodes in a tree is naturally expressed
 using recursion:
-\begin{code}
+\begin{python}
 def walk(expression, pre_action, post_action):
     pre_action(expression)
     for o in expression.operands():
         walk(o)
     post_action(expression)
-\end{code}
+\end{python}
 This implementation simultaneously covers pre-order traversal, where
 each node is visited before its children, and post-order traversal,
 where each node is visited after its children.
 
 A more ``pythonic'' way to implement iteration over a collection of
 nodes is using generators.  A minimal implementation of this could be
-\begin{code}
+\begin{python}
 def post_traversal(root):
     for o in root.operands():
         yield post_traversal(o)
     yield root
-\end{code}
+\end{python}
 which then enables the natural Python syntax for iteration over expression nodes:
-\begin{code}
+\begin{python}
 for e in post_traversal(expression):
     post_action(e)
-\end{code}
+\end{python}
 For efficiency, the actual implementation of \icode{post\_traversal}
 in \ufl{} is not using recursion.  Function calls are very expensive
 in Python, which makes the non-recursive implementation an order of
@@ -1943,7 +1943,7 @@ magnitude faster than the above.
 \subsection{Type based function dispatch in Python} \label{ufl:sec:multifunction}
 \index{multifunctions}
 \begin{figure}[ht]
-\begin{code}
+\begin{python}
 class ExampleFunction(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
@@ -1969,7 +1969,7 @@ print m(BasisFunction(element))
 print m(x)
 print m(x[0] + x[1])
 print m(x[0] * x[1])
-\end{code}
+\end{python}
 \caption{Example declaration and use of a multifunction}
 \label{ufl:fig:examplefunction}
 \end{figure}
@@ -1986,13 +1986,13 @@ In many cases type-specific operations must be implemented together in
 the algorithm instead of distributed across class definitions.  One
 way to implement type based operation selection is to use a type
 switch, or a sequence of if-tests such as this:
-\begin{code}
+\begin{python}
 if isinstance(expression, IntValue):
     result = int_operation(expression)
 elif isinstance(expression, Sum):
     result = sum_operation(expression)
 # etc.
-\end{code}
+\end{python}
 There are several problems with this approach, one of which is
 efficiency when there are many types to check.  A type based function
 dispatch mechanism with efficiency independent of the number of types
@@ -2032,11 +2032,11 @@ representation, an expression representation using an symbolic
 external library, or an \ufl{} representation with some different
 properties.  A simple variant of this pattern can be implemented using
 a multifunction to represent the type-specific operation:
-\begin{code}
+\begin{python}
 def apply(e, multifunction):
     ops = [apply(o, multifunction) for o in e.operands()]
     return multifunction(e, *ops)
-\end{code}
+\end{python}
 The basic idea is as follows. Given an expression node \icode{e},
 begin with applying the transformation to each child node.  Then
 return the result of some operation specialized according to the type
@@ -2053,7 +2053,7 @@ terminal objects with objects found in a dict \icode{mapping}, and
 reconstructs operators with the transformed expression trees. The
 algorithm is applied to an expression by calling the function
 \icode{visit}, named after the similar Visitor pattern.
-\begin{code}
+\begin{python}
 class Replacer(Transformer):
     def __init__(self, mapping):
         Transformer.__init__(self)
@@ -2068,7 +2068,7 @@ class Replacer(Transformer):
 f = Constant(triangle)
 r = Replacer({f: f**2})
 g = r.visit(2*f)
-\end{code}
+\end{python}
 After running this code the result is $g = 2 f^2$.  The actual
 implementation of the \icode{replace} function is similar to this
 code.
@@ -2136,42 +2136,42 @@ quantities must be specified.  Expressions depending only on spatial
 coordinates can be evaluated by passing a tuple with the coordinates
 to the call operator. The following code from an interactive Python
 session shows the syntax:
-\begin{code}
+\begin{python}
 >>> cell = triangle
 >>> x = cell.x
 >>> e = x[0]+x[1]
 >>> print e((0.5,0.7))
 1.2
-\end{code}
+\end{python}
 Other terminals can be specified using a dictionary that maps from
 terminal instances to values.  This code extends the above code with a
 mapping:
-\begin{code}
+\begin{python}
 c = Constant(cell)
 e = c*(x[0]+x[1])
 print e((0.5,0.7), { c: 10 })
-\end{code}
+\end{python}
 If functions and basis functions depend on the spatial coordinates,
 the mapping can specify a Python callable instead of a literal
 constant.  The callable must take the spatial coordinates as input and
 return a floating point value.  If the function being mapped is a
 vector function, the callable must return a tuple of values instead.
 These extensions can be seen in the following code:
-\begin{code}
+\begin{python}
 element = VectorElement("CG", cell, 1)
 f = Function(element)
 e = c*(f[0] + f[1])
 def fh(x):
     return (x[0], x[1])
 print e((0.5,0.7), { c: 10, f: fh })
-\end{code}
+\end{python}
 To use expression evaluation for validating that the derivative
 computations are correct, spatial derivatives of form arguments can
 also be specified.  The callable must then take a second argument
 which is called with a tuple of integers specifying the spatial
 directions in which to differentiate. A final example code computing
 $g^2 + g_{,0}^2 + g_{,1}^2$ for $g=x_0x_1$ is shown below.
-\begin{code}
+\begin{python}
 element = FiniteElement("CG", cell, 1)
 g = Function(element)
 e = g**2 + g.dx(0)**2 + g.dx(1)**2
@@ -2180,7 +2180,7 @@ def gh(x, der=()):
     if der == (0,): return x[1]
     if der == (1,): return x[0]
 print e((2, 3), { g: gh })
-\end{code}
+\end{python}
 
 %------------------------------------------------------------
 \subsection{Viewing expressions} \label{ufl:sec:viewing}
