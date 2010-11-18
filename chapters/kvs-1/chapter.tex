@@ -42,12 +42,12 @@ simplicity by which different schemes can be implemented in FEniCS, we
 have implemented a test consisting of six different schemes. All
 schemes have been tested on six different test problems to compare the
 schemes in terms of their accuracy and efficiency. The schemes we have
-implemented are Chorin's projection scheme~\cite{chorin, temam}, the
-incremental pressure correction scheme (IPCS)~\cite{Goda197976}, the
-consistent splitting scheme (CSS)~\cite{guemin}, a least-squares
-stabilized Galerkin scheme (G2)~\cite{JohnsonHoffman}, and a
+implemented are Chorin's projection scheme~\cite{Chorin1968, temam}, the
+incremental pressure correction scheme (IPCS)~\cite{Goda1979}, the
+consistent splitting scheme (CSS)~\cite{GuermondMinevShen2006}, a least-squares
+stabilized Galerkin scheme (G2)~\cite{JohnsonHoffman2007}, and a
 saddle-point solver based on a Richardson iteration on the pressure
-Schur complement (GRPC)~\cite{turek}.
+Schur complement (GRPC)~\cite{Turek1996}.
 
 All solvers and test problems have been implemented in Python (with a
 few C++ extensions) using DOLFIN~0.9.7. The source code for all
@@ -170,8 +170,8 @@ tested.
 \label{sec:chorin}
 
 This scheme, often referred to as a non-incremental
-pressure-correction scheme was first proposed by Chorin~\cite{chorin}
-and Temam~\cite{temam}. For simplicity, we will here refer to this
+pressure-correction scheme was first proposed by Chorin~\cite{Chorin1968}
+and Temam~\cite{Temam1969}. For simplicity, we will here refer to this
 scheme as Chorin. To solve the system of
 equations~(\ref{eq:ns,mom})--(\ref{eq:ns,con}), the idea is to first
 compute a tentative velocity by neglecting the pressure in the
@@ -244,7 +244,7 @@ L3 = inner(v, us)*dx - k*inner(v, grad(p1))*dx
 An improvement of the non-incremental pressure correction scheme is
 possible if the previous value for the pressure is used to compute the
 tentative velocity. This idea was first introduced by
-Goda~\cite{Goda197976}. The IPCS scheme is summarized in Scheme~2 and
+Goda~\cite{Goda1979}. The IPCS scheme is summarized in Scheme~2 and
 the implementation is shown in Figure~\ref{fig:IPCS}. The IPCS scheme
 as implemented here also differs from the Chorin scheme in that the
 viscous term is evaluated at $(t_{n-1} + t_n)/2$ and a stress
@@ -320,7 +320,7 @@ L3 = inner(v, u1)*dx - k*inner(v, grad(p1 - p0))*dx
 \subsection{Consistent splitting scheme (CSS)}
 \label{sec:css}
 
-The consistent splitting scheme, as described in~\cite{guemin,gueshe},
+The consistent splitting scheme, as described in~\cite{GuermondMinevShen2006,gueshe},
 is derived differently from the other splitting schemes and requires a
 more detailed description. The scheme is based on deriving an equation
 for the pressure~$p$ by testing the momentum
@@ -458,7 +458,7 @@ based on the assumption that $\dot{u} = 0$ on~$\partial\Omega$ which
 gives $\inner{\nabla q}{\dot{u}} = -\inner{q}{\nabla \cdot u} +
 \inner{qn}{\dot{u}_{\partial \Omega}} = -\inner{q}{\nabla \cdot
   u}$. For non-constant Dirichlet boundary conditions, this assumption
-is not valid. This issue is not addressed in~\cite{gueshe}, but it is
+is not valid. This issue is not addressed in~\cite{GuermondShen2003}, but it is
 easy to add the missing term as shown in Figure~\ref{fig:impl_css}
 where the missing term is included in the linear form~\emp{L2}.
 
@@ -499,7 +499,7 @@ L3 = q*ps*dx + q*psi*dx - nu*q*div(u1)*dx
 
 The G2 method is a stabilized finite element method using piecewise
 linear discretization in space and time. For further reading we refer
-to~\cite{JohnsonHoffman}.  In each time step, the G2 solution is
+to~\cite{JohnsonHoffman2007}.  In each time step, the G2 solution is
 defined by
 \begin{equation*}
   \begin{split}
@@ -838,9 +838,9 @@ class BoundaryValue(Expression):
 
 As a functional of interest, we consider the minimum value of the
 stream function at final time $T = 2.5$. Reference values for this
-functional are available in~\cite{transient_dc}, where a reference
+functional are available in~\cite{PanditKalitaDalal2007}, where a reference
 value of $\min\psi = -0.0585236$ is reported, and
-in~\cite{transient_dc2}, where a value of $\min\psi = -0.058048$ is
+in~\cite{ChudanovPopkovChurbanovEtAl2007}, where a value of $\min\psi = -0.058048$ is
 reported. These values differ already in the third decimal. To obtain
 a better reference value, we have therefore computed the solution
 using the spectral element code~\cite{Semtex} with up to $80 \times
@@ -865,7 +865,7 @@ where $\omega$ is the vorticity given by
 \begin{equation} \nonumber
   \omega = \frac{\partial{u_x}}{\partial{y}} - \frac{\partial{u_y}}{\partial{x}}.
 \end{equation}
-For a more thorough description, see~\cite{white} or~\cite{viscous}.
+For a more thorough description, see~\cite{White1999} or~\cite{White1991}.
 Figure~\ref{fig:streamfunction} shows how to compute the
 streamfunction in DOLFIN.
 
@@ -947,7 +947,7 @@ discretization which results in a vertex located at $(x, y) = (1,
 \subsection{Taylor--Green vortex (2D)}
 
 As our next test problem, we consider the Taylor--Green vortex
-described in~\cite{Canuto07}, which is a periodic flow with exact
+described in~\cite{CanutoHussainiQuarteroniEtAl2007}, which is a periodic flow with exact
 solution given by
 \begin{equation}\label{eq:periodic}
   \begin{split}
@@ -1020,7 +1020,7 @@ solver.
 
 \subsection{Flow past a cylinder (2D)}
 
-We next consider a test problem from~\cite{turek} which is a
+We next consider a test problem from~\cite{Turek1996} which is a
 two-dimensional cylinder submerged into a fluid and surrounded by
 solid walls as illustrated in
 Figure~\ref{fig:cylinder_illustration}. The cylinder is slightly
@@ -1070,7 +1070,7 @@ fastest.
 
 \subsection{Beltrami flow (3D)}
 
-We next consider a problem described in~\cite{steinmann} where an
+We next consider a problem described in~\cite{EthierSteinmann1994} where an
 exact fully three-dimensional solution of the Navier--Stokes equations
 is derived. The flow is a so-called Beltrami flow, which has the
 property that the velocity and vorticity vectors are aligned. The
@@ -1098,10 +1098,10 @@ and the exact pressure is given by
 \end{equation*}
 The solution is visualized in Figure~\ref{fig:beltrami}. The constants
 $a$ and $d$ may be chosen arbitrarily, and have been set to $a=\pi/4$
-and $d=\pi/2$ as in~\cite{steinmann}. The kinematic viscosity is $\nu
+and $d=\pi/2$ as in~\cite{EthierSteinmann1994}. The kinematic viscosity is $\nu
 = 1$. To measure the error, we compute the $L^2$ norm of the error in
 the velocity field at final time $T = 0.5$ divided by the $L^2$ norm
-of the exact solution as in~\cite{steinmann}.
+of the exact solution as in~\cite{EthierSteinmann1994}.
 
 \begin{figure}
   \begin{center}
@@ -1209,7 +1209,7 @@ expensive).
 
 \subsection{Numerical boundary layers}
 
-As pointed out in~\cite{guemin}, the fractional step solvers are
+As pointed out in~\cite{GuermondMinevShen2006}, the fractional step solvers are
 usually plagued by an artificial boundary layer, because the boundary
 condition $ \nabla p^n_h \cdot n |_{\partial\Omega}=0$ is enforced on
 the pressure. This 'unphysical' Neumann boundary condition can create
