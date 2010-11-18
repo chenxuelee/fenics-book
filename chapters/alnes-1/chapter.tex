@@ -251,7 +251,7 @@ element = VectorElement("CG", cell, 1)
 # Form arguments
 phi0 = TestFunction(element)
 phi1 = TrialFunction(element)
-u = Function(element)
+u = Coefficient(element)
 c1 = Constant(cell)
 c2 = Constant(cell)
 
@@ -514,15 +514,15 @@ available as \icode{cell.d}.
 \index{\icode{TestFunctions}}
 \index{\icode{TrialFunction}}
 \index{\icode{TrialFunctions}}
-\index{\icode{Function}}
-\index{\icode{Functions}}
+\index{\icode{Coefficient}}
+\index{\icode{Coefficients}}
 \index{\icode{Constant}}
 \index{\icode{VectorConstant}}
 \index{\icode{TensorConstant}}
 \index{\icode{split}}
 
 Basis functions and coefficient functions are represented by
-\icode{BasisFunction} and \icode{Function} respectively. The ordering
+\icode{BasisFunction} and \icode{Coefficient} respectively. The ordering
 of the arguments to a form is decided by the order in which the form
 arguments were declared in the \ufl{} code.  Each basis function
 argument represents any function in the basis of its finite element
@@ -556,7 +556,7 @@ Coefficient functions are declared similarly for an arbitrary element,
 and shorthand notation exists for declaring piecewise constant
 functions:
 \begin{python}
-w = Function(element)
+w = Coefficient(element)
 c = Constant(cell)
 v = VectorConstant(cell)
 M = TensorConstant(cell)
@@ -568,7 +568,7 @@ mixed function or basis function into its subfunctions in a generic
 way using \icode{split}:
 \begin{python}
 V = V0 + V1
-u = Function(V)
+u = Coefficient(V)
 u0, u1 = split(u)
 \end{python}
 The \icode{split} function can handle arbitrary mixed elements.
@@ -577,7 +577,7 @@ followed by \icode{split} is
 \begin{python}
 v0, v1 = TestFunctions(V)
 u0, u1 = TrialFunctions(V)
-f0, f1 = Functions(V)
+f0, f1 = Coefficients(V)
 \end{python}
 
 
@@ -821,7 +821,7 @@ without free indices are included, in particular \icode{abs(f)},
 variables.  The most used kind is spatial derivatives.  Expressions
 can also be differentiated w.r.t. arbitrary user defined variables.
 And the final kind of derivatives are derivatives of a form or
-functional w.r.t. the coefficients of a \icode{Function}.  Form
+functional w.r.t. the coefficients of a \icode{Coefficient}.  Form
 derivatives are explained in Section \ref{ufl:sec:derivative}.
 
 Note that derivatives are not computed immediately when declared.  A
@@ -963,7 +963,7 @@ facets (\icode{*dS}).
 %v = TestFunction(element)
 %u = TrialFunction(element)
 %
-%f = Function(element)
+%f = Coefficient(element)
 %
 %a = f('+')*dot(grad(v)('+'), grad(u)('-'))*dS
 %\end{python}
@@ -1081,7 +1081,7 @@ is no overhead at run-time.
 \label{ufl:sec:derivative}
 
 The form operator \icode{derivative} declares the derivative of a form
-w.r.t. coefficients of a discrete function (\icode{Function}).  This
+w.r.t. coefficients of a discrete function (\icode{Coefficient}).  This
 functionality can be used for example to linearize your nonlinear
 residual equation (linear form) automatically for use with the
 Newton-Raphson method.  It can also be applied multiple times, which
@@ -1117,7 +1117,7 @@ For a concrete functional $f(w) = \int_\Omega \frac 1 2 w^2 \dx$, we can impleme
 \begin{python}
 v = TestFunction(element)
 u = TrialFunction(element)
-w = Function(element)
+w = Coefficient(element)
 f = 0.5 * w**2 * dx
 F = derivative(f, w, v)
 J = derivative(F, w, u)
@@ -1141,7 +1141,7 @@ automatic linearization reads
 \begin{python}
 Vx = VectorElement("CG", triangle, 1)
 Vy = FiniteElement("CG", triangle, 1)
-u = Function(Vx + Vy)
+u = Coefficient(Vx + Vy)
 x, y = split(u)
 f = inner(grad(x), grad(x))*dx + y*dot(x,x)*dx
 F = derivative(f, u)
@@ -1222,7 +1222,7 @@ matrix on a vector directly by defining a linear form for the action
 of a bilinear form on a function, simply writing \icode{L = action(a,
 w)} or \icode{L = a*w}, with \icode{a} any bilinear form and \icode{w}
 being any
-\icode{Function} defined on the same finite
+\icode{Coefficient} defined on the same finite
 element as the trial function in \icode{a}.
 
 %------------------------------------------------------------------------------
@@ -1260,7 +1260,7 @@ same algebraic linear system used to compute $x$, only with a
 different right hand side.  The linear form corresponding to the right
 hand side of Equation~\eqref{ufl:eq:sL} can be written
 \begin{python}
-u = Function(element)
+u = Coefficient(element)
 sL = diff(L, c) - action(diff(a, c), u)
 \end{python}
 or you can use the equivalent form transformation
@@ -1268,7 +1268,7 @@ or you can use the equivalent form transformation
 sL = sensitivity_rhs(a, u, L, c)
 \end{python}
 Note that the solution \icode{u} must be represented by a
-\icode{Function}, while $u$ in $a(v, u)$ is represented
+\icode{Coefficient}, while $u$ in $a(v, u)$ is represented
 by a \icode{BasisFunction}.
 
 
@@ -1438,7 +1438,7 @@ types matter when differentiating, not only the current value of the
 differentiation variable.  In particular, a \icode{Variable} cannot be
 replaced by the expression it represents, because \icode{diff} depends
 on the \icode{Variable} instance and not the expression it has the
-value of.  Similarly, replacing a \icode{Function} with some value
+value of.  Similarly, replacing a \icode{Coefficient} with some value
 will change the meaning of an expression that contains derivatives
 w.r.t. function coefficients.
 
@@ -1845,7 +1845,7 @@ considered input arguments as well.  In all derivative computations,
 the assumption is made that form coefficients have no dependencies on
 the differentiation variable.  Two more cases needs explaining, the
 user defined variables and derivatives w.r.t. the coefficients of a
-\texttt{Function}.
+\texttt{Coefficient}.
 
 If $v$ is a \icode{Variable}, then we define $\frac{d t}{d v} \equiv
 0$ for any terminal $t$. If $v$ is scalar valued then $\frac{d v}{d v}
@@ -1874,10 +1874,10 @@ space $V_h$ with a basis $\{\phi_k\}$.  Next consider form arguments
 defined in this space:
 \begin{python}
 v = BasisFunction(element)
-w = Function(element)
+w = Coefficient(element)
 \end{python}
 The BasisFunction instance \icode{v} represents any $v\in\{\phi_k\}$,
-while the \icode{Function} instance \icode{w} represents the sum
+while the \icode{Coefficient} instance \icode{w} represents the sum
 \begin{align}
 w = \sum_k w_k \phi_k(x).
 \end{align}
@@ -2158,7 +2158,7 @@ vector function, the callable must return a tuple of values instead.
 These extensions can be seen in the following code:
 \begin{python}
 element = VectorElement("CG", cell, 1)
-f = Function(element)
+f = Coefficient(element)
 e = c*(f[0] + f[1])
 def fh(x):
     return (x[0], x[1])
@@ -2172,7 +2172,7 @@ directions in which to differentiate. A final example code computing
 $g^2 + g_{,0}^2 + g_{,1}^2$ for $g=x_0x_1$ is shown below.
 \begin{python}
 element = FiniteElement("CG", cell, 1)
-g = Function(element)
+g = Coefficient(element)
 e = g**2 + g.dx(0)**2 + g.dx(1)**2
 def gh(x, der=()):
     if der == ():   return x[0]*x[1]
@@ -2252,7 +2252,7 @@ equivalent forms are recognized as such.
 Some of the types in the \icode{Expr} class hierarchy (subclasses of
 \icode{Counted}), has a global counter to identify the order in which
 they were created.  This counter is used by form arguments (both
-\icode{BasisFunction} and \icode{Function}) to identify their relative
+\icode{BasisFunction} and \icode{Coefficient}) to identify their relative
 ordering in the argument list of the form.  Other counted types are
 \icode{Index} and \icode{Label}, which only use the counter as a
 unique identifier.  Algorithms are implemented for renumbering of all
