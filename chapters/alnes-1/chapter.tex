@@ -226,7 +226,7 @@ simple Mooney-Rivlin law. The equations relating the displacement and
 stresses read:
 \begin{align}
 \begin{split}
-\FF   &=  \II + (\nabla \uu)^T, \\
+\FF   &=  \II + \nabla \uu, \\
 \CC   &=  \FF^T\FF, \\
 I_C   &=  \mop{tr}(\CC), \\
 II_C  &=  \frac 1 2 (\mop{tr}(\CC)^2 - \mop{tr}(\CC\CC)), \\
@@ -238,7 +238,7 @@ W     &=  c_1(I_C - 3) + c_2(II_C - 3), \\
 Approximating the displacement field as $\uu = \sum_k u_k \bphi^1_k$,
 the weak forms of the equations are as follows (ignoring boundary conditions):
 \begin{align}
-L(\bphi^0; \uu, c_1, c_2) &= \int_\Omega \PP : (\nabla\bphi^0)^T \dx, \\
+L(\bphi^0; \uu, c_1, c_2) &= \int_\Omega \PP : \nabla\bphi^0 \dx, \\
 a(\bphi^0, \bphi^1_k; \uu, c_1, c_2) &= \frac{\partial L}{\partial u_k}.
 \end{align}
 % \quad \forall \bphi^0 \in V_h^0
@@ -257,7 +257,7 @@ c2 = Constant(cell)
 
 # Deformation gradient Fij = dXi/dxj
 I = Identity(cell.d)
-F = I + grad(u).T
+F = I + grad(u)
 
 # Right Cauchy-Green strain tensor C with invariants
 C = variable(F.T*F)
@@ -271,7 +271,7 @@ W = c1*(I_C-3) + c2*(II_C-3)
 S = 2*diff(W, C)
 
 # Weak forms
-L = inner(F*S, grad(phi0).T)*dx
+L = inner(F*S, grad(phi0))*dx
 a = derivative(L, u, phi1)
 \end{python}
 \caption{\ufl{} implementation of hyperelasticity equations with a Mooney-Rivlin material law.}
