@@ -848,50 +848,36 @@ $\frac{\partial f}{\partial x_i}$.  Repeated indices imply summation,
 such that the divergence of a vector valued expression \icode{v} can
 be written $v_{i,i}$, or \icode{v[i].dx(i)}.
 
-%FIXME rewrite the part about grad and div
+% FIXME: Review this paragraph, in particular the ... parts
 Several common compound spatial derivative operators are defined,
 namely \icode{div}, \icode{grad}, \icode{curl} and \icode{rot} (rot is
-a synonym for curl).  The definition of these operators in \ufl{}
-follow from the vector of partial derivatives
+a synonym for curl). Be aware that there are two common ways to define
+$\mop{grad}$ and $\mop{div}$. Let $s$ be a scalar expression, $\vv$ be
+a vector expression, and $\MM$ be a tensor expression of arbitrary
+rank.  In \ufl{}, the gradient is then defined as
 \begin{align}
-\nabla \equiv \ee_k \frac{\partial}{\partial x_k},
-%    = \sum_{k=1}^{d} \frac{\partial}{\partial x_k} \ee_k,
+\left(\Grad (s) \right)_{i} &= s_{,i}, \\
+\left(\Grad (\vv) \right)_{ij} &= v_{i,j}, \\
+\left(\Grad (\MM) \right)_{\ldots \, k} &= M_{\ldots, \, k},
 \end{align}
-and the definition of the dot product, outer product, and cross product. Hence,
+and the divergence is correspondingly defined as
 \begin{align}
-\mop{div}(\Cc)  \equiv \nabla\cdot\Cc, \\
-\mop{grad}(\Cc) \equiv \nabla\otimes\Cc, \\
-\mop{curl}(\vv) \equiv \nabla\times\vv.
+\Div (\vv) &= v_{i,i}, \\
+\left(\Div (\MM) \right)_{\ldots} &= M_{\ldots j,j}.
 \end{align}
-Note that there are two common ways to define $\mop{grad}$ and
-$\mop{div}$.  This way of defining these operators correspond to
-writing the convection term from, e.g., the Navier-Stokes equations as
+Thinking in terms of value shape, the gradient appends an axis to the
+end of the tensor shape of its operand.  Correspondingly, the
+divergence sums over the last index of its operand.
+
+For 3D vector expressions, curl is defined in terms
+of the nabla operator and the cross product:
 \begin{align}
-\ww\cdot\nabla\uu = (\ww\cdot\nabla)\uu = \ww\cdot(\nabla\uu) = w_i u_{j,i},
+  \nabla &\equiv \ee_k \frac{\partial}{\partial x_k}, \\
+  \mop{curl}(\vv) &\equiv \nabla \times \vv.
 \end{align}
-which is expressed in \ufl{} as
-% FIXME: This isn't right now?
-\begin{python}
-dot(w, grad(u))
-\end{python}
-Another illustrative example is the anisotropic diffusion term from,
-e.g., the bidomain equations, which reads
+For 2D vector and scalar expressions the definitions are:
 \begin{align}
-(\AA\nabla u)\cdot\vv = A_{ij} u_{,j} v_i,
-\end{align}
-and is expressed in \ufl{} as
-% FIXME: This isn't right now?
-\begin{python}
-dot(A*grad(u), v)
-\end{python}
-In other words, the divergence sums over the \emph{first} index of its
-operand, and the gradient \emph{prepends} an axis to the tensor shape
-of its operand.  The above definition of curl is only valid for 3D
-vector expressions.  For 2D vector and scalar expressions the
-definitions are:
-%  \mop{curl}(\uu) &\equiv (\nabla\times [u_0, u_1, 0])\cdot\ee_2, \\
-\begin{align}
-  \mop{curl}(\uu) &\equiv u_{1,0} - u_{0,1}, \\
+  \mop{curl}(\vv) &\equiv v_{1,0} - v_{0,1}, \\
   \mop{curl}(f)   &\equiv f_{,1}\ee_0 - f_{,0}\ee_1.
 \end{align}
 
