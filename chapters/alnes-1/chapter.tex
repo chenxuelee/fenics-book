@@ -1238,15 +1238,21 @@ If you prefer to write your PDEs with all terms on one side such as
 a(v, u) - L(v) = 0,
 \end{align}
 you can declare forms with both linear and bilinear terms
-and split the equations afterwards:
-% FIXME: This doesn't work, need to debug L = rhs(pde)
+and split the equations into $a$ and $L$ afterwards.
+A simple example is
 \begin{python}
+V = FiniteElement("CG", cell, 1)
+u = TrialFunction(V)
+v = TestFunction(V)
+f = Coefficient(V)
 pde = u*v*dx - f*v*dx
 a, L = system(pde)
 \end{python}
 Here \icode{system} is used to split the PDE into its bilinear and
-linear parts.  Alternatively, \icode{lhs} and \icode{rhs} can be used
-to obtain the two parts separately.
+linear parts. Alternatively, \icode{lhs} and \icode{rhs} can be used
+to obtain the two parts separately. Make note of the resulting sign
+of the linear part, which corresponds to moving $L$ to the right
+hand side in Equation~\eqref{ufl:eq:pde}.
 
 %------------------------------------------------------------------------------
 \subsection{Computing the sensitivity of a function} \label{ufl:sec:sensitivity}
