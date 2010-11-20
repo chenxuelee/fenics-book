@@ -1173,17 +1173,22 @@ supported.
 Another form operator is the adjoint $a^*$ of a bilinear form $a$,
 defined as $a^*(u,v) = a(v,u)$, which is similar to taking the
 transpose of the assembled sparse matrix.  In \ufl{} this is
-implemented simply by swapping the test and trial functions, and can
-be written: % FIXME: Tensor-gradient multiplication, is this right
-            % with new gradient? Fix this subsection!
+implemented simply by swapping the test and trial functions,
+and can be written using the \icode{adjoint} form operator.
+An example of its use on an anisotropic diffusion term looks like
 \begin{python}
-a = inner(M*grad(u), grad(v))*dx
-ad = adjoint(a)
+V = VectorElement("CG", cell, 1)
+T = TensorElement("CG", cell, 1)
+u = TrialFunction(V)
+v = TestFunction(V)
+M = Coefficient(T)
+a = M[i,j] * u[k].dx(j) * v[k].dx(i) * dx
+astar = adjoint(a)
 \end{python}
 which corresponds to
 \begin{align}
-a(M; v, u) = \int_\Omega (\MM\nabla \uu) : \nabla \vv \dx = \int_\Omega M_{ik}u_{j,k}v_{j,i}\dx, \\
-a^*(M; v, u) = a(M; u, v) = \int_\Omega (\MM\nabla \vv) : \nabla \uu \dx.
+a(M; v, u) = \int_\Omega M_{ij} u_{k,j} v_{k,i} \dx, \\
+a^*(M; v, u) = a(M; u, v) = \int_\Omega  M_{ij} v_{k,j} u_{k,i} \dx.
 \end{align}
 This automatic transformation is particularly useful if we need the
 adjoint of nonsymmetric bilinear forms computed using
