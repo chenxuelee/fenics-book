@@ -131,13 +131,13 @@ when it is subjected to prescribed:
 \cap \partial\Omega_{0_{\mathrm{D}}} = \emptyset$ and
 $\partial\Omega_{0_{\mathrm{N}}} \cup \partial\Omega_{0_{\mathrm{D}}}
 = \partial\Omega_0$. These details are depicted in
-Figure~\ref{narayanan:fig:continuumpotato}.
+Figure~\ref{fig:narayanan:continuumpotato}.
 
 \begin{figure}[ht]
   \begin{center}
     \includegraphics[width=0.8\textwidth]{chapters/narayanan/images%
       /pdf/continuumpotato}
-    \label{narayanan:fig:continuumpotato}
+    \label{fig:narayanan:continuumpotato}
   \end{center}
   \caption{An elastic body idealised as a continuum, subjected to body
     forces, $\bB$, surface tractions, $\bT$, and prescribed
@@ -162,13 +162,13 @@ implementation by the finite element method:
 \begin{equation}
   \rho_{0} \frac{\partial^{2} \bu}{\partial t^{2}} = \mathrm{Div}(\bP)
   + \bB\; \mathrm{in}\; \Omega_0,
-  \label{narayanan:eq:balance-of-momentum}
+  \label{eq:narayanan:balance-of-momentum}
 \end{equation}
 
 \noindent where $\rho_{0}$ is the {\em reference density} of the body,
 $\bP$ is the {\em first Piola--Kirchhoff stress tensor}, $\mathrm{Div}
 (\cdot)$ is the divergence operator and $\bB$ is the body force per
-unit volume. Along with \eqref{narayanan:eq:balance-of%
+unit volume. Along with \eqref{eq:narayanan:balance-of%
 -momentum}, we have initial conditions $\bu(\bX, 0) = \bu_{0}(\bX)$
 and $\frac{\partial\bu}{\partial t}(\bX, 0) = \bv_{0}(\bX)$ in
 $\Omega_{0}$, and boundary conditions $\bu(\bX, t) = \bg(\bX, t)$ on
@@ -179,7 +179,7 @@ on the boundary.
 \subsection{Accounting for different materials}
 
 It is important to reiterate that
-\eqref{narayanan:eq:balance-of-momentum} is valid for all
+\eqref{eq:narayanan:balance-of-momentum} is valid for all
 materials. In order to differentiate between different materials and
 to characterise their specific mechanical responses, the theory turns
 to {\em constitutive relationships}, which are models for describing
@@ -216,7 +216,7 @@ Principal stretches and directions &  $\bC = \sum_{A=1}^{3}
 \lambda_{A}^{2} \bN^{A} \otimes \bN^{A}, \quad ||\bN^{A}|| = 1$\\
 \caption{Definitions of some common strain measures.}
 \end{tabular}
-\label{narayanan:table:straindefs}
+\label{tab:narayanan:straindefs}
 \end{table}
 
 
@@ -263,13 +263,13 @@ def IsochoricRightCauchyGreen(u):
     return variable(J**(-2.0/3.0)*C)
 \end{python}
 \caption{Samples of how strain measures are implemented in \twist.}
-\label{narayanan:code:kinematics.py}
+\label{code:narayanan:kinematics.py}
 \end{figure}
 
 In \twist, each of the forms listed in
-Table~\ref{narayanan:table:straindefs} have been implemented in the
+Table~\ref{tab:narayanan:straindefs} have been implemented in the
 file {\tt kinematics.py} in {\tt UFL} notation that closely resemble
-their definitions above. Figure~\ref{narayanan:code:kinematics.py} presents a 
+their definitions above. Figure~\ref{code:narayanan:kinematics.py} presents a 
 section of this file. Notice that it is straightforward to introduce
 other custom measures as required.
 
@@ -312,19 +312,19 @@ chain rule of differentiation. For example,
         \lambda_{2}, \lambda_{3})}{\partial
         \lambda_{A}} \bN^{A}\otimes\bN^{A} = \ldots
 \end{split}
-\label{narayanan:eq:secondpk}
+\label{eq:narayanan:secondpk}
 \end{equation}
 
 Using definitions such as the ones explicitly provided in
-\eqref{narayanan:eq:secondpk}, \twist{} computes the second
+\eqref{eq:narayanan:secondpk}, \twist{} computes the second
 Piola--Kirchhoff stress tensor from the strain energy function by
 suitably differentiating it with respect to the appropriate strain
 measure. This allows the user to easily specify material models in
 terms of each of the strain measures introduced in
-Table~\ref{narayanan:table:straindefs}. The base class for all
+Table~\ref{tab:narayanan:straindefs}. The base class for all
 material models, {\tt MaterialModel}, encapsulates this
 functionality. The relevant method of this class is provided in
-Figure~\ref{narayanan:code:material_model_base.py}. The implementation
+Figure~\ref{code:narayanan:material_model_base.py}. The implementation
 relies heavily on the UFL {\tt diff()} operator.
 
 \begin{figure}[ht]
@@ -353,7 +353,7 @@ def SecondPiolaKirchhoffStress(self, u):
   ...
   return S
 \end{python}
-\label{narayanan:code:material_model_base.py}
+\label{code:narayanan:material_model_base.py}
 \caption{Partial listing of the method that suitably computes the
   second Piola--Kirchhoff stress tensor based on the strain measure.}
 \end{figure}
@@ -375,8 +375,8 @@ $\psi_{\mathrm{MR}} = c_{1} (I_{1} - 3) + c_{2} (I_{2} -
 \end{itemize}
 
 \noindent and see how they can be specified in \twist. The relevant blocks of
-code are shown in Figures~\ref{narayanan:code:svk} and
-\ref{narayanan:code:mr}.
+code are shown in Figures~\ref{code:narayanan:svk} and
+\ref{code:narayanan:mr}.
 
 \begin{figure}[ht]
 \begin{python}
@@ -393,7 +393,7 @@ class StVenantKirchhoff(MaterialModel)
 \end{python}
 \caption{Definition the strain energy function for a
   St.~Venant--Kirchhoff material.}
-\label{narayanan:code:svk}
+\label{code:narayanan:svk}
 \end{figure}
 
 \begin{figure}[!ht]
@@ -412,7 +412,7 @@ class MooneyRivlin(MaterialModel)
 \end{python}
 \caption{Definition the strain energy function for a two term
   Mooney--Rivlin material.}
-\label{narayanan:code:mr}
+\label{code:narayanan:mr}
 \end{figure}
 
 \noindent Clearly, the code simply contains the strain energy function
@@ -440,7 +440,7 @@ is directed to \cite{SimoHughes1998}.
   momentum}
 
 By taking the dot product of
-\eqref{narayanan:eq:balance-of-momentum} with a test function 
+\eqref{eq:narayanan:balance-of-momentum} with a test function 
 $\bv \in \hat{\mathrm{V}}$ and integrating over the reference domain
 and time, we have
 
@@ -466,7 +466,7 @@ t^{2}} \cdot \bv \dx \dt\; + \int_{t} \int_{\Omega_{0}}
 \bP:\mathrm{Grad}(\bv) \dx \dt\; = \int_{t} \int_{\Omega_{0}} \bB
 \cdot \bv \dx \dt\; + \int_{t} \int_{\partial\Omega_{0_{\mathrm{N}}}}
 \bT \cdot \bv \ds \dt,
-\label{narayanan:eq:weakform}
+\label{eq:narayanan:weakform}
 \end{equation}
 
 \noindent with initial conditions $\bu(\bX, 0) = \bu_{0}(\bX)$ and
@@ -476,13 +476,13 @@ $\partial\Omega_{0_{\mathrm{D}}}$.
 
 The finite element formulation implemented in \twist{} follows the
 Galerkin approximation of the above weak
-form~\eqref{narayanan:eq:weakform}, by looking for solutions in a finite
+form~\eqref{eq:narayanan:weakform}, by looking for solutions in a finite
 solution space  $\mathrm{V}^{h} \subset \mathrm{V}$ and allowing for
 test functions in a finite approximation of the test space
 $\hat{\mathrm{V}^{h}} \subset \hat{\mathrm{V}}$.\footnote{We now
   note an inherent advantage in choosing the Lagrangian description in
   formulating the theory. The fact that the integrals in
-  \eqref{narayanan:eq:weakform}, along with the various fields
+  \eqref{eq:narayanan:weakform}, along with the various fields
   and differential operators, are defined over the fixed domain
   $\Omega_{0}$ means that one need not be concerned with the
   complexity associated with calculations on a moving computational
@@ -497,17 +497,17 @@ term) of the balance of linear momentum which reads
   \int_{\Omega_{0}} \bP:\mathrm{Grad}(\bv) \dx - \int_{\Omega_{0}} \bB
   \cdot \bv \dx -  \int_{\partial\Omega_{0_{\mathrm{N}}}} \bT \cdot
   \bv \ds = 0.
-\label{narayanan:eq:staticweakform}
+\label{eq:narayanan:staticweakform}
 \end{equation}
 
 \noindent Since \twist{} provides the necessary functionality to
 easily compute the first Piola--Kirchhoff stress tensor, $\bP$, given a
 displacement field, $\bu$, for arbitrary material models, 
-\eqref{narayanan:eq:staticweakform} is just a nonlinear functional in
+\eqref{eq:narayanan:staticweakform} is just a nonlinear functional in
 terms of $\bu$. The automatic
 differentiation capabilities of UFL make this nonlinear form
 straightforward to implement, as evidenced by the code listing in
-Figure~\ref{narayanan:code:staticmomentumsolver}.
+Figure~\ref{code:narayanan:staticmomentumsolver}.
 
 This listing provides the relevant section of the static balance of
 linear momentum solver class, {\tt StaticMomentumBalanceSolver}. The
@@ -553,16 +553,16 @@ equation.solve(u)
 \caption{The relevant section of the class {\tt
     StaticMomentumBalanceSolver}, the solver for the static balance of
   linear momentum.}
-\label{narayanan:code:staticmomentumsolver}
+\label{code:narayanan:staticmomentumsolver}
 \end{figure}
 
 \subsection{Time-stepping algorithms}
 
 \twist{} implements two time integration algorithms to solve the weak
 form of the fully dynamic balance of linear momentum
-\eqref{narayanan:eq:weakform}. The first of these is the
+\eqref{eq:narayanan:weakform}. The first of these is the
 so-called cG(1) method (\cite{ErikssonEstepHansboEtAl1996}). In order
-to derive this method, \eqref{narayanan:eq:weakform}, which is
+to derive this method, \eqref{eq:narayanan:weakform}, which is
 a second order differential equation in time, is rewritten as a system
 of first order equations. We do this by introducing an additional
 velocity variable, $\bw = \frac{\partial \bu}{\partial t}$. Thus, the
@@ -581,7 +581,7 @@ weak form now reads:
 \frac{\partial \bu}{\partial t} \cdot \br \dx \dt\; &= \int_{t}
 \int_{\Omega_{0}} \bw \cdot \br \dx \dt.
 \end{split}
-\label{narayanan:eq:cg1weakform}
+\label{eq:narayanan:cg1weakform}
 \end{equation}
 
 \noindent with initial conditions $\bu(\bX, 0) = \bu_{0}(\bX)$ and
@@ -604,16 +604,16 @@ scheme:
     \int_{\Omega_{0}} \frac{\left(\bu_{n+1} - \bu_{n}\right)}{\Delta t} \cdot \br \dx\;
   &=  \int_{\Omega_{0}} \bw_{\mathrm{mid}} \cdot \br \dx,
 \end{split}
-\label{narayanan:eq:cg1weakformapprox}
+\label{eq:narayanan:cg1weakformapprox}
 \end{equation}
 
 \noindent where $(\cdot)_{n}$ and $(\cdot)_{n+1}$ are the values of
 a quantity at the current and subsequent time-step, respectively, and
 $(\cdot)_{\mathrm{mid}} = \frac{(\cdot)_{n+1} +
   (\cdot)_{n+1}}{2}$.  A section of the CG(1) linear momentum balance
-solver class is presented in Figure~\ref{narayanan:code:cg1}. The code
+solver class is presented in Figure~\ref{code:narayanan:cg1}. The code
 closely mirrors the scheme defined in
-\eqref{narayanan:eq:cg1weakformapprox}, and results in a mixed system
+\eqref{eq:narayanan:cg1weakformapprox}, and results in a mixed system
 that is solved for using a Newton scheme.
 
 \begin{figure}[ht]
@@ -666,13 +666,13 @@ class CG1MomentumBalanceSolver(CBCSolver):
 \end{python}
 \caption{Relevant portion of the dynamic balance of linear momentum
   balance solver using the CG(1) time-stepping scheme.}
-\label{narayanan:code:cg1}
+\label{code:narayanan:cg1}
 \end{figure}
 
-The CG(1) scheme defined in \eqref{narayanan:eq:cg1weak%
+The CG(1) scheme defined in \eqref{eq:narayanan:cg1weak%
 formapprox} is straightforward to derive and implement, and it is
 second order accurate and energy conserving.\footnote{This is
-  demonstrated in Figure~\ref{narayanan:fig:energies} as part of the
+  demonstrated in Figure~\ref{fig:narayanan:energies} as part of the
   second example calculation.}  But it should also be noted that the mixed
 system that results from the formulation is computationally expensive
 and memory intensive as the number of variables being solved for have
@@ -719,22 +719,22 @@ as follows:
 \bu_{n+\alpha} & = (1 - \alpha) \bu_{n} + \alpha \bu_{n+1}\\
 \bv_{n+\alpha} & = (1 - \alpha) \bv_{n} + \alpha \bv_{n+1}
 \end{split}
-\label{narayanan:eq:hhtdefs}
+\label{eq:narayanan:hhtdefs}
 \end{equation}
 
 \noindent Then, we insert the definitions in
-\eqref{narayanan:eq:hhtdefs} into the following form of the
+\eqref{eq:narayanan:hhtdefs} into the following form of the
 balance of linear momentum and solve for the only unknown variable,
 the acceleration at the next step, $\ba_{n+1}$:
 
 \begin{equation}
   \rho_{0} \ba_{n+1} = \mathrm{Div}(P(\bu_{n+\alpha})) + B(t_{n+\alpha})
-  \label{narayanan:eq:newaccn}
+  \label{eq:narayanan:newaccn}
 \end{equation}
 
 \noindent The acceleration solution to
-\eqref{narayanan:eq:newaccn} is then used in the
-definitions~\eqref{narayanan:eq:hhtdefs} to update to new displacement
+\eqref{eq:narayanan:newaccn} is then used in the
+definitions~\eqref{eq:narayanan:hhtdefs} to update to new displacement
 and velocity values, and the problem is stepped through time.
 
 We close this subsection on time-stepping algorithms with one usage
@@ -742,7 +742,7 @@ detail pertaining to \twist. By default, when solving a dynamics
 problem, \twist{} assumes the user wants to use the HHT method. In case
 one wants to override this behaviour, they can do so by returning {\tt
   "CG(1)"} in the {\tt time\_stepping()} method while specifying the
-problem. Figure~\ref{narayanan:code:dynamicrelease} is an example
+problem. Figure~\ref{code:narayanan:dynamicrelease} is an example
 showing this.
 
 \section{Examples of \twist{} usage}
@@ -776,7 +776,7 @@ actually solve the problem.
     \includegraphics{chapters/narayanan/images/png/twistedcube.png}
   \end{center}
   \caption{A hyperelastic cube twisted by 60 degrees.}
-    \label{narayanan:fig:twistedcube}
+    \label{fig:narayanan:twistedcube}
 \end{figure}
 
 The first problem we are interested in is the twisting of a unit
@@ -790,7 +790,7 @@ framework's use. They do not necessarily correspond to a real
 material.} In order to twist the cube, the face $x_{1} = 0$ is held
 fixed and the opposite face $x_{1} = 1$ is rotated 60 degrees using
 the Dirichlet condition defined in
-Figure~\ref{narayanan:code:statictwist}.
+Figure~\ref{code:narayanan:statictwist}.
 
 Before getting to the actual specification of the problem in code, we
 need to import \twist's functionality.
@@ -805,7 +805,7 @@ from cbc.twist import *
 
 \noindent The problem is completely specified by defining relevant
 methods in the user-created class {\tt Twist} (see
-Figure~\ref{narayanan:code:statictwist}), which derives from the base
+Figure~\ref{code:narayanan:statictwist}), which derives from the base
 class {\tt StaticHyperelasticity}. \twist{} only requires relevant
 methods to be provided, and for the current problem, this includes the
 computational domain, Dirichlet boundary conditions and material
@@ -848,16 +848,16 @@ class Twist(StaticHyperelasticity):
 \end{python}
 \caption{Problem definition: The static twisting of a hyperelastic
   cube.}
-\label{narayanan:code:statictwist}
+\label{code:narayanan:statictwist}
 \end{figure}
 
 In order to solve this problem, an instance of the {\tt Twist} class
 is created and its {\tt solve()} method is called (see
-Figure~\ref{narayanan:code:solveproblem}). This triggers a Newton
+Figure~\ref{code:narayanan:solveproblem}). This triggers a Newton
 solve which exhibits quadratic convergence (see
-Table~\ref{narayanan:table:residualnorms}) and results in the
+Table~\ref{tab:narayanan:residualnorms}) and results in the
 displacement field shown in
-Figure~\ref{narayanan:fig:twistedcube}.
+Figure~\ref{fig:narayanan:twistedcube}.
 
 \begin{figure}[ht]
 \begin{python}
@@ -865,7 +865,7 @@ twist = Twist()
 u = twist.solve()
 \end{python}
 \caption{Solving the posed problem.}
-\label{narayanan:code:solveproblem}
+\label{code:narayanan:solveproblem}
 \end{figure}
 
 \begin{table}
@@ -887,7 +887,7 @@ u = twist.solve()
     the hyperelasticity problem. It is interesting to note that this
     convergence is obtained even though the 60 degree twist condition
     was imposed in a single step.}
-  \label{narayanan:table:residualnorms}
+  \label{tab:narayanan:residualnorms}
 \end{table}
 
 \subsection{The dynamic release of a twisted cube}
@@ -907,7 +907,7 @@ which derives from {\tt Hyperelasticity}. This example is similar to
 the previous one, except that since it is a dynamic calculation, it also
 provides initial conditions, a reference density and information about
 time-stepping. Again, the methods listed in
-Figure~\ref{narayanan:code:dynamicrelease} are straightforward, and
+Figure~\ref{code:narayanan:dynamicrelease} are straightforward, and
 the only additional point to note is that \twist{} provides some
 convenience utilities to simplify the specification of the
 problem. For example, one can load initial conditions directly from
@@ -955,7 +955,7 @@ class Release(Hyperelasticity):
         return "A pretwisted cube being released"
 \end{python}
 \caption{Problem definition: The dynamic release of a twisted cube.}
-\label{narayanan:code:dynamicrelease}
+\label{code:narayanan:dynamicrelease}
 \end{figure}
 
 When {\tt Release} is instantiated and its {\tt solve()} method is
@@ -963,7 +963,7 @@ called, we see the relaxation of the pre-twisted cube. After initial
 unwinding of the twist, the body proceeds to twist in the opposite
 direction due to inertia. This process repeats itself, and snapshots
 of the displacement over the first 0.5~s are shown in
-Figure~\ref{narayanan:fig:releasedcube}. Figure~\ref{narayanan:fig:energies}
+Figure~\ref{fig:narayanan:releasedcube}. Figure~\ref{fig:narayanan:energies}
 highlights the energy conservation of the CG(1) numerical scheme used
 to time-step this problem by totalling the kinetic energy and
 potential energy of the body over the course of the
@@ -994,7 +994,7 @@ and {\tt u} are velocity and displacement fields respectively.
     \caption{Relaxation and subsequent re-twisting of a released cube
       over the first 0.5~s of the calculation.}
   \end{center}
-  \label{narayanan:fig:releasedcube}
+  \label{fig:narayanan:releasedcube}
 \end{figure}
  
 \begin{figure}[ht]
@@ -1004,7 +1004,7 @@ and {\tt u} are velocity and displacement fields respectively.
   \caption{Over the course of the computation, the energy in the body
     is converted between potential and kinetic energy, but the total
     remains constant.}
-    \label{narayanan:fig:energies}
+    \label{fig:narayanan:energies}
 \end{figure}
 
 \subsection{A hyperelastic dolphin tumbling through a ``flow''}
@@ -1024,7 +1024,7 @@ problems in two dimensions as well.
 
 The problem is specified in the user-created class {\tt FishyFlow}
 derived from {\tt Hyperelasticity}. There is nothing new to note in
-the code listing for this problem (Figure~\ref{narayanan:code:%
+the code listing for this problem (Figure~\ref{code:narayanan:%
 fishyflow}), other than the fact that we now specify Neumann boundary
 conditions. The specification listing is not very long because
 \twist{} assumes meaningful default values for unspecified
@@ -1060,7 +1060,7 @@ class FishyFlow(Hyperelasticity):
 \end{python}
 \caption{Problem definition: A hyperelastic dolphin being pushed to
   the right.}
-\label{narayanan:code:fishyflow}
+\label{code:narayanan:fishyflow}
 \end{figure}
 
 To demonstrate one final piece of functionality of \twist, we don't
@@ -1068,7 +1068,7 @@ solve the problem in the same manner as we did the first two
 examples. i.e., we do not instantiate an object of class {\tt
   FishyFlow} and call its {\tt solve()} method. Instead, we set up our
 own time loop and manually step through time using the {\tt step()}
-method. This is shown in Figure~\ref{narayanan:code:manualstep}.
+method. This is shown in Figure~\ref{code:narayanan:manualstep}.
 
 \begin{figure}[ht]
 \begin{python}
@@ -1086,7 +1086,7 @@ while t <= T:
 \caption{Stepping through time in an external time loop. {\tt step()}
   steps the problem forward by one time step, and {\tt update()}
   updates the values of all time-dependent variables to the current time.}
-\label{narayanan:code:manualstep}
+\label{code:narayanan:manualstep}
 \end{figure}
 
 The advantage of solving the problem in this manner is that, now, one
@@ -1099,14 +1099,14 @@ chapter on adaptive methods for fluid-structure interaction
 (\cite{chap:selim}). In that work, the fluid-structure problem is
 solved using a staggered approach with the solid mechanics equation
 being solved by \twist. An external time loop similar to the one in
-Figure~\ref{narayanan:code:manualstep} is set up to individually step
+Figure~\ref{code:narayanan:manualstep} is set up to individually step
 through the fluid problem, the solid problem and a mesh equation; a
 process which is iterated until convergence is reached at each time
 step. This process involves the systematic transfer of relevant
 information (such as fluid loading) from other problems to \twist.
 
 But returning to our current example,
-Figure~\ref{narayanan:fig:tumblingdolphin} shows time snapshots of the
+Figure~\ref{fig:narayanan:tumblingdolphin} shows time snapshots of the
 motion of the dolphin over the course of the computation. Notice that
 the fish deforms elastically as it tumbles toward the right.
 
@@ -1143,7 +1143,7 @@ the fish deforms elastically as it tumbles toward the right.
       right. Careful observation of the tail fin shows deformation of
       the dolphin in addition to its overall motion toward the right.}
   \end{center}
-  \label{narayanan:fig:tumblingdolphin}
+  \label{fig:narayanan:tumblingdolphin}
 \end{figure}
 
 \section{Conclusion}
