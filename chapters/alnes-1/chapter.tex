@@ -1365,14 +1365,13 @@ tree, and a linearized representation called the computational graph.
 Each of these DAG representations will be explained below.  They both
 share the representation of a node in the graph.  Each terminal
 expression and each application of an operator is represented by an
-object, which corresponds to a vertex in the graph.
+object, which corresponds to a vertex in the graph.  All expression
+objects are considered immutable; once constructed an expression
+object will never be modified.  Manipulating an expression should
+always result in a new object being created.  The immutability propery
+allows the reuse of expression objects, which reduces memory usage and
+simplifies recognition of common subexpressions.
 
-All expression objects are immutable; once constructed an expression
-object will never change.  Manipulating an expression should always
-result in new objects being created.
-
-%Immutability is a very desirable property to allow reuse
-%of objects and simplify common subexpression recognition.
 
 %------------------------------------------------------------------------------
 \subsection{Tree representation}
@@ -1393,6 +1392,7 @@ result in new objects being created.
 \label{ufl:fig:stiffness}
 \end{minipage}
 \end{figure}
+
 An expression is usually represented as an expression tree.  Each
 subexpression is represented by a tree node, which is the root of a
 tree of its own.  The leaves of the tree are terminal expressions, and
