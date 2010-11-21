@@ -1299,27 +1299,18 @@ by a \icode{BasisFunction}.
 \index{referential transparency}
 
 Most of the \ufl{} implementation is concerned with expressing,
-representing, and manipulating expressions.  To explain and reason
-about expression representations and algorithms operating on them, we
-need an abstract notation for the structure of an expression.  \ufl{}
-expressions are representations of programs, and the notation should
+representing, and manipulating expressions. In the rest of this chapter
+will explain and reason about expression representations and
+algorithms operating on them. For this, we need an abstract notation
+for the structure of an expression.
+\ufl{} expressions are representations of programs, and the notation should
 allow us to see this connection without the burden of implementation
 details.
 
 The most basic \ufl{} expressions are expressions with no dependencies
-on other expressions, called \emph{terminals}.  Other expressions are
-the result of applying some \emph{operator} to one or more existing
-expressions.  All expressions are immutable; once constructed an
-expression will never change. Manipulating an expression always
-results in a new expression being created.
-
-Consider an arbitrary (non-terminal) expression $z$.  This expression
-depends on a set of terminal values $\{ t_i \}$, and is computed using
-a set of operators $\{ f_i \}$.  If each subexpression of $z$ is
-labeled with an integer, an abstract program can be written to compute
-$z$ by computing a sequence of subexpressions $\seq{y_i}_{i=1}^n$ and
-setting $z = y_n$.  Algorithm~\ref{ufl:alg:program} shows such a
-program.
+on other expressions, called \emph{terminal expressions}.
+Other expressions are the result of applying some \emph{operator}
+to one or more existing expressions.
 
 \begin{algorithm}
 \afor $i = 1, \ldots, m$:\\
@@ -1331,19 +1322,29 @@ $z = y_n$
 \label{ufl:alg:program}
 \end{algorithm}
 
+Consider an arbitrary (non-terminal) expression $z$.  This expression
+depends on a set of terminal values $\{ t_i \}$, and is computed using
+a set of operators $\{ f_i \}$.  If each subexpression of $z$ is
+labeled with an integer, an abstract program can be written to compute
+$z$ by computing a sequence of subexpressions $\seq{y_i}_{i=1}^n$ and
+setting $z = y_n$.  Algorithm~\ref{ufl:alg:program} shows such a
+program.
+
 Each terminal expression $y_i = t_i$ is a literal constant or input
 arguments to the program.  A non-terminal subexpression $y_i$ is the
 result of applying an operator $f_i$ to a sequence of previously
 computed expressions $\seq{y_j}_{j\in\mI_i}$, where $\mI_i$ is a set
-of expression labels.  Note that the order in which subexpressions are
-computed can be arbitrarily chosen, except that we require $j < i \,
+of expression labels.  Note that the order in which subexpressions must
+be computed is not unique. For correctness we must require $j < i \,
 \forall j \in \mI_i$, such that all dependencies of a subexpression
 $y_i$ has been computed before $y_i$.  In particular, all terminals
 are numbered first in this algorithm for notational convenience only.
 
-The program can be represented as a graph, where each expression $y_i$
+The program to compute $z$ can be represented as a graph, where each expression $y_i$
 corresponds to a graph vertex and each direct dependency between two
-expressions is a graph edge. More formally,
+expressions is a graph edge. More formally, the graph $G$ representing
+the computation of $z$ consists of a set of vertices $V$ and a set of
+edges $E$ defined by:
 \begin{align}
 G &= (V, E), \label{ufl:eq:G} \\
 V &= \seq{v_i}_{i=1}^n = \seq{y_i}_{i=1}^n, \label{ufl:eq:V} \\
@@ -1356,6 +1357,22 @@ existing expressions and never be modified.  Thus we can say that an
 directed acyclic graph (DAG).  There are two ways this DAG can be
 represented in \ufl{}, a linked representation called the expression
 tree, and a linearized representation called the computational graph.
+
+% FIXME: rename linked -> something?
+% FIXME: rename linearized -> adjacency list or edge list representation
+% FIXME: Clarify that expression tree is still a DAG.
+
+Each of these DAG representations will be explained below.  They both
+share the representation of a node in the graph.  Each terminal
+expression and each application of an operator is represented by an
+object, which corresponds to a vertex in the graph.
+
+All expression objects are immutable; once constructed an expression
+object will never change.  Manipulating an expression should always
+result in new objects being created.
+
+%Immutability is a very desirable property to allow reuse
+%of objects and simplify common subexpression recognition.
 
 %------------------------------------------------------------------------------
 \subsection{Tree representation}
