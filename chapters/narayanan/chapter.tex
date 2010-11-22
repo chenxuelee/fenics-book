@@ -86,17 +86,17 @@ modern works such as \cite{Gurtin1981}, \cite{Ogden1997} and
 
 The theory begins by idealising the elastic body of interest as an
 open subset of $\mathbb{R}^{2, 3}$ with a piecewise smooth
-boundary. At a {\em reference} placement of the body, $\Omega_0$,
+boundary. At a {\em reference} placement of the body, $\Omega$,
 points in the body are identified by their reference positions, $\bX
-\in \Omega_0$. The treatment presented in this chapter is posed in
+\in \Omega$. The treatment presented in this chapter is posed in
 terms of fields which are parametrised by reference positions. This is
 commonly termed the {\em material} or {\em Lagrangian} description.
 
 In its most basic terms, the {\em deformation} of the body over a time
 $t \in [0, T]$ is a sufficiently smooth bijective map $\Bvarphi:
-\overline{\Omega}_0 \times [0,T] \rightarrow \mathbb{R}^{2, 3}$, where
-$\overline{\Omega}_0 :=\ \overline{\Omega_0\cup\partial\Omega_0}$ and
-$\partial\Omega_0$ is the boundary of $\Omega_0$. The restrictions on
+\overline{\Omega} \times [0,T] \rightarrow \mathbb{R}^{2, 3}$, where
+$\overline{\Omega} :=\ \overline{\Omega\cup\partial\Omega}$ and
+$\partial\Omega$ is the boundary of $\Omega$. The restrictions on
 the map ensure that the motion it describes is physical (e.g.,
 disallowing the interpenetration of matter or the formation of
 cracks). From this, we can construct the {\em displacement field},
@@ -114,23 +114,23 @@ of a specified elastic material, what is the displacement of the body
 when it is subjected to prescribed:
 
 \begin{itemize}
-\item {\em Body forces:} These include forces such as the self weight
+\item {\em Body forces:} These include forces such as the self-weight
   of a body, forces on ferromagnetic materials in magnetic fields,
   etc., which act everywhere in the volume of the body. They are
   denoted by the vector field $\bB(\bX, t)$.
 \item {\em Traction forces:} This is the force measured per unit
   surface area acting on the {\em Neumann} boundary of the body,
-  $\partial\Omega_{0_{\mathrm{N}}}$, and denoted by the vector field
+  $\partial\Omega_{\mathrm{N}}$, and denoted by the vector field
   $\bT(\bX, t)$.
 \item {\em Displacement boundary conditions:} These are displacement
   fields prescribed on the {\em Dirichlet} boundary of the body,
-  $\partial\Omega_{0_{\mathrm{D}}}$.
+  $\partial\Omega_{\mathrm{D}}$.
 \end{itemize}
 
-\noindent It is assumed that $\partial\Omega_{0_{\mathrm{N}}}
-\cap \partial\Omega_{0_{\mathrm{D}}} = \emptyset$ and
-$\partial\Omega_{0_{\mathrm{N}}} \cup \partial\Omega_{0_{\mathrm{D}}}
-= \partial\Omega_0$. These details are depicted in
+\noindent It is assumed that $\partial\Omega_{\mathrm{N}}
+\cap \partial\Omega_{\mathrm{D}} = \emptyset$ and
+$\partial\Omega_{\mathrm{N}} \cup \partial\Omega_{\mathrm{D}}
+= \partial\Omega$. These details are depicted in
 Figure~\ref{fig:narayanan:continuumpotato}.
 
 \begin{figure}[ht]
@@ -160,20 +160,20 @@ presented below in local form that is pertinent to numerical
 implementation by the finite element method:
 
 \begin{equation}
-  \rho_{0} \frac{\partial^{2} \bu}{\partial t^{2}} = \mathrm{Div}(\bP)
-  + \bB\; \mathrm{in}\; \Omega_0,
+  \rho \frac{\partial^{2} \bu}{\partial t^{2}} = \mathrm{Div}(\bP)
+  + \bB\; \mathrm{in}\; \Omega,
   \label{eq:narayanan:balance-of-momentum}
 \end{equation}
 
-\noindent where $\rho_{0}$ is the {\em reference density} of the body,
+\noindent where $\rho$ is the {\em reference density} of the body,
 $\bP$ is the {\em first Piola--Kirchhoff stress tensor}, $\mathrm{Div}
 (\cdot)$ is the divergence operator and $\bB$ is the body force per
 unit volume. Along with \eqref{eq:narayanan:balance-of%
 -momentum}, we have initial conditions $\bu(\bX, 0) = \bu_{0}(\bX)$
 and $\frac{\partial\bu}{\partial t}(\bX, 0) = \bv_{0}(\bX)$ in
-$\Omega_{0}$, and boundary conditions $\bu(\bX, t) = \bg(\bX, t)$ on
-$\partial\Omega_{0_{\mathrm{D}}}$ and $\bP \bN = \bT$ on
-$\partial\Omega_{0_{\mathrm{N}}}$. Here, $\bN$ is the outward normal
+$\Omega$, and boundary conditions $\bu(\bX, t) = \bg(\bX, t)$ on
+$\partial\Omega_{\mathrm{D}}$ and $\bP \bN = \bT$ on
+$\partial\Omega_{\mathrm{N}}$. Here, $\bN$ is the outward normal
 on the boundary.
 
 \subsection{Accounting for different materials}
@@ -267,10 +267,10 @@ def IsochoricRightCauchyGreen(u):
 \end{figure}
 
 In \twist, each of the forms listed in
-Table~\ref{tab:narayanan:straindefs} have been implemented in the
-file {\tt kinematics.py} in {\tt UFL} notation that closely resemble
-their definitions above. Figure~\ref{code:narayanan:kinematics.py} presents a 
-section of this file. Notice that it is straightforward to introduce
+Table~\ref{tab:narayanan:straindefs} have been implemented in the file
+{\tt kinematics.py} in UFL notation that closely resemble their
+definitions above. Figure~\ref{code:narayanan:kinematics.py} presents
+a section of this file. Notice that it is straightforward to introduce
 other custom measures as required.
 
 %\footnote{\textcolor[named]{BrickRed}{TODO:
@@ -445,46 +445,46 @@ $\bv \in \hat{\mathrm{V}}$ and integrating over the reference domain
 and time, we have
 
 \begin{equation}
- \int_{t} \int_{\Omega_{0}} \rho_{0} \frac{\partial^{2}
+ \int_{t} \int_{\Omega} \rho \frac{\partial^{2}
     \bu}{\partial t^{2}} \cdot \bv \dx \dt\;
-  = \int_{t}\int_{\Omega_{0}} \mathrm{Div}(\bP) \cdot \bv \dx \dt\;
-  + \int_{t} \int_{\Omega_{0}} \bB \cdot \bv \dx \dt.
+  = \int_{t}\int_{\Omega} \mathrm{Div}(\bP) \cdot \bv \dx \dt\;
+  + \int_{t} \int_{\Omega} \bB \cdot \bv \dx \dt.
 \end{equation}
 
 \noindent Noting that the traction vector $\bT = \bP \bN$ on
-$\partial\Omega_{0_{\mathrm{N}}}$ ($\bN$ being the outward normal
+$\partial\Omega_{\mathrm{N}}$ ($\bN$ being the outward normal
 on the boundary) and that by definition
-$\bv|_{\partial\Omega_{0_{\mathrm{D}}}} = 0$, we apply the divergence
+$\bv|_{\partial\Omega_{\mathrm{D}}} = 0$, we apply the divergence
 theorem to arrive at the following weak form of the balance of linear
 momentum:
 
 \noindent Find $\bu \in
 \mathrm{V}$, such that $\forall\; \bv \in \hat{\mathrm{V}}$:
 \begin{equation}
-  \int_{t} \int_{\Omega_{0}} \rho_{0} \frac{\partial^{2} \bu}{\partial
-t^{2}} \cdot \bv \dx \dt\; + \int_{t} \int_{\Omega_{0}}
-\bP:\mathrm{Grad}(\bv) \dx \dt\; = \int_{t} \int_{\Omega_{0}} \bB
-\cdot \bv \dx \dt\; + \int_{t} \int_{\partial\Omega_{0_{\mathrm{N}}}}
+  \int_{t} \int_{\Omega} \rho \frac{\partial^{2} \bu}{\partial
+t^{2}} \cdot \bv \dx \dt\; + \int_{t} \int_{\Omega}
+\bP:\mathrm{Grad}(\bv) \dx \dt\; = \int_{t} \int_{\Omega} \bB
+\cdot \bv \dx \dt\; + \int_{t} \int_{\partial\Omega_{\mathrm{N}}}
 \bT \cdot \bv \ds \dt,
 \label{eq:narayanan:weakform}
 \end{equation}
 
 \noindent with initial conditions $\bu(\bX, 0) = \bu_{0}(\bX)$ and
 $\frac{\partial\bu}{\partial t}(\bX, 0) = \bv_{0}(\bX)$ in
-$\Omega_{0}$, and boundary conditions $\bu(\bX, t) = \bg(\bX, t)$ on
-$\partial\Omega_{0_{\mathrm{D}}}$.
+$\Omega$, and boundary conditions $\bu(\bX, t) = \bg(\bX, t)$ on
+$\partial\Omega_{\mathrm{D}}$.
 
 The finite element formulation implemented in \twist{} follows the
 Galerkin approximation of the above weak
 form~\eqref{eq:narayanan:weakform}, by looking for solutions in a finite
-solution space  $\mathrm{V}^{h} \subset \mathrm{V}$ and allowing for
+solution space  $\mathrm{V}_{h} \subset \mathrm{V}$ and allowing for
 test functions in a finite approximation of the test space
-$\hat{\mathrm{V}^{h}} \subset \hat{\mathrm{V}}$.\footnote{We now
+$\hat{\mathrm{V}}_{h} \subset \hat{\mathrm{V}}$.\footnote{We now
   note an inherent advantage in choosing the Lagrangian description in
   formulating the theory. The fact that the integrals in
   \eqref{eq:narayanan:weakform}, along with the various fields
   and differential operators, are defined over the fixed domain
-  $\Omega_{0}$ means that one need not be concerned with the
+  $\Omega$ means that one need not be concerned with the
   complexity associated with calculations on a moving computational
   domain when implementing this formulation.}
 
@@ -494,8 +494,8 @@ We consider first the static weak form (dropping the time derivative
 term) of the balance of linear momentum which reads
 
 \begin{equation}
-  \int_{\Omega_{0}} \bP:\mathrm{Grad}(\bv) \dx - \int_{\Omega_{0}} \bB
-  \cdot \bv \dx -  \int_{\partial\Omega_{0_{\mathrm{N}}}} \bT \cdot
+  \int_{\Omega} \bP:\mathrm{Grad}(\bv) \dx - \int_{\Omega} \bB
+  \cdot \bv \dx -  \int_{\partial\Omega_{\mathrm{N}}} \bT \cdot
   \bv \ds = 0.
 \label{eq:narayanan:staticweakform}
 \end{equation}
@@ -561,7 +561,7 @@ equation.solve(u)
 \twist{} implements two time integration algorithms to solve the weak
 form of the fully dynamic balance of linear momentum
 \eqref{eq:narayanan:weakform}. The first of these is the
-so-called cG(1) method (\cite{ErikssonEstepHansboEtAl1996}). In order
+so-called CG$_{1}$ method (\cite{ErikssonEstepHansboEtAl1996}). In order
 to derive this method, \eqref{eq:narayanan:weakform}, which is
 a second order differential equation in time, is rewritten as a system
 of first order equations. We do this by introducing an additional
@@ -573,36 +573,36 @@ weak form now reads:
 
 \begin{equation}
 \begin{split}
-  \int_{t} \int_{\Omega_{0}} \rho_{0} \frac{\partial \bw}{\partial t}
-\cdot \bv \dx \dt\; + \int_{t} \int_{\Omega_{0}}
-\bP:\mathrm{Grad}(\bv) \dx \dt\; &= \int_{t} \int_{\Omega_{0}} \bB
-\cdot \bv \dx \dt\; + \int_{t} \int_{\partial\Omega_{0_{\mathrm{N}}}}
-\bT \cdot \bv \ds \dt, \; \mathrm{and}\\ \int_{t} \int_{\Omega_{0}}
+  \int_{t} \int_{\Omega} \rho \frac{\partial \bw}{\partial t}
+\cdot \bv \dx \dt\; + \int_{t} \int_{\Omega}
+\bP:\mathrm{Grad}(\bv) \dx \dt\; &= \int_{t} \int_{\Omega} \bB
+\cdot \bv \dx \dt\; + \int_{t} \int_{\partial\Omega_{\mathrm{N}}}
+\bT \cdot \bv \ds \dt, \; \mathrm{and}\\ \int_{t} \int_{\Omega}
 \frac{\partial \bu}{\partial t} \cdot \br \dx \dt\; &= \int_{t}
-\int_{\Omega_{0}} \bw \cdot \br \dx \dt.
+\int_{\Omega} \bw \cdot \br \dx \dt.
 \end{split}
 \label{eq:narayanan:cg1weakform}
 \end{equation}
 
 \noindent with initial conditions $\bu(\bX, 0) = \bu_{0}(\bX)$ and
-$w(\bX, 0) = \bv_{0}(\bX)$ in $\Omega_{0}$, and boundary conditions
-$\bu(\bX, t) = \bg(\bX, t)$ on $\partial\Omega_{0_{\mathrm{D}}}$.
+$w(\bX, 0) = \bv_{0}(\bX)$ in $\Omega$, and boundary conditions
+$\bu(\bX, t) = \bg(\bX, t)$ on $\partial\Omega_{\mathrm{D}}$.
 
 We now assume that the finite element approximation space
-$\mathrm{V}^{h}$ is CG(1) (continuous and piecewise linear in time),
-and $\hat{\mathrm{V}^{h}}$ is DG(0) (discontinuous and piecewise
+$\mathrm{V}_{h}$ is CG$_{1}$ (continuous and piecewise linear in time),
+and $\hat{\mathrm{V}}_{h}$ is DG$_{0}$ (discontinuous and piecewise
 constant in time). With these assumptions, we arrive at the following
 scheme:
 
 \begin{equation}
 \begin{split}
-  \int_{\Omega_{0}} \rho_{0} \frac{\left(\bw_{n+1} - \bw_{n}\right)}{\Delta t} \cdot \bv \dx\;
-  + \int_{\Omega_{0}} \bP(\bu_{\mathrm{mid}}):\mathrm{Grad}(\bv) \dx\;
-  &=  \int_{\Omega_{0}} \bB \cdot \bv \dx\;
-  +  \int_{\partial\Omega_{0_{\mathrm{N}}}} \bT \cdot \bv \ds,
+  \int_{\Omega} \rho \frac{\left(\bw_{n+1} - \bw_{n}\right)}{\Delta t} \cdot \bv \dx\;
+  + \int_{\Omega} \bP(\bu_{\mathrm{mid}}):\mathrm{Grad}(\bv) \dx\;
+  &=  \int_{\Omega} \bB \cdot \bv \dx\;
+  +  \int_{\partial\Omega_{\mathrm{N}}} \bT \cdot \bv \ds,
   \; \mathrm{and}\\
-    \int_{\Omega_{0}} \frac{\left(\bu_{n+1} - \bu_{n}\right)}{\Delta t} \cdot \br \dx\;
-  &=  \int_{\Omega_{0}} \bw_{\mathrm{mid}} \cdot \br \dx,
+    \int_{\Omega} \frac{\left(\bu_{n+1} - \bu_{n}\right)}{\Delta t} \cdot \br \dx\;
+  &=  \int_{\Omega} \bw_{\mathrm{mid}} \cdot \br \dx,
 \end{split}
 \label{eq:narayanan:cg1weakformapprox}
 \end{equation}
@@ -610,7 +610,7 @@ scheme:
 \noindent where $(\cdot)_{n}$ and $(\cdot)_{n+1}$ are the values of
 a quantity at the current and subsequent time-step, respectively, and
 $(\cdot)_{\mathrm{mid}} = \frac{(\cdot)_{n+1} +
-  (\cdot)_{n+1}}{2}$.  A section of the CG(1) linear momentum balance
+  (\cdot)_{n+1}}{2}$.  A section of the CG$_{1}$ linear momentum balance
 solver class is presented in Figure~\ref{code:narayanan:cg1}. The code
 closely mirrors the scheme defined in
 \eqref{eq:narayanan:cg1weakformapprox}, and results in a mixed system
@@ -644,7 +644,7 @@ class CG1MomentumBalanceSolver(CBCSolver):
     w_mid = 0.5*(w0 + w)
 
     # Get reference density
-    rho0 = problem.reference_density()
+    rho = problem.reference_density()
 
     # Piola-Kirchhoff stress tensor based on the
     # material model
@@ -652,7 +652,7 @@ class CG1MomentumBalanceSolver(CBCSolver):
 
     # The variational form corresponding to
     # dynamic hyperelasticity
-    L = rho0*inner(w - w0, v)*dx \
+    L = rho*inner(w - w0, v)*dx \
         + dt*inner(P, grad(v))*dx \
         - dt*inner(B, v)*dx\
         + inner(u - u0, r)*dx \
@@ -665,11 +665,11 @@ class CG1MomentumBalanceSolver(CBCSolver):
     a = derivative(L, U, dU)
 \end{python}
 \caption{Relevant portion of the dynamic balance of linear momentum
-  balance solver using the CG(1) time-stepping scheme.}
+  balance solver using the CG$_{1}$ time-stepping scheme.}
 \label{code:narayanan:cg1}
 \end{figure}
 
-The CG(1) scheme defined in \eqref{eq:narayanan:cg1weak%
+The CG$_{1}$ scheme defined in \eqref{eq:narayanan:cg1weak%
 formapprox} is straightforward to derive and implement, and it is
 second order accurate and energy conserving.\footnote{This is
   demonstrated in Figure~\ref{fig:narayanan:energies} as part of the
@@ -702,7 +702,7 @@ $\frac{\partial\bu}{\partial t}(\bX, 0) = \bv_{0}(\bX)$, we can
 compute the initial acceleration,
 
 \begin{equation}
-\ba_{0} = \frac{1}{\rho_{0}} (\mathrm{Div}(\bP) + \bB),
+\ba_{0} = \frac{1}{\rho} (\mathrm{Div}(\bP) + \bB),
 \end{equation}
 
 \noindent providing the complete initial state ($\bu_{0}, \bv_{0},
@@ -728,7 +728,7 @@ balance of linear momentum and solve for the only unknown variable,
 the acceleration at the next step, $\ba_{n+1}$:
 
 \begin{equation}
-  \rho_{0} \ba_{n+1} = \mathrm{Div}(P(\bu_{n+\alpha})) + B(t_{n+\alpha})
+  \rho \ba_{n+1} = \mathrm{Div}(P(\bu_{n+\alpha})) + B(t_{n+\alpha})
   \label{eq:narayanan:newaccn}
 \end{equation}
 
@@ -964,7 +964,7 @@ unwinding of the twist, the body proceeds to twist in the opposite
 direction due to inertia. This process repeats itself, and snapshots
 of the displacement over the first 0.5~s are shown in
 Figure~\ref{fig:narayanan:releasedcube}. Figure~\ref{fig:narayanan:energies}
-highlights the energy conservation of the CG(1) numerical scheme used
+highlights the energy conservation of the CG$_{1}$ numerical scheme used
 to time-step this problem by totalling the kinetic energy and
 potential energy of the body over the course of the
 calculation. \twist{} provides this information through the methods
