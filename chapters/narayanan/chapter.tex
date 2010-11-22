@@ -191,11 +191,11 @@ strain energy function}, $\psi$. This is an energy defined per unit
 reference volume and is solely a function of the local {\em strain
 measure}. Comprehensive texts on the subject
 (e.g. \cite{Holzapfel2000}) cover the motivations for defining
-different forms of strain measures, but in this chapter we just look
-at the definitions of some of the most common forms. In what follows,
-$\mathrm{Grad}(\cdot)$ is the gradient operator, and
+different forms of strain measures, but in this chapter we just
+provide the definitions of some of the most common forms. In what
+follows, $\mathrm{Grad}(\cdot)$ is the gradient operator, and
 $\mathrm{Tr}(\cdot)$ and $\mathrm{Det}(\cdot)$ are the trace and
-determinant of $\cdot$ respectively.
+determinant of $\cdot$, respectively.
 
 \begin{table}
 \begin{tabular}{rl}
@@ -262,7 +262,10 @@ def IsochoricRightCauchyGreen(u):
     J = Jacobian(u)
     return variable(J**(-2.0/3.0)*C)
 \end{python}
-\caption{Samples of how strain measures are implemented in \twist.}
+\caption{Samples of how strain measures are implemented in
+  \twist. Notice that the definitions in the implementation closely
+  resemble the classical forms introduced in
+  Table~\ref{tab:narayanan:straindefs}.}
 \label{code:narayanan:kinematics.py}
 \end{figure}
 
@@ -678,36 +681,40 @@ system that results from the formulation is computationally expensive
 and memory intensive as the number of variables being solved for have
 doubled.
 
-\twist{} also provides a standard implementation of a time-stepping
-algorithm that is commonly used in the computational mechanics
-community: the Hilber--Hughes--Taylor (HHT) method
-(\cite{HilberHughesTaylor1977}). The stability and dissipative
+\twist{} also provides a standard implementation of a finite
+difference time-stepping algorithm that is commonly used in the
+computational mechanics community: the Hilber--Hughes--Taylor (HHT)
+method (\cite{HilberHughesTaylor1977}). The stability and dissipative
 properties of this method in the case of linear problems have been
 thoroughly discussed in \cite{Hughes1987}. In particular, the method
 contains three parameters $\alpha$, $\beta$ and $\gamma$ which control
-the accuracy, stability and numerical dissipation of the
-scheme. The default values for these parameters chosen in \twist{}
-($\alpha = 1$, $\beta = \frac{1}{4}$ and $\gamma = \frac{1}{2}$)
-ensure that the method is second order accurate, stable for linear
-problems and introduces no numerical dissipation.
+the accuracy, stability and numerical dissipation of the scheme. The
+default values for these parameters chosen in \twist{} ($\alpha = 1$,
+$\beta = \frac{1}{4}$ and $\gamma = \frac{1}{2}$) ensure that the
+method is second order accurate, stable for linear problems and
+introduces no numerical dissipation.
 
-The method is briefly sketched below in terms of the strong form of
-the problem. For further details about the scheme itself, or its
-implementation in \twist, the interested reader is directed to the
-previously mentioned papers, and the {\tt MomentumBalanceSolver} class
-in the file {\tt solution\_algorithms.py}.
+The method is briefly sketched below. For further details about the
+scheme itself, or its implementation in \twist, the interested reader
+is directed to the previously mentioned papers, and the {\tt
+MomentumBalanceSolver} class in the file {\tt
+solution\_algorithms.py}.
 
 Given initial conditions $\bu(\bX, 0) = \bu_{0}(\bX)$ and
 $\frac{\partial\bu}{\partial t}(\bX, 0) = \bv_{0}(\bX)$, we can
-compute the initial acceleration,
+compute the initial acceleration, $\ba_{0}$, from the weak form:
 
 \begin{equation}
-\ba_{0} = \frac{1}{\rho} (\mathrm{Div}(\bP) + \bB),
+  \int_{\Omega} \rho a_{0} \cdot \bv \dx\; +  \int_{\Omega}
+\bP(u_{0}):\mathrm{Grad}(\bv) \dx\; - \int_{\Omega} \bB(X, 0)
+\cdot \bv \dx\; -  \int_{\partial\Omega_{\mathrm{N}}}
+\bT(X, 0) \cdot \bv \ds = 0.
 \end{equation}
 
-\noindent providing the complete initial state ($\bu_{0}, \bv_{0},
-\ba_{0}$) of the body. The HHT formulae advance the solution in time
-as follows:
+\noindent This provides the complete initial state ($\bu_{0}, \bv_{0},
+\ba_{0}$) of the body. Now, given the solution at time step $n$, the HHT
+formulae advance the solution to step $n+1$ as follows. First, we note
+the following definitions:
 
 \begin{equation}
 \begin{split}
@@ -717,23 +724,26 @@ as follows:
 \bv_{n+1} & = \bv_{n} + \Delta t \left[ (1-\gamma) \ba_{n} + \gamma
   \ba_{n+1} \right]\\
 \bu_{n+\alpha} & = (1 - \alpha) \bu_{n} + \alpha \bu_{n+1}\\
-\bv_{n+\alpha} & = (1 - \alpha) \bv_{n} + \alpha \bv_{n+1}
+\bv_{n+\alpha} & = (1 - \alpha) \bv_{n} + \alpha \bv_{n+1}\\
+t_{n+\alpha} &= (1 - \alpha) t_{n} + \alpha t_{n + 1}
 \end{split}
 \label{eq:narayanan:hhtdefs}
 \end{equation}
 
-\noindent Then, we insert the definitions in
-\eqref{eq:narayanan:hhtdefs} into the following form of the
-balance of linear momentum and solve for the only unknown variable,
-the acceleration at the next step, $\ba_{n+1}$:
+\noindent Inserting the definitions in \eqref{eq:narayanan:hhtdefs}
+into the following form of the balance of linear momentum,
 
 \begin{equation}
-  \rho \ba_{n+1} = \mathrm{Div}(P(\bu_{n+\alpha})) + B(t_{n+\alpha})
-  \label{eq:narayanan:newaccn}
+   \int_{\Omega} \rho a_{n+1} \cdot \bv \dx\; + \int_{\Omega} \bP(u_{n
++ \alpha}):\mathrm{Grad}(\bv) \dx\; - \int_{\Omega} \bB(X, t_{n +
+\alpha}) \cdot \bv \dx\; - \int_{\partial\Omega_{\mathrm{N}}} \bT(X,
+t_{n + \alpha}) \cdot \bv \ds = 0,
+\label{eq:narayanan:newaccn}
 \end{equation}
 
-\noindent The acceleration solution to
-\eqref{eq:narayanan:newaccn} is then used in the
+\noindent we can solve for the for the only unknown variable, the
+acceleration at the next step, $\ba_{n+1}$. The acceleration solution
+to \eqref{eq:narayanan:newaccn} is then used in the
 definitions~\eqref{eq:narayanan:hhtdefs} to update to new displacement
 and velocity values, and the problem is stepped through time.
 
