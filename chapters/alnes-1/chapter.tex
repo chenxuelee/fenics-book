@@ -27,6 +27,7 @@
 \newcommand{\PP}{\mathbf{P}}
 \renewcommand{\SS}{\mathbf{S}}
 \newcommand{\VV}{\mathbf{V}}
+\newcommand{\bb}{\mathbf{b}}
 \newcommand{\ee}{\mathbf{e}}
 \newcommand{\ii}{\mathbf{i}}
 \newcommand{\jj}{\mathbf{j}}
@@ -203,44 +204,7 @@ compile, now compiles in seconds with both \sfc{} and \ffc{}.
 \subsection{Motivational example} \label{ufl:sec:example}
 %~\cite{AlnMar2007}. % MekIT
 %\TODO{Citations on hyperelasticity.}
-One major motivating example during the initial development of \ufl{}
-has been the equations for elasticity with large deformations.  In
-particular, models of biological tissue use complicated hyperelastic
-constitutive laws with anisotropies and strong nonlinearities.  To
-implement these equations with \fenics{}, all three design goals
-listed above had to be adressed.  Below, one version of the
-hyperelasticity equations and their corresponding \ufl{}
-implementation is shown.  Keep in mind that this is only intended as
-an illustration of the close correspondence between the form language
-and the natural formulation of the equations.  The meaning of
-equations is not necessary for the reader to understand.  Note that
-many other examples are distributed together with \ufl{}.
 
-In the formulation of the hyperelasticity equations presented here,
-the unknown function is the displacement vector field $\uu$.  The
-material coefficients $c_1$ and $c_2$ are scalar constants.  The
-second Piola-Kirchoff stress tensor $\SS$ is computed from the strain
-energy function $W(\CC)$. $W$ defines the constitutive law, here a
-simple Mooney-Rivlin law. The equations relating the displacement and
-stresses read:
-\begin{align}
-\begin{split}
-\FF   &=  \II + \nabla \uu, \\
-\CC   &=  \FF^T\FF, \\
-I_C   &=  \mop{tr}(\CC), \\
-II_C  &=  \frac 1 2 (\mop{tr}(\CC)^2 - \mop{tr}(\CC\CC)), \\
-W     &=  c_1(I_C - 3) + c_2(II_C - 3), \\
-\SS   &=  2\frac{\partial W}{\partial\CC}, \\
-\PP   &=  \FF\SS.
-\end{split}
-\end{align}
-Approximating the displacement field as $\uu = \sum_k u_k \bphi^1_k$,
-the weak forms of the equations are as follows (ignoring boundary conditions):
-\begin{align}
-L(\bphi^0; \uu, c_1, c_2) &= \int_\Omega \PP : \nabla\bphi^0 \dx, \\
-a(\bphi^0, \bphi^1_k; \uu, c_1, c_2) &= \frac{\partial L}{\partial u_k}.
-\end{align}
-% \quad \forall \bphi^0 \in V_h^0
 \begin{figure}\label{ufl:fig:hypcode}
 \begin{python}
 # Finite element spaces
@@ -275,8 +239,85 @@ a = derivative(L, u, phi1)
 \end{python}
 \caption{\ufl{} implementation of hyperelasticity equations with a Mooney-Rivlin material law.}
 \end{figure}
-Figure~\ref{ufl:fig:hypcode} shows an implementation of these
-equations in \ufl{}.  Notice the close relation between the
+
+One major motivating example during the initial development of \ufl{}
+has been the equations for elasticity with large deformations.  In
+particular, models of biological tissue use complicated hyperelastic
+constitutive laws with anisotropies and strong nonlinearities.  To
+implement these equations with \fenics{}, all three design goals
+listed above had to be adressed.  Below, one version of the
+hyperelasticity equations and their corresponding \ufl{}
+implementation is shown.  Keep in mind that this is only intended as
+an illustration of the close correspondence between the form language
+and the natural formulation of the equations.  The meaning of
+equations is not necessary for the reader to understand.  Note that
+many other examples are distributed together with \ufl{}.
+
+In the formulation of the hyperelasticity equations presented here,
+the unknown function is the displacement vector field $\uu$.  The
+material coefficients $c_1$ and $c_2$ are scalar constants.  The
+second Piola-Kirchoff stress tensor $\SS$ is computed from the strain
+energy function $W(\CC)$. $W$ defines the constitutive law, here a
+simple Mooney-Rivlin law. The equations relating the displacement and
+stresses read:
+\begin{align}
+\begin{split}
+\FF   &=  \II + \Grad \uu, \\
+\CC   &=  \FF^T\FF, \\
+I_C   &=  \mop{tr}(\CC), \\
+II_C  &=  \frac 1 2 (\mop{tr}(\CC)^2 - \mop{tr}(\CC\CC)), \\
+W     &=  c_1(I_C - 3) + c_2(II_C - 3), \\
+\SS   &=  2\frac{\partial W}{\partial\CC}.  \label{ufl:eq:hypdef}
+\end{split}
+\end{align}
+For simplicity in this example, we ignore external body and boundary
+forces and assume a quasi-stationary situation, leading to the
+following mechanics problem. Find $\uu$ such that
+\begin{align}
+\begin{split}
+\Div (\FF\SS) &= 0, \qquad \mbox{in} \qquad\Omega, \label{ufl:eq:ppeqzero} \\
+\uu &= \uu_0,       \qquad \mbox{on} \qquad\partial\Omega_0.
+\end{split}
+\end{align}
+Following the finite element method as explained in
+Chapter~\ref{chapter:FIXME}, we multiply
+Equation~\eqref{ufl:eq:ppeqzero} with a test function $\bphi \in V$,
+integrate over the domain $\Omega$, and integrate by parts.
+The nonlinear variational problem then reads: Find $\uu \in V$ such that
+\begin{align}
+L(\uu; \bphi) &= \int_\Omega \FF\SS : \Grad\bphi \dx = 0
+  \qquad \forall \bphi \in V. \label{ufl:eq:hypdefL}
+\end{align}
+Here we have omitted the coefficients $c_1$ and $c_2$ for brevity.
+Approximating the displacement field as $\uu \approx \uu_h = \sum_k
+u_k \bpsi_k$, where $\bpsi_k \in V_h \approx V$ are trial functions,
+and using Newtons's method to solve the nonlinear equations, we end up
+with a system of equations to solve
+\begin{align}
+\sum_{k=1}^{|V_h|} \frac{\partial L(\uu_h; \bphi)}{\partial u_k} \Delta u_k =
+  -L(\uu_h; \bphi)
+  \qquad \forall \bphi \in V_h. \label{ufl:eq:elasticitynewton}
+\end{align}
+A bilinear form $a(\uu; \bpsi, \bphi)$ corresponding to the left hand side of Equation~\eqref{ufl:eq:elasticitynewton} can be computed automatically
+by \ufl{}, such that
+\begin{align}
+a(\uu_h; \bpsi_k, \bphi) = \frac{\partial L(\uu_h; \bphi)}{\partial u_k}
+  \qquad k = 1, \ldots, |V_h|. \label{ufl:eq:hypdefa}
+\end{align}
+
+%\begin{align}
+%\sum_{k=1}^{|V_h|} a(\uu_h; \bpsi_k, \bphi) u_k =
+%  \sum_{k=1}^{|V_h|} \frac{\partial L}{\partial u_k} u_k.
+%\end{align}
+
+%\begin{align}
+%a(\uu; \bpsi, \bphi) &= \frac{\partial L}{\partial u_k}.
+%\end{align}
+% \quad \forall \bphi \in V_h
+
+Figure~\ref{ufl:fig:hypcode} shows an implementation of
+equations \eqref{ufl:eq:hypdef}, \eqref{ufl:eq:hypdefL} and \eqref{ufl:eq:hypdefa}
+in \ufl{}.  Notice the close relation between the
 mathematical notation and the \ufl{} source code. In particular, note
 the automated differentiation of both the constitutive law and the
 residual equation. The operator \icode{diff} can be applied to
