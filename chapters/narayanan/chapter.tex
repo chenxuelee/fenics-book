@@ -18,7 +18,7 @@
 \def\bu{\mbox{$ u$}}
 \def\bv{\mbox{$ v$}}
 \def\bw{\mbox{$ w$}}
-\def\twist{{\tt cbc.twist}}
+\def\twist{{\tt CBC.Twist}}
 
 \fenicschapter{A computational framework for nonlinear elasticity}
 {cbc.twist}
@@ -199,7 +199,7 @@ determinant of $\cdot$, respectively.
 
 \begin{table}
 \begin{tabular}{rl}
-Infinitesimal strain tensor & $\Bepsilon = \frac{1}{2} 
+Infinitesimal strain tensor & $\Bepsilon = \frac{1}{2}
   \left(\mathrm{Grad}(\bu) + \mathrm{Grad}(\bu)^{\mathrm{T}}\right)$\\
 Deformation gradient &  $\bF = \bone + \mathrm{Grad}(\bu)$ \\
 Right Cauchy--Green tensor & $\bC = \bF^{\mathrm{T}} \bF$\\
@@ -333,7 +333,7 @@ relies heavily on the UFL {\tt diff()} operator.
 \begin{figure}[ht]
 \begin{python}
 def SecondPiolaKirchhoffStress(self, u):
-  
+
   ...
 
   if kinematic_measure == "InfinitesimalStrain":
@@ -341,7 +341,7 @@ def SecondPiolaKirchhoffStress(self, u):
     S = diff(psi, epsilon)
   elif kinematic_measure == "RightCauchyGreen":
     C = self.C
-    S = 2*diff(psi, C)            
+    S = 2*diff(psi, C)
   elif kinematic_measure == "GreenLagrangeStrain":
     E = self.E
     S = diff(psi, E)
@@ -443,7 +443,7 @@ is directed to \cite{SimoHughes1998}.
   momentum}
 
 By taking the dot product of
-\eqref{eq:narayanan:balance-of-momentum} with a test function 
+\eqref{eq:narayanan:balance-of-momentum} with a test function
 $\bv \in \hat{\mathrm{V}}$ and integrating over the reference domain
 and time, we have
 
@@ -505,7 +505,7 @@ term) of the balance of linear momentum which reads
 
 \noindent Since \twist{} provides the necessary functionality to
 easily compute the first Piola--Kirchhoff stress tensor, $\bP$, given a
-displacement field, $\bu$, for arbitrary material models, 
+displacement field, $\bu$, for arbitrary material models,
 \eqref{eq:narayanan:staticweakform} is just a nonlinear functional in
 terms of $\bu$. The automatic
 differentiation capabilities of UFL make this nonlinear form
@@ -622,7 +622,7 @@ that is solved for using a Newton scheme.
 \begin{figure}[ht]
 \begin{python}
 class CG1MomentumBalanceSolver(CBCSolver):
-      
+
     # Define function spaces
     vector = VectorFunctionSpace(mesh, "CG", 1)
     mixed_element = MixedFunctionSpace([vector,
@@ -631,16 +631,16 @@ class CG1MomentumBalanceSolver(CBCSolver):
     dU = TrialFunction(mixed_element)
     U = Function(mixed_element)
     U0 = Function(mixed_element)
-      
+
     # Get initial conditions, boundary conditions
     # and body forces
     ...
-      
+
     # Functions
     v, r = split(V)
     u, w = split(U)
     u0, w0 = split(U0)
-      
+
     # Evaluate displacements and velocities at
     # mid points
     u_mid = 0.5*(u0 + u)
@@ -1006,7 +1006,7 @@ and {\tt u} are velocity and displacement fields respectively.
   \end{center}
   \label{fig:narayanan:releasedcube}
 \end{figure}
- 
+
 \begin{figure}[ht]
   \begin{center}
     \includegraphics[scale=10]{chapters/narayanan/images/pdf/energies.pdf}
