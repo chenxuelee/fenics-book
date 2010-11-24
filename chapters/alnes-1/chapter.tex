@@ -423,8 +423,8 @@ three direct subelements, but rather
 Consider Poisson's equation with two different boundary
 conditions on $\partial\Omega_0$ and $\partial\Omega_1$,
 \begin{align}
-a(v, u; w) &= \int_\Omega w \nabla u \cdot \nabla v \dx, \\
-L(v; f, g, h) &= \int_\Omega f v \dx + \int_{\partial\Omega_0} g^2 v \ds + \int_{\partial\Omega_1} h v \ds.
+a(w; u, v) &= \int_\Omega w \Grad u \cdot \Grad v \dx, \\
+L(f, g, h; v) &= \int_\Omega f v \dx + \int_{\partial\Omega_0} g^2 v \ds + \int_{\partial\Omega_1} h v \ds.
 \end{align}
 These forms can be expressed in UFL as
 \begin{python}
@@ -446,13 +446,13 @@ function fixed, that is
 \begin{align}
 V_h^1 &= \spans{\phi_k^1}, \quad V_h^2 = \spans{\phi_k^2}, \quad V_h^3 = \spans{\phi_k^3}, \\
 w &= \sum_{k=1}^{|V^3_h|} w_k \phi_k^3, \quad \{ w_k \} \mbox{ given}, \\
-A_{ij} &= a(\phi_i^1, \phi_j^2; w),
+A_{ij} &= a(w; \phi_i^1, \phi_j^2),
     \quad i = 1,\ldots,|V^1_h|, \quad j = 1,\ldots,|V^2_h| . \label{ufl:eq:Aij}
 \end{align}
 
 In general, \ufl{} is designed to express forms of the following generalized form:
 \begin{align} \label{ufl:eq:form_integrals}
-    a(&\phi^1, \ldots, \phi^r; w^1, \ldots,  w^n) =
+    a(w^1, \ldots, w^n; \phi^1, \ldots, \phi^r) =
            \sum_{k=1}^{n_c} \int_{\Omega_k}          I^c_k \dx
          + \sum_{k=1}^{n_e} \int_{\partial\Omega_k}  I^e_k \ds
          + \sum_{k=1}^{n_i} \int_{\Gamma_k}          I^i_k \dS.
@@ -1133,15 +1133,18 @@ created.
 
 Let us step through an example of how to apply \icode{derivative}
 twice to a functional to derive a linear system.  In the following,
-$V_h$ is a finite element space with some basis, $w$ is a function in
-$V_h$, and $f$ is a functional we want to minimize. Derived from $f$
-is a linear form $F$, and a bilinear form $J$.
+$V_h$ is a finite element space with some basis , $w$ is a function in
+$V_h$, and $f = f(w)$ is a functional we want to minimize. Derived
+from $f(w)$ is a linear form $F(w; v)$, and a bilinear form
+$J(w; u, v)$.
 \begin{align}
 V_h &= \spans{ \phi_k }, \\
 w(x) &= \sum_{k=1}^{|V_h|} w_k \phi_k(x), \\
 f&: V_h \rightarrow \R, \\
-F(\phi_i; w) &= \frac{\partial}{\partial w_i} f(w), \\
-J(\phi_i, \phi_j; w) &= \frac{\partial}{\partial w_j} F(\phi_i; w) .
+F(w; \phi_i) &= \frac{\partial f(w)}{\partial w_i},
+  \qquad i=1,\ldots,|V_h|, \\
+J(w; \phi_j, \phi) &= \frac{\partial F(w; \phi)}{\partial w_j},
+  \qquad j=1,\ldots,|V_h|, \quad \phi\in V_h.
 \end{align}
 For a concrete functional $f(w) = \int_\Omega \frac 1 2 w^2 \dx$, we can implement this as
 \begin{python}
@@ -1160,7 +1163,7 @@ Derivatives can also be defined w.r.t. coefficients of a function in a
 mixed finite element space.  Consider the Harmonic map equations
 derived from the functional
 \begin{align} \label{ufl:eq:harmonic}
-f(\xx, \lambda) = \int_\Omega \nabla \xx : \nabla \xx + \lambda \xx\cdot\xx \dx,
+f(\xx, \lambda) = \int_\Omega \Grad \xx : \Grad \xx + \lambda \xx\cdot\xx \dx,
 \end{align}
 where $\xx$ is a function in a vector finite element space $V_h^d$ and
 $\lambda$ is a function in a scalar finite element space $V_h$.  The
@@ -1171,7 +1174,7 @@ automatic linearization reads
 \begin{python}
 Vx = VectorElement("CG", triangle, 1)
 Vy = FiniteElement("CG", triangle, 1)
-u = Coefficient(Vx + Vy)
+u = Coefficient(Vx * Vy)
 x, y = split(u)
 f = inner(grad(x), grad(x))*dx + y*dot(x,x)*dx
 F = derivative(f, u)
@@ -1189,6 +1192,7 @@ Note that in computing derivatives of forms, we have assumed that
 = \int_\Omega \frac{\partial}{\partial w_k} I \dx,
 \end{align}
 or in particular that the domain $\Omega$ is independent of $w$.
+Also, any coefficients other than $w$ are assumed independent of $w$.
 Furthermore, note that there is no restriction on the choice of
 element in this framework, in particular arbitrary mixed elements are
 supported.
@@ -1214,8 +1218,8 @@ astar = adjoint(a)
 \end{python}
 which corresponds to
 \begin{align}
-a(M; v, u) = \int_\Omega M_{ij} u_{k,j} v_{k,i} \dx, \\
-a^*(M; v, u) = a(M; u, v) = \int_\Omega  M_{ij} v_{k,j} u_{k,i} \dx.
+a(M; u, v) = \int_\Omega M_{ij} u_{k,j} v_{k,i} \dx, \\
+a^*(M; u, v) = a(M; v, u) = \int_\Omega  M_{ij} v_{k,j} u_{k,i} \dx.
 \end{align}
 This automatic transformation is particularly useful if we need the
 adjoint of nonsymmetric bilinear forms computed using
@@ -1274,7 +1278,7 @@ or even shorter \icode{L = a*w}.
 
 If you prefer to write your PDEs with all terms on one side such as
 \begin{align}\label{ufl:eq:pde}
-a(v, u) - L(v) = 0,
+a(u, v) - L(v) = 0,
 \end{align}
 you can declare forms with both linear and bilinear terms
 and split the equations into $a$ and $L$ afterwards.
@@ -1319,7 +1323,7 @@ or you can use the equivalent form transformation
 sL = sensitivity_rhs(a, u, L, c)
 \end{python}
 Note that the solution \icode{u} must be represented by a
-\icode{Coefficient}, while $u$ in $a(v, u)$ is represented
+\icode{Coefficient}, while $u$ in $a(u, v)$ is represented
 by a \icode{BasisFunction}.
 
 
@@ -1429,7 +1433,7 @@ simplifies recognition of common subexpressions.
 \begin{minipage}[b]{0.49\linewidth}
 \centering
 \includegraphics[width=\largefig]{chapters/alnes-1/pdf/stiffness.pdf}
-\caption{Expression tree for $\nabla \uu : \nabla \vv$.}
+\caption{Expression tree for $\Grad \uu : \Grad \vv$.}
 \label{ufl:fig:stiffness}
 \end{minipage}
 \end{figure}
@@ -1438,9 +1442,9 @@ An expression is usually represented as an expression tree.  Each
 subexpression is represented by a tree node, which is the root of a
 tree of its own.  The leaves of the tree are terminal expressions, and
 operators have their operands as children.  An expression tree for the
-stiffness term $\nabla\uu :\nabla\vv$ is illustrated in
+stiffness term $\Grad\uu :\Grad\vv$ is illustrated in
 Figure~\ref{ufl:fig:stiffness}.  The terminals $\uu$ and $\vv$ have no
-children, and the term $\nabla\uu$ is itself represented by a tree
+children, and the term $\Grad\uu$ is itself represented by a tree
 with two nodes.  The names in this figure, \icode{Grad}, \icode{Inner}
 and \icode{BasisFunction}, reflect the names of the classes used in
 \ufl{} to represent the expression nodes. Taking the gradient of an
