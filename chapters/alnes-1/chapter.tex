@@ -1415,7 +1415,13 @@ is still a DAG since vertices can be reused in multiple
 subexpressions, but the representation emphasizes the tree like
 structure of the DAG. The other representation is called the
 computational graph, which closely mirrors the definition of $G$
-above. This representation is mostly useful for form compilers.
+above. This representation is mostly useful for form compilers.  The
+details of these two DAG representations will be explained below.
+They both share the representation of a vertex in the graph as an
+expression object, which will be explained next.
+
+%------------------------------------------------------------------------------
+\subsection{Expression objects}
 
 \editornote{Redraw this figure in Inkscape.}
 \begin{figure}[tb]
@@ -1425,25 +1431,84 @@ above. This representation is mostly useful for form compilers.
 \label{ufl:fig:expr}
 \end{figure}
 
-The differences between these two DAG representations will be
-explained below.  They both share the representation of a vertex in
-the graph as an expression object.  Recall from
-Algorithm~\ref{ufl:alg:program} that non-terminals are expressions
-$y_i = f_i(\left<y_j\right>_{j\in\mI_i})$.  The operator $f_i$ is
-represented by the class of the expression object, while the
-expression $y_i$ is represented by the instance of this class.
-Each expression object is an instance of some subclass of
-\icode{Expr}.  The class \icode{Expr} is the superclass of a hierarchy
-containing all terminal expression types and operator types supported
-by \ufl{}. \icode{Expr} has two direct subclasses, \icode{Terminal}
-and \icode{Operator}, which divides the expression type hierarchy in two,
+Recall from Algorithm~\ref{ufl:alg:program} that non-terminals are
+expressions $y_i = f_i(\left<y_j\right>_{j\in\mI_i})$.  The operator
+$f_i$ is represented by the class of the expression object, while the
+expression $y_i$ is represented by the instance of this class.  Each
+expression object is an instance of some subclass of \icode{Expr}.
+
+The class \icode{Expr} is the superclass of a hierarchy containing all
+terminal expression types and operator types supported by
+\ufl{}. \icode{Expr} has two direct subclasses, \icode{Terminal} and
+\icode{Operator}, which divides the expression type hierarchy in two,
 as illustrated in Figure~\ref{ufl:fig:expr}.
+
 All expression objects are considered immutable; once constructed an
 expression object will never be modified.  Manipulating an expression
-should always result in a new object being created.  The immutability
-propery allows the reuse of expression objects, which reduces memory
-usage and simplifies recognition of common subexpressions.
+should always result in a new object being created.  The immutable
+propery ensures that expression objects can be reused and shared
+between expressions without side effects in other parts of a program.
+This both reduces memory usage, avoids needless copying of objects,
+and simplifies recognition of common subexpressions.
 
+Calling \icode{e.operands()} on an \icode{Expr} object \icode{e}
+representing $y_i$ returns a tuple with expression objects
+representing $\left<y_j\right>_{j\in\mI_i}$. Instead of modifying
+the operands of an expression object, any expression object can
+be reconstructed with modified operands using
+\icode{e.reconstruct(operands)}, where \icode{operands}
+is a tuple of expression objects.  The invariant
+\icode{e.reconstruct(e.operands()) == e} should always hold.
+
+
+%------------------------------------------------------------------------------
+\subsection{Expression properties}
+\editornote{Stick ugly text sticking out in margin.}
+In Section~\ref{ufl:sec:indexnotation} the tensor algebra and index
+notation capabilities of \ufl{} was discussed.  Expressions can be
+scalar or tensor-valued, with arbitrary rank and shape. Therefore,
+each expression object \icode{e} has a value shape \icode{e.shape()},
+which is a tuple of integers with the dimensions in each tensor
+axis. Scalar expressions have shape \icode{()}. Another important
+property is the set of free indices in an expression, obtained as a
+tuple using \icode{e.free\_indices()}.  Although the free indices have
+no ordering, they are represented with a tuple of \icode{Index}
+instances for simplicity. Thus the ordering within the tuple carries
+no meaning.
+
+\ufl{} expressions are referentially transparent with some
+exceptions. Referential transparency means that a subexpression can be
+replaced by another representation of its value without changing the
+meaning of the expression.  A key point here is that the value of an
+expression in this context includes the tensor shape and set of free
+indices.  Another important point is that the derivative of a function
+$f(v)$ in a point, $f'(v)|_{v=g}$, depends on function values in the
+vicinity of $v=g$.  The effect of this dependency is that operator
+types matter when differentiating, not only the current value of the
+differentiation variable.  In particular, a \icode{Variable} cannot be
+replaced by the expression it represents, because \icode{diff} depends
+on the \icode{Variable} instance and not the expression it has the
+value of.  Similarly, replacing a \icode{Coefficient} with some value
+will change the meaning of an expression that contains derivatives
+w.r.t. function coefficients.
+
+The following example illustrate the issue with \icode{Variable} and \icode{diff}.
+\begin{python}
+e = 0
+v = variable(e)
+f = sin(v)
+g = diff(f, v)
+\end{python}
+Here \icode{v} is a variable that takes on the value 0, but
+\icode{sin(v)} cannot be simplified to 0 since the derivative of
+\icode{f} then would be 0.  The correct result here is \icode{g =
+cos(v)}. Printing \icode{f} and \icode{g} gives the strings
+\icode{sin(var1(0))} and \icode{d/d[var1(0)] (sin(var1(0)))}.
+Try just setting \icode{v = e} and see how \icode{f} and \icode{g}
+becomes zero.
+
+%However, when derivatives have been evaluated
+%(see \icode{expand\_derivatives} in \ref{ufl:sec:expanding}).
 
 %------------------------------------------------------------------------------
 \subsection{Tree representation}
@@ -1470,7 +1535,6 @@ expression with \icode{grad(u)} gives an expression representation
 \icode{Grad(u)}, and \icode{inner(a, b)} gives an expression
 representation \icode{Inner(a, b)}.
 
-
 The edges of the DAG is not stored explicitly in the tree
 representation. However, from an expression object representing the
 vertex $v_i$, a tuple with the vertices $\left<y_j\right>_{j\in\mI_i}$
@@ -1479,63 +1543,6 @@ objects represent the graph vertices that have edges pointing to them
 from $y_i$.  Note that this generalizes to terminals where there are
 no outgoing edges and \icode{t.operands()} returns an empty tuple.
 
-%------------------------------------------------------------------------------
-\subsection{Expression node properties}
-
-Any expression node \icode{e} (an \icode{Expr} instance) has certain
-generic properties, and the most important ones will be explained
-here.  Above it was mentioned that \icode{e.operands()} returns a
-tuple with the child nodes. Any expression node can be reconstructed
-with modified operands using \icode{e.reconstruct(operands)}, where
-\icode{operands} is a tuple of expression nodes.  The invariant
-\icode{e.reconstruct(e.operands()) == e} should always hold.  This
-function is required because expression nodes are immutable, they
-should never be modified. The immutable property ensures that
-expression nodes can be reused and shared between expressions without
-side effects in other parts of a program.
-
-\editornote{Stick ugly text sticking out in margin.}
-
-In Section~\ref{ufl:sec:indexnotation} the tensor algebra and index
-notation capabilities of \ufl{} was discussed.  Expressions can be
-scalar or tensor-valued, with arbitrary rank and shape. Therefore,
-each expression node has a value shape \icode{e.shape()}, which is a
-tuple of integers with the dimensions in each tensor axis. Scalar
-expressions have shape \icode{()}. Another important property is the
-set of free indices in an expression, obtained as a tuple using
-\icode{e.free\_indices()}.  Although the free indices have no
-ordering, they are represented with a tuple of \icode{Index} instances
-for simplicity. Thus the ordering within the tuple carries no meaning.
-
-\ufl{} expressions are referentially transparent with some
-exceptions. Referential transparency means that a subexpression can be
-replaced by another representation of its value without changing the
-meaning of the expression.  A key point here is that the value of an
-expression in this context includes the tensor shape and set of free
-indices.  Another important point is that the derivative of a function
-$f(v)$ in a point, $f'(v)|_{v=g}$, depends on function values in the
-vicinity of $v=g$.  The effect of this dependency is that operator
-types matter when differentiating, not only the current value of the
-differentiation variable.  In particular, a \icode{Variable} cannot be
-replaced by the expression it represents, because \icode{diff} depends
-on the \icode{Variable} instance and not the expression it has the
-value of.  Similarly, replacing a \icode{Coefficient} with some value
-will change the meaning of an expression that contains derivatives
-w.r.t. function coefficients.
-
-The following example illustrate this issue.
-\begin{python}
-e = 0
-v = variable(e)
-f = sin(v)
-g = diff(f, v)
-\end{python}
-Here \icode{v} is a variable that takes on the value 0, but
-\icode{sin(v)} cannot be simplified to 0 since the derivative of
-\icode{f} then would be 0.  The correct result here is \icode{g =
-cos(v)}.
-%However, when derivatives have been evaluated
-%(see \icode{expand\_derivatives} in \ref{ufl:sec:expanding}).
 
 %------------------------------------------------------------
 \subsection{Linearized graph representation} \label{ufl:sec:graphs}
