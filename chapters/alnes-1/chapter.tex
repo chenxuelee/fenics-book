@@ -1330,9 +1330,6 @@ by a \icode{BasisFunction}.
 %==============================================================================
 %\clearpage{}
 \section{Expression representation} \label{ufl:sec:representation}
-
-%------------------------------------------------------------------------------
-\subsection{The structure of an expression} \label{ufl:sec:expressions}
 \index{\icode{Expr}}
 \index{\icode{Terminal}}
 \index{\icode{Operator}}
@@ -1343,19 +1340,37 @@ by a \icode{BasisFunction}.
 \index{expression tree}
 \index{referential transparency}
 
-Most of the \ufl{} implementation is concerned with expressing,
-representing, and manipulating expressions. In the rest of this chapter
-will explain and reason about expression representations and
-algorithms operating on them. For this, we need an abstract notation
-for the structure of an expression.
-\ufl{} expressions are representations of programs, and the notation should
-allow us to see this connection without the burden of implementation
-details.
+From a high level view, \ufl{} is all about defining forms.  Each form
+contains one or more scalar integrand expressions, but the form
+representation is largely disconnected from the representation of the
+integrand expressions.  Indeed, most of the complexity of the \ufl{}
+implementation is related to expressing, representing, and
+manipulating expressions.  The rest of this chapter will focus on
+expression representations and algorithms operating on them.  These
+topics will be of little interest to the average user of \ufl{}, and
+more directed towards developers and curious technically oriented
+users.
 
-The most basic \ufl{} expressions are expressions with no dependencies
-on other expressions, called \emph{terminal expressions}.
-Other expressions are the result of applying some \emph{operator}
-to one or more existing expressions.
+To reason about expression algorithms without the burden of
+implementation details, we need an abstract notation for the structure
+of an expression.  \ufl{} expressions are representations of programs,
+and the notation should allow us to see this connection. Below we will
+discuss the properties of expressions both in terms of this abstract
+notation, and related to specific implementation details.
+
+
+%------------------------------------------------------------------------------
+\subsection{The structure of an expression} \label{ufl:sec:expressions}
+The most basic expressions, which have no dependencies on other
+expressions, are called \emph{terminal expressions}.  Other
+expressions result from applying some operator to one or more existing
+expressions.  Consider an arbitrary (non-terminal) expression $z$.
+This expression depends on a set of terminal expressions $\{ t_i \}$,
+and is computed using a set of operators $\{ f_i \}$.  If each
+subexpression of $z$ is labeled with an integer, an abstract program
+can be written to compute $z$ by computing a sequence of
+subexpressions $\seq{y_i}_{i=1}^n$ and setting $z = y_n$.
+Algorithm~\ref{ufl:alg:program} shows such a program.
 
 \begin{algorithm}
 \afor $i = 1, \ldots, m$:\\
@@ -1367,75 +1382,78 @@ $z = y_n$
 \label{ufl:alg:program}
 \end{algorithm}
 
-Consider an arbitrary (non-terminal) expression $z$.  This expression
-depends on a set of terminal values $\{ t_i \}$, and is computed using
-a set of operators $\{ f_i \}$.  If each subexpression of $z$ is
-labeled with an integer, an abstract program can be written to compute
-$z$ by computing a sequence of subexpressions $\seq{y_i}_{i=1}^n$ and
-setting $z = y_n$.  Algorithm~\ref{ufl:alg:program} shows such a
-program.
-
-Each terminal expression $y_i = t_i$ is a literal constant or input
-arguments to the program.  A non-terminal subexpression $y_i$ is the
+Each terminal expression $t_i$ is a literal constant or input
+argument to the program. This includes coefficients, basis functions,
+and geometric quantities.  A non-terminal subexpression $y_i$ is the
 result of applying an operator $f_i$ to a sequence of previously
 computed expressions $\seq{y_j}_{j\in\mI_i}$, where $\mI_i$ is a set
-of expression labels.  Note that the order in which subexpressions must
-be computed is not unique. For correctness we must require $j < i \,
-\forall j \in \mI_i$, such that all dependencies of a subexpression
-$y_i$ has been computed before $y_i$.  In particular, all terminals
-are numbered first in this algorithm for notational convenience only.
+of expression labels.  Note that the order in which subexpressions
+must be computed to produce the same value of $z$ is not unique.  For
+correctness we only require $j < i \, \forall j \in \mI_i$, such that
+all dependencies of a subexpression $y_i$ has been computed before
+$y_i$.  In particular, all terminals are numbered first in this
+abstract algorithm for notational convenience only.
 
-The program to compute $z$ can be represented as a graph, where each expression $y_i$
-corresponds to a graph vertex and each direct dependency between two
-expressions is a graph edge. More formally, the graph $G$ representing
-the computation of $z$ consists of a set of vertices $V$ and a set of
-edges $E$ defined by:
+The program to compute $z$ can be represented as a graph, where each
+expression $y_i$ corresponds to a graph vertex. There is a directed
+graph edge $e = (i, j)$ from $y_i$ to $y_j$ if $j \in \mI_i$, that is
+if $y_i$ depends on the value of $y_j$. More formally, the graph $G$
+representing the computation of $z$ consists of a set of vertices $V$
+and a set of edges $E$ defined by:
 \begin{align}
 G &= (V, E), \label{ufl:eq:G} \\
 V &= \seq{v_i}_{i=1}^n = \seq{y_i}_{i=1}^n, \label{ufl:eq:V} \\
-E &= \{ e_i \} = \bigcup_{i=1}^n \, \left\{ (i, j) \forall j \in \mI_i \right\} . \label{ufl:eq:E}
+E &= \{ e_k \} = \bigcup_{i=1}^n \, \left\{ (i, j) \forall j \in \mI_i \right\} . \label{ufl:eq:E}
 \end{align}
 This graph is clearly directed, since dependencies have a direction.
 It is acyclic, since an expression can only be constructed from
-existing expressions and never be modified.  Thus we can say that an
-\ufl{} expression represents a program, and can be represented using a
-directed acyclic graph (DAG).  There are two ways this DAG can be
-represented in \ufl{}, a linked representation called the expression
-tree, and a linearized representation called the computational graph.
+existing expressions.  Thus a \ufl{} expression can be represented by
+a directed acyclic graph (DAG).  There are two ways this DAG can be
+represented in \ufl{}. While defining expressions, a linked
+representation called the expression tree is built. Technically this
+is still a DAG since vertices can be reused in multiple
+subexpressions, but the representation emphasizes the tree like
+structure of the DAG. The other representation is called the
+computational graph, which closely mirrors the definition of $G$
+above. This representation is mostly useful for form compilers.
 
-% FIXME: rename linked -> something?
-% FIXME: rename linearized -> adjacency list or edge list representation
-% FIXME: Clarify that expression tree is still a DAG.
+\editornote{Redraw this figure in Inkscape.}
+\begin{figure}[tb]
+\centering
+\includegraphics[width=\smallfig]{chapters/alnes-1/pdf/expr.pdf}
+\caption{Expression class hierarchy.}
+\label{ufl:fig:expr}
+\end{figure}
 
-Each of these DAG representations will be explained below.  They both
-share the representation of a node in the graph.  Each terminal
-expression and each application of an operator is represented by an
-object, which corresponds to a vertex in the graph.  All expression
-objects are considered immutable; once constructed an expression
-object will never be modified.  Manipulating an expression should
-always result in a new object being created.  The immutability propery
-allows the reuse of expression objects, which reduces memory usage and
-simplifies recognition of common subexpressions.
+The differences between these two DAG representations will be
+explained below.  They both share the representation of a vertex in
+the graph as an expression object.  Recall from
+Algorithm~\ref{ufl:alg:program} that non-terminals are expressions
+$y_i = f_i(\left<y_j\right>_{j\in\mI_i})$.  The operator $f_i$ is
+represented by the class of the expression object, while the
+expression $y_i$ is represented by the instance of this class.
+Each expression object is an instance of some subclass of
+\icode{Expr}.  The class \icode{Expr} is the superclass of a hierarchy
+containing all terminal expression types and operator types supported
+by \ufl{}. \icode{Expr} has two direct subclasses, \icode{Terminal}
+and \icode{Operator}, which divides the expression type hierarchy in two,
+as illustrated in Figure~\ref{ufl:fig:expr}.
+All expression objects are considered immutable; once constructed an
+expression object will never be modified.  Manipulating an expression
+should always result in a new object being created.  The immutability
+propery allows the reuse of expression objects, which reduces memory
+usage and simplifies recognition of common subexpressions.
 
 
 %------------------------------------------------------------------------------
 \subsection{Tree representation}
 
-\editornote{Redraw these figures in Inkscape.}
-\begin{figure}[t]
-\begin{minipage}[b]{0.47\linewidth}
+\editornote{Redraw this figure in Inkscape.}
+\begin{figure}[tb]
 \centering
-\includegraphics[width=1.0\largefig]{chapters/alnes-1/pdf/expr.pdf}
-\caption{Expression class hierarchy.}
-\label{ufl:fig:expr}
-\end{minipage}
-\hspace{0.73cm}
-\begin{minipage}[b]{0.49\linewidth}
-\centering
-\includegraphics[width=\largefig]{chapters/alnes-1/pdf/stiffness.pdf}
+\includegraphics[width=\smallfig]{chapters/alnes-1/pdf/stiffness.pdf}
 \caption{Expression tree for $\Grad \uu : \Grad \vv$.}
 \label{ufl:fig:stiffness}
-\end{minipage}
 \end{figure}
 
 An expression is usually represented as an expression tree.  Each
@@ -1450,23 +1468,14 @@ and \icode{BasisFunction}, reflect the names of the classes used in
 \ufl{} to represent the expression nodes. Taking the gradient of an
 expression with \icode{grad(u)} gives an expression representation
 \icode{Grad(u)}, and \icode{inner(a, b)} gives an expression
-representation \icode{Inner(a, b)}.  In general, each expression node
-is an instance of some subclass of \icode{Expr}.  The class
-\icode{Expr} is the superclass of a hierarchy containing all terminal
-types and operator types \ufl{} supports. \icode{Expr} has two direct
-subclasses, \icode{Terminal} and \icode{Operator}, as illustrated in
-Figure~\ref{ufl:fig:expr}.
+representation \icode{Inner(a, b)}.
 
-Each expression node represents a single vertex $v_i$ in the DAG.
-Recall from Algorithm~\ref{ufl:alg:program} that non-terminals are
-expressions $y_i = f_i(\left<y_j\right>_{j\in\mI_i})$.  The operator
-$f_i$ is represented by the class of the expression node, while the
-expression $y_i$ is represented by the instance of this class.  The
-edges of the DAG is not stored explicitly in the tree
-representation. However, from an expression node representing the
+
+The edges of the DAG is not stored explicitly in the tree
+representation. However, from an expression object representing the
 vertex $v_i$, a tuple with the vertices $\left<y_j\right>_{j\in\mI_i}$
 can be obtained by calling \icode{yi.operands()}.  These expression
-nodes represent the graph vertices that have edges pointing to them
+objects represent the graph vertices that have edges pointing to them
 from $y_i$.  Note that this generalizes to terminals where there are
 no outgoing edges and \icode{t.operands()} returns an empty tuple.
 
