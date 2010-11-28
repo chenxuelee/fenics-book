@@ -588,7 +588,7 @@ v = TestFunction(element)
 u = TrialFunction(element)
 \end{python}
 By using \icode{TestFunction} and \icode{TrialFunction} in
-declarations instead of \icode{Basis\-Function} you can ignore their
+declarations instead of \icode{Argument} you can ignore their
 relative ordering.  The only time \icode{Argument} is needed is
 for forms of arity $r > 2$.
 
@@ -1719,6 +1719,18 @@ become a problem for complex equations, in which case quadrature loop
 based code is more suitable.  Code generation using quadrature loops
 can more easily mirror the inherent structure of \ufl{} expressions.
 
+% FIXME: Reviewer says last sentence here makes no sense.
+
+%------------------------------------------------------------
+
+% FIXME: Somewhere below I apparently speak about
+% something that should be called ``constant folding''
+
+% FIXME: Somewhere in 7.4 I apparently speak about
+% something that should be called ``beta transformations''
+
+% FIXME: Cite Gamma et al about Visitor pattern somewhere below here.
+
 %------------------------------------------------------------
 \subsection{Approaches to computing derivatives} \label{ufl:sec:appcompder}
 
@@ -1730,7 +1742,7 @@ input a program to compute a function and produces a new program to
 compute the derivative of the function.  Several variants of AD
 algorithms exist, the two most common being Forward Mode AD and
 Reverse Mode AD~\cite{Gri1989}.  More advanced algorithms exist, and
-is an active research topic.%\TODO{References.}  A \ufl{} expression
+is an active research topic. A \ufl{} expression
 is a symbolic expression, represented by an expression tree. But the
 expression tree is a directed acyclic graph that represents a program
 to evaluate said expression.  Thus it seems the line between SD and AD
@@ -2013,6 +2025,7 @@ In this section, some central algorithms and key implementation issues
 are discussed, much of which relates to the Python programming
 language.  Thus, this section is mainly intended for developers and
 others who need to relate to \ufl{} on a technical level.
+Python users may also find some of the techniques here interesting.
 
 %------------------------------------------------------------
 \subsection{Effective tree traversal in Python} \label{ufl:sec:traversal}
@@ -2066,7 +2079,7 @@ class ExampleFunction(MultiFunction):
         return "Got an Operator subtype %s." % type(expression)
 
     def argument(self, expression):
-        return "Got a Argument."
+        return "Got an Argument."
 
     def sum(self, expression):
         return "Got a Sum."
@@ -2089,11 +2102,14 @@ A common task in both symbolic computing and compiler implementation
 is the selection of some operation based on the type of an expression
 node.  For a selected few operations, this is done using overloading
 of functions in the subclasses of \icode{Expr}, but this is not
-suitable for all operations.
+suitable for all operations.  In many cases type-specific operations
+are better implemented together in the algorithm instead of
+distributed across class definitions.  This implementation pattern is
+called the Visitor pattern~\cite{FIXMEGammaEtAl}. The implementation
+in \ufl{} is somewhat different from the patterns used in a statically
+typed language such as C++.
 
-In many cases type-specific operations must be implemented together in
-the algorithm instead of distributed across class definitions.  One
-way to implement type based operation selection is to use a type
+One way to implement type based operation selection is to use a type
 switch, or a sequence of if-tests such as this:
 \begin{python}
 if isinstance(expression, IntValue):
@@ -2109,22 +2125,22 @@ is implemented as an alternative through the class
 \icode{MultiFunction}.  The underlying mechanism is a dict lookup
 (which is $O(1)$) based on the type of the input argument, followed by
 a call to the function found in the dict. The lookup table is built in
-the \icode{MultiFunction} constructor.  Functions to insert in the
-table are discovered automatically using the introspection capabilites
-of Python.
+the \icode{MultiFunction} constructor only once.  Functions to insert
+in the table are discovered automatically using the introspection
+capabilites of Python.
 
 A multifunction is declared as a subclass of
 \icode{MultiFunction}. For each type that should be handled
 particularly, a member function is declared in the subclass.  The
 \icode{Expr} classes use the \icode{CamelCaps} naming convention,
 which is automatically converted to \icode{underscore\_notation} for
-corresponding function names, such as \icode{Argument} and
-\icode{basis\_function}.  If a handler function is not declared for a
+corresponding function names, such as \icode{IndexSum} and
+\icode{index\_sum}.  If a handler function is not declared for a
 type, the closest superclass handler function is used instead.  Note
 that the \icode{MultiFunction} implementation is specialized to types
 in the \icode{Expr} class hierarchy.  The declaration and use of a
 multifunction is illustrated in Figure~\ref{ufl:fig:examplefunction}.
-Note that \icode{basis\_function} and \icode{sum} will handle
+Note that \icode{argument} and \icode{sum} will handle
 instances of the exact types \icode{Argument} and \icode{Sum},
 while \icode{terminal} and \icode{operator} will handle the types
 \icode{SpatialCoordinate} and \icode{Product} since they have no
@@ -2137,8 +2153,8 @@ specific handlers.
 Many transformations of expressions can be implemented recursively
 with some type-specific operation applied to each expression node.
 Examples of operations are converting an expression node to a string
-representation, an expression representation using an symbolic
-external library, or an \ufl{} representation with some different
+representation, to an expression representation using an symbolic
+external library, or to a \ufl{} representation with some different
 properties.  A simple variant of this pattern can be implemented using
 a multifunction to represent the type-specific operation:
 \begin{python}
@@ -2200,14 +2216,15 @@ abstractions, and hence may remove some opportunities for analysis or
 optimization.
 
 Some operators in \ufl{} are termed ``compound'' operators, meaning
-they can be represented by other elementary operators.  Try defining
-an expression \icode{e = inner(grad(u), grad(v))}, and print
+they can be represented by other more elementary operators.  Try
+defining an expression \icode{e = inner(grad(u), grad(v))}, and print
 \icode{repr(e)}. As you will see, the representation of \icode{e} is
 \icode{Inner(Grad(u), Grad(v))} (with some more details for \icode{u}
-and \icode{v}).  This way the input expressions are easier to
-recognize in the representation, and rendering of expressions to for
-example \LaTeX{} format can show the original compound operators as
-written by the end-user.
+and \icode{v}).  By representing the gradient directly with a high
+level type \icode{Grad} instead of more low level types, the input
+expressions are easier to recognize in the representation, and
+rendering of expressions to for example \LaTeX{} format can show the
+original compound operators as written by the end-user.
 
 However, since many algorithms must implement actions for each
 operator type, the function \icode{expand\_compounds} is used to
@@ -2231,6 +2248,77 @@ comes in handy, the end result of which is that there are no free
 indices left in the expression.  The precondition for this algorithm
 is that \icode{expand\_compounds} and \icode{expand\_derivatives} have
 been applied.
+
+An example should help clarify what these algorithms do.
+Since the output from this code is a bit lengthy, only
+key aspects of the output is repeated below. Copy this code
+to a python file or run it in a python interpreter to
+see the full output.
+\begin{python}
+from ufl import *
+V = FiniteElement("CG", triangle, 1)
+u = TestFunction(V)
+v = TrialFunction(V)
+f = Coefficient(V)
+a = dot(grad(f * u), grad(v))
+
+from ufl.algorithms import *
+ac = expand_compounds(a)
+ad = expand_derivatives(ac)
+ai = expand_indices(ad)
+print "\na: ", str(a),  "\n", tree_format(a)
+print "\nac:", str(ac), "\n", tree_format(ac)
+print "\nad:", str(ad), "\n", tree_format(ad)
+print "\nai:", str(ai), "\n", tree_format(ai)
+\end{python}
+% FIXME: Make examples flow
+The output for \icode{a} is (with the details of the
+finite element object cut away for shorter lines):
+\begin{python}
+a:  (grad(v_{-2} * w_0)) . (grad(v_{-1}))
+Dot
+(
+    Grad
+        Product
+        (
+            Argument(FiniteElement(...), -2)
+            Coefficient(FiniteElement(...), 0)
+        )
+    Grad
+        Argument(FiniteElement(...), -1)
+)
+\end{python}
+The arguments labeled -1 and -2 refer to $v$ and $u$ respectively.
+
+% FIXME: Show extract with Dot(a, b) -> IndexSum(Product(a[i], b[i]), i)
+% FIXME: Show extract with SpatialDerivative(u * f, i) -> SpatialDerivative(u, i) * f + ...
+% FIXME: Show extract demonstrating index expansion.
+
+Summarized, the expressions before and after each of the three transformations are
+\begin{align}
+a   &= \Grad (f u) \cdot \Grad v, \\
+a_c &= \sum_i \frac{\partial v}{\partial x_i} \frac{\partial (u f)}{\partial x_i}, \\
+a_d &= \sum_{i} \frac{\partial v}{\partial x_i} (u \frac{\partial f}{\partial x_i} + f \frac{\partial u}{\partial x_i}), \\
+a_i &= \frac{\partial v}{\partial x_0} (u \frac{\partial f}{\partial x_0} + f \frac{\partial u}{\partial x_0}) + \frac{\partial v}{\partial x_1} (u \frac{\partial f}{\partial x_1} + f \frac{\partial u}{\partial x_1}), \\
+\end{align}
+
+The somewhat complex expression \icode{MultiIndex((Index(10),), \{Index(10): 2\})}
+can be read simply as ``index named $i_{10}$, bound to an axis with dimension 2''.
+A common pattern occurs in the algorithmically expanded expressions:
+\begin{python}
+Indexed
+(
+    ComponentTensor
+    (
+        ...
+        MultiIndex((Index(8),), {Index(8): 2})
+    )
+    MultiIndex((Index(10),), {Index(10): 2})
+)
+\end{python}
+This pattern acts as a relabeling of the index objects, renaming $i_{8}$
+from inside $\ldots$ to $i_{10}$ on the outside.
+
 
 %------------------------------------------------------------
 \subsection{Evaluating expressions}
