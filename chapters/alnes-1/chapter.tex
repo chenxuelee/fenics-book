@@ -548,8 +548,8 @@ available as \icode{cell.d}.
 \index{basis functions}
 \index{coefficient functions}
 \index{coefficients}
-\index{\icode{BasisFunction}}
-\index{\icode{BasisFunctions}}
+\index{\icode{Argument}}
+\index{\icode{Arguments}}
 \index{\icode{TestFunction}}
 \index{\icode{TestFunctions}}
 \index{\icode{TrialFunction}}
@@ -562,7 +562,7 @@ available as \icode{cell.d}.
 \index{\icode{split}}
 
 Basis functions and coefficient functions are represented by
-\icode{BasisFunction} and \icode{Coefficient} respectively. The ordering
+\icode{Argument} and \icode{Coefficient} respectively. The ordering
 of the arguments to a form is decided by the order in which the form
 arguments were declared in the \ufl{} code.  Each basis function
 argument represents any function in the basis of its finite element
@@ -583,13 +583,13 @@ pointwise, which are declared with a finite element with family
 ``Quadrature''.  Basis functions are declared for an arbitrary element
 as in the following manner:
 \begin{python}
-phi = BasisFunction(element)
+phi = Argument(element)
 v = TestFunction(element)
 u = TrialFunction(element)
 \end{python}
 By using \icode{TestFunction} and \icode{TrialFunction} in
 declarations instead of \icode{Basis\-Function} you can ignore their
-relative ordering.  The only time \icode{BasisFunction} is needed is
+relative ordering.  The only time \icode{Argument} is needed is
 for forms of arity $r > 2$.
 
 Coefficient functions are declared similarly for an arbitrary element,
@@ -1324,7 +1324,7 @@ sL = sensitivity_rhs(a, u, L, c)
 \end{python}
 Note that the solution \icode{u} must be represented by a
 \icode{Coefficient}, while $u$ in $a(u, v)$ is represented
-by a \icode{BasisFunction}.
+by a \icode{Argument}.
 
 
 %==============================================================================
@@ -1542,7 +1542,7 @@ represented by a tree with two nodes. Each time an operator is applied
 to some expressions, it will return a new tree root that references
 its operands. Note that the user will apply the functions \icode{grad}
 and \icode{inner} in her use of the language, while the names
-\icode{Grad}, \icode{Inner} and \icode{BasisFunction} in this figure
+\icode{Grad}, \icode{Inner} and \icode{Argument} in this figure
 are the names of the \icode{Expr} subclasses used in \ufl{} to
 represent the expression objects.  In other words, taking the gradient
 of an expression with \icode{grad(u)} gives an expression
@@ -1968,10 +1968,10 @@ Consider an object \icode{element} which represents a finite element
 space $V_h$ with a basis $\{\phi_k\}$.  Next consider form arguments
 defined in this space:
 \begin{python}
-v = BasisFunction(element)
+v = Argument(element)
 w = Coefficient(element)
 \end{python}
-The BasisFunction instance \icode{v} represents any $v\in\{\phi_k\}$,
+The Argument instance \icode{v} represents any $v\in\{\phi_k\}$,
 while the \icode{Coefficient} instance \icode{w} represents the sum
 \begin{align}
 w = \sum_k w_k \phi_k(x).
@@ -2048,8 +2048,8 @@ class ExampleFunction(MultiFunction):
     def operator(self, expression):
         return "Got an Operator subtype %s." % type(expression)
 
-    def basis_function(self, expression):
-        return "Got a BasisFunction."
+    def argument(self, expression):
+        return "Got a Argument."
 
     def sum(self, expression):
         return "Got a Sum."
@@ -2059,7 +2059,7 @@ m = ExampleFunction()
 cell = triangle
 element = FiniteElement("CG", cell, 1)
 x = cell.x
-print m(BasisFunction(element))
+print m(Argument(element))
 print m(x)
 print m(x[0] + x[1])
 print m(x[0] * x[1])
@@ -2103,14 +2103,14 @@ A multifunction is declared as a subclass of
 particularly, a member function is declared in the subclass.  The
 \icode{Expr} classes use the \icode{CamelCaps} naming convention,
 which is automatically converted to \icode{underscore\_notation} for
-corresponding function names, such as \icode{BasisFunction} and
+corresponding function names, such as \icode{Argument} and
 \icode{basis\_function}.  If a handler function is not declared for a
 type, the closest superclass handler function is used instead.  Note
 that the \icode{MultiFunction} implementation is specialized to types
 in the \icode{Expr} class hierarchy.  The declaration and use of a
 multifunction is illustrated in Figure~\ref{ufl:fig:examplefunction}.
 Note that \icode{basis\_function} and \icode{sum} will handle
-instances of the exact types \icode{BasisFunction} and \icode{Sum},
+instances of the exact types \icode{Argument} and \icode{Sum},
 while \icode{terminal} and \icode{operator} will handle the types
 \icode{SpatialCoordinate} and \icode{Product} since they have no
 specific handlers.
@@ -2347,7 +2347,7 @@ equivalent forms are recognized as such.
 Some of the types in the \icode{Expr} class hierarchy (subclasses of
 \icode{Counted}), has a global counter to identify the order in which
 they were created.  This counter is used by form arguments (both
-\icode{BasisFunction} and \icode{Coefficient}) to identify their relative
+\icode{Argument} and \icode{Coefficient}) to identify their relative
 ordering in the argument list of the form.  Other counted types are
 \icode{Index} and \icode{Label}, which only use the counter as a
 unique identifier.  Algorithms are implemented for renumbering of all
