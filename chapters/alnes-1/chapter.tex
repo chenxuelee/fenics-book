@@ -1382,17 +1382,17 @@ $z = y_n$
 \label{ufl:alg:program}
 \end{algorithm}
 
-Each terminal expression $t_i$ is a literal constant or input
-argument to the program. This includes coefficients, basis functions,
-and geometric quantities.  A non-terminal subexpression $y_i$ is the
+Each terminal expression $t_i$ is a literal constant or input argument
+to the program. This includes coefficients, basis functions, and
+geometric quantities.  A non-terminal subexpression $y_i$ is the
 result of applying an operator $f_i$ to a sequence of previously
-computed expressions $\seq{y_j}_{j\in\mI_i}$, where $\mI_i$ is a set
-of expression labels.  Note that the order in which subexpressions
-must be computed to produce the same value of $z$ is not unique.  For
-correctness we only require $j < i \, \forall j \in \mI_i$, such that
-all dependencies of a subexpression $y_i$ has been computed before
-$y_i$.  In particular, all terminals are numbered first in this
-abstract algorithm for notational convenience only.
+computed expressions $\seq{y_j}_{j\in\mI_i}$, where $\mI_i$ is an
+ordered sequence of expression labels.  Note that the order in which
+subexpressions must be computed to produce the same value of $z$ is
+not unique.  For correctness we only require $j < i \, \forall j \in
+\mI_i$, such that all dependencies of a subexpression $y_i$ has been
+computed before $y_i$.  In particular, all terminals are numbered
+first in this abstract algorithm for notational convenience only.
 
 The program to compute $z$ can be represented as a graph, where each
 expression $y_i$ corresponds to a graph vertex. There is a directed
@@ -1434,14 +1434,13 @@ expression object, which will be explained next.
 Recall from Algorithm~\ref{ufl:alg:program} that non-terminals are
 expressions $y_i = f_i(\left<y_j\right>_{j\in\mI_i})$.  The operator
 $f_i$ is represented by the class of the expression object, while the
-expression $y_i$ is represented by the instance of this class.  Each
-expression object is an instance of some subclass of \icode{Expr}.
-
-The class \icode{Expr} is the superclass of a hierarchy containing all
-terminal expression types and operator types supported by
-\ufl{}. \icode{Expr} has two direct subclasses, \icode{Terminal} and
-\icode{Operator}, which divides the expression type hierarchy in two,
-as illustrated in Figure~\ref{ufl:fig:expr}.
+expression $y_i$ is represented by the instance of this class.  In the
+\ufl{} implementation, each expression object is an instance of some
+subclass of \icode{Expr}. The class \icode{Expr} is the superclass of
+a hierarchy containing all terminal expression types and operator
+types supported by \ufl{}. \icode{Expr} has two direct subclasses,
+\icode{Terminal} and \icode{Operator}, which divides the expression
+type hierarchy in two, as illustrated in Figure~\ref{ufl:fig:expr}.
 
 All expression objects are considered immutable; once constructed an
 expression object will never be modified.  Manipulating an expression
@@ -1453,11 +1452,15 @@ and simplifies recognition of common subexpressions.
 
 Calling \icode{e.operands()} on an \icode{Expr} object \icode{e}
 representing $y_i$ returns a tuple with expression objects
-representing $\left<y_j\right>_{j\in\mI_i}$. Instead of modifying
-the operands of an expression object, any expression object can
-be reconstructed with modified operands using
-\icode{e.reconstruct(operands)}, where \icode{operands}
-is a tuple of expression objects.  The invariant
+representing $\left<y_j\right>_{j\in\mI_i}$.  Note that this also
+applies to terminals where there are no outgoing edges and
+\icode{t.operands()} returns an empty tuple.  Instead of modifying the
+operands of an expression object, a new expression object of the same
+type can be constructed with modified operands using
+\icode{e.reconstruct(operands)}, where \icode{operands} is a tuple of
+expression objects. If the operands are the same this function returns
+the original object, allowing many algorithms to save memory without
+additional complications. The invariant
 \icode{e.reconstruct(e.operands()) == e} should always hold.
 
 
@@ -1521,28 +1524,32 @@ becomes zero.
 \label{ufl:fig:stiffness}
 \end{figure}
 
-An expression is usually represented as an expression tree.  Each
-subexpression is represented by a tree node, which is the root of a
-tree of its own.  The leaves of the tree are terminal expressions, and
-operators have their operands as children.  An expression tree for the
-stiffness term $\Grad\uu :\Grad\vv$ is illustrated in
-Figure~\ref{ufl:fig:stiffness}.  The terminals $\uu$ and $\vv$ have no
-children, and the term $\Grad\uu$ is itself represented by a tree
-with two nodes.  The names in this figure, \icode{Grad}, \icode{Inner}
-and \icode{BasisFunction}, reflect the names of the classes used in
-\ufl{} to represent the expression nodes. Taking the gradient of an
-expression with \icode{grad(u)} gives an expression representation
-\icode{Grad(u)}, and \icode{inner(a, b)} gives an expression
-representation \icode{Inner(a, b)}.
+The expression tree does not have a separate data structure. It is
+merely a way of viewing the structure of an expression. Any expression
+object \icode{e} can be seen as the root of a tree, where
+\icode{e.operands()} returns its children. If some of the children are
+equal, they will appear as many times as they appear in the
+expression. Thus it is easy to traverse the tree nodes (i.e. $v_i$ in
+the DAG), but eventual reuse of subexpressions is not directly
+visible. Edges in the DAG does not appear explicitly, and the list of
+vertices can only be obtained by traversing the tree recursively and
+selecting unique objects.
 
-The edges of the DAG is not stored explicitly in the tree
-representation. However, from an expression object representing the
-vertex $v_i$, a tuple with the vertices $\left<y_j\right>_{j\in\mI_i}$
-can be obtained by calling \icode{yi.operands()}.  These expression
-objects represent the graph vertices that have edges pointing to them
-from $y_i$.  Note that this generalizes to terminals where there are
-no outgoing edges and \icode{t.operands()} returns an empty tuple.
-
+An expression tree for the stiffness term $\Grad\uu :\Grad\vv$ is
+illustrated in Figure~\ref{ufl:fig:stiffness}.  The terminals $\uu$
+and $\vv$ have no children, and the term $\Grad\uu$ is itself
+represented by a tree with two nodes. Each time an operator is applied
+to some expressions, it will return a new tree root that references
+its operands. Note that the user will apply the functions \icode{grad}
+and \icode{inner} in her use of the language, while the names
+\icode{Grad}, \icode{Inner} and \icode{BasisFunction} in this figure
+are the names of the \icode{Expr} subclasses used in \ufl{} to
+represent the expression objects.  In other words, taking the gradient
+of an expression with \icode{grad(u)} gives an expression
+representation \icode{Grad(u)}, and \icode{inner(a, b)} gives an
+expression representation \icode{Inner(a, b)}. This separation of
+language and representation is merely a design choice in the
+implementation of \ufl{}.
 
 %------------------------------------------------------------
 \subsection{Linearized graph representation} \label{ufl:sec:graphs}
