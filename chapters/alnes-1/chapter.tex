@@ -72,7 +72,7 @@
 \index{form language}
 \index{domain specific language}
 
-\editornote{Sort out what to do with all UFL specific macros and bold math fonts.}
+\editornote{FIXME: Sort out what to do with all UFL specific macros and bold math fonts.}
 
 The Unified Form Language -- \ufl{}~\cite{manual:ufl,www:ufl} -- is a
 domain specific language for the declaration of finite element
@@ -1300,6 +1300,7 @@ hand side in Equation~\eqref{ufl:eq:pde}.
 %------------------------------------------------------------------------------
 \subsection{Computing the sensitivity of a function} \label{ufl:sec:sensitivity}
 % FIXME: Confusing mix of equation above with hypothetical coeff c...
+% FIXME: Reviewer found the b/L switching confusing
 If you have found the solution $u$ to Equation~\eqref{ufl:eq:pde}, and
 $u$ depends on some constant scalar value $c$, you can compute the
 sensitivity of $u$ w.r.t. changes in $c$.  If $u$ is represented by a
@@ -1423,7 +1424,7 @@ expression object, which will be explained next.
 %------------------------------------------------------------------------------
 \subsection{Expression objects}
 
-\editornote{Redraw this figure in Inkscape.}
+\editornote{FIXME: Redraw this figure in Inkscape.}
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\smallfig]{chapters/alnes-1/pdf/expr.pdf}
@@ -1466,7 +1467,6 @@ additional complications. The invariant
 
 %------------------------------------------------------------------------------
 \subsection{Expression properties}
-\editornote{Stick ugly text sticking out in margin.}
 In Section~\ref{ufl:sec:indexnotation} the tensor algebra and index
 notation capabilities of \ufl{} was discussed.  Expressions can be
 scalar or tensor-valued, with arbitrary rank and shape. Therefore,
@@ -1516,7 +1516,7 @@ becomes zero.
 %------------------------------------------------------------------------------
 \subsection{Tree representation}
 
-\editornote{Redraw this figure in Inkscape.}
+\editornote{FIXME: Redraw this figure in Inkscape.}
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\smallfig]{chapters/alnes-1/pdf/stiffness.pdf}
@@ -1618,7 +1618,7 @@ expansion.
 
 \ufl{} is intended as a front-end for form compilers.  Since the end
 goal is generation of code from expressions, some utilities are
-provided for the code generation process.  In principle, correct code
+provided for the code generation process. In principle, correct code
 can be generated for an expression from its computational graph simply
 by iterating over the vertices and generating code for each operation
 separately, basically mirroring Algorithm~\ref{ufl:alg:program}.
@@ -1629,7 +1629,10 @@ which enables quadrature based form compilers to easily place
 subexpressions inside the right sets of loops.  The function
 \icode{partition} implements this feature.  Each partition is
 represented by a simple array of vertex indices.
-% FIXME: Expand with an example...
+% FIXME: Expand with an example:
+% - Define an expression.
+% - Make the graph and show print of it
+% - Partition it and show partitions
 
 %Vin  = G.Vin()  # Vin[i]  = list of vertex indices j such that there is an edge from V[j] to V[i]
 %Vout = G.Vout() # Vout[i] = list of vertex indices j such that there is an edge from V[i] to V[j]
@@ -1645,6 +1648,7 @@ represented by a simple array of vertex indices.
 \index{symbolic differentiation}
 \index{differentiation}
 \index{derivatives}
+% FIXME: Review this section based on comments from reviewer
 
 When a derivative expression is declared by the end-user of the form
 language, an expression node is constructed to represent it, but
@@ -2003,6 +2007,7 @@ already been used in the form.
 %\clearpage{}
 \section{Algorithms} \label{ufl:sec:algorithms}
 \index{algorithms}
+% FIXME: Review this section based on comments from reviewer
 
 In this section, some central algorithms and key implementation issues
 are discussed, much of which relates to the Python programming
@@ -2079,8 +2084,6 @@ print m(x[0] * x[1])
 \caption{Example declaration and use of a multifunction}
 \label{ufl:fig:examplefunction}
 \end{figure}
-
-\editornote{Make code fit in box.}
 
 A common task in both symbolic computing and compiler implementation
 is the selection of some operation based on the type of an expression
@@ -2245,17 +2248,17 @@ session shows the syntax:
 \begin{python}
 >>> cell = triangle
 >>> x = cell.x
->>> e = x[0]+x[1]
->>> print e((0.5,0.7))
+>>> e = x[0] + x[1]
+>>> print e((0.5, 0.7))
 1.2
 \end{python}
 Other terminals can be specified using a dictionary that maps from
 terminal instances to values.  This code extends the above code with a
 mapping:
 \begin{python}
-c = Constant(cell)
-e = c*(x[0]+x[1])
-print e((0.5,0.7), { c: 10 })
+c = Constant(triangle)
+e = c * (x[0] + x[1])
+print e((0.5, 0.7), { c: 10 })
 \end{python}
 If functions and basis functions depend on the spatial coordinates,
 the mapping can specify a Python callable instead of a literal
@@ -2264,12 +2267,13 @@ return a floating point value.  If the function being mapped is a
 vector function, the callable must return a tuple of values instead.
 These extensions can be seen in the following code:
 \begin{python}
-element = VectorElement("CG", cell, 1)
+element = VectorElement("CG", triangle, 1)
+c = Constant(triangle)
 f = Coefficient(element)
-e = c*(f[0] + f[1])
+e = c * (f[0] + f[1])
 def fh(x):
     return (x[0], x[1])
-print e((0.5,0.7), { c: 10, f: fh })
+print e((0.5, 0.7), { c: 10, f: fh })
 \end{python}
 To use expression evaluation for validating that the derivative
 computations are correct, spatial derivatives of form arguments can
@@ -2278,11 +2282,11 @@ which is called with a tuple of integers specifying the spatial
 directions in which to differentiate. A final example code computing
 $g^2 + g_{,0}^2 + g_{,1}^2$ for $g=x_0x_1$ is shown below.
 \begin{python}
-element = FiniteElement("CG", cell, 1)
+element = FiniteElement("CG", triangle, 1)
 g = Coefficient(element)
 e = g**2 + g.dx(0)**2 + g.dx(1)**2
 def gh(x, der=()):
-    if der == ():   return x[0]*x[1]
+    if der == ():   return x[0] * x[1]
     if der == (0,): return x[1]
     if der == (1,): return x[0]
 print e((2, 3), { g: gh })
@@ -2309,6 +2313,7 @@ found in the manual.
 %==============================================================================
 %\clearpage{}
 \section{Implementation issues} \label{ufl:sec:implementation}
+% FIXME: Review this section based on comments from reviewer
 
 %------------------------------------------------------------
 \subsection{Python as a basis for a domain specific language}
@@ -2408,6 +2413,8 @@ make it efficient~\cite{Kuc2007}.
 %\clearpage{}
 \section{Future directions} \label{ufl:sec:future}
 \index{UFL}
+% FIXME: Review this section based on comments from reviewer
+
 Many additional features can be introduced to \ufl{}.
 Which features are added will depend on the needs of \fenics{} users
 and developers.  Some features can be implemented in \ufl{} alone,
