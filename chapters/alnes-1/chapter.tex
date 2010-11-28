@@ -1552,20 +1552,30 @@ language and representation is merely a design choice in the
 implementation of \ufl{}.
 
 %------------------------------------------------------------
-\subsection{Linearized graph representation} \label{ufl:sec:graphs}
+\subsection{Graph representation} \label{ufl:sec:graphs}
+\index{computational graph}
+
 %Using the notation $\seq{x_i}_{i=1}^n$
 %to mean an array of length $n$ with elements $x_i$.
-\index{computational graph} A linearized representation of the DAG is
-useful for several internal algorithms, either to achieve a more
-convenient formulation of an algorithm or for improved performance.
-\ufl{} includes tools to build a linearized representation of the DAG,
-the \emph{computational graph}, from any expression tree.  The
-computational graph $G = V, E$ is a data structure based on flat
+
+When viewing an expression as a tree, the lists of all unique vertices
+and edges are not directly available. Representing the DAG more
+directly allows many algorithms to be simplified or optimized.
+\ufl{} includes tools to build an array based representation of the DAG,
+the \emph{computational graph}, from any expression.
+The computational graph $G = V, E$ is a data structure based on flat
 arrays, directly mirroring the definition of the graph in
-equations~\eqref{ufl:eq:G}-\eqref{ufl:eq:E}.  This simple data
-structure makes some algorithms easier to implement or more efficient
-than the recursive tree representation.  One array (Python list)
-\icode{V} is used to store the vertices $\seq{v_i}_{i=1}^n$ of the
+equations~\eqref{ufl:eq:G}-\eqref{ufl:eq:E}.
+This representation gives direct access to dependencies between
+subexpressions, and allows easy iteration over unique vertices.
+The graph is constructed easily with the lines:
+\begin{python}
+from ufl.algorithms import Graph
+G = Graph(expression)
+V, E = G
+\end{python}
+One array (Python list)
+\icode{V} is used to store the unique vertices $\seq{v_i}_{i=1}^n$ of the
 DAG.  For each vertex $v_i$ an expression node $y_i$ is stored to
 represent it.  Thus the expression tree for each vertex is also
 directly available, since each expression node is the root of its own
@@ -1577,25 +1587,26 @@ such that $j < i \forall j \in \mI_i$.
 
 From the edges $E$, related arrays can be computed efficiently; in
 particular the vertex indices of dependencies of a vertex $v_i$ in
-both directions are useful: %$V_{out}$, $V_{in}$.
+both directions are useful:
 \begin{align}
 \begin{split}
 V_{out} &= \seq{\mI_i}_{i=1}^{n}, \\
 V_{in}  &= \seq{\{ j | i \in \mI_j \}}_{i=1}^{n}
 \end{split}
 \end{align}
-These data structures can be easily constructed for any expression:
+These arrays can be easily constructed for any expression:
 \begin{python}
-G = Graph(expression)
-V, E = G
 Vin = G.Vin()
 Vout = G.Vout()
 \end{python}
+Similar functions exist for obtaining indices into $E$ for all
+incoming and outgoing edges.
 A nice property of the computational graph built by \ufl{} is that no
 two vertices will represent the same identical expression.  During
 graph building, subexpressions are inserted in a hash map (Python
 dict) to achieve this.
 
+% FIXME: Clarify why free indices complicate things...
 Free indices in expression nodes can complicate the interpretation of
 the linearized graph when implementing some algorithms.  One solution
 to that can be to apply \icode{expand\_indices} before constructing
@@ -1618,6 +1629,7 @@ which enables quadrature based form compilers to easily place
 subexpressions inside the right sets of loops.  The function
 \icode{partition} implements this feature.  Each partition is
 represented by a simple array of vertex indices.
+% FIXME: Expand with an example...
 
 %Vin  = G.Vin()  # Vin[i]  = list of vertex indices j such that there is an edge from V[j] to V[i]
 %Vout = G.Vout() # Vout[i] = list of vertex indices j such that there is an edge from V[i] to V[j]
