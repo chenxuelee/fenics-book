@@ -2210,28 +2210,39 @@ this pattern.
 \index{expression representations}
 
 There are many ways in which expression representations can be
-manipulated.  Here, we describe a few particularly important
+manipulated.  Here, we describe three particularly important
 transformations.  Note that each of these algorithms removes some
 abstractions, and hence may remove some opportunities for analysis or
-optimization.
+optimization. To demonstrate their effect, each tranformation will
+be applied below to the expression
+\begin{align} \label{ufl:eq:a_before_expand}
+a   &= \Grad (f u) \cdot \Grad v.
+\end{align}
+At the end of the section, some example code is given to demonstrate
+more representation details.
 
 Some operators in \ufl{} are termed ``compound'' operators, meaning
 they can be represented by other more elementary operators.  Try
-defining an expression \icode{e = inner(grad(u), grad(v))}, and print
-\icode{repr(e)}. As you will see, the representation of \icode{e} is
-\icode{Inner(Grad(u), Grad(v))} (with some more details for \icode{u}
-and \icode{v}).  By representing the gradient directly with a high
+defining an expression \icode{a = dot(grad(f*u), grad(v))}, and print
+\icode{repr(a)}. As you will see, the representation of \icode{a} is
+\icode{Dot(Grad(Product(f, u)), Grad(v))}, with some more details
+in place of \icode{f}, \icode{u} and \icode{v}.
+By representing the gradient directly with a high
 level type \icode{Grad} instead of more low level types, the input
 expressions are easier to recognize in the representation, and
 rendering of expressions to for example \LaTeX{} format can show the
 original compound operators as written by the end-user.
-
 However, since many algorithms must implement actions for each
 operator type, the function \icode{expand\_compounds} is used to
 replace all expression nodes of ``compound'' types with equivalent
 expressions using basic types. When this operation is applied to the
 input forms from the user, algorithms in both \ufl{} and the form
-compilers can still be written purely in terms of basic operators.
+compilers can still be written purely in terms of more basic operators.
+Expanding the compound expressions from
+Equation~\eqref{ufl:eq:a_before_expand} results in the expression
+\begin{align} \label{ufl:eq:a_after_expand_compounds}
+a_c &= \sum_i \frac{\partial v}{\partial x_i} \frac{\partial (u f)}{\partial x_i}.
+\end{align}
 
 Another important transformation is \icode{expand\_derivatives}, which
 applies automatic differentiation to expressions, recursively and for
@@ -2239,18 +2250,36 @@ all kinds of derivatives.  The end result is that most derivatives are
 evaluated, and the only derivative operator types left in the
 expression tree applies to terminals. The precondition for this
 algorithm is that \icode{expand\_compounds} has been applied.
+Expanding the derivatives in $a_c$ from
+Equation~\eqref{ufl:eq:a_after_expand_compounds} gives us
+\begin{align} \label{ufl:eq:a_after_expand_derivatives}
+a_d &= \sum_{i} \frac{\partial v}{\partial x_i} (u \frac{\partial f}{\partial x_i} + f \frac{\partial u}{\partial x_i}).
+\end{align}
 
 Index notation and the \icode{IndexSum} expression node type
-complicate interpretation of an expression tree in some contexts,
-since free indices in its summand expression will take on multiple
-values.  In some cases, the transformation \icode{expand\_indices}
-comes in handy, the end result of which is that there are no free
-indices left in the expression.  The precondition for this algorithm
+complicate interpretation of an expression tree somewhat,
+in particular in expressions with nested index sums.
+Since expressions with free indices will take on multiple values,
+each expression object represents not only one value but a set of values.
+The transformation \icode{expand\_indices} then comes in handy.
+The precondition for this algorithm
 is that \icode{expand\_compounds} and \icode{expand\_derivatives} have
-been applied.
+been applied. The postcondition of this algorithm is that there are no
+free indices left in the expression. Expanding the indices in
+Equation~\eqref{ufl:eq:a_after_expand_derivatives} finally gives
+\begin{align} \label{ufl:eq:a_after_expand_indices}
+a_i &= \frac{\partial v}{\partial x_0} (u \frac{\partial f}{\partial x_0} + f \frac{\partial u}{\partial x_0}) + \frac{\partial v}{\partial x_1} (u \frac{\partial f}{\partial x_1} + f \frac{\partial u}{\partial x_1}).
+\end{align}
+We started with the higher level concepts gradient and dot product
+in Equation~\eqref{ufl:eq:a_before_expand}, and ended ut with
+only scalar addition, multiplication, and partial derivatives
+of the form arguments. A form compiler will typically start
+with $a_d$ or $a_i$, insert values for the argument derivatives,
+apply some other transformations, before finally generating code.
 
-An example should help clarify what these algorithms do.
-Since the output from this code is a bit lengthy, only
+Some example code to play around with should help in understanding
+what these algorithms do at the expression representation level.
+Since the printed output from this code is a bit lengthy, only
 key aspects of the output is repeated below. Copy this code
 to a python file or run it in a python interpreter to
 see the full output.
@@ -2260,6 +2289,8 @@ V = FiniteElement("CG", triangle, 1)
 u = TestFunction(V)
 v = TrialFunction(V)
 f = Coefficient(V)
+
+# Note no *dx! This is an expression, not a form.
 a = dot(grad(f * u), grad(v))
 
 from ufl.algorithms import *
@@ -2271,9 +2302,12 @@ print "\nac:", str(ac), "\n", tree_format(ac)
 print "\nad:", str(ad), "\n", tree_format(ad)
 print "\nai:", str(ai), "\n", tree_format(ai)
 \end{python}
+
 % FIXME: Make examples flow
-The output for \icode{a} is (with the details of the
-finite element object cut away for shorter lines):
+
+% Showing a full example of tree_format and explaining arguments:
+The print output showing \icode{a} is (with the details of the finite
+element object cut away for shorter lines):
 \begin{python}
 a:  (grad(v_{-2} * w_0)) . (grad(v_{-1}))
 Dot
@@ -2291,16 +2325,10 @@ Dot
 The arguments labeled -1 and -2 refer to $v$ and $u$ respectively.
 
 % FIXME: Show extract with Dot(a, b) -> IndexSum(Product(a[i], b[i]), i)
-% FIXME: Show extract with SpatialDerivative(u * f, i) -> SpatialDerivative(u, i) * f + ...
-% FIXME: Show extract demonstrating index expansion.
 
-Summarized, the expressions before and after each of the three transformations are
-\begin{align}
-a   &= \Grad (f u) \cdot \Grad v, \\
-a_c &= \sum_i \frac{\partial v}{\partial x_i} \frac{\partial (u f)}{\partial x_i}, \\
-a_d &= \sum_{i} \frac{\partial v}{\partial x_i} (u \frac{\partial f}{\partial x_i} + f \frac{\partial u}{\partial x_i}), \\
-a_i &= \frac{\partial v}{\partial x_0} (u \frac{\partial f}{\partial x_0} + f \frac{\partial u}{\partial x_0}) + \frac{\partial v}{\partial x_1} (u \frac{\partial f}{\partial x_1} + f \frac{\partial u}{\partial x_1}), \\
-\end{align}
+% FIXME: Show extract with SpatialDerivative(u * f, i) -> SpatialDerivative(u, i) * f + ...
+
+% FIXME: Show extract demonstrating index expansion.
 
 The somewhat complex expression \icode{MultiIndex((Index(10),), \{Index(10): 2\})}
 can be read simply as ``index named $i_{10}$, bound to an axis with dimension 2''.
