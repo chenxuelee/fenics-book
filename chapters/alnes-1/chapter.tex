@@ -2324,14 +2324,51 @@ Dot
 \end{python}
 The arguments labeled -1 and -2 refer to $v$ and $u$ respectively.
 
-% FIXME: Show extract with Dot(a, b) -> IndexSum(Product(a[i], b[i]), i)
-
-% FIXME: Show extract with SpatialDerivative(u * f, i) -> SpatialDerivative(u, i) * f + ...
-
-% FIXME: Show extract demonstrating index expansion.
-
-The somewhat complex expression \icode{MultiIndex((Index(10),), \{Index(10): 2\})}
+% Show extract with Dot(a, b) -> IndexSum(Product(a[i], b[i]), i)
+In \icode{ac}, the \icode{Dot} product has been expanded to an
+\icode{IndexSum} of a \icode{Product} with two \icode{Indexed} operands:
+\begin{python}
+IndexSum
+(
+    Product
+    (
+        Indexed
+        (
+            ...
+            MultiIndex((Index(10),), {Index(10): 2})
+        )
+        Indexed
+        (
+            ...
+            MultiIndex((Index(10),), {Index(10): 2})
+        )
+    )
+    MultiIndex((Index(10),), {Index(10): 2})
+)
+\end{python}
+The somewhat complex looking expression \icode{MultiIndex((Index(10),), \{Index(10): 2\})}
 can be read simply as ``index named $i_{10}$, bound to an axis with dimension 2''.
+
+Zooming in to one of the \icode{...} lines above, the representation
+of $\Grad(fu)$ must still keep the vector shape after being
+transformed to more basic expressions, which is why the
+\icode{SpatialDerivative} object is wrapped in a
+\icode{ComponentTensor} object:
+\begin{python}
+ComponentTensor
+(
+    SpatialDerivative
+    (
+        Product     
+        (
+            u
+            f
+        )
+        MultiIndex((Index(8),), {Index(8): 2})
+    )
+    MultiIndex((Index(8),), {Index(8): 2})
+)
+\end{python}
 A common pattern occurs in the algorithmically expanded expressions:
 \begin{python}
 Indexed
@@ -2344,8 +2381,39 @@ Indexed
     MultiIndex((Index(10),), {Index(10): 2})
 )
 \end{python}
-This pattern acts as a relabeling of the index objects, renaming $i_{8}$
-from inside $\ldots$ to $i_{10}$ on the outside.
+This pattern acts as a relabeling of the index objects, renaming
+$i_{8}$ from inside $\ldots$ to $i_{10}$ on the outside.  When looking
+at the print of \icode{ad}, the result of the chain rule
+($(fu)' = u f' + f u'$) can be seen as the \icode{Sum} of two
+\icode{Product} objects.
+\begin{python}
+Sum
+(
+    Product
+    (
+        u
+        SpatialDerivative
+        (
+            f
+            MultiIndex((Index(8),), {Index(8): 2})
+        )
+    )
+    Product
+    (
+        f
+        SpatialDerivative
+        (
+            u
+            MultiIndex((Index(8),), {Index(8): 2})
+        )
+    )
+)
+\end{python}
+Finally after index expansion in \icode{ai} (not shown here), no free
+\icode{Index} objects are left, but instead a lot of \icode{FixedIndex}
+objects can be seen in the print of \icode{ai}. Looking through the
+full output from the example code above is strongly encouraged if you
+want a good understanding of the three transformations shown here.
 
 
 %------------------------------------------------------------
