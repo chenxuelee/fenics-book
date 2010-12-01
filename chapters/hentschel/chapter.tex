@@ -5,11 +5,11 @@
 
 
 This chapter concerns the flow of cerebrospinal fluid (CSF) in the subarachnoid space that 
-surrounds spinal cord. Particular attention is given to abnormal flow and pressure resulting from 
+the surrounds spinal cord. Particular attention is given to abnormal flow and pressure resulting from 
 the Chiari I malformation and its often associated condition syringomyelia. 
 This chapter builds on the software tools described in Chapter~[kvs-1], and
 we will compare the Chorin, IPCS, and G2 methods. 
-In this chapter, we will also describe how to create meshes with GMSH.  
+In this chapter, we will also describe how to create meshes with Gmsh.  
 
 
 
@@ -23,7 +23,7 @@ The CSF is a clear water-like fluid that occupies the subarachnoid space (SAS).
 It surrounds the brain and the spinal cord, and also fills the ventricular
 system within the brain. The SAS is bounded by strong tissue layers, the dura
 mater as the outer boundary and the pia mater as the inner boundary. A hole in
-the skull basis, foramen magnum \index{foramen magnum}, connects the cranial
+the skull basis, foramen magnum\index{foramen magnum}, connects the cranial
 and spinal parts of the SAS. This hole is essential for CSF flow dynamics,
 since pulsating blood vessels in the brain cause the brain to expand and
 contract, a volume change that is made possible only by a simultaneous
@@ -60,7 +60,7 @@ lead to death.
 
 Many people with the Chiari I malformation develop
 fluid filled cavities within the spinal cord, \index{spinal cord} a
-disease called syringomyelia. The exact
+condition called syringomyelia. The exact
 relation between the Chiari I malformation and syringomyelia is
  not known. It is believed that flow and pressure disturbances caused by abnormal obstructions initiate the development of
 syringomyelia~\cite{OldfieldMuraszkoShawkerEtAl1994}. Several authors have
@@ -77,16 +77,16 @@ syrinx disappeared completely after some months~\cite{OldfieldMuraszkoShawkerEtA
 
 Several studies~\cite{Quigley2004,HaughtonKorosecMedowEtAl2003} report that the measured flow at foramen magnum
 is abnormal in the sense that the flow contains high speed jets and also bidirectional flow. 
-Computational fluid dynamics (CFD) simulations have demonstrated have related the abnormal flow to 
+Computational fluid dynamics (CFD) simulations have related the abnormal flow to 
 abnormal pressure~\cite{RoldanHaughtonWiebenEtAl2008,Simula.SC.648,Simula.SC.522}. 
 Many theories have been proposed to describe the relation between the Chiari I malformation and
 syringomyelia. It is however a problem to explain the relatively large distance between the 
 Chiari I malformation and the cyst.  
 It is the purpose of this
-chapter to describe the implementation of such a CFD solver in
-\fenics\ and investigate the flow characteristics. 
-Note that the Navier-Stokes solvers are discussed in
-detail in Chapter [kvs-1].
+chapter to describe the implementation of such CFD solver in
+\fenics\ and investigate the flow characteristics. Specifically, we investigate
+different boundary conditions, different geometries, and also how far velocity and pressure disturbances travel
+under realistic conditions. We also compare the different solvers Chorin, ICPS, and G2, c.f. Chapter~[kvs-1].
 
 \section{Mathematical Description}
 
@@ -597,12 +597,13 @@ To create pressure and velocity instabilities, we assign  time-dependent but fla
 velocity conditions on the previously described geometry and investigate how far these instabilities
 travel with the flow. We also compare three different solvers, namely the Chorin, IPCS, and G2 schemes. 
 All schemes do however use first order elements for both velocity and pressure. In Table~\ref{solvers:pressurediff}, we list the pressure differences at various places along the spinal coord computed with 
-the three different solvers. Strangely, it appears that the G2 solver requires a 30\% bigger
+the three different solvers, slightly after systole. Strangely, it appears that the G2 solver requires a 30\% bigger
 pressure gradient between the top and the bottom in this case. However, the 
-G2 solvers has also produced some peculiar results in Chapter~[kvs-1]. We also remark that
-G2 was about 15 times slower than Chorin and IPCS. However, of main interest here is how
+G2 solver has also produced some peculiar results in Chapter~[kvs-1]. We also remark that
+G2 was about 15 times slower than Chorin and IPCS. Our main interest here, however,  is how
 far the pressure instabilities travel. All the solvers are consistent on this point, the pressure
 instabilities do not travel very far. After 1 cm, the pressure instabilities is lessened by a factor 5-10.    
+
 
 \begin{table}
 \begin{center}
@@ -766,6 +767,10 @@ in terms of pressure and flow deviations. From our simulations, it seems
 that pressure instabilities is quickely damped out under realistic Reynolds and 
 Womersley numbers. These instabilities travel less than 1 cm and it seems unlikely 
 that Chiari induced pressure instabilities will produce cysts several centimeters further
-down in the spinal canal. We also observed that the pressure computed using the G2 method
+down in the spinal canal. 
+We have observed that the velocity changes quite a bit with varying shape and position of the 
+cord. The pressure does, however, not change much. The size of the cross section area does have an impact
+on the pressure, as expected. 
+Finally, we observed that the pressure computed using the G2 method
 differed significantly from the pressure computed by Chorin and IPCS. 
 
