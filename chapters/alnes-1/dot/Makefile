@@ -1,15 +1,15 @@
 
-all: Expr.pdf Expr.ps Stiffness.pdf Stiffness.ps
+all: expr.pdf expr.ps stiffness.pdf stiffness.ps
 
-Expr.pdf: Expr.dot
-	dot -Tpdf -o Expr.pdf Expr.dot
+expr.pdf: expr.dot
+	dot -Tpdf -o expr.pdf expr.dot
 
-Expr.ps: Expr.dot
-	dot -Tps -o Expr.ps Expr.dot
+expr.ps: expr.dot
+	dot -Tps -o expr.ps expr.dot
 
-Stiffness.pdf: Stiffness.dot
-	dot -Tpdf -o Stiffness.pdf Stiffness.dot
+stiffness.pdf: stiffness.dot
+	dot -Tpdf -o stiffness.pdf stiffness.dot
 
-Stiffness.ps: Stiffness.dot
-	dot -Tps -o Stiffness.ps Stiffness.dot
+stiffness.ps: stiffness.dot
+	dot -Tps -o stiffness.ps stiffness.dot
 
