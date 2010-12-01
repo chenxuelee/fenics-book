@@ -15,7 +15,7 @@ In this chapter, we will also describe how to create meshes with GMSH.
 
 %------------------------------------------------------------------------------
 
-\DefineVerbatimEnvironment{code}{Verbatim}{frame=single,rulecolor=\color{blue}, fontsize=\scriptsize, tabsize=2}
+%\DefineVerbatimEnvironment{code}{Verbatim}{frame=single,rulecolor=\color{blue}, fontsize=\scriptsize, tabsize=2}
 
 \section{Medical Background}
 
@@ -74,20 +74,19 @@ images taken some weeks or months after the intervention often show a
 reduction of the size of the cavity in the spinal canal and patients
 usually report improvement of their condition. In some cases, the
 syrinx disappeared completely after some months~\cite{OldfieldMuraszkoShawkerEtAl1994,PinnaAlessandriniAlfieriEtAl2000,HeissPatronasDeVroomEtAl1999}.
+
+Several studies~\cite{Quigley2004,HaughtonKorosecMedowEtAl2003} report that the measured flow at foramen magnum
+is abnormal in the sense that the flow contains high speed jets and also bidirectional flow. 
+Computational fluid dynamics (CFD) simulations have demonstrated have related the abnormal flow to 
+abnormal pressure~\cite{RoldanHaughtonWiebenEtAl2008,Simula.SC.648,Simula.SC.522}. 
 Many theories have been proposed to describe the relation between the Chiari I malformation and
 syringomyelia. It is however a problem to explain the relatively large distance between the 
-Chiari I malformation and the cyst. 
-
-The studies mentioned above are all based on a small amount of
-individuals characterized by remarkable variations. Computational fluid dynamics (CFD) simulations
-may help to test modelling assumptions in generalized
-settings. In \cite{GuptaSoellingerBoesigerEtAl2009,RoldanHaughtonWiebenEtAl2008} the
-usefulness of CFD to quantify and visualize detailed CSF flow
-in patient specific cases was demonstrated.
+Chiari I malformation and the cyst.  
 It is the purpose of this
 chapter to describe the implementation of such a CFD solver in
-\fenics\. Note that the Navier-Stokes solvers are discussed in
-detail in Chapter [kvs-1].\\
+\fenics\ and investigate the flow characteristics. 
+Note that the Navier-Stokes solvers are discussed in
+detail in Chapter [kvs-1].
 
 \section{Mathematical Description}
 
@@ -100,7 +99,7 @@ simulate CSF flow, we apply the Navier-Stokes \index{Navier-Stokes}
 equations for an incompressible Newtonian fluid,
 \begin{eqnarray*}
 \rho \left(\frac{\partial \mathbf{v}}{\partial t} + (\mathbf{v}\cdot\nabla) \mathbf{v}\right) &=& -\nabla p + \mu \Delta \mathbf{v} + \mathbf{g}, \quad \in \Omega, \\
-\nabla \mathbf{v} &=& 0, \quad \in \Omega,
+\nabla \cdot \mathbf{v} &=& 0, \quad \in \Omega,
 \end{eqnarray*}
 with the variables as indicated in Table \ref{tab:entities}, and $\mathbf{g}$,
 the body force, i.e., gravity. We can eliminate gravity from the
@@ -425,19 +424,19 @@ def initial_conditions(self, V, Q):
 
 \paragraph{Running.}
 Applying the "Chorin" solver, the Problem is started by typing :
-
 \emp{unix>./ns csf\_flow chorin}.
 
 It approximates the Navier-Stokes equation with Chorin's method. The progress of different simulation steps and results, including maximum calculated pressure and velocity per time step, are printed out on the terminal. In addition, the solution for pressure and velocity are dumped to a file for each  time step. Before investigating the results, we introduce how the mesh is generated.
 
-\subsection{Generation of Meshes with GMSH} 
+\subsection{Generation of Meshes with Gmsh} 
+\index{Gmsh}
 
-Gmsh is handy since it is easy to control how the geometry is meshed. The following code example shows the construction of a circular cylinder (representing the pia on the spinal cord) within an elliptic cylinder (representing the dura). 
+In this section we go briefly through the basic usage of Gmsh ~\cite{GeuzaineRemacle}.  The following code example shows the construction of a circular cylinder (representing the pia on the spinal cord) within an elliptic cylinder (representing the dura). 
 We define a characteristic length scale \emp{lc}, which is used in the definition of each point \emp{Point}, which 
 takes three coordinates and the characteristic length scale. 
 The dura is defined by the ellipse vectors a=0.65 mm and b=0.7 mm in x and y direction respectively. The cord has a radius of 4 mm with its center moved 0.8 mm in positive x-direction  Since Gmsh only allows circular or elliptic arcs to be drawn for angles smaller than $pi$, the basic ellipses were constructed from four arcs each. Every arc is defined by the starting point, the center, another point on the arc and the end point. The value $lc$  defines the maximal edge length in vicinity to the point.
 
-\begin{code}
+\begin{gencode}
 lc = 0.04;  //characteristic length for the cell 
 Point(1) = {0,0,0,lc};	// center point (x,y,z,lc) 
 //outer ellipses
@@ -465,32 +464,36 @@ Ellipse(14) = {6,101,7,7};
 Ellipse(15) = {7,101,8,8};
 Ellipse(16) = {8,101,9,9};
 Ellipse(17) = {9,101,6,6};
-\end{code}
+\end{gencode}
 
-The constructed ellipses are composed of separate arcs. To define them as single lines, the ellipse arcs are connected in line loops.
+The constructed ellipses are composed of separate arcs. To define them as single lines, the ellipse arcs are connected in line loops as follows: 
 
-\begin{code}
+\begin{gencode}
 // connect lines of outer and inner ellipses to one
 Line Loop(20) = {10,11,12,13};		// only outer
 Line Loop(21) = {-14,-15,-16,-17};	// only inner
-\end{code}
+\end{gencode}
 The SAS surface between cord and dura is then defined by the following command.
-\begin{code}
+\begin{gencode}
 Plane Surface(32) = {20,21};
-\end{code}
+\end{gencode}
 
-To easily construct volumes, Gmsh allows to extrude a generated surface over a given length.
-\begin{code}
+Finally, to construct volumes, Gmsh contains the command \emp{Extrude}, which will extrude the surface over a given length.
+\begin{gencode}
 length = 5.0
 csf[] = Extrude(0,0,length){Surface{32};};
-\end{code}
+\end{gencode}
 
+We store the above Gmsh commands in a \emp{.geo} file that is read by Gmsh as,   
+\begin{bash}
+> gmsh filename.geo
+\end{bash}
+A screen shot of an interactive session is shown in Figure~\ref{fig:Gmsh_mesh}. 
+We may then change to "Mesh modus" in the interactive panel and press \emp{3d} to construct the mesh. Pressing \emp{Save} will save the mesh with the under then name "filename", with extension \emp{msh}. For use in \dolfin, we apply the \dolfin\ converter.
 
-Calling the .geo file in Gmsh
-\emp{>unix Gmsh filename.geo}
-shows the defined geometry. Changing to Mesh modus in the interactive panel and pressing \emp{3d} constructs the mesh. Pressing \emp{Save} will save the mesh with the .geo--filename and the extension \emp{msh}. For use in \dolfin, the mesh generated in Gmsh can be converted by applying the \dolfin\ converter.\\
-
-\emp{unix>dolfin-convert mesh-name.msh mesh-name.xml}
+\begin{bash}
+> dolfin-convert filename.msh filename.xml
+\end{bash}
 
 
 \begin{figure}\begin{center}
@@ -499,55 +502,58 @@ shows the defined geometry. Changing to Mesh modus in the interactive panel and 
 \label{fig:Gmsh_mesh}.
 \end{center}\end{figure}
 
-In our case, the resolution in the cross section is more important than along the pipe. Thus, we first varied the number of nodes per cross section on a pipe of length 1.75 cm with 30 layers in the flow direction. Reducing the maximum edge length \footnote{Denoted as \emp{lc} in the Gmsh code.} from 0.04, to 0.02 and 0.01 mm gradually decreased the velocity with some distance to the boundary. The reason for the different velocities lies in the no-slip boundary condition that influences a greater area for meshes with fewer nodes per cross section, leading to a smaller region of the non-zero flow area.
-
-Additionally, we observed increasingly wave-like structures of fluctuating velocites in the inflow and outflow regions, when the maximum edge length was decreased. These effects result from the changed ratio of edge lengths in cross-sectional and tubular direction.\\
-
-To avoid increasing the node density utterly, we introduced three thin layers close to the side boundaries that capture the steep velocity gradient in the boundary layer. The distance of the layers was chosen, so that the edge length slightly increased for each layer. Starting from 10\% of the maximum edge length for the first layer, the width of the second and the third layer was set to 30\% and 80\% of the maximum edge length. It turned out that for meshes with layers along the side boundaries, a maximum edge length of 0.04 mm was enough to reproduce the actual flow profile.
-
-To add mesh layers in Gmsh, copies for the elliptic arcs are scaled to gradually increase the maximum edge length. The code example below shows the creation of the layers close to the outer ellipse. The inner layers are created similarly.
-\begin{code}
+%In our case, the resolution in the cross section is more important than along the pipe. Thus, we first varied the number of nodes per cross section on a pipe of length 1.75 cm with 30 layers in the flow direction. Reducing the maximum edge length \footnote{Denoted as \emp{lc} in the Gmsh code.} from 0.04, to 0.02 and 0.01 mm gradually decreased the velocity with some distance to the boundary. The reason for the different velocities lies in the no-slip boundary condition that influences a greater area for meshes with fewer nodes per cross section, leading to a smaller region of the non-zero flow area.
+%
+%Additionally, we observed increasingly wave-like structures of fluctuating velocites in the inflow and outflow regions, when the maximum edge length was decreased. These effects result from the changed ratio of edge lengths in cross-sectional and tubular direction.\\
+%
+%To avoid increasing the node density utterly, we introduced three thin layers close to the side boundaries that capture the steep velocity gradient in the boundary layer. The distance of the layers was chosen, so that the edge length slightly increased for each layer. Starting from 10\% of the maximum edge length for the first layer, the width of the second and the third layer was set to 30\% and 80\% of the maximum edge length. It turned out that for meshes with layers along the side boundaries, a maximum edge length of 0.04 mm was enough to reproduce the actual flow profile.
+%
+To capture possible sharp gradients close to the boundary we introduce a few boundary layers. 
+This is obtained by 
+adding mesh layers, i.e., copies of the elliptic arcs that are gradually scaled increase the maximum edge length. The code example below shows the creation of the layers close to the outer ellipse. The inner layers are created similarly.
+\begin{gencode}
 outer_b1[] = Dilate {{0, 0, 0}, 1.0 - 0.1*lc } {
 Duplicata{  Line{10}; Line{11}; Line{12}; Line{13}; } };
 outer_b2[] = Dilate {{0, 0, 0}, 1.0 - 0.3*lc } {
 Duplicata{  Line{10}; Line{11}; Line{12}; Line{13}; } };
 outer_b3[] = Dilate {{0, 0, 0}, 1.0 - 0.8*lc } {
 Duplicata{  Line{10}; Line{11}; Line{12}; Line{13}; } };
-\end{code}
+\end{gencode}
+Here the command \emp{Duplicata} copies the expressions, while \emp{Dilate} scales them.    
 The single arcs are dilated separately since the arc points are necessary for further treatment. Remember that no arcs with angles smaller than $pi$ are allowed. Again we need a representation for the complete ellipses defined by line loops, as
-\begin{code}
+\begin{gencode}
 Line Loop(22) = {outer_b1[]};
-\end{code}
+\end{gencode}
 that are necessary to define the surfaces between all neighboring ellipses similar to:
-\begin{code}
+\begin{gencode}
 Plane Surface(32) = {20,22};
-\end{code}
-Additionally, all Surfaces have to be listed in the Extrude command (see below).\\
+\end{gencode}
+Finally, all surfaces are listed in the Extrude command.
 
 
-The tubular layers can be specified during extrusion. Note that the list of extruded surfaces now contains the six layers close to the side boundaries and the section between them.
-\begin{code}
-// Extrude
-length = 5.0;
-layers = 30;
-csf[] = Extrude {0,0,length} {Surface{32}; Surface{33};
-   Surface{34};Surface{35};Surface{36};Surface{37};Surface{38};Layers{ {layers}, {1} }; };
-\end{code}
-Besides controling the number of nodes in the tubular direction, extruded meshes result in more homogenous images in cross-sectional cuts.\\
-
+%The tubular layers can be specified during extrusion. Note that the list of extruded surfaces now contains the six layers close to the side boundaries and the section between them.
+%\begin{bash}
+%// Extrude
+%length = 5.0;
+%layers = 30;
+%csf[] = Extrude {0,0,length} {Surface{32}; Surface{33};
+%   Surface{34};Surface{35};Surface{36};Surface{37};Surface{38};Layers{ {layers}, {1} }; };
+%\end{bash}
+%Besides controling the number of nodes in the tubular direction, extruded meshes result in more homogenous images in cross-sectional cuts.\\
+%
 
 
 The test meshes of 1.75 cm seemed to have a fully developed region around the mid-cross sections, right where want to observe the flow profile. Testing different numbers of tubular layers for the length of 1.75, 2.5 and 5 cm showed that the above mentioned observations of wave-like structures occurred less for longer pipes, even though the number of layers was low compared to the pipe length.
-The presented results were simulated on meshes of length 5 cm with 30 layers in z-direction and three layers on the side boundaries. The complete code can be found in \emp{csf/mesh\_generation/gmsh}%FIXME
-.\\
+The presented results were simulated on meshes of length 5 cm with 30 layers in z-direction and three layers on the side boundaries. The complete code can be found in \emp{csf/mesh\_generation/gmsh}.
 
 
 
 
 
 \subsection{Example 1. Simulation of a Pulse in the SAS.}
-In the first example we represent the spinal cord and the surrounding dura mater as two straight cylinders.  These cylinders can easily be generated by using NetGen ~\cite{SchoberlGerstmayrGaisbauer} or Gmsh ~\cite{GeuzaineRemacle}.  In NetGen meshes can be constructed by adding or subtracting geometrical primitives from each other. It also supports \dolfin\ mesh generation. \paragraph{Results.}
-The simulation results for an appropriate mesh (see verification below) can be found in Figure \ref{fig:case1}. The plots show the velocity component in tubular direction at at the mid cross section of the model. The flow profiles are taken at the time steps of maximum flow in both directions and during the transition from systole to diastole. For maximal systole, the velocities have two peak rings, one close to the outer, the other to the inner boundary. We can see sharp profiles at the maxima and bidirectional flow at the local minimum during diastole.
+In the first example we represent the spinal cord and the surrounding dura mater as two straight cylinders, created using Gmsh. 
+%These cylinders can easily be generated by using NetGen ~\cite{SchoberlGerstmayrGaisbauer} or Gmsh ~\cite{GeuzaineRemacle}.  In NetGen meshes can be constructed by adding or subtracting geometrical primitives from each other. It also supports \dolfin\ mesh generation. \paragraph{Results.}
+The simulation results for an appropriate mesh can be found in Figure \ref{fig:case1}. The plots show the velocity component in tubular direction at at the mid cross section of the model. The flow profiles are taken at the time steps of maximum flow in both directions and during the transition from systole to diastole. For maximal systole, the velocities have two peak rings, one close to the outer, the other to the inner boundary. We can see sharp profiles at the maxima and bidirectional flow at the local minimum during diastole.
 
 
 \begin{figure}\begin{center}
@@ -670,27 +676,27 @@ The pulse and the sine are sketched in Figure \ref{fig:sin_pulse}. Both function
 
 \subsection{Example 3. Cord Shape and Position.}
 
-According to ~\cite{Lopes2007,Alperin2006}, the present flow is inertia dominated, meaning that the shape of the cross section should not influence the pressure gradient. Changing the length of vectors describing the ellipse from
-\begin{code}
+According to ~\cite{Lopes2007,AlperinMazdaLichtorEtAl2006}, the present flow is inertia dominated, meaning that the shape of the cross section should not influence the pressure gradient. Changing the length of vectors describing the ellipse from
+\begin{bash}
 c = 0.4;
 d = 0.4;
-\end{code}
+\end{bash}
 to
-\begin{code}
+\begin{bash}
 c = 0.32;
 d = 0.5;
-\end{code}
+\end{bash}
 transforms the cross section of the inner cylinder to an elliptic shape with preserved area. The simulation results are collected in Figure \ref{fig:case3}. The geometry differences between the two cases gave different flow profiles but no differences in the pressure gradient.
 
 
 A further perturbation of the SAS cross sections was achieved by changing the displacement of the elliptic cord center from
-\begin{code}
+\begin{bash}
 move = 0.08;
-\end{code}
+\end{bash}
 to
-\begin{code}
+\begin{bash}
 move = 0.16;
-\end{code}
+\end{bash}
 Also for this case the pressure field was identical, with some variations in the flow profiles.
 
 
