@@ -1579,35 +1579,6 @@ i.e. that $v_j$ is an operand of $v_i$.  The graph is built using a
 post-order traversal, which guarantees that the vertices are ordered
 such that $j < i \forall j \in \mI_i$.
 
-From the edges $E$, related arrays can be computed efficiently; in
-particular the vertex indices of dependencies of a vertex $v_i$ in
-both directions are useful:
-\begin{align}
-\begin{split}
-V_{out} &= \seq{\mI_i}_{i=1}^{n}, \\
-V_{in}  &= \seq{\{ j | i \in \mI_j \}}_{i=1}^{n}
-\end{split}
-\end{align}
-These arrays can be easily constructed for any expression:
-\begin{python}
-Vin = G.Vin()
-Vout = G.Vout()
-\end{python}
-Similar functions exist for obtaining indices into $E$ for all
-incoming and outgoing edges.
-A nice property of the computational graph built by \ufl{} is that no
-two vertices will represent the same identical expression.  During
-graph building, subexpressions are inserted in a hash map (Python
-dict) to achieve this.
-
-Free indices in expression nodes can complicate the interpretation of
-the linearized graph when implementing some algorithms, because an
-expression object with free indices represents not one value but a set
-of values, one for each permutation of the values its free indices can
-have.  One solution to this can be to apply \icode{expand\_indices}
-before constructing the graph. Note however that free indices cannot
-be regained after expansion.
-
 Let us look at an example of a computational graph. The following code
 defines a simple expression and then prints the vertices and edges
 of its graph.
@@ -1629,29 +1600,73 @@ print "str(e) = %s\n" % str(e)
 print "\n".join("V[%d] = %s" % (i, v) for (i, v) in enumerate(V)), "\n"
 print "\n".join("E[%d] = %s" % (i, e) for (i, e) in enumerate(E)), "\n"
 \end{python}
-
+An exerpt of the program output is shown here:
 \begin{code}
-str(e) = v_{-2} * v_{-1} * c_0 * w_1 ** 2
-
 V[0] = v_{-2}
-V[1] = v_{-1}
-V[2] = c_0
-V[3] = w_1
-V[4] = 2
-V[5] = w_1 ** 2
-V[6] = c_0 * w_1 ** 2
+...
 V[7] = v_{-1} * c_0 * w_1 ** 2
 V[8] = v_{-2} * v_{-1} * c_0 * w_1 ** 2 
-
-E[0] = (5, 3)
-E[1] = (5, 4)
-E[2] = (6, 2)
-E[3] = (6, 5)
-E[4] = (7, 1)
-E[5] = (7, 6)
+...
 E[6] = (8, 0)
-E[7] = (8, 7) 
+E[7] = (8, 7)
 \end{code}
+The two last edges shown here represent the dependencies of vertex 8
+on vertex 7 and 0, since $v_8 = v_0 v_7$. Run the code to see the full
+output of this code.  Try changing the expression and see what the
+graph looks like.
+
+%\begin{code}
+%str(e) = v_{-2} * v_{-1} * c_0 * w_1 ** 2
+%
+%V[0] = v_{-2}
+%V[1] = v_{-1}
+%V[2] = c_0
+%V[3] = w_1
+%V[4] = 2
+%V[5] = w_1 ** 2
+%V[6] = c_0 * w_1 ** 2
+%V[7] = v_{-1} * c_0 * w_1 ** 2
+%V[8] = v_{-2} * v_{-1} * c_0 * w_1 ** 2 
+%
+%E[0] = (5, 3)
+%E[1] = (5, 4)
+%E[2] = (6, 2)
+%E[3] = (6, 5)
+%E[4] = (7, 1)
+%E[5] = (7, 6)
+%E[6] = (8, 0)
+%E[7] = (8, 7) 
+%\end{code}
+
+From the edges $E$, related arrays can be computed efficiently; in
+particular the vertex indices of dependencies of a vertex $v_i$ in
+both directions are useful:
+\begin{align}
+\begin{split}
+V_{out} &= \seq{\mI_i}_{i=1}^{n}, \\
+V_{in}  &= \seq{\{ j | i \in \mI_j \}}_{i=1}^{n}
+\end{split}
+\end{align}
+These arrays can be easily constructed for any expression:
+\begin{python}
+Vin = G.Vin()
+Vout = G.Vout()
+\end{python}
+Similar functions exist for obtaining indices into $E$ for all
+incoming and outgoing edges.  A nice property of the computational
+graph built by \ufl{} is that no two vertices will represent the same
+identical expression.  During graph building, subexpressions are
+inserted in a hash map (Python dict) to achieve this. Some expression
+classes sort their arguments uniquely such that e.g. \icode{a*b} and
+\icode{b*a} will become the same vertex in the graph.
+
+Free indices in expression nodes can complicate the interpretation of
+the linearized graph when implementing some algorithms, because an
+expression object with free indices represents not one value but a set
+of values, one for each permutation of the values its free indices can
+have.  One solution to this can be to apply \icode{expand\_indices}
+before constructing the graph. Note however that free indices cannot
+be regained after expansion.
 
 %------------------------------------------------------------
 \subsection{Partitioning}
