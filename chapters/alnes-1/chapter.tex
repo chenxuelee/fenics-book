@@ -1723,20 +1723,33 @@ V[8] = v_{-2} * v_{-1} * c_0 * w_1 ** 2
 \index{differentiation}
 \index{derivatives}
 
-When a derivative expression is declared by the end-user of the form
-language, an expression node is constructed to represent it, but
-nothing is computed.  The type of this expression node is a subclass
-of \icode{Derivative}.  Differential operators cannot be expressed
-natively in a language such as C++.  Before code can be generated from
-the derivative expression, some kind of algorithm to evaluate
-derivatives must be applied.  Computing exact derivatives is
-important, which rules out approximations by divided differences.
-Several alternative algorithms exist for computing exact
-derivatives. All relevant algorithms are based on the chain rule
-combined with differentiation rules for each expression node type.
-The main differences between the algorithms are in the extent of which
-subexpressions are reused, and in the way subexpressions are
-accumulated.
+When any kind of derivative expression is declared by the end-user of
+the form language, an expression object is constructed to represent
+it, but nothing is computed.  The type of this expression object is a
+subclass of \icode{Derivative}. Before low level code can be generated
+from the derivative expression, some kind of algorithm to evaluate
+derivatives must be applied, since differential operators are not
+available natively in low level languages such as C++.  Computing
+exact derivatives is important, which rules out approximations by
+divided differences.  Several alternative algorithms exist for
+computing exact derivatives.  All relevant algorithms are based on the
+chain rule combined with differentiation rules for each expression
+object type.  The main differences between the algorithms are in the
+extent of which subexpressions are reused, and in the way
+subexpressions are accumulated.
+
+Mixing derivative computation into the code generation strategy of
+each form compiler would lead to a significant duplication of
+implementation effort.  To separate concerns and keep the code
+manageable, differentiation is implemented as part of \ufl{} in such a
+way that the form compilers are independent of the differentiation
+strategy chosen in \ufl{}. Therefore, it is advantageous to use the
+same representation for the evaluated derivative expressions as for
+any other expression. Before expressions are interpreted by a form
+compiler, differential operators should be evaluated such that the
+only operators left are non-differential operators. An exception is
+made for spatial derivatives of terminals which are unknown to \ufl{}
+because they are provided by the form compilers.
 
 Below, the differences and similarities between some of the simplest
 algorithms are discussed.  After the algorithm currently implemented
@@ -1745,60 +1758,14 @@ and higher order derivatives are discussed.  Finally, the section is
 closed with some remarks about the differentiation rules for terminal
 expressions.
 
-%------------------------------------------------------------
-\subsection{Relations to form compiler approaches}
-\label{ufl:sec:fcrel}
-
-Before discussing the choice of algorithm for computing derivatives,
-let us concider the context in which the results will be used.
-Although \ufl{} does not generate code, some form compiler issues are
-relevant to this context.
-
-Mixing derivative computation into the code generation strategy of
-each form compiler would lead to a significant duplication of
-implementation effort.  To separate concerns and keep the code
-manageable, differentiation is implemented as part of \ufl{} in such a
-way that the form compilers are independent of the chosen
-differentiation strategy.  Before expressions are interpreted by a
-form compiler, differential operators should be evaluated such that
-the only operators left are non-differential operators\footnote{An
-  exception is made for spatial derivatives of terminals which are
-  unknown to \ufl{} because they are provided by the form compilers.}.
-Therefore, it is advantageous to use the same representation for the
-evaluated derivative expressions and other expressions.
-
-The properties of each differentiation algorithm is strongly related
-to the structure of the expression representation.  However, \ufl{}
-has no control over the final expression representation used by the
-form compilers.  The main difference between the current form
-compilers is the way in which expressions are integrated.  For large
-classes of equations, symbolic integration or a specialized tensor
-representation have proven highly efficient ways to evaluate element
-tensors~\cite{AlnMar2009,KirLog2006,KirLog2007}.  However, when
-applied to more complex equations, the run-time performance of both
-these approaches is beaten by code generated with quadrature
-loops~\cite{AlnMar2009,OelWel2009}.  To apply symbolic
-differentiation, polynomials are expanded which destroys the structure
-of the expressions, gives potential exponential growth of expression
-sizes, and hides opportunities for subexpression reuse.  Similarly,
-the tensor representation demands a canonical representation of the
-integral expressions.
-
-In summary, both current non-quadrature form compiler approaches
-change the structure of the expressions they get from \ufl{}.  This
-change makes the interaction between the differentiation algorithm and
-the form compiler approach hard to control.  However, this will only
-become a problem for complex equations, in which case quadrature loop
-based code is more suitable.  Code generation using quadrature loops
-can more easily mirror the inherent structure of \ufl{} expressions.
 
 %------------------------------------------------------------
 \subsection{Approaches to computing derivatives} \label{ufl:sec:appcompder}
 
 Algorithms for computing derivatives are designed with different end
 goals in mind.  Symbolic Differentiation (SD) takes as input a single
-symbolic expression and produces a new symbolic expression for the
-derivative of the input.  Automatic Differentiation (AD) takes as
+symbolic expression and produces a new symbolic expression for its
+derivative.  Automatic Differentiation (AD) takes as
 input a program to compute a function and produces a new program to
 compute the derivative of the function.  Several variants of AD
 algorithms exist, the two most common being Forward Mode AD and
