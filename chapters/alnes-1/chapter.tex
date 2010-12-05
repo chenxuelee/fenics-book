@@ -66,7 +66,7 @@
 \index{form language}
 \index{domain specific language}
 
-\editornote{FIXME: Sort out what to do with all UFL specific macros and bold math fonts.}
+\editornote{Sort out what to do with all UFL specific macros and bold math fonts.}
 
 The Unified Form Language -- \ufl{}~\cite{manual:ufl,www:ufl} -- is a
 domain specific language for the declaration of finite element
@@ -160,7 +160,6 @@ a domain specific language and form compiler frontend,
 \ufl{} is not suitable for large scale symbolic computing.
 
 %==============================================================================
-%\clearpage{}
 \section{Overview} \label{ufl:sec:overview}
 
 %------------------------------------------------------------------------------
@@ -196,8 +195,6 @@ compile, now compiles in seconds with both \sfc{} and \ffc{}.
 
 %------------------------------------------------------------------------------
 \subsection{Motivational example} \label{ufl:sec:example}
-%~\cite{AlnMar2007}. % MekIT
-%\TODO{Citations on hyperelasticity.}
 
 \begin{figure}\label{ufl:fig:hypcode}
 \begin{python}
@@ -244,8 +241,9 @@ hyperelasticity equations and their corresponding \ufl{}
 implementation is shown.  Keep in mind that this is only intended as
 an illustration of the close correspondence between the form language
 and the natural formulation of the equations.  The meaning of
-equations is not necessary for the reader to understand.  Note that
-many other examples are distributed together with \ufl{}.
+these equations is not necessary for the reader to understand.
+Chapter~\cite{chap:narayanan} covers nonlinear elasticity in more detail.
+Note that many other examples are distributed together with \ufl{}.
 
 In the formulation of the hyperelasticity equations presented here,
 the unknown function is the displacement vector field $\uu$.  The
@@ -268,19 +266,17 @@ For simplicity in this example, we ignore external body and boundary
 forces and assume a quasi-stationary situation, leading to the
 following mechanics problem. Find $\uu$ such that
 \begin{align}
-\begin{split}
-\Div (\FF\SS) &= 0, \qquad \mbox{in} \qquad\Omega, \label{ufl:eq:ppeqzero} \\
-\uu &= \uu_0,       \qquad \mbox{on} \qquad\partial\Omega_0.
-\end{split}
+\Div (\FF\SS) &= 0, \quad \mbox{in} \quad\Omega, \label{ufl:eq:ppeqzero} \\
+\uu &= \uu_0,       \quad \mbox{on} \quad\partial\Omega_0.
 \end{align}
-Following the finite element method as explained in
-Chapter~\ref{chapter:FIXME}, we multiply
-Equation~\eqref{ufl:eq:ppeqzero} with a test function $\bphi \in V$,
-integrate over the domain $\Omega$, and integrate by parts.
+The finite element method is presented in Chapter~\ref{chap:kirby-7},
+so we will only very briefly cover the steps we take here.
+First we multiply Equation~\eqref{ufl:eq:ppeqzero} with a test function
+$\bphi \in V$, then integrate over the domain $\Omega$, and integrate by parts.
 The nonlinear variational problem then reads: Find $\uu \in V$ such that
 \begin{align}
 L(\uu; \bphi) &= \int_\Omega \FF\SS : \Grad\bphi \dx = 0
-  \qquad \forall \bphi \in V. \label{ufl:eq:hypdefL}
+  \quad \foralls \bphi \in V. \label{ufl:eq:hypdefL}
 \end{align}
 Here we have omitted the coefficients $c_1$ and $c_2$ for brevity.
 Approximating the displacement field as $\uu \approx \uu_h = \sum_k
@@ -290,24 +286,14 @@ with a system of equations to solve
 \begin{align}
 \sum_{k=1}^{|V_h|} \frac{\partial L(\uu_h; \bphi)}{\partial u_k} \Delta u_k =
   -L(\uu_h; \bphi)
-  \qquad \forall \bphi \in V_h. \label{ufl:eq:elasticitynewton}
+  \quad \foralls \bphi \in V_h. \label{ufl:eq:elasticitynewton}
 \end{align}
 A bilinear form $a(\uu; \bpsi, \bphi)$ corresponding to the left hand side of Equation~\eqref{ufl:eq:elasticitynewton} can be computed automatically
 by \ufl{}, such that
 \begin{align}
 a(\uu_h; \bpsi_k, \bphi) = \frac{\partial L(\uu_h; \bphi)}{\partial u_k}
-  \qquad k = 1, \ldots, |V_h|. \label{ufl:eq:hypdefa}
+  \quad k = 1, \ldots, |V_h|. \label{ufl:eq:hypdefa}
 \end{align}
-
-%\begin{align}
-%\sum_{k=1}^{|V_h|} a(\uu_h; \bpsi_k, \bphi) u_k =
-%  \sum_{k=1}^{|V_h|} \frac{\partial L}{\partial u_k} u_k.
-%\end{align}
-
-%\begin{align}
-%a(\uu; \bpsi, \bphi) &= \frac{\partial L}{\partial u_k}.
-%\end{align}
-% \quad \forall \bphi \in V_h
 
 Figure~\ref{ufl:fig:hypcode} shows an implementation of
 equations \eqref{ufl:eq:hypdef}, \eqref{ufl:eq:hypdefL} and \eqref{ufl:eq:hypdefa}
@@ -324,7 +310,6 @@ is automatic.  In the following sections, the notation, definitions
 and operators used in this implementation will be explained.
 
 %==============================================================================
-%\clearpage{}
 \section{Defining finite element spaces} \label{ufl:sec:elements}
 \index{finite element}
 \index{finite element space}
@@ -641,7 +626,7 @@ $\seq{\ee_k}_{k=1}^d$ for $\R^d$, a vector can
 be expressed with its scalar components in this basis.
 Tensors of rank two can be expressed using
 their scalar components in a dyadic basis
-$\{ \ee_i\otimes\ee_j \}_{i,j=1}^d$.
+$\{ \ee_i\otimes\ee_j \}_{i,\,j=1}^d$.
 Arbitrary rank tensors can be expressed
 the same way, as illustrated here.
 \begin{align}
@@ -733,7 +718,7 @@ free indices (\icode{u[i]*v[i]}).
 \begin{align}
 A_{ii}  \equiv \sum_i A_{ii}, \qquad
 v_i u_i \equiv \sum_i v_i u_i, \qquad
-v_{i,i} \equiv \sum_i v_{i,i}.
+v_{i,\,i} \equiv \sum_i v_{i,\,i}.
 \end{align}
 
 An expression \icode{Aij = A[i,j]} is represented internally using the
@@ -804,23 +789,12 @@ index of the second tensor.  Some examples are
 \AA \cdot \BB &= A_{ik} B_{kj} \ee_i \ee_j, \\
 \Cc \cdot \AA &= C_{ijk} A_{kl} \ee_i \ee_j \ee_l.
 \end{align}
-%\begin{align}
-%\vv \cdot \uu &= \sum_i v_i u_i, \\
-%\AA \cdot \uu &= \sum_j A_{ij} u_j \ee_i, \\
-%\AA \cdot \BB &= \sum_k A_{ik} B_{kj} \ee_i \ee_j, \\
-%\Cc \cdot \AA &= \sum_k C_{ijk} A_{kl} \ee_i \ee_j \ee_l.
-%\end{align}
 The inner product is the sum over all indices, for example
 \begin{align}
 \vv : \uu &= v_i u_i, \\
 \AA : \BB &= A_{ij} B_{ij}, \\
 \Cc : \Dc &= C_{ijkl} D_{ijkl}.
 \end{align}
-%\begin{align}
-%\vv : \uu &= \sum_i v_i u_i, \\
-%\AA : \BB &= \sum_i \sum_j A_{ij} B_{ij}, \\
-%\Cc : \Dc &= \sum_i \sum_j \sum_k \sum_l C_{ijkl} D_{ijkl}.
-%\end{align}
 Some examples of the outer product are
 \begin{align}
 \vv \otimes \uu &= v_i u_j \ee_i \ee_j, \\
@@ -881,24 +855,23 @@ free index.  The notation \icode{f.dx(i)} is intended to mirror the
 index notation $f_{,i}$, which is shorthand for
 $\frac{\partial f}{\partial x_i}$.  Repeated indices imply summation,
 such that the divergence of a vector valued expression \icode{v} can
-be written $v_{i,i}$, or \icode{v[i].dx(i)}.
+be written $v_{i,\,i}$, or \icode{v[i].dx(i)}.
 
-% FIXME: Review this paragraph, in particular the ... parts
 Several common compound spatial derivative operators are defined,
 namely \icode{div}, \icode{grad}, \icode{curl} and \icode{rot} (rot is
 a synonym for curl). Be aware that there are two common ways to define
 $\mop{grad}$ and $\mop{div}$. Let $s$ be a scalar expression, $\vv$ be
-a vector expression, and $\MM$ be a tensor expression of arbitrary
-rank.  In \ufl{}, the gradient is then defined as
+a vector expression, and $\MM$ be a tensor expression of
+rank $r$.  In \ufl{}, the gradient is then defined as
 \begin{align}
 \left(\Grad (s) \right)_{i} &= s_{,i}, \\
 \left(\Grad (\vv) \right)_{ij} &= v_{i,j}, \\
-\left(\Grad (\MM) \right)_{\ldots \, k} &= M_{\ldots, \, k},
+\left(\Grad (\MM) \right)_{i_1\,\ldots\,i_r\,k} &= M_{i_1\,\ldots\,i_r,\,k},
 \end{align}
 and the divergence is correspondingly defined as
 \begin{align}
-\Div (\vv) &= v_{i,i}, \\
-\left(\Div (\MM) \right)_{\ldots} &= M_{\ldots j,j}.
+\Div (\vv) &= v_{i,\,i}, \\
+\left(\Div (\MM) \right)_{i_1\,\ldots\,i_{r-1}} &= M_{i_1\,\ldots\,i_r,\,i_r}.
 \end{align}
 Thinking in terms of value shape, the gradient appends an axis to the
 end of the tensor shape of its operand.  Correspondingly, the
@@ -1665,8 +1638,10 @@ the linearized graph when implementing some algorithms, because an
 expression object with free indices represents not one value but a set
 of values, one for each permutation of the values its free indices can
 have.  One solution to this can be to apply \icode{expand\_indices}
-before constructing the graph. Note however that free indices cannot
-be regained after expansion.
+before constructing the graph, which will replace all expressions with
+free indices with equivalent expressions with explicit fixed indices.
+Note however that free indices cannot be regained after expansion.
+See Section~\cite{ufl:sec:transformer} for more about this transformation.
 
 %------------------------------------------------------------
 \subsection{Partitioning}
@@ -2760,4 +2735,4 @@ This work has been supported by the Norwegian Research Council (grant
 has helped improving \ufl{} with suggestions and testing, in
 particular Anders Logg, Kristian \O{}lgaard, Garth Wells, and Harish
 Narayanan.  Both Kent-Andr\'e Mardal and Marie Rognes performed
-critical reviews which greatly improved this manuscript.
+critical reviews which greatly imprboved this manuscript.
