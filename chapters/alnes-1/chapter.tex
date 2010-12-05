@@ -1109,9 +1109,9 @@ V_h &= \spans{ \phi_k }, \\
 w(x) &= \sum_{k=1}^{|V_h|} w_k \phi_k(x), \\
 f&: V_h \rightarrow \R, \\
 F(w; \phi_i) &= \frac{\partial f(w)}{\partial w_i},
-  \qquad i=1,\ldots,|V_h|, \\
+  \quad i=1,\ldots,|V_h|, \\
 J(w; \phi_j, \phi) &= \frac{\partial F(w; \phi)}{\partial w_j},
-  \qquad j=1,\ldots,|V_h|, \quad \phi\in V_h.
+  \quad j=1,\ldots,|V_h|, \quad \phi\in V_h.
 \end{align}
 For a concrete functional $f(w) = \int_\Omega \frac 1 2 w^2 \dx$, we can implement this as
 \begin{python}
@@ -1357,7 +1357,7 @@ result of applying an operator $f_i$ to a sequence of previously
 computed expressions $\seq{y_j}_{j\in\mI_i}$, where $\mI_i$ is an
 ordered sequence of expression labels.  Note that the order in which
 subexpressions must be computed to produce the same value of $z$ is
-not unique.  For correctness we only require $j < i \, \forall j \in
+not unique.  For correctness we only require $j < i \,\, \foralls j \in
 \mI_i$, such that all dependencies of a subexpression $y_i$ has been
 computed before $y_i$.  In particular, all terminals are numbered
 first in this abstract algorithm for notational convenience only.
@@ -1371,7 +1371,7 @@ and a set of edges $E$ defined by:
 \begin{align}
 G &= (V, E), \label{ufl:eq:G} \\
 V &= \seq{v_i}_{i=1}^n = \seq{y_i}_{i=1}^n, \label{ufl:eq:V} \\
-E &= \{ e_k \} = \bigcup_{i=1}^n \, \left\{ (i, j) \forall j \in \mI_i \right\} . \label{ufl:eq:E}
+E &= \{ e_k \} = \bigcup_{i=1}^n \, \left\{ (i, j) \,\, \foralls j \in \mI_i \right\} . \label{ufl:eq:E}
 \end{align}
 This graph is clearly directed, since dependencies have a direction.
 It is acyclic, since an expression can only be constructed from
@@ -1550,7 +1550,7 @@ expression tree. The edges are stored in an array \icode{E} with
 integer tuples \icode{(i,j)} representing an edge from $v_i$ to $v_j$,
 i.e. that $v_j$ is an operand of $v_i$.  The graph is built using a
 post-order traversal, which guarantees that the vertices are ordered
-such that $j < i \forall j \in \mI_i$.
+such that $j < i \,\, \foralls j \in \mI_i$.
 
 Let us look at an example of a computational graph. The following code
 defines a simple expression and then prints the vertices and edges
@@ -2083,7 +2083,7 @@ w = \sum_k w_k \phi_k(x).
 \end{align}
 The derivative of \icode{w} w.r.t. any $w_k$ is the corresponding basis function in $V_h$,
 \begin{align}
-\frac{\partial w}{\partial w_k} = \phi_k, \qquad k = 1, \ldots, |V_h|, \\
+\frac{\partial w}{\partial w_k} = \phi_k, \quad k = 1, \ldots, |V_h|, \\
 \end{align}
 which can be represented by \icode{v}, since
 \begin{align}
@@ -2380,9 +2380,6 @@ print "\nad:", str(ad), "\n", tree_format(ad)
 print "\nai:", str(ai), "\n", tree_format(ai)
 \end{python}
 
-% FIXME: Make examples flow
-
-% Showing a full example of tree_format and explaining arguments:
 The print output showing \icode{a} is (with the details of the finite
 element object cut away for shorter lines):
 \begin{python}
@@ -2504,22 +2501,22 @@ much easier, and is used extensively in the unit tests.  To evaluate
 an \ufl{} expression, values of form arguments and geometric
 quantities must be specified.  Expressions depending only on spatial
 coordinates can be evaluated by passing a tuple with the coordinates
-to the call operator. The following code from an interactive Python
-session shows the syntax:
+to the call operator. The following code which can be copied directly
+into an interactive Python session shows the syntax:
 \begin{python}
->>> cell = triangle
->>> x = cell.x
->>> e = x[0] + x[1]
->>> print e((0.5, 0.7))
-1.2
+from ufl import *
+cell = triangle
+x = cell.x
+e = x[0] + x[1]
+print e((0.5, 0.7)) # prints 1.2
 \end{python}
 Other terminals can be specified using a dictionary that maps from
 terminal instances to values.  This code extends the above code with a
 mapping:
 \begin{python}
-c = Constant(triangle)
+c = Constant(cell)
 e = c * (x[0] + x[1])
-print e((0.5, 0.7), { c: 10 })
+print e((0.5, 0.7), { c: 10 }) # prints 12.0
 \end{python}
 If functions and basis functions depend on the spatial coordinates,
 the mapping can specify a Python callable instead of a literal
@@ -2534,7 +2531,7 @@ f = Coefficient(element)
 e = c * (f[0] + f[1])
 def fh(x):
     return (x[0], x[1])
-print e((0.5, 0.7), { c: 10, f: fh })
+print e((0.5, 0.7), { c: 10, f: fh }) # prints 12.0
 \end{python}
 To use expression evaluation for validating that the derivative
 computations are correct, spatial derivatives of form arguments can
@@ -2550,7 +2547,7 @@ def gh(x, der=()):
     if der == ():   return x[0] * x[1]
     if der == (0,): return x[1]
     if der == (1,): return x[0]
-print e((2, 3), { g: gh })
+print e((2, 3), { g: gh }) # prints 49
 \end{python}
 
 %------------------------------------------------------------
