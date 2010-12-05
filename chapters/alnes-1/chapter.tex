@@ -1895,10 +1895,11 @@ $(v_i v_i)_{,i}$ manually.  If the expression in the parenthesis is
 defined in a variable \icode{e = v[i]*v[i]}, the expression
 \icode{e.dx(i)} looks innocent. However, this will cause problems as
 derivatives (including the index $i$) are propagated up to terminals.
-If this case is encountered it will be detected and an error message
-will be triggered.  To avoid it, simply use different index instances.
-In the future, this case may be handled by relabeling indices to
-change this expression into $(v_j v_j)_{,i}u_i$.
+If this case is encountered in the current implementation of \ufl{},
+it will be detected and an error message will be triggered.
+To work around the problem, simply use different index instances.
+In a future version of \ufl{}, this case may be handled by relabeling
+indices to change any expression $(\sum_i e_i)_{,i}$ into $(\sum_j e_j)_{,i}$.
 
 %------------------------------------------------------------
 \subsection{Higher order derivatives}
@@ -2560,10 +2561,10 @@ define a signature is using \icode{repr(form)}, since the definition
 of this in Python is \icode{eval(repr(form)) == form}.  Therefore
 \icode{\_\_repr\_\_} is implemented for all \icode{Expr} subclasses.
 
-Some forms are equivalent even though their representation is not
-exactly the same. \ufl{} does not use a truly canonical form for its
-expressions, but takes some measures to ensure that trivially
-equivalent forms are recognized as such.
+Some forms are mathematically equivalent even though their
+representation is not exactly the same. \ufl{} does not use a truly
+canonical form for its expressions, but takes some measures to ensure
+that trivially equivalent forms are recognized as such.
 
 Some of the types in the \icode{Expr} class hierarchy (subclasses of
 \icode{Counted}), has a global counter to identify the order in which
@@ -2576,15 +2577,19 @@ unique identifier.  Algorithms are implemented for renumbering of all
 
 In addition, some operator types such as \icode{Sum} and
 \icode{Product} maintains a sorted list of operands such that
-\icode{a+b} and \icode{b+a} are both represented as \icode{Sum(a,
-b)}. The numbering of indices does not affect this ordering because a
-renumbering of the indices would lead to a new ordering which would
-lead to a different index renumbering if applied again.  The operand
-sorting and renumbering combined ensure that the signature of equal
-forms will stay the same.  To get the signature with renumbering
-applied, use \icode{repr(form.form\_data().form)}. Note that the
-representation, and thus the signature, of a form may change with
-versions of \ufl{}.
+\icode{a+b} and \icode{b+a} are both represented as \icode{Sum(a, b)}.
+This operand sorting is intentionally independent of the numbering of
+indices because that would not be stable. The reason for this instability
+is that the result of algorithms for renumbering indices depends
+on the order of operands. The operand sorting and renumberings
+combined ensure that the signature of equal forms will stay the same.
+Note that the representation, and thus the signature,
+of a form may change with versions of \ufl{}.
+The following line prints the signature of a form with
+\icode{expand\_derivatives} and renumbering applied.
+\begin{python}
+print repr(preprocess(myform).form\_data().form)
+\end{python}
 
 %------------------------------------------------------------
 \subsection{Efficiency considerations}
