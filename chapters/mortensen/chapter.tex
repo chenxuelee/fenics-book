@@ -40,7 +40,7 @@ viscosity ($\mu/\rho$), $\rho$ density, $\mu$ molecular viscosity, $p(\vec{x},t)
 % Energy conservation is a consequence of the NS equations, but unfortunately this feature is not necessarily respected by numerical schemes used to solve them. A numerical method can be both dissipative and dispersive, recognized for example by the order of the derivative in the truncation error of Taylor expansions. A numerical scheme with even order derivatives in truncated terms is dissipative, whereas odd derivatives lead to dispersion. %In turbulent or transitional flows the real physical dissipation caused by the fluid viscosity can be very small far away from solid obstacles or walls. The physical dissipation may as such easily become comparable to the numerical dissipation and it is advantages or some times even necessary to use disspation-free numerical schemes.
 
 
-The often used terminology Direct Numerical Simulations (DNS) should be understood as the three-dimensional and time dependent numerical simulations of the NS equations that resolve all information (all turbulence scales) and that have negligible numerical dissipation (artificial viscosity) and dispersion. For this reason DNS are often performed with highly accurate spectral (Fourier) methods \cite{Canuto88} in homogeneous flows or higher-order central finite differences or spectral element methods \cite{Semtex} for more geometrical flexibility in inhomogeneous flows. The results of carefully executed DNS have in the fluid mechanics community the same status as carefully executed experiments. Unfortunately, DNS are very demanding of computer resources. A good part of the expense is incurred in capturing the smallest scales of turbulence, i.e., the scales that are responsible for dissipating energy. Yet another complication in non-periodic flows is to describe inflow and outflow boundary conditions that are consistent with the NS equations.
+The often used terminology Direct Numerical Simulations (DNS) should be understood as the three-dimensional and time dependent numerical simulations of the NS equations that resolve all information (all turbulence scales) and that have negligible numerical dissipation (artificial viscosity) and dispersion. For this reason DNS are often performed with highly accurate spectral (Fourier) methods \cite{CanutoHussainiQuarteroniEtAl1988} in homogeneous flows or higher-order central finite differences or spectral element methods \cite{Semtex} for more geometrical flexibility in inhomogeneous flows. The results of carefully executed DNS have in the fluid mechanics community the same status as carefully executed experiments. Unfortunately, DNS are very demanding of computer resources. A good part of the expense is incurred in capturing the smallest scales of turbulence, i.e., the scales that are responsible for dissipating energy. Yet another complication in non-periodic flows is to describe inflow and outflow boundary conditions that are consistent with the NS equations.
 
 The computational cost of DNS can (at the expense of accuracy in computed statistics) be reduced by capturing only the largest scales and using a dissipative model in place of the smaller eddies (to try and make up for the loss of accuracy). This method is referred to as Large Eddy Simulations (LES) and it too requires the three-dimensional and time dependent solution. The dissipative model introduces into the NS equations something that is no longer physically exact. However, to the extent that the dissipative model does not contaminate the large scales, LES can provide NS simulations from which statistics may be obtained with satisfactory accuracy for many purposes. However, the results depend inherently on the grid, because the grid independent solution is nothing but the DNS solution that one in most cases cannot afford. The art of LES is simply to find the best possible compromise between efficiency and accuracy.
 
@@ -131,7 +131,7 @@ A dynamic equation for $K(\vec{u})$ can be derived from (\eqref{eq:mortensen:NS}
 % \frac{\partial K(\vec{u})}{\partial t} + B\left(\vec{u},K(\vec{u})\right) = \nu \nabla^2 K(\vec{u}) -\nu \| \nabla \vec{u} \|^2 - \frac{1}{\rho}\nabla \cdot \left(\vec{u}p \right) +\text{f}\cdot \vec{u}.
  \label{eq:mortensen:K(u)}
 \end{equation}
-The second term on the right hand side represents dissipation of kinetic energy and the role of the remaining terms (neglecting body forces) is simply to transport $K(\vec{u})$ within the computational domain. This is made perfectly clear if (\eqref{eq:mortensen:K(u)}) is integrated over the domain, neglecting body forces and making use of boundary conditions (all terms that can be written as divergences will then fall, because of the divergence theorem). The well-known identity for the rate of change of total kinetic energy is obtained (see, e.g., Simo and Armero \cite{simo94})
+The second term on the right hand side represents dissipation of kinetic energy and the role of the remaining terms (neglecting body forces) is simply to transport $K(\vec{u})$ within the computational domain. This is made perfectly clear if (\eqref{eq:mortensen:K(u)}) is integrated over the domain, neglecting body forces and making use of boundary conditions (all terms that can be written as divergences will then fall, because of the divergence theorem). The well-known identity for the rate of change of total kinetic energy is obtained (see, e.g., Simo and Armero \cite{SimoArmero1994})
 \begin{equation}
  \frac{\text{d} \overline{K} }{\text{d} t} = - \nu \int_\Omega \nabla \vec{u} : \nabla \vec{u} d\Omega,
 \quad \overline{K} = \int_{\Omega} K(\vec{u})d\Omega .
@@ -231,7 +231,7 @@ of the test and trial spaces are the same (modulo boundary conditions),
 will produce discrete equations that correspond to central differencing 
 in space. Therefore, we employ the standard Galerkin method for spatial
 discretization. For the temporal
-discretiztion we will here follow Simo and Armero \cite{simo94} and describe a family of solvers for the transient NS equations.
+discretiztion we will here follow Simo and Armero \cite{SimoArmero1994} and describe a family of solvers for the transient NS equations.
 
 Let $t_n \subset \Rset$ denote a discrete point in time. The velocity $\vec{u}_k=\vec{u}(\text{x},t_k)$ is known for $k\leq n-1$, $k \in \Nset$, and we are interested in advancing the solution to $\vec{u}_{n}=\vec{u}(\text{x},t_{n})$. To this end we use the following general algorithm
 \begin{equation}
@@ -293,7 +293,7 @@ B(\frac{3}{2}\vec{u}_{n-1}-\frac{1}{2}\vec{u}_{n-2},\vec{u}_{n-\alpha}).
 \end{align}
 The middle scheme (\eqref{eq:mortensen:IM1}) is merely first order, 
 whereas the remaining two are second order accurate in time 
-(see, for instance, Figure~3 in \cite{simo94}).
+(see, for instance, Figure~3 in \cite{SimoArmero1994}).
 
 Equations (\eqref{eq:mortensen:NS_d}) and (\eqref{eq:mortensen:cont_d}) contain (in
 three-dimensional space) four unknown fields and four PDEs.
@@ -410,7 +410,7 @@ no longer satisfy the discretized momentum equation. This 'splitting
 error' associated with the fractional step method is known to be first
 or second order in time depending on whether the pressure is
 explicitly included or not included at all in the first velocity
-step \cite{guemin}. To eliminate the splitting error it is possible to iterate over
+step \cite{GuermondMinevShen2006}. To eliminate the splitting error it is possible to iterate over
 the three steps, a practice that is rarely followed for incompressible
 flows. Another formally superior approach, which will be explored in
 this work, is to solve for the velocity and pressure
@@ -649,7 +649,7 @@ Here \emp{u\_1} is the \emp{Function} on the space \emp{V}
 holding the approximation of the
 convecting velocity (taken as $\vec{u}_{n-1}$ in this example). 
 The matrix \emp{Ac} is of size $n_v\times n_v$ ($n_v$ equals
-{\fontsize{12pt}{12pt}\texttt{Vc.dim()}}).
+\emp{Vc.dim()}).
 The large matrix for the complete velocity vector field can now be
 obtained simply by copying this \emp{Ac} matrix to the three diagonal
 slots in the $3\times 3$ block matrix that makes up the whole
@@ -657,7 +657,7 @@ convection matrix for the velocity vector field.  At the time of this
 writing, it is for a 3D problem approximately 20 times faster to
 assemble this \emp{Ac} than assembling the $n_vd\times n_vd$ matrix
 for the complete convection term $\vec{u}_{n-1}\nabla
-\vec{u}$ by {\fontsize{12pt}{12pt}\verb!assemble(conv(u_1, u, v)*dx)!}!
+\vec{u}$ by \emp{assemble(conv(u\_1, u, v)*dx)}
 
 \item[(3)] The right-hand side of the linear system
 can be reassembled each time step using matrix-vector products and
@@ -666,7 +666,7 @@ Chapter~[langtangen]. Note that the convection matrix \emp{Ac},
 which is reassembled every time step and corresponds to the
 operator $\vec{u}_{n-1}\cdot\nabla$, can be used to compute a
 $\vec{u}_{n-1}\cdot\nabla\vec{u}_{n-1}$ as a matrix-vector
-product {\fontsize{12pt}{12pt}\verb!Ac*u_1.vector()!}.
+product \emp{Ac*u\_1.vector()}.
 
 \item[(4)] The sparse coefficient matrix can be compressed by removing
 redundant zeroes. For 3D problems the
@@ -731,7 +731,7 @@ We have used Crank-Nicolson-style time discretization ($\alpha=0.5$) in all our 
  B(\tilde{u},\overline{u}) = \frac{1}{3}\left( \tilde{u}\nabla \overline{u} + \nabla \tilde{u} \overline{u} \right).
 \end{equation}
 Initialization of the FEniCS
-{\fontsize{12pt}{12pt}\texttt{Function u0}} can be performed by subclassing  class
+\emp{Function u0} can be performed by subclassing  class
 \emp{Expression} as
 \begin{python}
 from numpy import sin
@@ -789,8 +789,8 @@ for the current problem the three convection forms differ only when
 treated implicitly.
 
 \begin{figure}
- \includegraphics[width=0.48\textwidth]{chapters/mortensen/pdf/Burgers_KE_IM1.pdf}
- \includegraphics[width=0.48\textwidth]{chapters/mortensen/pdf/Burgers_KE_IM2.pdf}
+ \includegraphics[width=0.5\textwidth]{chapters/mortensen/pdf/Burgers_KE_IM1.pdf}
+ \includegraphics[width=0.5\textwidth]{chapters/mortensen/pdf/Burgers_KE_IM2.pdf}
  \caption{
 Accumulation of error in kinetic energy for the inviscid Burger's equation initialized as $u(x,0)=-\text{sin}(\pi x)+0.1 \xi(x)$. Left and right figures represent the results of using (\eqref{eq:mortensen:IM1}) and (\eqref{eq:mortensen:IM2}) for convection respectively.
 }
@@ -799,7 +799,7 @@ Accumulation of error in kinetic energy for the inviscid Burger's equation initi
 
 \subsection{Orr-Sommerfeld}
 \label{sec:mortensen:OS}
-The Orr-Sommerfeld equation (see, e.g., Orzag \cite{orzag71}) is derived by assuming a wave-like disturbance (perturbation) that is proportional to $\text{exp}(i(\alpha x-\lambda t))$ (real part understood), where $\lambda$ is an eigenvalue (the complex frequency), $\alpha$ is a prescribed wavenumber (we use $\alpha=1$), $x$ is the streamwise direction and $t$ is time. The perturbation is applied to the streamfunction, $\psi(x,y,t)$ , such that $\psi=\phi(y) \text{exp}(i(\alpha x- \lambda t))$, where $\phi(y)$ is the eigenfunction of $\lambda$ and the $y$-direction is normal to $x$ (we consider only 2D). Consequently the velocity perturbations are
+The Orr-Sommerfeld equation (see, e.g., Orzag \cite{Orzag1971}) is derived by assuming a wave-like disturbance (perturbation) that is proportional to $\text{exp}(i(\alpha x-\lambda t))$ (real part understood), where $\lambda$ is an eigenvalue (the complex frequency), $\alpha$ is a prescribed wavenumber (we use $\alpha=1$), $x$ is the streamwise direction and $t$ is time. The perturbation is applied to the streamfunction, $\psi(x,y,t)$ , such that $\psi=\phi(y) \text{exp}(i(\alpha x- \lambda t))$, where $\phi(y)$ is the eigenfunction of $\lambda$ and the $y$-direction is normal to $x$ (we consider only 2D). Consequently the velocity perturbations are
 \begin{align}
  u'(x,y,t)&=\frac{\partial \psi}{\partial y}=i\alpha \phi \, \text{exp}(i(\alpha x- \lambda t)),\\
  v'(x,y,t)&=-\frac{\partial \psi}{\partial x}=-\phi' \, \text{exp}(i(\alpha x- \lambda t)).
@@ -823,9 +823,9 @@ The Orr-Sommerfeld disturbance evolves very slowly and for $Re=8000$ it takes ap
 
 \paragraph{Solution of the Orr-Sommerfeld equation}
 
-The Orr-Sommerfeld eigenvalue problem must, like many eigenvalue problems, be solved with high numerical accuracy. Here the equations are solved using spectral collocation with Chebyshev polynomials as described by Trefethen \cite{tref06}. We consider a channel with Reynolds number $Re=1/\nu=8000$, where the mean pressure gradient is a constant equal to $2/Re$. Using 80 Chebyshev points the eigenvalues for this problem is plotted in Figure \ref{fig:mortensen:OS_init} (b). Note the eigenvalue in white ($\lambda = 0.24707506+0.00266441 i$), which is the only eigenvalue with a positive imaginary part. Since the imaginary part is positive it is evident that this represents an unstable mode that will grow in time. Hence one might argue that eventually this disturbance will become unstable and lead to transition from laminar to turbulent flow.
+The Orr-Sommerfeld eigenvalue problem must, like many eigenvalue problems, be solved with high numerical accuracy. Here the equations are solved using spectral collocation with Chebyshev polynomials as described by Trefethen \cite{Trefethen2006}. We consider a channel with Reynolds number $Re=1/\nu=8000$, where the mean pressure gradient is a constant equal to $2/Re$. Using 80 Chebyshev points the eigenvalues for this problem is plotted in Figure \ref{fig:mortensen:OS_init} (b). Note the eigenvalue in white ($\lambda = 0.24707506+0.00266441 i$), which is the only eigenvalue with a positive imaginary part. Since the imaginary part is positive it is evident that this represents an unstable mode that will grow in time. Hence one might argue that eventually this disturbance will become unstable and lead to transition from laminar to turbulent flow.
 
-The Orr-Sommerfeld equation is derived directly from the NS equations simply by assuming that the perturbation is small compared to the mean flow. Hence if the mean flow in a channel is initialized like Eq.~(\eqref{eq:mortensen:channel}), the instability should grow 'exactly' like implied by the Orr-Sommerfeld equation (\eqref{eq:mortensen:OrrS}). This has been used to validate NS solvers by e.g. Malik et al.~\cite{Malik1984}. The perturbation flow energy is here used as a measure for the accuracy of the solver
+The Orr-Sommerfeld equation is derived directly from the NS equations simply by assuming that the perturbation is small compared to the mean flow. Hence if the mean flow in a channel is initialized like Eq.~(\eqref{eq:mortensen:channel}), the instability should grow 'exactly' like implied by the Orr-Sommerfeld equation (\eqref{eq:mortensen:OrrS}). This has been used to validate NS solvers by e.g. Malik et al.~\cite{MalikZangHussaini1984}. The perturbation flow energy is here used as a measure for the accuracy of the solver
 \begin{equation}
   E(t)= \int_0^{2\pi}\int_{-1}^{1} \left( \left[u-(1-y^2)\right]^2 + v^2 \right) dx dy.
 \end{equation}
@@ -847,7 +847,7 @@ The implementation of the Orr-Sommerfeld test-case in FEniCS requires a two-dime
 \end{python}
 where the constant pressure gradient is implemented as a body force to enable the use of periodic boundary conditions for both velocity and pressure. 
 
-At our disposal we have an Orr-Sommerfeld eigenvalue solver that uses spectral collocation in $n+1$ Chebyshev points. The details of this solver is given by Trefethen~\cite{tref06} and not repeated here, and the source code can be found in the file {\fontsize{12pt}{12pt}\verb!OrrSommerfeld_eig.py!} in \cite{folder}. For the initialization of DOLFIN \emp{Functions} with the Orr-Sommerfeld solution, a subclass called \emp{U0} of the DOLFIN class \emp{Expression} is implemented such that it solves the eigenvalue problem on creation and overloads the eval function with the equivalence of Eq.~(\eqref{eq:mortensen:channel}). To initialize the specified initial velocity field we need to create an instance of the \emp{U0} class and interpolate it onto the appropriate function space: \emp{V} for fractional step and \emp{VQ} for the coupled solver. The procedure for the fractional step solver is
+At our disposal we have an Orr-Sommerfeld eigenvalue solver that uses spectral collocation in $n+1$ Chebyshev points. The details of this solver is given by Trefethen~\cite{Trefethen2006} and not repeated here, and the source code can be found in the file \emp{OrrSommerfeld\_eig.py} in \cite{folder}. For the initialization of DOLFIN \emp{Functions} with the Orr-Sommerfeld solution, a subclass called \emp{U0} of the DOLFIN class \emp{Expression} is implemented such that it solves the eigenvalue problem on creation and overloads the eval function with the equivalence of Eq.~(\eqref{eq:mortensen:channel}). To initialize the specified initial velocity field we need to create an instance of the \emp{U0} class and interpolate it onto the appropriate function space: \emp{V} for fractional step and \emp{VQ} for the coupled solver. The procedure for the fractional step solver is
 \begin{python}
     # Using 80 Chebyshev points and Reynolds number of 8000:
     u = U0(element=V.ufl_element(),defaults={'Re':8000.,'N':80}) 
@@ -859,9 +859,9 @@ At our disposal we have an Orr-Sommerfeld eigenvalue solver that uses spectral c
 The \emp{defaults} dictionary is used to set any parameter required by the 
 expressions in the \emp{U0} class. In the end, the pressure is set to zero, which finalizes the initialization process. For the coupled solver, \emp{VQ} is used in place of \emp{V} and the pressure needs to be set in \emp{U0}. The Orr-Sommerfeld perturbation leads to a non-trivial solution that evolves in time. The initial perturbed velocity field is illustrated in Figure \ref{fig:mortensen:OS_init} (a).
 \begin{figure}
- \includegraphics[width=0.56\textwidth]{chapters/mortensen/pdf/OS_init.pdf}
-  \includegraphics[width=0.39\textwidth]{chapters/mortensen/pdf/OrrS_eigvals.pdf}
- \caption{Subfigure (a) shows a snapshot of the initial perturbed velocity field. Subfigure (b) shows the eigenvalues for the Orr Sommerfeld equation at $Re=8000$. Note the open white square, which is the only eigenvalue with a positive imaginary part. This represents an unstable mode.}
+\includegraphics[width=0.5\textwidth]{chapters/mortensen/pdf/OS_init.pdf}
+\includegraphics[width=0.5\textwidth]{chapters/mortensen/pdf/OrrS_eigvals.pdf}
+\caption{Subfigure (a) shows a snapshot of the initial perturbed velocity field. Subfigure (b) shows the eigenvalues for the Orr Sommerfeld equation at $Re=8000$. Note the open white square, which is the only eigenvalue with a positive imaginary part. This represents an unstable mode.}
  \label{fig:mortensen:OS_init}
 \end{figure}
 
@@ -875,10 +875,10 @@ In this section we consider first the transient behavior of the Navier--Stokes s
 \begin{figure}
 % \centering
 % \subfigure[Explicit convection, Eq.~(\eqref{eq:mortensen:EX})]{
- \includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_init_cfl_1.pdf}
+ \includegraphics[width=0.5\textwidth]{chapters/mortensen/pdf/OS_init_cfl_1.pdf}
 %}
 %\subfigure[Implicit convection, Eq.~(\eqref{eq:mortensen:IM2})]{
- \includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_init_cfl_0.pdf}
+ \includegraphics[width=0.5\textwidth]{chapters/mortensen/pdf/OS_init_cfl_0.pdf}
 %}
  \caption{Accumulated error (\eqref{eq:mortensen:error}) vs CFL number for an integration time of 0.5 for standard, divergence and skew forms, here represented with solid, dashed and dotted lines respectively. The fully coupled and fractional step solvers are represented with gray and black lines, respectively. All results for a mesh size of N=48. Note that in (a) the black and gray curves are practically identical (the error in the fully coupled solver is approximately 2\% less throughout). }
 \label{fig:mortensen:OS_init_cfl}
@@ -886,10 +886,10 @@ In this section we consider first the transient behavior of the Navier--Stokes s
 \begin{figure}
 % \centering
 %\subfigure[Explicit convection, Eq.~(\eqref{eq:mortensen:EX})]{
- \includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_init_dx_1.pdf}
+ \includegraphics[width=0.5\textwidth]{chapters/mortensen/pdf/OS_init_dx_1.pdf}
 %
 %subfigure[Implicit convection, Eq.~(\eqref{eq:mortensen:IM2})]{
- \includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_init_dx_0.pdf}
+ \includegraphics[width=0.5\textwidth]{chapters/mortensen/pdf/OS_init_dx_0.pdf}
 %
  \caption{Accumulated error (\eqref{eq:mortensen:error}) vs mesh size for an integration time of 0.5. Standard, divergence and skew forms of convection are here represented with solid, dashed and dotted lines respectively. The fully coupled and fractional step solvers are represented with gray and black lines, respectively. For all results the timestep used is 0.005. Note that in (a) the black and gray curves are practically identical (the error in the fully coupled solver is approximately 2\% less throughout). }
 \label{fig:mortensen:OS_init_dx}
@@ -898,20 +898,20 @@ Note that the integration time is kept quite low (from 0 to 0.5), in an effort t
 
 To investigate the spatial discretization with the P2/P1 elements we keep the timestep constant and small at 0.005 and vary the mesh size from 16 to 48 in the \emp{Rectangle} class. The accumulated error is shown in Figure~\ref{fig:mortensen:OS_init_dx}, where we observe the third order accuracy that was expected for Taylor-Hood elements. Again the coupled solver performs better than the fractional step solver with implicit convection, whereas the solvers are practically identical with explicit convection. The larger splitting errors obtained with the fractional step solver using implicit treatment of convection (in both Figs.~\ref{fig:mortensen:OS_init_cfl} and \ref{fig:mortensen:OS_init_dx}) can be understood by thinking of the fractional step solver as an operator splitting routine where the implicit diffusion and convection terms are neglected in the second pressure step. If the convection term is treated explicitly the treatment is exact (since the old velocity is used in the term anyway). Hence, there is only an inconsistency for the diffusion that is being computed in the first step with an intermediate and not the end-of-step velocity field. With implicit convection as well, both diffusion and convection terms are computed with the intermediate (not divergence free) velocity field and the inconsistency with the superior fully coupled scheme becomes more profound.
 
-To validate the more interesting (from a turbulence instability point of view) long term performance of the solvers, we integrate the equations as long as it takes for the perturbation to travel through the domain two times (end time $\approx$ 50). One single well resolved mesh size is used (N = 40 in the \emp{Rectangle} class) and the CFL number is set to 0.05 or 0.1 to limit the temporal discretization errors. Figure \ref{fig:mortensen:OS_long_time} shows the evolution of the perturbation energy using both the fully coupled and fractional step solvers with the second order implicit convection (\eqref{eq:mortensen:IM2}) and the second order explicit scheme (\eqref{eq:mortensen:EX}). Evidently, the standard form of convection is more stable than the divergence (most unstable) and skew forms for long integration times. The divergence and skew forms cannot capture the true evolution of the instability and the solution quickly blows up into a chaotic 2D 'turbulence' field. The standard form seems to capture the instability with ease and evolves more or less exactly according to the true solution of the eigenvalue problem. There are only minor differences between the fractional step and the fully coupled solver, which is not unexpected since we are using a very short timestep and the (second order in time) error in fractional step splitting (the only difference between the two methods) is thus minimized. By increasing the CFL number it can be shown that the fully coupled solver remains accurate for longer time-steps. Note that the total kinetic energy remains more or less constant for all the simulations shown in Figure~\ref{fig:mortensen:OS_long_time}, even for the divergence and skew forms. Hence, the ability of the skew form to maintain total kinetic energy does not seem to be all that important when we are really interested in solving instability problems, where the most important physical process is that energy changes form (from the mean flow to the perturbation). Also shown in Figure~\ref{fig:mortensen:OS_long_time} with circles is the result of using the same number of degrees of freedom and timestep with a cell-vertex based finite volume solver. The finite volume solver is discretized in a similar manner as our FEniCS solvers with implicit convection (\eqref{eq:mortensen:IM2}) using Adams-Bashforth projection and Crank-Nicholson diffusion. The integration method is fractional step, which is here slightly dissipative due to the collocated nature of the pressure and velocity. The implicit higher-order (P2/P1) FEniCS solvers are evidently much better at capturing this instability than the lower-order finite volume method, which is not surprising. The difficulties that low-order finite difference methods face when trying to capture the Orr-Sommerfeld instability have earlier been reported also by Malik \cite{Malik1984} and Canuto \cite{Canuto07}.
+To validate the more interesting (from a turbulence instability point of view) long term performance of the solvers, we integrate the equations as long as it takes for the perturbation to travel through the domain two times (end time $\approx$ 50). One single well resolved mesh size is used (N = 40 in the \emp{Rectangle} class) and the CFL number is set to 0.05 or 0.1 to limit the temporal discretization errors. Figure \ref{fig:mortensen:OS_long_time} shows the evolution of the perturbation energy using both the fully coupled and fractional step solvers with the second order implicit convection (\eqref{eq:mortensen:IM2}) and the second order explicit scheme (\eqref{eq:mortensen:EX}). Evidently, the standard form of convection is more stable than the divergence (most unstable) and skew forms for long integration times. The divergence and skew forms cannot capture the true evolution of the instability and the solution quickly blows up into a chaotic 2D 'turbulence' field. The standard form seems to capture the instability with ease and evolves more or less exactly according to the true solution of the eigenvalue problem. There are only minor differences between the fractional step and the fully coupled solver, which is not unexpected since we are using a very short timestep and the (second order in time) error in fractional step splitting (the only difference between the two methods) is thus minimized. By increasing the CFL number it can be shown that the fully coupled solver remains accurate for longer time-steps. Note that the total kinetic energy remains more or less constant for all the simulations shown in Figure~\ref{fig:mortensen:OS_long_time}, even for the divergence and skew forms. Hence, the ability of the skew form to maintain total kinetic energy does not seem to be all that important when we are really interested in solving instability problems, where the most important physical process is that energy changes form (from the mean flow to the perturbation). Also shown in Figure~\ref{fig:mortensen:OS_long_time} with circles is the result of using the same number of degrees of freedom and timestep with a cell-vertex based finite volume solver. The finite volume solver is discretized in a similar manner as our FEniCS solvers with implicit convection (\eqref{eq:mortensen:IM2}) using Adams-Bashforth projection and Crank-Nicholson diffusion. The integration method is fractional step, which is here slightly dissipative due to the collocated nature of the pressure and velocity. The implicit higher-order (P2/P1) FEniCS solvers are evidently much better at capturing this instability than the lower-order finite volume method, which is not surprising. The difficulties that low-order finite difference methods face when trying to capture the Orr-Sommerfeld instability have earlier been reported also by Malik \cite{MalikZangHussaini1984} and Canuto \cite{CanutoHussainiQuarteroniEtAl2007}.
 \begin{figure}
 % \centering
 % \subfigure[Explicit convection, Eq.~(\eqref{eq:mortensen:EX}), CFL=0.1]{
-\includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0_1_model_1.pdf}
+\includegraphics[width=0.5\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0_1_model_1.pdf}
 %}
 % \subfigure[Implicit convection, Eq.~(\eqref{eq:mortensen:IM2}), CFL=0.1]{
-\includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0_1_model_0.pdf}
+\includegraphics[width=0.5\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0_1_model_0.pdf}
 %}
 % \subfigure[Explicit convection, Eq.~(\eqref{eq:mortensen:EX}), CFL=0.05]{
-\includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0_05_model_1.pdf}
+\includegraphics[width=0.5\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0_05_model_1.pdf}
 %}
 % \subfigure[Implicit convection, Eq.~(\eqref{eq:mortensen:IM2}), CFL=0.05]{
-\includegraphics[width=0.45\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0_05_model_0.pdf}
+\includegraphics[width=0.5\textwidth]{chapters/mortensen/pdf/OS_energy_cfl_0_05_model_0.pdf}
 %}
  \caption{ Temporal evolution of the perturbation energy. The gray and black lines correspond to the fully coupled and fractional step solvers respectively and the solid, dashed and dotted lines correspond to the standard, divergence and skew forms of the convection respectively. The symbolic dots represent the solution from a low order finite volume solver and the squares represent the true solution. Note that for explicit convection and the standard implicit form the gray and black curves are practically identical. }
 \label{fig:mortensen:OS_long_time}
