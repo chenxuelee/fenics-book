@@ -5,7 +5,7 @@
 
 
 This chapter concerns the flow of cerebrospinal fluid (CSF) in the subarachnoid space that 
-the surrounds spinal cord. Particular attention is given to abnormal flow and pressure resulting from 
+surrounds spinal cord. Particular attention is given to abnormal flow and pressure resulting from 
 the Chiari I malformation and its often associated condition syringomyelia. 
 This chapter builds on the software tools described in Chapter~[kvs-1], and
 we will compare the Chorin, IPCS, and G2 methods. 
@@ -39,7 +39,8 @@ important role in cushioning the brain and spinal cord.
 
 \begin{figure}\begin{center}
 \includegraphics[width=100mm]{chapters/hentschel/pdf/chiara_about.pdf}
-\caption{Illustration of the cerebrospinal fluid system in a the normal case and with Chiari I malformation and syringomyelia.}
+\caption{The cerebrospinal fluid system illustrated for a normal case (left), 
+    and for a Chiari I malformation patient with syringomyelia.}
 \editornote{Get permission to use this, found
 \emp{http://www.chiariinstitute.com/chiari\_malformation.html}}
 \label{fig:anatomy}
@@ -75,16 +76,19 @@ reduction of the size of the cavity in the spinal canal and patients
 usually report improvement of their condition. In some cases, the
 syrinx disappeared completely after some months~\cite{OldfieldMuraszkoShawkerEtAl1994,PinnaAlessandriniAlfieriEtAl2000,HeissPatronasDeVroomEtAl1999}.
 
-Several studies~\cite{Quigley2004,HaughtonKorosecMedowEtAl2003} report that the measured flow at foramen magnum
-is abnormal in the sense that the flow contains high speed jets and also bidirectional flow. 
+Several studies, e.g. \cite{Quigley2004} and \cite{HaughtonKorosecMedowEtAl2003}, report that the measured flow at foramen magnum
+is abnormal in the sense that the flow contains high speed jets and also synchronous bidirectional flow. 
 Computational fluid dynamics (CFD) simulations have related the abnormal flow to 
-abnormal pressure~\cite{RoldanHaughtonWiebenEtAl2008,Simula.SC.648,Simula.SC.522}. 
+abnormal
+pressure~\cite{RoldanHaughtonWiebenEtAl2008,HentschelMardalLovgren2010,LingeHaughtonLovgren2010,LingeHaughtonLovgren2011}.  
 Many theories have been proposed to describe the relation between the Chiari I malformation and
-syringomyelia. It is however a problem to explain the relatively large distance between the 
+syringomyelia. However, it is hard to explain the relatively large distance between the 
 Chiari I malformation and the cyst.  
+
 It is the purpose of this
-chapter to describe the implementation of such CFD solver in
-\fenics\ and investigate the flow characteristics. Specifically, we investigate
+chapter to 
+show how relavant CFD solvers in \fenics\ may be used to investigate unresolved issues in CSF flow dynamics. 
+Specifically, we investigate
 different boundary conditions, different geometries, and also how far velocity and pressure disturbances travel
 under realistic conditions. We also compare the different solvers Chorin, ICPS, and G2, c.f. Chapter~[kvs-1].
 
@@ -105,45 +109,57 @@ with the variables as indicated in Table \ref{tab:entities}, and $\mathbf{g}$,
 the body force, i.e., gravity. We can eliminate gravity from the
 equation by assuming that the body force is balanced by the
 hydrostatic pressure. As a result, pressure describes only the dynamic
-pressure. Tocalculate the correct physical pressure, static
+pressure. To calculate the correct physical pressure, static
 pressure resulting from body forces has to be added. This
 simplification is not true, however, during sudden movements such as
 raising up.
 
 The coordinate system is chosen so that the tubular axis points downwards, resulting in positive systolic flow and negative diastolic flow.
 
-\begin{table}\begin{minipage}{\textwidth}\begin{center}
+\begin{table*}
+\begin{center}
     \begin{tabular}{ | c | c | c | c | c | }
     \hline
-    Symbol & Meaning & Entity & Chosen Value & Reference Value\\ \hline\hline
-	$\mathbf{v}$	& velocity variable & $\mathrm{ \frac{cm}{s}}$ & --- & $-1.3\pm 0.6 \ldots 2.4 \pm 1.4$ \footnote{~\cite{HofmannWarmuth-MetzBendszusEtAl2000}; Maximum absolute anterior CSF flow in both directions from controls and patients at foramen magnum} \\
+    Symbol & Meaning & Unit & Value Used & Reference \\ \hline\hline
+	$\mathbf{v}$	& velocity variable & $\mathrm{ \frac{cm}{s}}$ & --- & $-1.3\pm 0.6 \ldots 2.4 \pm 1.4$  \\
 	$p$		& pressure	variable & Pa & --- & \ldots\\
-	$\rho$	& density & $\mathrm{\frac{g}{cm^3}}$ & --- &0.993 \footnote{at $37^\circ$ C }\\ %\textcelsius
+	$\rho$	& density & $\mathrm{\frac{g}{cm^3}}$ & --- &0.993 \\ %\textcelsius
 	$\mu$	& dynamic viscosity	&  $\mathrm{\frac{g s}{cm}}$ & --- & 0.0007\\
 	$\nu$	& kinematic viscosity & $\mathrm{ \frac{cm^2}{s}}$ & $0.7 10^{-2}$ & $0.7 10^{-2}$ \\ 	\hline %$(\nu = \frac{\mu}{\rho})$
-	$SV$	& stroke volume \footnote{CSF volume that moves up and down through cross section in the SAS during one cardiac cycle}	& $\mathrm{ \frac{ml}{s}}$& $0.27$  & $0.27$\footnote{\cite{GuptaSoellingerBoesigerEtAl2009}} \\
+	$SV$	& stroke volume 	& $\mathrm{ \frac{ml}{s}}$& $0.27$  & $0.27$ \\
 	$HR$	& heart rate & $\mathrm{\frac{beats}{s}}$	& 1.17 & 1.17\\
 	$A0$	& tube boundary	& $\mathrm{ cm^2}$ & $32$  & ---\\
-	$A1$,$A2$	& area of inlet/outlet & $\mathrm{ cm^2}$ &$0.93$ & 0.8 \ldots 1.1 \footnote{~\cite{LothYardimciAlperin2001}; Cross sections at 20--40 cm from the foramen magnum.}  \\
+	$A1$,$A2$	& area of inlet/outlet & $\mathrm{ cm^2}$ &$0.93$ & 0.8 \ldots 1.1   \\
     \hline
-    $Re$    & Reynolds Number & -- & -- & ~70--200 \footnote{See more details in \ref{tab:Re_We}.}\\
+    $Re$    & Reynolds Number & -- & -- & ~70--200 \\
     $We$    & Womersley Number & -- & -- & ~14--17 \\
     \hline
     \end{tabular}
 	\label{tab:entities}
-	\caption{Characteristic values and parameters for CSF flow modeling.}
-\end{center}\end{minipage}\end{table}
+\vspace{1cm}
+\caption{
+Characteristic values and parameters for CSF flow modeling.
+The velocities are maximum absolute anterior CSF flow velocities  taken from controls 
+and Chiari I malformation patients~\cite{HofmannWarmuth-MetzBendszusEtAl2000}.
+By stroke volume we mean the volume that moves up and down through cross section in 
+the SAS during one cardiac cycle and the value is taken from~\cite{GuptaSoellingerBoesigerEtAl2009}.
+Cross sections area  20--40 cm from the foramen magnum are taken from~\cite{LothYardimciAlperin2001}.
+}
+\end{center}
+\end{table*}
 % reference: http://www.thermexcel.com/english/tables/eau_atm.htm
 
-\section{Numerical Experiments}
-\subsection{Implementation}
-We refer to Chapter [kvs-1] for a complete description of the solvers
-and schemes implemented. In this chapter we concentrate on the use of
-these solvers in a few examples.
+\vspace{6cm}
 
-The problem is defined in a separate python script and can be found in: \\
- \emp{fenics-bok/csf/code/csf.py}. The main parts are presented below.
-%FIXME
+\section{Numerical Experiments}
+\begin{minipage}{10cm}
+\subsection{Implementation}
+We refer to Chapter [kvs-1] for a complete description of the solvers 
+and schemes implemented. In this chapter we concentrate on the use  
+of these solvers in a few examples. Notice, however, that we use
+first order velocity elements. The code can be found in \emp{csf\_flow.py}.  
+
+\end{minipage}
 
 \paragraph{Boundary conditions}  
 The mesh boundaries at the inlet cross section, the outlet cross section, and the SAS boundaries are defined by the respective classes \emp{Top}, \emp{Bottom}, and \emp{Contour}. They are implemented as subclasses of \emp{SubDomain}, similarily to the given example of \emp{Top}.
@@ -216,11 +232,15 @@ transport of 0.27 ml.
 
 \begin{figure}\begin{center}
 \includegraphics[width = 0.5\textwidth]{chapters/hentschel/pdf/sin_pulse.pdf}
-\caption{Two different flow pulses.}
+\caption{Two different CSF flow pulses.}
 \label{fig:sin_pulse}.
 \end{center}\end{figure}
 
-In \cite{SmithChase2ShawEtAl2006} they introduced a function describing the varying blood pressure in a heart chamber(see Figure \ref{fig:sin_pulse}). With some adjustment and additional parameters, the function was adapted to approximate the CSF flow pulse. The systole of the pulse function is characterized by a high amplitude with a short duration while the negative counter movement has a reduced amplitude and lasts considerably longer.
+
+A function describing the varying blood pressure in a heart chamber is given in \cite{SmithChase2ShawEtAl2006}. 
+With some adjustment and additional parameters, the function was adapted to approximate the CSF flow pulse,
+see Figure \ref{fig:sin_pulse}).
+The systole of the pulse function is characterized by a high amplitude with a short duration while the negative counter movement has a reduced amplitude and lasts considerably longer.
 The global function for defining the pulse is:
 \begin{python}
 def get_pulse_input_function(V, z_index, factor, A, HR_inv, HR, b, f1):
@@ -428,13 +448,13 @@ Applying the "Chorin" solver, the Problem is started by typing :
 
 It approximates the Navier-Stokes equation with Chorin's method. The progress of different simulation steps and results, including maximum calculated pressure and velocity per time step, are printed out on the terminal. In addition, the solution for pressure and velocity are dumped to a file for each  time step. Before investigating the results, we introduce how the mesh is generated.
 
-\subsection{Generation of Meshes with Gmsh} 
+\subsection{Mesh generation with Gmsh} 
 \index{Gmsh}
 
 In this section we go briefly through the basic usage of Gmsh ~\cite{GeuzaineRemacle}.  The following code example shows the construction of a circular cylinder (representing the pia on the spinal cord) within an elliptic cylinder (representing the dura). 
 We define a characteristic length scale \emp{lc}, which is used in the definition of each point \emp{Point}, which 
 takes three coordinates and the characteristic length scale. 
-The dura is defined by the ellipse vectors a=0.65 mm and b=0.7 mm in x and y direction respectively. The cord has a radius of 4 mm with its center moved 0.8 mm in positive x-direction  Since Gmsh only allows circular or elliptic arcs to be drawn for angles smaller than $pi$, the basic ellipses were constructed from four arcs each. Every arc is defined by the starting point, the center, another point on the arc and the end point. The value $lc$  defines the maximal edge length in vicinity to the point.
+The dura is defined by the ellipse vectors a=0.65 mm and b=0.7 mm in x and y direction respectively. The cord has a radius of 4 mm with its center moved 0.8 mm in positive x-direction  Since Gmsh only allows circular or elliptic arcs to be drawn for angles smaller than $\pi$, the basic ellipses were constructed from four arcs each. Every arc is defined by the starting point, the center, another point on the arc and the end point. The value $lc$  defines the maximal edge length in vicinity to the point.
 
 \begin{gencode}
 lc = 0.04;  //characteristic length for the cell 
@@ -489,7 +509,7 @@ We store the above Gmsh commands in a \emp{.geo} file that is read by Gmsh as,
 > gmsh filename.geo
 \end{bash}
 A screen shot of an interactive session is shown in Figure~\ref{fig:Gmsh_mesh}. 
-We may then change to "Mesh modus" in the interactive panel and press \emp{3d} to construct the mesh. Pressing \emp{Save} will save the mesh with the under then name "filename", with extension \emp{msh}. For use in \dolfin, we apply the \dolfin\ converter.
+We may then change to "Mesh modus" in the interactive panel and press \emp{3d} to construct the mesh. Pressing \emp{Save} will save the mesh under the name "filename", with extension \emp{msh}. For use in \dolfin, we apply the \dolfin\ converter.
 
 \begin{bash}
 > dolfin-convert filename.msh filename.xml
@@ -520,7 +540,7 @@ outer_b3[] = Dilate {{0, 0, 0}, 1.0 - 0.8*lc } {
 Duplicata{  Line{10}; Line{11}; Line{12}; Line{13}; } };
 \end{gencode}
 Here the command \emp{Duplicata} copies the expressions, while \emp{Dilate} scales them.    
-The single arcs are dilated separately since the arc points are necessary for further treatment. Remember that no arcs with angles smaller than $pi$ are allowed. Again we need a representation for the complete ellipses defined by line loops, as
+The single arcs are dilated separately since the arc points are necessary for further treatment. Remember that no arcs with angles smaller than $\pi$ are allowed. Again we need a representation for the complete ellipses defined by line loops, as
 \begin{gencode}
 Line Loop(22) = {outer_b1[]};
 \end{gencode}
@@ -551,16 +571,17 @@ The presented results were simulated on meshes of length 5 cm with 30 layers in 
 
 
 \subsection{Example 1. Simulation of a Pulse in the SAS.}
-In the first example we represent the spinal cord and the surrounding dura mater as two straight cylinders, created using Gmsh. 
+In the first example we represent the spinal cord and the surrounding dura mater as two straight non-concentric cylinders, created using Gmsh. 
 %These cylinders can easily be generated by using NetGen ~\cite{SchoberlGerstmayrGaisbauer} or Gmsh ~\cite{GeuzaineRemacle}.  In NetGen meshes can be constructed by adding or subtracting geometrical primitives from each other. It also supports \dolfin\ mesh generation. \paragraph{Results.}
-The simulation results for an appropriate mesh can be found in Figure \ref{fig:case1}. The plots show the velocity component in tubular direction at at the mid cross section of the model. The flow profiles are taken at the time steps of maximum flow in both directions and during the transition from systole to diastole. For maximal systole, the velocities have two peak rings, one close to the outer, the other to the inner boundary. We can see sharp profiles at the maxima and bidirectional flow at the local minimum during diastole.
+The simulation results for an appropriate mesh can be found in Figure \ref{fig:case1}. The plots show the velocity component in tubular direction at the mid cross section of the model. The flow profiles are taken at the time steps of maximum flow in both directions and during the transition from systole to diastole. For maximal systole, the velocities have two peak rings, one close to the outer, the other close to the inner boundary. We can see sharp profiles at the maxima and bidirectional flow at the local minimum during diastole.
 
 
 \begin{figure}\begin{center}
 \includegraphics[width=0.3\textwidth]{chapters/hentschel/pdf/pulse_f1_08_sysmax_nmb7.pdf}
 \includegraphics[width=0.3\textwidth]{chapters/hentschel/pdf/pulse_f1_08_sysdia_nmb18.pdf}
 \includegraphics[width=0.3\textwidth]{chapters/hentschel/pdf/pulse_f1_08_diamin1_nmb25.pdf}
-\caption{Case: Circular cord. The velocity in z-direction for the non-symmetric pulse at the time steps $t=0.07s, 0.18s, 0.25s$.}
+\caption{Case: Circular cord. The velocity in z-direction for the non-symmetric pulse at the time steps $t=0.07s, 0.18s, 0.25s$. Notice that we use different color scales for the different time steps. The same color scales
+will be used in all subsequent figures. }
 \label{fig:case1}.
 \end{center}\end{figure}
 
@@ -596,7 +617,7 @@ of interest to quantify how far pressure and velocity instabilities can travel u
 To create pressure and velocity instabilities, we assign  time-dependent but flat inlet and outlet 
 velocity conditions on the previously described geometry and investigate how far these instabilities
 travel with the flow. We also compare three different solvers, namely the Chorin, IPCS, and G2 schemes. 
-All schemes do however use first order elements for both velocity and pressure. In Table~\ref{solvers:pressurediff}, we list the pressure differences at various places along the spinal coord computed with 
+All schemes do, however, use first order elements for both velocity and pressure. In Table~\ref{solvers:pressurediff}, we list the pressure differences at various places along the spinal coord computed with 
 the three different solvers, slightly after systole. Strangely, it appears that the G2 solver requires a 30\% bigger
 pressure gradient between the top and the bottom in this case. However, the 
 G2 solver has also produced some peculiar results in Chapter~[kvs-1]. We also remark that
@@ -732,16 +753,20 @@ Also for this case the pressure field was identical, with some variations in the
 
 Syrinxes expand the cord so that it occupies more space of the spinal SAS. Increasing the cord radius from 4 mm to 5 mm \footnote{similar to setting the variables c and d in the geo-file to 0.5} decreases the cross sectional area by almost one third to 0.64 $\mathrm{cm^2}$. The resulting flow is shown in Figure \ref{fig:case4}. Apart from the increased velocities, we see bidirectional flow already at t = 0.18 s and at t=0.25 s as before. The fact that diastolic back-flow is visible at t = 0.18 s, shows that the pulse with its increased amplitude travels faster.
 
-\begin{table}\begin{center}
-    \begin{tabular}{ | c | c | c | c | c |}
-    \hline
-    Problem & $D$ \footnote{Characteristic length; $D=\sqrt(A/\pi)$, A being the inflow and outflow area} in cm & $\mathbf{v}_{max}$\footnote{at inflow and outflow boundary.} in cm/s  & $Re$ & $We$ \\ \hline\hline
+\begin{table}
+\begin{center}
+\begin{tabular}{ | c | c | c | c | c |}
+\hline
+Problem & $D$ ,  in cm & $\mathbf{v}_{max}$ in cm/s  & $Re$ & $We$ \\ \hline\hline
 	Example 1 	&	0.54 & 2.3 & 177 & 17	\\ \hline
 	Example 2	&	0.54 & 0.92 & 70 & 17	\\ \hline
 	Example 4	&	0.45 & 3.2 	& 205 & 14	\\ \hline
     \end{tabular}
 	\label{tab:Re_We}
-	\caption{Characteristic values for the examples 1, 2 and 3.}
+	\caption{Characteristic values for the examples 1, 2 and 3. Here, the  
+	characteristic length is $D=\sqrt(A/\pi)$, where  $A$ is the inflow and outflow area. 
+        Furthermore, $\mathbf{v}_{max}$ is defined as the maximal velocity at inflow and outflow boundary.
+	}
 \end{center}\end{table}
 
 Comparing Reynolds and Womersly numbers shows a clear difference for
@@ -759,13 +784,13 @@ sectional area have great influence on the simulation results.
 %the cross sections does not seem to influence the flow greatly.
 
 
-\section{Conlusion}
+\section{Conclusion}
 In this chapter, we have presented the use of FEniCS to simulate CSF flow in 
 various idealized geometries representing the
 spinal cord and the surrounding subarachnoid space. We have further 
 quantified the effect of abnormal geometries and boundary conditions 
 in terms of pressure and flow deviations. From our simulations, it seems
-that pressure instabilities is quickely damped out under realistic Reynolds and 
+that pressure instabilities are quickely damped out under realistic Reynolds and 
 Womersley numbers. These instabilities travel less than 1 cm and it seems unlikely 
 that Chiari induced pressure instabilities will produce cysts several centimeters further
 down in the spinal canal. 
