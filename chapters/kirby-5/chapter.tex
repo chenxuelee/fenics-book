@@ -3,6 +3,9 @@
               {Robert C. Kirby and Anders Logg}
               {kirby-5}
 
+\editornote{AL: Make sure the assembly chapter follows after this
+  chapter.}
+
 Much of the FEniCS software is devoted to the formulation of
 variational forms (UFL), the discretization of variational forms
 (FIAT, FFC, SyFi) and the assembly of the corresponding discrete
@@ -107,7 +110,7 @@ Consider Poisson's equation with variable conductivity~$\kappa =
   -\nabla \cdot (\kappa \nabla u) = f.
 \end{equation}
 Assuming Dirichlet boundary conditions on the boundary
-$\partial\Omega$ of the domain $\Omega$, the corresponding canonical
+$\partial\Omega$, the corresponding canonical
 variational problem is defined in terms of a pair of multilinear
 forms, $a(\kappa; u, v) = \int_{\Omega} \kappa \nabla u \cdot \nabla
 v \dx$ and $L(v) = \int_{\Omega} f v \dx$. Here, $a$ is a bilinear
@@ -136,21 +139,12 @@ pressure~$p$ of an incompressible fluid read:
 where the stress tensor~$\sigma$ is given by $\sigma(u, p) = 2 \mu
 \epsilon(u) - p I$, $\epsilon$ is the symmetric gradient, that is,
 $\epsilon(u) = \frac{1}{2}(\nabla u + (\nabla u)^{\top})$, $\rho$ is
-the fluid density and $f$ is a body force.\footnote{A comment may be
-in order regarding the notation $\nabla u \cdot u$. Throughout this
-book, we denote by $v \cdot w$ a contraction along the last dimension
-of $v$ and the first dimension of $w$, that is, $(v \cdot w)_{\cdots
-ijlm \cdots} = \sum_k v_{\cdots ijk} w_{klm\cdots}$. Thus if $v$ and
-$w$ are scalar, then $v \cdot w$ is the standard inner product between
-vectors, and if (as is the case for the convective term in the
-Navier--Stokes equations) $v$ is a matrix and $w$ is a vector, then
-$v \cdot w$ is the standard matrix--vector product. The same
-convention is used in the UFL form language for the
-operator \emp{dot(v, w)}.} Consider here the form obtained by
+the fluid density and $f$ is a body force.
+Consider here the form obtained by
 integrating the nonlinear term $\nabla u \cdot u$ against a test
 function $v$:
 \begin{equation}
-  a(u; v) = \int_{\Omega} \nabla u \cdot u \cdot v \dx.
+  a(u; v) = \int_{\Omega} \nabla u \, u \cdot v \dx.
 \end{equation}
 This is a linear form ($\rho = 1$) with one coefficient ($n = 1$). We
 may linearize around a fixed velocity~$\bar{u}$ to obtain
@@ -190,8 +184,8 @@ lift and drag are given by the $z$- and $x$-components of the force
 generated on the object (for a flow in the $x$-direction):
 \begin{equation}
   \begin{split}
-    L_{\mathrm{lift}}(u, p;) &= \int_{\Gamma} \sigma(u, p) \cdot n \cdot e_z \ds, \\
-    L_{\mathrm{drag}}(u, p;) &= \int_{\Gamma} \sigma(u, p) \cdot n \cdot e_x \ds.
+    L_{\mathrm{lift}}(u, p;) &= \int_{\Gamma} \sigma(u, p) n \cdot e_z \ds, \\
+    L_{\mathrm{drag}}(u, p;) &= \int_{\Gamma} \sigma(u, p) n \cdot e_x \ds.
   \end{split}
 \end{equation}
 Here, $\Gamma$ is the boundary of the body, $n$ is the outward
@@ -279,9 +273,6 @@ length~$\rho$ and $\{\phi^j_k\}_{k=1}^{N_j}$ is a basis for $V_{j,h}
 typically sparse tensor of rank~$\rho$ and dimension $N_1 \times N_2
 \times \cdots \times N_{\rho}$.
 
-\editornote{AL: Make sure the assembly chapter follows after this
-  chapter.}
-
 The discrete operator~$A$ may be computed efficiently using an
 algorithm known as~\emph{assembly}, which is the topic of the next
 chapter. As we shall see then, an important tool is the \emph{cell
@@ -361,8 +352,8 @@ definition of matrix-free methods for solving differential
 equations. Consider the solution of a variational problem of the
 canonical form~(\ref{eq:kirby-5:canonical}) by a Krylov subspace
 method such as GMRES (Generalized Minimal RESidual
-method)~\cite{SaadSchultz1986} or CG (Conjugate Gradient
-method)~\cite{HestenesStiefel1952}. Krylov methods approximate the
+method) \citep{SaadSchultz1986} or CG (Conjugate Gradient
+method) \citep{HestenesStiefel1952}. Krylov methods approximate the
 solution $U\in\R^N$ of the linear system $AU=b$ by finding an
 approximation for $U$ in the subspace of $\R^N$ spanned by the vectors
 $b, Ab, A^2b, \ldots, A^kb$ for some $k \ll N$. These vectors may be
@@ -399,7 +390,7 @@ to~\cite{BagheriScott2004}.
 Computing the action of a multilinear form is supported by the UFL
 form language by calling the \emp{action} function:
 \begin{python}
-  a = inner(grad(u), grad(v))*dx
+  a  = inner(grad(u), grad(v))*dx
   Aa = action(a)
 \end{python}
 
@@ -448,7 +439,7 @@ Chapter~\ref{chap:kirby7}.
 Computing the derivative of a multilinear form is supported by the UFL
 form language by calling the \emp{derivative} function:
 \begin{python}
-  a = inner(grad(u)*u, v)*dx
+  a  = inner(grad(u)*u, v)*dx
   Da = derivative(a, u)
 \end{python}
 
