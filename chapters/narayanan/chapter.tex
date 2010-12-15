@@ -25,10 +25,10 @@
 {Harish Narayanan}
 {narayanan}
 
-Nonlinear elasticity theory plays a fundamental role in modelling the
+Nonlinear elasticity theory plays a fundamental role in modeling the
 mechanical response of many polymeric and biological materials. Such
 materials are capable of undergoing finite deformation, and their
-material response is often characterised by complex, nonlinear
+material response is often characterized by complex, nonlinear
 constitutive relationships. (See, for example, \cite{Holzapfel2000}
 and \cite{TruesdellNoll1965} and the references within for several
 examples.) Because of these difficulties, predicting the response of
@@ -45,7 +45,7 @@ The focus of this chapter will be to describe the design and
 implementation of \twist, as well as providing examples of its
 use. The goal is to allow researchers to easily pose and solve
 problems in nonlinear elasticity in a straightforward manner, so that
-they may focus on higher-level modelling questions without being
+they may focus on higher-level modeling questions without being
 hindered by specific implementation issues.
 
 What follows is the proposed outline for the chapter.
@@ -60,7 +60,7 @@ level of specifying a strain energy function. The discourse will then
 turn to the primary equation of interest: the balance of linear
 momentum of a body posed in the reference configuration. A finite
 element scheme for this equation will then be presented, pointing out
-how \twist{} leverages the automatic linearisation capabilities of UFL
+how \twist{} leverages the automatic linearizations capabilities of UFL
 to implement this scheme in a manner that is independent of the
 specific material model. The time-stepping schemes that \twist{}
 implements will also be discussed. With this in place, we turn to
@@ -69,7 +69,6 @@ problems in nonlinear elasticity can be posed and solved in \twist{}
 using only a few lines of high-level code. The chapter concludes with
 some remarks on how one can obtain \twist, along with ideas for its
 extension.
-
 
 \section{Brief overview of nonlinear elasticity theory as it relates
   to \twist}
@@ -84,22 +83,22 @@ modern works such as \cite{Gurtin1981}, \cite{Ogden1997} and
 
 \subsection{Posing the question we aim to answer}
 
-The theory begins by idealising the elastic body of interest as an
+The theory begins by idealizing the elastic body of interest as an
 open subset of $\mathbb{R}^{2, 3}$ with a piecewise smooth
-boundary. At a {\em reference} placement of the body, $\Omega$,
-points in the body are identified by their reference positions, $\bX
-\in \Omega$. The treatment presented in this chapter is posed in
-terms of fields which are parametrised by reference positions. This is
-commonly termed the {\em material} or {\em Lagrangian} description.
+boundary. At a {\em reference} placement of the body, $\Omega$, points
+in the body are identified by their reference positions, $\bX \in
+\Omega$. The treatment presented in this chapter is posed in terms of
+fields which are parametrized by reference positions. This is commonly
+termed the {\em material} or {\em Lagrangian} description.
 
 In its most basic terms, the {\em deformation} of the body over a time
 $t \in [0, T]$ is a sufficiently smooth bijective map $\Bvarphi:
 \overline{\Omega} \times [0,T] \rightarrow \mathbb{R}^{2, 3}$, where
 $\overline{\Omega} :=\ \overline{\Omega\cup\partial\Omega}$ and
-$\partial\Omega$ is the boundary of $\Omega$. The restrictions on
-the map ensure that the motion it describes is physical (e.g.,
-disallowing the interpenetration of matter or the formation of
-cracks). From this, we can construct the {\em displacement field},
+$\partial\Omega$ is the boundary of $\Omega$. The restrictions on the
+map ensure that the motion it describes is physical (e.g., disallowing
+the interpenetration of matter or the formation of cracks). From this,
+we can construct the {\em displacement field},
 
 \begin{equation}
   \bu(\bX, t) = \Bvarphi(\bX, t) - \bX,
@@ -139,7 +138,7 @@ Figure~\ref{fig:narayanan:continuumpotato}.
       /pdf/continuumpotato}
     \label{fig:narayanan:continuumpotato}
   \end{center}
-  \caption{An elastic body idealised as a continuum, subjected to body
+  \caption{An elastic body idealized as a continuum, subjected to body
     forces, $\bB$, surface tractions, $\bT$, and prescribed
     displacement boundary conditions.}
 \end{figure}
@@ -147,13 +146,8 @@ Figure~\ref{fig:narayanan:continuumpotato}.
 \subsection{The basic equation we need to solve}
 
 In order to determine the displacement of an elastic body subjected to
-these specified loads and boundary conditions, we turn to a fundamental
-law called the  {\em balance of linear momentum}.\footnote{We focus on
-  the balance of linear momentum, because the other fundamental
-  balance principles that materials must obey: the balance of mass
-  (continuity equation), balance of angular momentum and balance of
-  energy are each trivially satisfied in the Lagrangian description by
-  elastic materials with suitably chosen stress responses.} This is a
+these specified loads and boundary conditions, we turn to a
+fundamental law called the {\em balance of linear momentum}. This is a
 law which is valid for all materials and must hold for all
 time. \twist{} solves the Lagrangian form of this equation, which is
 presented below in local form that is pertinent to numerical
@@ -176,14 +170,32 @@ $\partial\Omega_{\mathrm{D}}$ and $\bP \bN = \bT$ on
 $\partial\Omega_{\mathrm{N}}$. Here, $\bN$ is the outward normal
 on the boundary.
 
+We focus on the balance of linear momentum because, in a continuous
+sense, the other fundamental balance principles that materials must
+obey---the balance of mass (continuity equation), balance of angular
+momentum and balance of energy---are each trivially
+satisfied\footnote{It should be noted that the story is not
+  so simple in the context of numerical approximations. For instance,
+  when modeling (nearly) incompressible materials, it is well known
+  that the ill-conditioned stiffness matrix resulting from the
+  conventional Galerkin approximation (discretizing only the
+  displacement field) can result in {\em volumetric locking}. One can
+  work around this difficulty by resorting to a mixed formulation of
+  the Hu--Washizu type~(\cite{SimoHughes1998}), but such a formulation
+  is beyond the scope of the current chapter. \twist{} can be extended
+  to such a formulation, but for now, we circumvent the problem by
+  restricting our attention to compressible materials.} in the
+Lagrangian description by elastic materials with suitably chosen
+stress responses.
+
 \subsection{Accounting for different materials}
 
 It is important to reiterate that
 \eqref{eq:narayanan:balance-of-momentum} is valid for all
 materials. In order to differentiate between different materials and
-to characterise their specific mechanical responses, the theory turns
+to characterize their specific mechanical responses, the theory turns
 to {\em constitutive relationships}, which are models for describing
-the real mechanical behaviour of matter. In the case of nonlinear
+the real mechanical behavior of matter. In the case of nonlinear
 elastic (or {\em hyperelastic}) materials, this description is posed
 in the form of a stress-strain relationship through an objective and
 frame-indifferent Helmholtz free energy function called the {\em
@@ -276,11 +288,6 @@ definitions above. Figure~\ref{code:narayanan:kinematics.py} presents
 a section of this file. Notice that it is straightforward to introduce
 other custom measures as required.
 
-%\footnote{\textcolor[named]{BrickRed}{TODO:
-%Talk about principal stretch/direction definition, complete with
-%citation here. Reference: Oliver K. Smith: Eigenvalues of a symmetric
-%3 × 3 matrix. Commun. ACM 4(4): 168 (1961)}}
-
 The stress response of isotropic hyperelastic materials (the class of
 materials \twist{} restricts its attention to) can be derived from the
 scalar-valued strain energy function. In particular, the tensor known
@@ -288,7 +295,7 @@ as the {\em second Piola--Kirchhoff stress tensor} is defined using the
 following {\em constitutive relationship}:
 
 \begin{equation}
-\bS = \bF^{-1} \frac{\partial \psi(\bF)}{\partial \bF}
+\bS = \bF^{-1} \frac{\partial \psi(\bF)}{\partial \bF}.
 \end{equation}
 
 \noindent The second Piola--Kirchhoff stress tensor is related to the
@@ -324,9 +331,9 @@ Piola--Kirchhoff stress tensor from the strain energy function by
 suitably differentiating it with respect to the appropriate strain
 measure. This allows the user to easily specify material models in
 terms of each of the strain measures introduced in
-Table~\ref{tab:narayanan:straindefs}. The base class for all
-material models, {\tt MaterialModel}, encapsulates this
-functionality. The relevant method of this class is provided in
+Table~\ref{tab:narayanan:straindefs}. The base class for all material
+models, {\tt MaterialModel}, encapsulates this functionality. The
+relevant method of this class is provided in
 Figure~\ref{code:narayanan:material_model_base.py}. The implementation
 relies heavily on the UFL {\tt diff()} operator.
 
@@ -361,11 +368,9 @@ def SecondPiolaKirchhoffStress(self, u):
   second Piola--Kirchhoff stress tensor based on the strain measure.}
 \end{figure}
 
-\newpage
-
 The generality of the material model base class allows for the (almost
 trivial) specification of a large set of models. To see this in
-practise, let us consider two popular material models,
+practice, let us consider two popular material models,
 
 \begin{itemize}
 
@@ -432,7 +437,7 @@ other additional models, and this is a significant feature of \twist.
 \section{Numerical methods and further implementation details}
 
 In the preceding section, we saw the functionality that \twist{}
-provided to easily specify material models to suitably characterise
+provided to easily specify material models to suitably characterize
 different materials of interest. In this section, we return to the
 general form of the balance of linear momentum and look at details of
 a finite element formulation and implementation for this equation. For
@@ -504,13 +509,33 @@ term) of the balance of linear momentum which reads
 \end{equation}
 
 \noindent Since \twist{} provides the necessary functionality to
-easily compute the first Piola--Kirchhoff stress tensor, $\bP$, given a
-displacement field, $\bu$, for arbitrary material models,
+easily compute the first Piola--Kirchhoff stress tensor, $\bP$, given
+a displacement field, $\bu$, for arbitrary material models,
 \eqref{eq:narayanan:staticweakform} is just a nonlinear functional in
-terms of $\bu$. The automatic
-differentiation capabilities of UFL make this nonlinear form
-straightforward to implement, as evidenced by the code listing in
-Figure~\ref{code:narayanan:staticmomentumsolver}.
+terms of $\bu$. The automatic differentiation capabilities of
+UFL\footnote{An earlier chapter on UFL~(\ref{chap:alnes-1}) provides a
+detailed look at the capabilities of UFL, as well as insights into how
+it achieves its functionality. Even so, we note the following
+differentiation capabilities of UFL because of their pivotal relevance
+to this work:
+
+\begin{itemize}
+\item Computing spatial derivatives of fields, which allows for the
+  construction of differential operators such as such as
+  $\mathrm{Grad(\cdot)}$ or $\mathrm{Div(\cdot)}$:\\
+  \texttt{df\_i = Dx(f, i)}
+\item Differentiating arbitrary expressions with respect to variables
+  they are functions of:\\
+\texttt{g = variable(cos(cell.x[0]))}\\
+\texttt{f = exp(g**2)}\\
+\texttt{h = diff(f, g)}
+\item Differentiating forms with respect to coefficients of a discrete
+  function, allowing for automatic linearizations of nonlinear
+  variational forms:\\
+\texttt{a = derivative(L, w, u)}
+\end{itemize}} make
+this nonlinear form straightforward to implement, as evidenced by the
+code listing in Figure~\ref{code:narayanan:staticmomentumsolver}.
 
 This listing provides the relevant section of the static balance of
 linear momentum solver class, {\tt StaticMomentumBalanceSolver}. The
@@ -612,7 +637,7 @@ scheme:
 
 \noindent where $(\cdot)_{n}$ and $(\cdot)_{n+1}$ are the values of
 a quantity at the current and subsequent time-step, respectively, and
-$(\cdot)_{\mathrm{mid}} = \frac{(\cdot)_{n+1} +
+$(\cdot)_{\mathrm{mid}} = \frac{(\cdot)_{n} +
   (\cdot)_{n+1}}{2}$.  A section of the CG$_{1}$ linear momentum balance
 solver class is presented in Figure~\ref{code:narayanan:cg1}. The code
 closely mirrors the scheme defined in
@@ -750,7 +775,7 @@ and velocity values, and the problem is stepped through time.
 We close this subsection on time-stepping algorithms with one usage
 detail pertaining to \twist. By default, when solving a dynamics
 problem, \twist{} assumes that the user wants to use the HHT
-method. In case one wants to override this behaviour, they can do so
+method. In case one wants to override this behavior, they can do so
 by returning {\tt "CG(1)"} in the {\tt time\_stepping()} method while
 specifying the problem. Figure~\ref{code:narayanan:dynamicrelease} is
 an example showing this.
@@ -760,7 +785,7 @@ an example showing this.
 The algorithms discussed thus far serve primarily to explain the
 computational framework's inner working, and are not at the level at
 which the user usually interacts with \twist{} (unless they are
-interested in extending it). In practise, the functionality of \twist{}
+interested in extending it). In practice, the functionality of \twist{}
 is exposed to the user through two primary problem definition classes:
 {\tt StaticHyperelasticity} and {\tt Hyperelasticity}. These classes
 reside in {\tt problem\_definitions.py}, and contain numerous methods
@@ -975,7 +1000,7 @@ direction due to inertia. This process repeats itself, and snapshots
 of the displacement over the first 0.5~s are shown in
 Figure~\ref{fig:narayanan:releasedcube}. Figure~\ref{fig:narayanan:energies}
 highlights the energy conservation of the CG$_{1}$ numerical scheme used
-to time-step this problem by totalling the kinetic energy and
+to time-step this problem by totaling the kinetic energy and
 potential energy of the body over the course of the
 calculation. \twist{} provides this information through the methods
 {\tt kinetic\_energy(v)} and {\tt potential\_energy(u)}, where {\tt v}
@@ -1022,7 +1047,7 @@ and {\tt u} are velocity and displacement fields respectively.
 In this final example, we aim to crudely simulate the motion of a
 dolphin under a flow field. The dolphin is assumed to be made out of a
 Mooney--Rivlin material ($c_{1} = 6.169$~N/m$^2$, $c_{2} =
-10.15$~N/m$^2$), and the flow field is simply modelled by a uniform
+10.15$~N/m$^2$), and the flow field is simply modeled by a uniform
 traction force $\bT = (0.05, 0)$~N acting everywhere on the surface of
 the dolphin, pushing it to the right.
 
@@ -1106,7 +1131,7 @@ mimic the effect of flow field, one can instead solve at each time
 step an actual flow field and use it to correctly drive the solid
 mechanics. This functionality of \twist{} is used in a following
 chapter on adaptive methods for fluid-structure interaction
-(\cite{chap:selim}). In that work, the fluid-structure problem is
+(\ref{chap:selim}). In that work, the fluid-structure problem is
 solved using a staggered approach with the solid mechanics equation
 being solved by \twist. An external time loop similar to the one in
 Figure~\ref{code:narayanan:manualstep} is set up to individually step
@@ -1120,7 +1145,7 @@ Figure~\ref{fig:narayanan:tumblingdolphin} shows time snapshots of the
 motion of the dolphin over the course of the computation. Notice that
 the fish deforms elastically as it tumbles toward the right.
 
-\begin{figure}[ht]
+\begin{figure*}[ht]
   \begin{center}
     \subfloat[$t = 0.0$ s]{
       \includegraphics[width=0.3\textwidth]{chapters/narayanan/images/png/dolphin_000.png}
@@ -1149,12 +1174,13 @@ the fish deforms elastically as it tumbles toward the right.
     \subfloat[$t = 1.000$ s]{
       \includegraphics[width=0.3\textwidth]{chapters/narayanan/images/png/dolphin_008.png}
     }
+    \vspace{0.75cm}
     \caption{The motion of a hyperelastic dolphin being forced to the
       right. Careful observation of the tail fin shows deformation of
       the dolphin in addition to its overall motion toward the right.}
   \end{center}
   \label{fig:narayanan:tumblingdolphin}
-\end{figure}
+\end{figure*}
 
 \section{Conclusion}
 
@@ -1164,7 +1190,7 @@ elements of classical nonlinear elasticity theory to motivate its
 design, the discourse took a closer look at the algorithms underlying
 \twist's implementation. The chapter concluded with some examples,
 offering a tutorial-like description of how the framework can be used
-in practise to solve problems.
+in practice to solve problems.
 
 The discussion aimed to highlight a central feature of \twist: the
 ease with which different material models can be defined and
@@ -1178,7 +1204,7 @@ at {\tt https://launchpad.net/cbc.solve/}. Its only dependency is a
 working FEniCS installation. \twist{} is released with the goal that
 it will allow users to easily solve problems in nonlinear elasticity
 as part of answering specific questions through computational
-modelling. Everyone is encouraged to fetch and try it. Users are also
+modeling. Everyone is encouraged to fetch and try it. Users are also
 encouraged to modify the code to better suit their own purposes, and
 contribute changes that they think are useful to the community. Along
 these lines, some possible ideas for extending the framework include:
@@ -1186,6 +1212,7 @@ these lines, some possible ideas for extending the framework include:
 \begin{itemize}
 \item Implementing other specific material models
 \item Allowing for bodies composed of multiple materials
+\item Support for (nearly) incompressible materials
 \item Support for anisotropic materials
 \item Support for viscoelastic materials
 \item Goal-oriented adaptivity
