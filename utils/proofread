@@ -6,22 +6,44 @@
 
 import sys
 
-def check_ie(text):
-    if "i.e." in text:
-        return "i.e. --> ; that is,"
-
-def check_cite(text):
-    if "\cite{" in text:
-        return "\cite{} --> \citet{} or \citep{}"
+# List of things to check
+checklist = [("i.e.",              "'; that is,'"),
+             ("\\cite",            "\\citet{} or \\citep{}"),
+             ("multiindex",        "multi-index"),
+             ("multi index",       "multi-index"),
+             ("PyDOLFIN",          "DOLFIN"),
+             ("editornote",        "fix!"),
+             ("authornote",        "fix!"),
+             ("\\forall ",         "\\foralls"),
+             ("\\forall\\",        "\\foralls"),
+             ("\\geq",             "\\geqslant"),
+             ("\\leq",             "\\leqslant"),
+             ("\\mathcal{T} ",     "\\mathcal{T}_h"),
+             ("\\mathcal{T}\\",    "\\mathcal{T}_h"),
+             ("commandline",       "command-line"),
+             ("command line",      "command-line"),
+             ("Nedelec",           "\\nedelec{}"),
+             ("element tensor",    "cell tensor"),
+             ("etc ",              "etc."),
+             ("etc,",              "etc.,"),
+             ("(\ref{",            "\eqref{}"),
+             ("\\begin{code}",     "\begin{python/c++/bash}"),
+             (" sub ",             "subfoo"),
+             ("Navier-Stokes",      "Navier--Stokes"),
+             ("\\nabla u \\cdot u", "\\nabla u \, u"),
+             ("d\Omega",            "\\dx"),
+             (" dx",                "\\dx"),
+             (" ds",                "\\ds")]
 
 def check_all(text):
     "Check stuff"
 
     warnings = []
 
-    # Check all
-    warnings += [check_ie(text)]
-    warnings += [check_cite(text)]
+    # Check simple replacements
+    for (a, b) in checklist:
+        if a in text:
+            warnings += ["%s --> %s" % (a, b)]
 
     # I like this line
     warnings = [warning for warning in warnings if warning is not None]
@@ -68,4 +90,4 @@ if __name__ == "__main__":
     else:
         print "%s: %d warning(s)" % (filename, len(warnings))
         for warning in warnings:
-            print "  " + warning
+            print "- " + warning
