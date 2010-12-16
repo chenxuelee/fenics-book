@@ -29,8 +29,8 @@ Nonlinear elasticity theory plays a fundamental role in modeling the
 mechanical response of many polymeric and biological materials. Such
 materials are capable of undergoing finite deformation, and their
 material response is often characterized by complex, nonlinear
-constitutive relationships. (See, for example, \cite{Holzapfel2000}
-and \cite{TruesdellNoll1965} and the references within for several
+constitutive relationships. (See, for example, \citep{Holzapfel2000}
+and \citep{TruesdellNoll1965} and the references within for several
 examples.) Because of these difficulties, predicting the response of
 arbitrary structures composed of such materials to arbitrary loads
 requires numerical computation, usually based on the finite element
@@ -52,8 +52,8 @@ What follows is the proposed outline for the chapter.
 
 The chapter begins with a summary of some key results from classical
 nonlinear elasticity theory. This discussion is used to motivate the
-design of \twist, which is a PyDOLFIN (\cite{LoggWells2010}) module
-written in UFL syntax (\cite{AlnaesA.Logg2009}) that closely resembles
+design of \twist, which is a DOLFIN \citep{LoggWells2010} module
+written in UFL syntax \citep{AlnaesA.Logg2009} that closely resembles
 how the theory is written down on paper. In particular, we will see
 how one can easily pose sophisticated material models purely at the
 level of specifying a strain energy function. The discourse will then
@@ -77,9 +77,9 @@ The goal of this section is to present an overview of the mathematical
 theory of nonlinear elasticity, which plays an important role in the
 design of \twist. Readers interested in a more comprehensive treatment
 of the subject are referred to, for example, the classical treatises
-of \cite{TruesdellToupin1960} and \cite{TruesdellNoll1965}, or more
-modern works such as \cite{Gurtin1981}, \cite{Ogden1997} and
-\cite{Holzapfel2000}.
+of \citet{TruesdellToupin1960} and \citet{TruesdellNoll1965}, or more
+modern works such as \citet{Gurtin1981}, \citet{Ogden1997} and
+\citet{Holzapfel2000}.
 
 \subsection{Posing the question we aim to answer}
 
@@ -181,7 +181,7 @@ satisfied\footnote{It should be noted that the story is not
   conventional Galerkin approximation (discretizing only the
   displacement field) can result in {\em volumetric locking}. One can
   work around this difficulty by resorting to a mixed formulation of
-  the Hu--Washizu type~(\cite{SimoHughes1998}), but such a formulation
+  the Hu--Washizu type~\citep{SimoHughes1998}, but such a formulation
   is beyond the scope of the current chapter. \twist{} can be extended
   to such a formulation, but for now, we circumvent the problem by
   restricting our attention to compressible materials.} in the
@@ -202,7 +202,7 @@ frame-indifferent Helmholtz free energy function called the {\em
 strain energy function}, $\psi$. This is an energy defined per unit
 reference volume and is solely a function of the local {\em strain
 measure}. Comprehensive texts on the subject
-(e.g. \cite{Holzapfel2000}) cover the motivations for defining
+(e.g. \citet{Holzapfel2000}) cover the motivations for defining
 different forms of strain measures, but in this chapter we just
 provide the definitions of some of the most common forms. In what
 follows, $\mathrm{Grad}(\cdot)$ is the gradient operator, and
@@ -429,7 +429,7 @@ of material parameters and the strain measure the model relies on. The
 file {\tt material\_models.py} contains several other material models,
 including {\em linear elasticity, neo Hookean, Isihara, Biderman,} and
 {\em Gent--Thomas} that come pre-implemented in \twist. (Refer to the
-article by \cite{MarckmannVerron2006} comparing several hyperelastic
+article by \citet{MarckmannVerron2006} comparing several hyperelastic
 models for rubber-like materials for their definitions.) But the
 salient point to note here is that it is straightforward to introduce
 other additional models, and this is a significant feature of \twist.
@@ -442,7 +442,7 @@ different materials of interest. In this section, we return to the
 general form of the balance of linear momentum and look at details of
 a finite element formulation and implementation for this equation. For
 further details on the treatment that follows, the interested reader
-is directed to \cite{SimoHughes1998}.
+is directed to \citet{SimoHughes1998}.
 
 \subsection{The finite element formulation of the balance of linear
   momentum}
@@ -467,7 +467,7 @@ theorem to arrive at the following weak form of the balance of linear
 momentum:
 
 \noindent Find $\bu \in
-\mathrm{V}$, such that $\forall\; \bv \in \hat{\mathrm{V}}$:
+\mathrm{V}$, such that $\foralls \bv \in \hat{\mathrm{V}}$:
 \begin{equation}
   \int_{0}^{T} \int_{\Omega} \rho \frac{\partial^{2} \bu}{\partial
 t^{2}} \cdot \bv \dx \dt\; + \int_{0}^{T} \int_{\Omega}
@@ -589,14 +589,14 @@ equation.solve(u)
 \twist{} implements two time integration algorithms to solve the weak
 form of the fully dynamic balance of linear momentum
 \eqref{eq:narayanan:weakform}. The first of these is the
-so-called CG$_{1}$ method (\cite{ErikssonEstepHansboEtAl1996}). In order
+so-called CG$_{1}$ method \citep{ErikssonEstepHansboEtAl1996}. In order
 to derive this method, \eqref{eq:narayanan:weakform}, which is
 a second order differential equation in time, is rewritten as a system
 of first order equations. We do this by introducing an additional
 velocity variable, $\bw = \frac{\partial \bu}{\partial t}$. Thus, the
 weak form now reads:
 
-\noindent Find ($\bu, \bw) \in \mathrm{V}$, such that $\forall\; (\bv,
+\noindent Find ($\bu, \bw) \in \mathrm{V}$, such that $\foralls (\bv,
 \br) \in \hat{\mathrm{V}}$:
 
 \begin{equation}
@@ -709,9 +709,9 @@ doubled.
 \twist{} also provides a standard implementation of a finite
 difference time-stepping algorithm that is commonly used in the
 computational mechanics community: the Hilber--Hughes--Taylor (HHT)
-method (\cite{HilberHughesTaylor1977}). The stability and dissipative
+method \citep{HilberHughesTaylor1977}. The stability and dissipative
 properties of this method in the case of linear problems have been
-thoroughly discussed in \cite{Hughes1987}. In particular, the method
+thoroughly discussed in \citet{Hughes1987}. In particular, the method
 contains three parameters $\alpha$, $\beta$ and $\gamma$ which control
 the accuracy, stability and numerical dissipation of the scheme. The
 default values for these parameters chosen in \twist{} ($\alpha = 1$,
@@ -799,7 +799,7 @@ problem classes and overloading relevant methods.\footnote{The
 examples presented in this chapter, along with a few others, reside in
 the {\tt demos/twist/} folder in \twist's source repository. They can
 be run by navigating to this folder and typing {\tt python
-demo\_name.py} on the command line.} We will also see some results
+demo\_name.py} on the command-line.} We will also see some results
 from these calculations. The information defined in the problem
 classes are internally transferred to the solvers described earlier to
 actually solve the problem.
@@ -1100,7 +1100,7 @@ class FishyFlow(Hyperelasticity):
 
 To demonstrate one final piece of functionality of \twist, we don't
 solve the problem in the same manner as we did the first two
-examples. i.e., we do not instantiate an object of class {\tt
+examples; that is, we do not instantiate an object of class {\tt
   FishyFlow} and call its {\tt solve()} method. Instead, we set up our
 own time loop and manually step through time using the {\tt step()}
 method. This is shown in Figure~\ref{code:narayanan:manualstep}.
