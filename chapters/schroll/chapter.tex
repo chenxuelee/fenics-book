@@ -66,7 +66,7 @@ Here $h$ denotes the thickness of a layer of deposit and $s$ models
 the volume fraction for the sand lithology.  Consequently, $1-s$ is
 the fraction for mud.  The system is driven by fluxes anti
 proportional to the flow rates $s \nabla h$ and $(1-s) \nabla h$
-resulting in a diffusive, but incompletely parabolic, PDE system.  The
+resulting in a diffusive, but incomplet. ely parabolic, PDE system.  The
 domain of the basin is denoted by $B$.  Parameters in the model are:
 The transport layer thickness $A$ and the diffusive transport
 coefficients $\alpha$, $\beta$.
@@ -177,7 +177,7 @@ Thus, the increment \eqref{eq:schroll:gamma} evaluates as
 \begin{equation}
  \Delta p^k = \gamma^e =
  \frac{\nabla_p J(p^k)\cdot \nabla_p J(p^{k-1})}
-      {\nabla_p J(p^k)\cdot \nabla_p J(p^{k-1}) - \|\nabla_p J(p^k)\|^2} \cdot
+      {\nabla_p J(p^k)\cdot \nabla_p J(p^{k-1}) - \|\nabla_p J(p^k)\|^2}
  \frac{\|\nabla_p J(p^k)\|}{\|\nabla_p J(p^{k-1})\|} \cdot
  \Delta p^{k-1} .
 \end{equation}
@@ -256,14 +256,14 @@ solution is zero.
 
 Along the same lines of argumentation one derives the multilinear
 operator to the depositional model \eqref{eq:schroll:model}
-\begin{eqnarray}
- && \displaystyle a(u,v)(\phi,\psi) = \\[\jot]
- && \displaystyle \int_0^T \int_B \left(Au_t+uh_t+sv_t\right)\phi + \alpha u \nabla h \cdot \nabla \phi
-   + \alpha s \nabla v \cdot \nabla \phi \dx \dt \\[\jot]
- && \displaystyle + \int_0^T \int_B \left(-Au_t-uh_t(1-s)v_t\right)\psi -\beta u \nabla h \cdot \nabla \psi
-   + \beta (1-s) \nabla v \cdot \nabla \psi \dx \dt
- .
-\end{eqnarray}
+\begin{multline}
+ a(u,v)(\phi,\psi) =
+ \int_0^T \int_B \left(Au_t+uh_t+sv_t\right)\phi + \alpha u \nabla h \cdot \nabla \phi
+   + \alpha s \nabla v \cdot \nabla \phi \dx \dt
+\\
+ + \int_0^T \int_B \left(-Au_t-uh_t(1-s)v_t\right)\psi -\beta u \nabla h \cdot \nabla \psi
+   + \beta (1-s) \nabla v \cdot \nabla \psi \dx \dt.
+\end{multline}
 The dual system related to the well output functional \eqref{eq:schroll:output} reads
 \begin{equation}
  a(\phi,\psi)(\omega,\nu) =
@@ -272,13 +272,15 @@ The dual system related to the well output functional \eqref{eq:schroll:output} 
 \end{equation}
 By construction it follows $a(s_p,h_p)(\omega,\nu) = J_p(\alpha,\beta)$.
 Given both primal and dual solutions, the gradient of the well output functional evaluates as
-\begin{eqnarray}
- J_{\alpha_i}(\alpha,\beta) &=&
- - \int_0^T \int_{B_i} s \nabla h \cdot \nabla \omega \dx \dt, \\[\jot]
- J_{\beta_i}(\alpha,\beta) &=&
+\begin{align}
+ J_{\alpha_i}(\alpha,\beta)
+  &=
+ - \int_0^T \int_{B_i} s \nabla h \cdot \nabla \omega \dx \dt,
+\\
+ J_{\beta_i}(\alpha,\beta) &=
  - \int_0^T \int_{B_i} (1-s) \nabla h \cdot \nabla \nu \dx \dt
  .
-\end{eqnarray}
+\end{align}
 
 A detailed derivation including non zero flow conditions is given
 in~\citet{Schroll2008}.  For completeness, not for computation(!), we
@@ -310,14 +312,13 @@ the weak form reads
  \frac{2}{|W|} \int_{t_n}^{t_{n+1}} \int_W (u-d) \phi \dx \dt .
 \end{equation}
 Using $\mathrm{dG}(0)$ time integration with a trapezoidal quadrature rule applied to the right hand side gives
-\begin{equation} \label{eq:schroll:trapez}
- \begin{array}{l}
- \displaystyle - \int_B (\omega^{n+1}-\omega^n) \phi \dx
-     + \frac{\Delta t}{2} \int_B \alpha \nabla(\omega^{n+1}+\omega^n) \cdot \nabla \phi \dx \\[5mm]
- \displaystyle = \frac{\Delta t}{|W|} \int_W (u^{n+1} - d^{n+1} +u^n -d^n) \phi \dx,
+\begin{multline} \label{eq:schroll:trapez}
+ - \int_B (\omega^{n+1}-\omega^n) \phi \dx
+     + \frac{\Delta t}{2} \int_B \alpha \nabla(\omega^{n+1}+\omega^n) \cdot \nabla \phi \dx
+\\
+ = \frac{\Delta t}{|W|} \int_W (u^{n+1} - d^{n+1} +u^n -d^n) \phi \dx,
  \quad n = N, N-1,\ldots, 0 .
- \end{array}
-\end{equation}
+\end{multline}
 To evaluate the right hand side, the area of the well is defined as an subdomain:
 \begin{python}
  class WellDomain(SubDomain):
@@ -378,17 +379,15 @@ actually generated synthetic, data.  We consider the PDE system
  \begin{array}{rl} \beta_1 & x \ge 1/2 \\[\jot] \beta_2 & x < 1/2 \end{array}
  \right .
 \end{equation}
-in the unit square $B=[0,1]^2$.
-Four wells $W = W_1 \cup W_2 \cup W_3 \cup W_4$
-are placed one in each quarter
-\begin{equation}
- W_4 = [0.2, 0.3] \times [0.7, 0.8], \quad
+in the unit square $B=[0,1]^2$.  Four wells $W = W_1 \cup W_2 \cup W_3
+\cup W_4$ are placed one in each quarter
+\begin{align}
+ &W_4 = [0.2, 0.3] \times [0.7, 0.8], \quad
  W_3 = [0.7, 0.8] \times [0.7, 0.8],
-\end{equation}
-\begin{equation}
- W_1 = [0.2, 0.3] \times [0.2, 0.3], \quad
+\\
+ &W_1 = [0.2, 0.3] \times [0.2, 0.3], \quad
  W_2 = [0.7, 0.8] \times [0.2, 0.3].
-\end{equation}
+\end{align}
 Initially $s$ is constant $s(0,\cdot)=0.5$ and $h$ is piecewise linear
 \begin{equation}
  h(0,x,y) = 0.5 \max(\max(0.2, (x-0.1)/2), y-0.55) .
