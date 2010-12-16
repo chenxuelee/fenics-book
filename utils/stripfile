@@ -1,21 +1,25 @@
 #!/usr/bin/env python
 #
-# Strip file from environments that shouldn't be spell-checked
+# Strip file from stuff that shouldn't be spell-checked.
+#
 # Anders Logg, 2010-12-16
 
 import sys
 
 text = sys.stdin.read()
 
-environments = ["c++", "python", "bash"]
+environments = [("\\begin{c++}",    "\\end{c++}"),
+                ("\\begin{python}", "\\end{python}"),
+                ("\\begin{bash}",   "\\end{bash}"),
+                ("\\emp{",          "}")]
 
-for environment in environments:
-    if not environment in text:
-        print "nope"
+for begin, end in environments:
+    if not begin in text:
         continue
-    parts = text.split("\\begin{%s}" % environment)
+    parts = text.split(begin)
     text = parts[0]
     for part in parts[1:]:
-        text += part.split("\\end{%s}" % environment)[1]
+        subparts = part.split(end)
+        text += end.join(subparts[1:])
 
 print text
