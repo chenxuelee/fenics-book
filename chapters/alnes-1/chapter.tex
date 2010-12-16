@@ -2,7 +2,6 @@
 
 \DefineVerbatimEnvironment{code}{Verbatim}{frame=single}
 %\DefineVerbatimEnvironment{icode}{Verbatim}{frame=none}
-\newcommand{\icode}[1]{\texttt{#1}}
 
 % Used in algorithms
 \newcommand{\afor}{\textbf{for} {}}
@@ -298,11 +297,11 @@ equations \eqref{ufl:eq:hypdef}, \eqref{ufl:eq:hypdefL} and \eqref{ufl:eq:hypdef
 in \ufl{}.  Notice the close relation between the
 mathematical notation and the \ufl{} source code. In particular, note
 the automated differentiation of both the constitutive law and the
-residual equation. The operator \icode{diff} can be applied to
+residual equation. The operator \emp{diff} can be applied to
 expressions to differentiate w.r.t designated variables such as
-\icode{C} here, while the operator \icode{derivative} can be applied
+\emp{C} here, while the operator \emp{derivative} can be applied
 to entire forms to differentiate w.r.t. each coefficient of a discrete
-function such as \icode{u}.  The combination of these features allows
+function such as \emp{u}.  The combination of these features allows
 a new material law to be implemented by simply changing $W$, the rest
 is automatic.  In the following sections, the notation, definitions
 and operators used in this implementation will be explained.
@@ -313,22 +312,22 @@ and operators used in this implementation will be explained.
 \index{finite element space}
 \index{Lagrange element}
 \index{discontinuous Lagrange element}
-\index{\icode{FiniteElement}}
-\index{\icode{VectorElement}}
-\index{\icode{TensorElement}}
-\index{\icode{MixedElement}}
+\index{\emp{FiniteElement}}
+\index{\emp{VectorElement}}
+\index{\emp{TensorElement}}
+\index{\emp{MixedElement}}
 A polygonal cell is defined in \ufl{} by a basic shape, and is declared by
 \begin{python}
 cell = Cell(shapestring)
 \end{python}
 \ufl{} defines a set of valid polygonal cell shapes: ``interval'',
 ``triangle'', ``tetrahedron'', ``quadrilateral'', and ``hexahedron''.
-\icode{Cell} objects of all shapes are predefined and can be used
+\emp{Cell} objects of all shapes are predefined and can be used
 instead by writing
 \begin{python}
 cell = tetrahedron
 \end{python}
-In the rest of this chapter, a variable name \icode{cell} will be used
+In the rest of this chapter, a variable name \emp{cell} will be used
 where any cell is a valid argument, to make the examples dimension
 independent wherever possible.
 
@@ -354,7 +353,7 @@ Lagrange finite elements (discontinuous piecewise polynomial
 functions), and a range of other families that can be found in the
 manual.  Each family name has an associated short name for
 convenience.  To print all valid families to screen from Python, call
-\icode{show\_elements()}.
+\emp{show\_elements()}.
 
 The syntax for declaring elements is best explained with some
 examples.
@@ -370,23 +369,23 @@ ME = MixedElement(T, V, P)
 \end{python}
 In the first line a polygonal cell is selected from the set of
 predefined cells.  Then a scalar linear Lagrange element
-\icode{P} is declared, as well as a quadratic vector Lagrange element
-\icode{V}.  Next a symmetric rank 2 tensor element \icode{T} is
+\emp{P} is declared, as well as a quadratic vector Lagrange element
+\emp{V}.  Next a symmetric rank 2 tensor element \emp{T} is
 defined, which is also piecewise constant on each cell.  The code
-pproceeds to declare a mixed element \icode{TH}, which combines the
-quadratic vector element \icode{V} and the linear scalar element
-\icode{P}. This element is known as the Taylor-Hood element.  Finally
+pproceeds to declare a mixed element \emp{TH}, which combines the
+quadratic vector element \emp{V} and the linear scalar element
+\emp{P}. This element is known as the Taylor-Hood element.  Finally
 another mixed element with three subelements is declared. Note that
-writing \icode{T * V * P} would not result in a mixed element with
+writing \emp{T * V * P} would not result in a mixed element with
 three direct subelements, but rather
-\icode{MixedElement(MixedElement(T, V), P)}.
+\emp{MixedElement(MixedElement(T, V), P)}.
 
 %==============================================================================
 \section{Defining forms}
 \label{ufl:sec:forms}
-\index{\icode{Form}}
-\index{\icode{Integral}}
-\index{\icode{Measure}}
+\index{\emp{Form}}
+\index{\emp{Integral}}
+\index{\emp{Measure}}
 \index{forms}
 \index{integrals}
 \index{interior measure}
@@ -407,7 +406,7 @@ These forms can be expressed in UFL as
 a = w*dot(grad(u), grad(v))*dx
 L = f*v*dx + g**2*v*ds(0) + h*v*ds(1)
 \end{python}
-where multiplication by the measures \icode{dx}, \icode{ds(0)} and \icode{ds(1)}
+where multiplication by the measures \emp{dx}, \emp{ds(0)} and \emp{ds(1)}
 represent the integrals $\int_{\Omega_0} (\cdot) \dx$,
 $\int_{\partial\Omega_0} (\cdot) \ds$,
 and $\int_{\partial\Omega_1} (\cdot) \ds$
@@ -462,13 +461,13 @@ denoted $\partial\Omega$, while the set of interior facets of the
 triangulation is denoted $\Gamma$. Subdomains are marked with a
 suffix, e.g., $\Omega_k \subset \Omega$. As mentioned above,
 integration is expressed by multiplication with a measure, and \ufl{}
-defines the measures \icode{dx}, \icode{ds} and \icode{dS}.  In
+defines the measures \emp{dx}, \emp{ds} and \emp{dS}.  In
 summary, there are three kinds of integrals with corresponding \ufl{}
 representations
 \begin{itemize}
-\item $\int_{        \Omega_k} (\cdot) \dx$ $\leftrightarrow$  $(\cdot)$\icode{*dx(k)}, called a \emph{cell integral},
-\item $\int_{\partial\Omega_k} (\cdot) \ds$ $\leftrightarrow$  $(\cdot)$\icode{*ds(k)}, called an \emph{exterior facet integral},
-\item $\int_{        \Gamma_k} (\cdot) \dS$ $\leftrightarrow$  $(\cdot)$\icode{*dS(k)}, called an \emph{interior facet integral},
+\item $\int_{        \Omega_k} (\cdot) \dx$ $\leftrightarrow$  $(\cdot)$\emp{*dx(k)}, called a \emph{cell integral},
+\item $\int_{\partial\Omega_k} (\cdot) \ds$ $\leftrightarrow$  $(\cdot)$\emp{*ds(k)}, called an \emph{exterior facet integral},
+\item $\int_{        \Gamma_k} (\cdot) \dS$ $\leftrightarrow$  $(\cdot)$\emp{*dS(k)}, called an \emph{interior facet integral},
 \end{itemize}
 Defining a different quadrature order for each term in a form can be
 achieved by attaching meta data to measure objects, e.g.,
@@ -486,8 +485,8 @@ the manuals of \ufl{} and the form compilers.
 %==============================================================================
 \section{Defining expressions}
 \label{ufl:sec:defexpr}
-\index{\icode{Terminal}}
-\index{\icode{Identity}}
+\index{\emp{Terminal}}
+\index{\emp{Identity}}
 \index{atomic value}
 \index{terminal value}
 \index{identity matrix}
@@ -507,14 +506,14 @@ Terminal value types in \ufl{} include form arguments (which is the
 topic of Section~\ref{ufl:sec:arguments}), geometric quantities, and
 literal constants.  Among the literal constants are scalar integer and
 floating point values, as well as the $d$ by $d$ identity matrix
-\icode{I = Identity(d)}.  To get unit vectors, simply use rows or
-columns of the identity matrix, e.g., \icode{e0 = I[0,:]}.  Similarly,
-\icode{I[i,j]} represents the Kronecker delta function $\delta_{ij}$ (see
+\emp{I = Identity(d)}.  To get unit vectors, simply use rows or
+columns of the identity matrix, e.g., \emp{e0 = I[0,:]}.  Similarly,
+\emp{I[i,j]} represents the Kronecker delta function $\delta_{ij}$ (see
 Section~\ref{ufl:sec:indexnotation} for details on index notation).
 Available geometric values are the spatial coordinates $\xx$
-$\leftrightarrow$ \icode{cell.x} and the facet normal $\nn$
-$\leftrightarrow$ \icode{cell.n}.  The geometric dimension is
-available as \icode{cell.d}.
+$\leftrightarrow$ \emp{cell.x} and the facet normal $\nn$
+$\leftrightarrow$ \emp{cell.n}.  The geometric dimension is
+available as \emp{cell.d}.
 
 %------------------------------------------------------------------------------
 \subsection{Form arguments} \label{ufl:sec:arguments}
@@ -523,21 +522,21 @@ available as \icode{cell.d}.
 \index{basis functions}
 \index{coefficient functions}
 \index{coefficients}
-\index{\icode{Argument}}
-\index{\icode{Arguments}}
-\index{\icode{TestFunction}}
-\index{\icode{TestFunctions}}
-\index{\icode{TrialFunction}}
-\index{\icode{TrialFunctions}}
-\index{\icode{Coefficient}}
-\index{\icode{Coefficients}}
-\index{\icode{Constant}}
-\index{\icode{VectorConstant}}
-\index{\icode{TensorConstant}}
-\index{\icode{split}}
+\index{\emp{Argument}}
+\index{\emp{Arguments}}
+\index{\emp{TestFunction}}
+\index{\emp{TestFunctions}}
+\index{\emp{TrialFunction}}
+\index{\emp{TrialFunctions}}
+\index{\emp{Coefficient}}
+\index{\emp{Coefficients}}
+\index{\emp{Constant}}
+\index{\emp{VectorConstant}}
+\index{\emp{TensorConstant}}
+\index{\emp{split}}
 
 Basis functions and coefficient functions are represented by
-\icode{Argument} and \icode{Coefficient} respectively. The ordering
+\emp{Argument} and \emp{Coefficient} respectively. The ordering
 of the arguments to a form is decided by the order in which the form
 arguments were declared in the \ufl{} code.  Each basis function
 argument represents any function in the basis of its finite element
@@ -562,9 +561,9 @@ phi = Argument(element)
 v = TestFunction(element)
 u = TrialFunction(element)
 \end{python}
-By using \icode{TestFunction} and \icode{TrialFunction} in
-declarations instead of \icode{Argument} you can ignore their
-relative ordering.  The only time \icode{Argument} is needed is
+By using \emp{TestFunction} and \emp{TrialFunction} in
+declarations instead of \emp{Argument} you can ignore their
+relative ordering.  The only time \emp{Argument} is needed is
 for forms of arity $r > 2$.
 
 Coefficient functions are declared similarly for an arbitrary element,
@@ -580,15 +579,15 @@ If a form argument $u$ in a mixed finite element space $V_h = V_h^0
 \times V_h^1$ is desired, but the form is more easily expressed using
 subfunctions $u_0 \in V_h^0$ and $u_1 \in V_h^1$, you can split the
 mixed function or basis function into its subfunctions in a generic
-way using \icode{split}:
+way using \emp{split}:
 \begin{python}
 V = V0 * V1
 u = Coefficient(V)
 u0, u1 = split(u)
 \end{python}
-The \icode{split} function can handle arbitrary mixed elements.
+The \emp{split} function can handle arbitrary mixed elements.
 Alternatively, a handy shorthand notation for argument declaration
-followed by \icode{split} is
+followed by \emp{split} is
 \begin{python}
 v0, v1 = TestFunctions(V)
 u0, u1 = TrialFunctions(V)
@@ -602,15 +601,15 @@ f0, f1 = Coefficients(V)
 \index{indices}
 \index{index notation}
 \index{implicit summation}
-\index{\icode{Index}}
-\index{\icode{indices}}
-\index{\icode{IndexSum}}
-\index{\icode{Indexed}}
-\index{\icode{ComponentTensor}}
-\index{\icode{ListTensor}}
-\index{\icode{as\_vector}}
-\index{\icode{as\_matrix}}
-\index{\icode{as\_tensor}}
+\index{\emp{Index}}
+\index{\emp{indices}}
+\index{\emp{IndexSum}}
+\index{\emp{Indexed}}
+\index{\emp{ComponentTensor}}
+\index{\emp{ListTensor}}
+\index{\emp{as\_vector}}
+\index{\emp{as\_matrix}}
+\index{\emp{as\_tensor}}
 
 \ufl{} allows working with tensor expressions of arbitrary rank,
 using both tensor algebra and index notation.  A basic familiarity
@@ -646,13 +645,13 @@ tensor to its components, for a rank 2 tensor defined as
 \begin{align}
 A_{ij} = \AA : (\ee_i\otimes\ee_j), \\
 \end{align}
-is accomplished using indexing with the notation \icode{A[i,j]}.
+is accomplished using indexing with the notation \emp{A[i,j]}.
 Defining a tensor $\AA$ from component values $A_{ij}$
 is defined as
 \begin{align}
 \AA = A_{ij} \ee_i\otimes\ee_j,
 \end{align}
-and is accomplished using the function \icode{as\_tensor(Aij, (i,j))}.
+and is accomplished using the function \emp{as\_tensor(Aij, (i,j))}.
 To illustrate, consider the outer product of two
 vectors $\AA = \uu\otimes\vv = u_i v_j \ee_i\otimes\ee_j$,
 and the corresponding scalar components $A_{ij}$.
@@ -669,33 +668,33 @@ Aij = v[j]*u[i]
 A = as_tensor(Aij, (i, j))
 \end{python}
 These two pairs of lines are mathematically equivalent, and the result
-of either pair is that the variable \icode{A} represents the tensor
-$\AA$ and the variable \icode{Aij} represents the tensor $A_{ij}$.
+of either pair is that the variable \emp{A} represents the tensor
+$\AA$ and the variable \emp{Aij} represents the tensor $A_{ij}$.
 Note that free indices have no ordering, so their order of appearance
-in the expression \icode{v[j]*u[i]} is insignificant.  Instead of
-\icode{as\_tensor}, the specialized functions \icode{as\_vector} and
-\icode{as\_matrix} can be used.  Although a rank two tensor was used
+in the expression \emp{v[j]*u[i]} is insignificant.  Instead of
+\emp{as\_tensor}, the specialized functions \emp{as\_vector} and
+\emp{as\_matrix} can be used.  Although a rank two tensor was used
 for the examples above, the mappings generalize to arbitrary rank
 tensors.
 
 When indexing expressions, fixed indices can also be used such as in
-\icode{A[0,1]} which represents a single scalar component.  Fixed
-indices can also be mixed with free indices such as in \icode{A[0,i]}.
+\emp{A[0,1]} which represents a single scalar component.  Fixed
+indices can also be mixed with free indices such as in \emp{A[0,i]}.
 In addition, slices can be used in place of an index.  An example of
-using slices is \icode{A[0,:]} which is is a vector expression that
-represents row 0 of \icode{A}.  To create new indices, you can either
+using slices is \emp{A[0,:]} which is is a vector expression that
+represents row 0 of \emp{A}.  To create new indices, you can either
 make a single one or make several at once:
 \begin{python}
 i = Index()
 j, k, l = indices(3)
 \end{python}
-A set of indices \icode{i}, \icode{j}, \icode{k}, \icode{l} and
-\icode{p}, \icode{q}, \icode{r}, \icode{s} are predefined,
+A set of indices \emp{i}, \emp{j}, \emp{k}, \emp{l} and
+\emp{p}, \emp{q}, \emp{r}, \emp{s} are predefined,
 and these should suffice for most applications.
 
 If your components are not represented as an expression with free
 indices, but as separate unrelated scalar expressions, you can build a
-tensor from them using \icode{as\_tensor} and its peers.  As an
+tensor from them using \emp{as\_tensor} and its peers.  As an
 example, lets define a 2D rotation matrix and rotate a vector
 expression by $\frac \pi 2$:
 \begin{python}
@@ -708,22 +707,22 @@ u = A*v
 When indices are repeated in a term, summation over those indices is
 implied in accordance with the Einstein convention.  In particular,
 indices can be repeated when indexing a tensor of rank two or higher
-(\icode{A[i,i]}), when differentiating an expression with a free index
-(\icode{v[i].dx(i)}), or when multiplying two expressions with shared
-free indices (\icode{u[i]*v[i]}).
+(\emp{A[i,i]}), when differentiating an expression with a free index
+(\emp{v[i].dx(i)}), or when multiplying two expressions with shared
+free indices (\emp{u[i]*v[i]}).
 \begin{align}
 A_{ii}  \equiv \sum_i A_{ii}, \qquad
 v_i u_i \equiv \sum_i v_i u_i, \qquad
 v_{i,\,i} \equiv \sum_i v_{i,\,i}.
 \end{align}
 
-An expression \icode{Aij = A[i,j]} is represented internally using the
-\icode{Indexed} class.  \icode{Aij} will reference \icode{A}, keeping
-the representation of the original tensor expression \icode{A}
+An expression \emp{Aij = A[i,j]} is represented internally using the
+\emp{Indexed} class.  \emp{Aij} will reference \emp{A}, keeping
+the representation of the original tensor expression \emp{A}
 unchanged.  Implicit summation is represented explicitly in the
-expression tree using the class \icode{IndexSum}.  Many algorithms
+expression tree using the class \emp{IndexSum}.  Many algorithms
 become easier to implement with this explicit representation, since
-e.g. a \icode{Product} instance can never implicitly represent a sum.
+e.g. a \emp{Product} instance can never implicitly represent a sum.
 More details on representation classes are found in
 Section~\ref{ufl:sec:representation}.
 
@@ -734,12 +733,12 @@ Section~\ref{ufl:sec:representation}.
 %\index{*}
 %\index{/}
 %\index{**}
-\index{\icode{sin}}
-\index{\icode{cos}}
-\index{\icode{exp}}
-\index{\icode{ln}}
-\index{\icode{pow}}
-\index{\icode{sqrt}}
+\index{\emp{sin}}
+\index{\emp{cos}}
+\index{\emp{exp}}
+\index{\emp{ln}}
+\index{\emp{pow}}
+\index{\emp{sqrt}}
 \index{dot product}
 \index{inner product}
 \index{outer product}
@@ -751,23 +750,23 @@ Section~\ref{ufl:sec:representation}.
 \index{language operators}
 \index{algebraic operators}
 \index{tensor algebra operators}
-\index{\icode{dot}}
-\index{\icode{inner}}
-\index{\icode{outer}}
-\index{\icode{cross}}
-\index{\icode{tr}}
-\index{\icode{det}}
-\index{\icode{transpose}}
-\index{\icode{inv}}
+\index{\emp{dot}}
+\index{\emp{inner}}
+\index{\emp{outer}}
+\index{\emp{cross}}
+\index{\emp{tr}}
+\index{\emp{det}}
+\index{\emp{transpose}}
+\index{\emp{inv}}
 
 \ufl{} defines a comprehensive set of operators that can be used for
-composing expressions.  The elementary algebraic operators \icode{+},
-\icode{-}, \icode{*}, \icode{/} can be used between most \ufl{}
+composing expressions.  The elementary algebraic operators \emp{+},
+\emp{-}, \emp{*}, \emp{/} can be used between most \ufl{}
 expressions with a few limitations.  Division requires a scalar
 expression with no free indices in the denominator.  The operands to a
 sum must have the same shape and set of free indices.
 
-The multiplication operator \icode{*} is valid between two scalars, a
+The multiplication operator \emp{*} is valid between two scalars, a
 scalar and any tensor, a matrix and a vector, and two matrices.  Other
 products could have been defined, but for clarity we use tensor
 algebra operators and index notation for those rare cases.  A product
@@ -775,8 +774,8 @@ of two expressions with shared free indices implies summation over
 those indices, see Section~\ref{ufl:sec:indexnotation} for more about
 index notation.
 
-Three often used operators are \icode{dot(a, b)}, \icode{inner(a, b)},
-and \icode{outer(a, b)}.  The dot product of two tensors of arbitrary
+Three often used operators are \emp{dot(a, b)}, \emp{inner(a, b)},
+and \emp{outer(a, b)}.  The dot product of two tensors of arbitrary
 rank is the sum over the last index of the first tensor and the first
 index of the second tensor.  Some examples are
 \begin{align}
@@ -797,28 +796,28 @@ Some examples of the outer product are
 \AA \otimes \uu &= A_{ij} u_k \ee_i \ee_j \ee_k, \\
 \AA \otimes \BB &= A_{ij} B_{kl} \ee_i \ee_j \ee_k \ee_l
 \end{align}
-Other common tensor algebra operators are \icode{cross(u,v)},
-\icode{transpose(A)} (or \icode{A.T}), \icode{tr(A)}, \icode{det(A)},
-\icode{inv(A)}, \icode{cofac(A)}, \icode{dev(A)}, \icode{skew(A)}, and
-\icode{sym(A)}. Most of these tensor algebra operators expect tensors
+Other common tensor algebra operators are \emp{cross(u,v)},
+\emp{transpose(A)} (or \emp{A.T}), \emp{tr(A)}, \emp{det(A)},
+\emp{inv(A)}, \emp{cofac(A)}, \emp{dev(A)}, \emp{skew(A)}, and
+\emp{sym(A)}. Most of these tensor algebra operators expect tensors
 without free indices. The detailed definitions of these operators are
 found in the manual.
 
 A set of common elementary functions operating on scalar expressions
-without free indices are included, in particular \icode{abs(f)},
-\icode{pow(f, g)}, \icode{sqrt(f)}, \icode{exp(f)}, \icode{ln(f)},
-\icode{sin(f)}, \icode{cos(f)}, and \icode{sign(f)}.
+without free indices are included, in particular \emp{abs(f)},
+\emp{pow(f, g)}, \emp{sqrt(f)}, \emp{exp(f)}, \emp{ln(f)},
+\emp{sin(f)}, \emp{cos(f)}, and \emp{sign(f)}.
 
 %------------------------------------------------------------------------------
 \subsection{Differential operators} \label{ufl:sec:differential}
 \index{differential operators}
-\index{\icode{Dx}}
-\index{\icode{dx}}
-\index{\icode{grad}}
-\index{\icode{div}}
-\index{\icode{curl}}
-\index{\icode{rot}}
-\index{\icode{diff}}
+\index{\emp{Dx}}
+\index{\emp{dx}}
+\index{\emp{grad}}
+\index{\emp{div}}
+\index{\emp{curl}}
+\index{\emp{rot}}
+\index{\emp{diff}}
 \index{$\nabla$}
 
 \ufl{} implements derivatives w.r.t. three different kinds of
@@ -826,7 +825,7 @@ variables.  The most used kind is spatial derivatives.  Expressions
 can also be differentiated w.r.t. arbitrary user defined variables.
 And the final kind of derivatives are derivatives of a form or
 functional w.r.t. the coefficients of a discrete function, i.e. a
-\icode{Coefficient} or \icode{Constant}.  Form derivatives are
+\emp{Coefficient} or \emp{Constant}.  Form derivatives are
 explained in Section \ref{ufl:sec:derivative}.
 
 Note that derivatives are not computed immediately when declared.  A
@@ -843,18 +842,18 @@ expressed in two equivalent ways:
 df = Dx(f, i)
 df = f.dx(i)
 \end{python}
-Here, \icode{df} represents the derivative of \icode{f} in the spatial
-direction $x_i$. The index \icode{i} can either be an integer,
+Here, \emp{df} represents the derivative of \emp{f} in the spatial
+direction $x_i$. The index \emp{i} can either be an integer,
 representing differentiation in one fixed spatial direction $x_i$, or
-an \icode{Index}, representing differentiation in the direction of a
-free index.  The notation \icode{f.dx(i)} is intended to mirror the
+an \emp{Index}, representing differentiation in the direction of a
+free index.  The notation \emp{f.dx(i)} is intended to mirror the
 index notation $f_{,i}$, which is shorthand for
 $\frac{\partial f}{\partial x_i}$.  Repeated indices imply summation,
-such that the divergence of a vector valued expression \icode{v} can
-be written $v_{i,\,i}$, or \icode{v[i].dx(i)}.
+such that the divergence of a vector valued expression \emp{v} can
+be written $v_{i,\,i}$, or \emp{v[i].dx(i)}.
 
 Several common compound spatial derivative operators are defined,
-namely \icode{div}, \icode{grad}, \icode{curl} and \icode{rot} (rot is
+namely \emp{div}, \emp{grad}, \emp{curl} and \emp{rot} (rot is
 a synonym for curl). Be aware that there are two common ways to define
 $\mop{grad}$ and $\mop{div}$. Let $s$ be a scalar expression, $\vv$ be
 a vector expression, and $\MM$ be a tensor expression of
@@ -923,7 +922,7 @@ var0(sin((x)[0]))
 >>> print h
 d/d[var0(sin((x)[0]))] (exp((var0(sin((x)[0]))) ** 2))
 \end{python}
-Note that the variable has a label ``\icode{var0}'', and that \icode{h}
+Note that the variable has a label ``\emp{var0}'', and that \emp{h}
 still represents the abstract derivative.  Section~\ref{ufl:sec:ad}
 explains how derivatives are computed.
 
@@ -939,15 +938,15 @@ explains how derivatives are computed.
 A few operators are provided for the implementation of discontinuous
 Galerkin methods.  The basic concept is restricting an expression to
 the positive or negative side of an interior facet, which is expressed
-simply as \icode{v('+')} or \icode{v('-')} respectively. On top of
-this, the operators \icode{avg} and \icode{jump} are implemented,
+simply as \emp{v('+')} or \emp{v('-')} respectively. On top of
+this, the operators \emp{avg} and \emp{jump} are implemented,
 defined as
 \begin{align}
 \mop{avg}(v)  &= \frac 1 2 (v^+ + v^-), \\
 \mop{jump}(v) &= v^+ - v^- .
 \end{align}
 These operators can only be used when integrating over the interior
-facets (\icode{*dS}).
+facets (\emp{*dS}).
 
 %\begin{python}
 %element = FiniteElement("Discontinuous Lagrange",
@@ -961,52 +960,52 @@ facets (\icode{*dS}).
 %a = f('+')*dot(grad(v)('+'), grad(u)('-'))*dS
 %\end{python}
 
-%The operator \icode{jump} may be used to express the jump of a
+%The operator \emp{jump} may be used to express the jump of a
 %function across a common facet of two cells. Two versions of the
-%\icode{jump} operator are provided.
+%\emp{jump} operator are provided.
 %
-%If called with only one argument, then the \icode{jump} operator
+%If called with only one argument, then the \emp{jump} operator
 %evaluates to the difference between the restrictions of the given
 %expression on the positive and negative sides of the facet:
 %\begin{equation}
-%  \mbox{\icode{jump(v)}}
+%  \mbox{\emp{jump(v)}}
 %  \leftrightarrow
 %  \llbracket v \rrbracket = v^+ - v^-.
 %\end{equation}
-%If the expression \icode{v} is scalar, then \icode{jump(v)} will
-%also be scalar, and if \icode{v} is vector-valued, then \icode{jump(v)}
+%If the expression \emp{v} is scalar, then \emp{jump(v)} will
+%also be scalar, and if \emp{v} is vector-valued, then \emp{jump(v)}
 %will also be vector-valued.
 %
-%If called with two arguments, \icode{jump(v, n)} evaluates to the
-%jump in \icode{v} weighted by \icode{n}. Typically, \icode{n} will
+%If called with two arguments, \emp{jump(v, n)} evaluates to the
+%jump in \emp{v} weighted by \emp{n}. Typically, \emp{n} will
 %be chosen to represent the unit outward normal of the facet (as seen
-%from each of the two neighboring cells). If \icode{v} is scalar, then
-%\icode{jump(v, n)} is given by
+%from each of the two neighboring cells). If \emp{v} is scalar, then
+%\emp{jump(v, n)} is given by
 %\begin{equation}
-%  \mbox{\icode{jump(v, n)}}
+%  \mbox{\emp{jump(v, n)}}
 %  \leftrightarrow
 %  \llbracket v \rrbracket_n = v^+ n^+ + v^- n^-.
 %\end{equation}
-%If \icode{v} is vector-valued, then \icode{jump(v, n)} is given by
+%If \emp{v} is vector-valued, then \emp{jump(v, n)} is given by
 %\begin{equation}
-%  \mbox{\icode{jump(v, n)}}
+%  \mbox{\emp{jump(v, n)}}
 %  \leftrightarrow
 %  \llbracket v \rrbracket_n = v^+ \cdot n^+ + v^- \cdot n^-.
 %\end{equation}
-%Thus, if the expression \icode{v} is scalar, then \icode{jump(v, n)} will
-%be vector-valued, and if \icode{v} is vector-valued, then
-%\icode{jump(v, n)} will be scalar.
+%Thus, if the expression \emp{v} is scalar, then \emp{jump(v, n)} will
+%be vector-valued, and if \emp{v} is vector-valued, then
+%\emp{jump(v, n)} will be scalar.
 %
-%\subsection{Average: \icode{avg(v)}}
+%\subsection{Average: \emp{avg(v)}}
 %
-%The operator \icode{avg} may be used to express the average
+%The operator \emp{avg} may be used to express the average
 %of an expression across a common facet of two cells:
 %\begin{equation}
 %  \mbox{avg(v)}
 %  \leftrightarrow
 %  \langle v \rangle = \frac{1}{2} (v^+ + v^-).
 %\end{equation}
-%The expression \icode{avg(v)} has the same value shape as the expression \icode{v}.
+%The expression \emp{avg(v)} has the same value shape as the expression \emp{v}.
 
 The only control flow construct included in \ufl{} is
 conditional expressions. A conditional expression
@@ -1032,29 +1031,29 @@ The condition can be one of
 %\setlength{\columnsep{2in}}
 \begin{multicols}{2}
 \begin{itemize}
-\item \icode{lt(a, b)} $\leftrightarrow$ $(a < b)$
-\item \icode{le(a, b)} $\leftrightarrow$ $(a \le b)$
-\item \icode{eq(a, b)} $\leftrightarrow$ $(a = b)$
+\item \emp{lt(a, b)} $\leftrightarrow$ $(a < b)$
+\item \emp{le(a, b)} $\leftrightarrow$ $(a \le b)$
+\item \emp{eq(a, b)} $\leftrightarrow$ $(a = b)$
 \end{itemize}
 \begin{itemize}
-\item \icode{gt(a, b)} $\leftrightarrow$ $(a > b)$
-\item \icode{ge(a, b)} $\leftrightarrow$ $(a \ge b)$
-\item \icode{ne(a, b)} $\leftrightarrow$ $(a \ne b)$
+\item \emp{gt(a, b)} $\leftrightarrow$ $(a > b)$
+\item \emp{ge(a, b)} $\leftrightarrow$ $(a \ge b)$
+\item \emp{ne(a, b)} $\leftrightarrow$ $(a \ne b)$
 \end{itemize}
 \end{multicols}
 
 %==============================================================================
 \section{Form operators} \label{ufl:sec:formtransformations}
 \index{form operators}
-\index{\icode{action}}
-\index{\icode{energy\_norm}}
-\index{\icode{lhs}}
-\index{\icode{rhs}}
-\index{\icode{system}}
-\index{\icode{adjoint}}
-\index{\icode{replace}}
-\index{\icode{derivative}}
-\index{\icode{sensitivity\_rhs}}
+\index{\emp{action}}
+\index{\emp{energy\_norm}}
+\index{\emp{lhs}}
+\index{\emp{rhs}}
+\index{\emp{system}}
+\index{\emp{adjoint}}
+\index{\emp{replace}}
+\index{\emp{derivative}}
+\index{\emp{sensitivity\_rhs}}
 
 Once you have defined some forms, there are several ways to compute
 related forms from them.  While operators in the previous section are
@@ -1072,8 +1071,8 @@ is no overhead at run-time.
 \subsection{Differentiating forms}
 \label{ufl:sec:derivative}
 
-The form operator \icode{derivative} declares the derivative of a form
-w.r.t. coefficients of a discrete function (\icode{Coefficient}).  This
+The form operator \emp{derivative} declares the derivative of a form
+w.r.t. coefficients of a discrete function (\emp{Coefficient}).  This
 functionality can be used for example to linearize your nonlinear
 residual equation (linear form) automatically for use with the
 Newton-Raphson method.  It can also be applied multiple times, which
@@ -1084,16 +1083,16 @@ areas in which this feature can be useful include optimal control and
 inverse methods, as well as sensitivity analysis.
 
 In its simplest form, the declaration of the derivative of a form
-\icode{L} w.r.t. the coefficients of a function \icode{w} reads
+\emp{L} w.r.t. the coefficients of a function \emp{w} reads
 \begin{python}
 a = derivative(L, w, u)
 \end{python}
-The form \icode{a} depends on an additional basis function argument
-\icode{u}, which must be in the same finite element space as the function \icode{w}.
+The form \emp{a} depends on an additional basis function argument
+\emp{u}, which must be in the same finite element space as the function \emp{w}.
 If the last argument is omitted, a new basis function argument is
 created.
 
-Let us step through an example of how to apply \icode{derivative}
+Let us step through an example of how to apply \emp{derivative}
 twice to a functional to derive a linear system.  In the following,
 $V_h$ is a finite element space with some basis , $w$ is a function in
 $V_h$, and $f = f(w)$ is a functional we want to minimize. Derived
@@ -1117,9 +1116,9 @@ f = 0.5 * w**2 * dx
 F = derivative(f, w, v)
 J = derivative(F, w, u)
 \end{python}
-This code declares two forms \icode{F} and \icode{J}.  The linear form
-\icode{F} represents the standard load vector \icode{w*v*dx} and the
-bilinear form \icode{J} represents the mass matrix \icode{u*v*dx}.
+This code declares two forms \emp{F} and \emp{J}.  The linear form
+\emp{F} represents the standard load vector \emp{w*v*dx} and the
+bilinear form \emp{J} represents the mass matrix \emp{u*v*dx}.
 
 Derivatives can also be defined w.r.t. coefficients of a function in a
 mixed finite element space.  Consider the Harmonic map equations
@@ -1143,9 +1142,9 @@ F = derivative(f, u)
 J = derivative(F, u)
 \end{python}
 Note that the functional is expressed in terms of the subfunctions
-\icode{x} and \icode{y}, while the argument to \icode{derivative} must
-be the single mixed function \icode{u}.  In this example the basis
-function arguments to \icode{derivative} are omitted and thus provided
+\emp{x} and \emp{y}, while the argument to \emp{derivative} must
+be the single mixed function \emp{u}.  In this example the basis
+function arguments to \emp{derivative} are omitted and thus provided
 automatically in the right function spaces.
 
 Note that in computing derivatives of forms, we have assumed that
@@ -1167,7 +1166,7 @@ Another form operator is the adjoint $a^*$ of a bilinear form $a$,
 defined as $a^*(u,v) = a(v,u)$, which is similar to taking the
 transpose of the assembled sparse matrix.  In \ufl{} this is
 implemented simply by swapping the test and trial functions,
-and can be written using the \icode{adjoint} form operator.
+and can be written using the \emp{adjoint} form operator.
 An example of its use on an anisotropic diffusion term looks like
 \begin{python}
 V = VectorElement("CG", cell, 1)
@@ -1185,9 +1184,9 @@ a^*(M; u, v) = a(M; v, u) = \int_\Omega  M_{ij} v_{k,j} u_{k,i} \dx.
 \end{align}
 This automatic transformation is particularly useful if we need the
 adjoint of nonsymmetric bilinear forms computed using
-\icode{derivative}, since the explicit expressions for $a$ are not at
+\emp{derivative}, since the explicit expressions for $a$ are not at
 hand.  Several of the form operators below are most useful when used
-in conjunction with \icode{derivative}.
+in conjunction with \emp{derivative}.
 
 %------------------------------------------------------------------------------
 \subsection{Replacing functions}
@@ -1195,14 +1194,14 @@ in conjunction with \icode{derivative}.
 
 Evaluating a form with new definitions of form arguments can be done
 by replacing terminal objects with other values.  Lets say you have
-defined a form \icode{L} that depends on some functions \icode{f} and
-\icode{g}.  You can then specialize the form by replacing these
+defined a form \emp{L} that depends on some functions \emp{f} and
+\emp{g}.  You can then specialize the form by replacing these
 functions with other functions or fixed values, such as
 \begin{align}
 L(f, g; v) = \int_\Omega (f^2 / (2g)) v \dx, \\
 L_2(f, g; v) = L(g, 3; v) = \int_\Omega (g^2 / 6) v \dx.
 \end{align}
-This feature is implemented with \icode{replace}, as illustrated in this case:
+This feature is implemented with \emp{replace}, as illustrated in this case:
 \begin{python}
 V = FiniteElement("CG", cell, 1)
 v = TestFunction(V)
@@ -1212,8 +1211,8 @@ L = f**2 / (2*g) * v * dx
 L2 = replace(L, { f: g, g: 3})
 L3 = g**2 / 6 * v * dx
 \end{python}
-Here \icode{L2} and \icode{L3} represent exactly the same form. Since
-they depend only on \icode{g}, the code generated for these forms can
+Here \emp{L2} and \emp{L3} represent exactly the same form. Since
+they depend only on \emp{g}, the code generated for these forms can
 be more efficient.
 
 %------------------------------------------------------------------------------
@@ -1223,15 +1222,15 @@ In some applications the matrix is not needed explicitly, only the
 action of the matrix on a vector. Assembling the resulting vector
 directly can be much more efficient than assembling the sparse matrix
 and then performing the matrix-vector multiplication.
-Assume \icode{a} is a bilinear form and \icode{w}
-is a \icode{Coefficient} defined on the same finite
-element as the trial function in \icode{a}.
+Assume \emp{a} is a bilinear form and \emp{w}
+is a \emp{Coefficient} defined on the same finite
+element as the trial function in \emp{a}.
 Let $A$ denote the sparse matrix that can be assembled
-from \icode{a}. Then you can assemble the action of
+from \emp{a}. Then you can assemble the action of
 $A$ on a vector directly by defining a linear form $L$
 representing the action of a bilinear form $a$ on a function $w$.
-The notation for this is simply \icode{L = action(a, w)},
-or even shorter \icode{L = a*w}.
+The notation for this is simply \emp{L = action(a, w)},
+or even shorter \emp{L = a*w}.
 
 
 %------------------------------------------------------------------------------
@@ -1253,8 +1252,8 @@ f = Coefficient(V)
 pde = u*v*dx - f*v*dx
 a, L = system(pde)
 \end{python}
-Here \icode{system} is used to split the PDE into its bilinear and
-linear parts. Alternatively, \icode{lhs} and \icode{rhs} can be used
+Here \emp{system} is used to split the PDE into its bilinear and
+linear parts. Alternatively, \emp{lhs} and \emp{rhs} can be used
 to obtain the two parts separately. Make note of the resulting sign
 of the linear part, which corresponds to moving $L$ to the right
 hand side in Equation~\eqref{ufl:eq:pde}.
@@ -1285,16 +1284,16 @@ or you can use the equivalent form transformation
 \begin{python}
 sL = sensitivity_rhs(a, u, L, c)
 \end{python}
-Note that the solution \icode{u} must be represented by a
-\icode{Coefficient}, while $u$ in $a(u, v)$ is represented
-by a \icode{Argument}.
+Note that the solution \emp{u} must be represented by a
+\emp{Coefficient}, while $u$ in $a(u, v)$ is represented
+by a \emp{Argument}.
 
 
 %==============================================================================
 \section{Expression representation} \label{ufl:sec:representation}
-\index{\icode{Expr}}
-\index{\icode{Terminal}}
-\index{\icode{Operator}}
+\index{\emp{Expr}}
+\index{\emp{Terminal}}
+\index{\emp{Operator}}
 \index{terminal value}
 \index{operator}
 \index{program}
@@ -1400,10 +1399,10 @@ expressions $y_i = f_i(\left<y_j\right>_{j\in\mI_i})$.  The operator
 $f_i$ is represented by the class of the expression object, while the
 expression $y_i$ is represented by the instance of this class.  In the
 \ufl{} implementation, each expression object is an instance of some
-subclass of \icode{Expr}. The class \icode{Expr} is the superclass of
+subclass of \emp{Expr}. The class \emp{Expr} is the superclass of
 a hierarchy containing all terminal expression types and operator
-types supported by \ufl{}. \icode{Expr} has two direct subclasses,
-\icode{Terminal} and \icode{Operator}, which divides the expression
+types supported by \ufl{}. \emp{Expr} has two direct subclasses,
+\emp{Terminal} and \emp{Operator}, which divides the expression
 type hierarchy in two, as illustrated in Figure~\ref{ufl:fig:expr}.
 
 All expression objects are considered immutable; once constructed an
@@ -1414,18 +1413,18 @@ between expressions without side effects in other parts of a program.
 This both reduces memory usage, avoids needless copying of objects,
 and simplifies recognition of common subexpressions.
 
-Calling \icode{e.operands()} on an \icode{Expr} object \icode{e}
+Calling \emp{e.operands()} on an \emp{Expr} object \emp{e}
 representing $y_i$ returns a tuple with expression objects
 representing $\left<y_j\right>_{j\in\mI_i}$.  Note that this also
 applies to terminals where there are no outgoing edges and
-\icode{t.operands()} returns an empty tuple.  Instead of modifying the
+\emp{t.operands()} returns an empty tuple.  Instead of modifying the
 operands of an expression object, a new expression object of the same
 type can be constructed with modified operands using
-\icode{e.reconstruct(operands)}, where \icode{operands} is a tuple of
+\emp{e.reconstruct(operands)}, where \emp{operands} is a tuple of
 expression objects. If the operands are the same this function returns
 the original object, allowing many algorithms to save memory without
 additional complications. The invariant
-\icode{e.reconstruct(e.operands()) == e} should always hold.
+\emp{e.reconstruct(e.operands()) == e} should always hold.
 
 
 %------------------------------------------------------------------------------
@@ -1433,12 +1432,12 @@ additional complications. The invariant
 In Section~\ref{ufl:sec:indexnotation} the tensor algebra and index
 notation capabilities of \ufl{} was discussed.  Expressions can be
 scalar or tensor-valued, with arbitrary rank and shape. Therefore,
-each expression object \icode{e} has a value shape \icode{e.shape()},
+each expression object \emp{e} has a value shape \emp{e.shape()},
 which is a tuple of integers with the dimensions in each tensor
-axis. Scalar expressions have shape \icode{()}. Another important
+axis. Scalar expressions have shape \emp{()}. Another important
 property is the set of free indices in an expression, obtained as a
-tuple using \icode{e.free\_indices()}.  Although the free indices have
-no ordering, they are represented with a tuple of \icode{Index}
+tuple using \emp{e.free\_indices()}.  Although the free indices have
+no ordering, they are represented with a tuple of \emp{Index}
 instances for simplicity. Thus the ordering within the tuple carries
 no meaning.
 
@@ -1451,26 +1450,26 @@ indices.  Another important point is that the derivative of a function
 $f(v)$ in a point, $f'(v)|_{v=g}$, depends on function values in the
 vicinity of $v=g$.  The effect of this dependency is that operator
 types matter when differentiating, not only the current value of the
-differentiation variable.  In particular, a \icode{Variable} cannot be
-replaced by the expression it represents, because \icode{diff} depends
-on the \icode{Variable} instance and not the expression it has the
-value of.  Similarly, replacing a \icode{Coefficient} with some value
+differentiation variable.  In particular, a \emp{Variable} cannot be
+replaced by the expression it represents, because \emp{diff} depends
+on the \emp{Variable} instance and not the expression it has the
+value of.  Similarly, replacing a \emp{Coefficient} with some value
 will change the meaning of an expression that contains derivatives
 w.r.t. function coefficients.
 
-The following example illustrate the issue with \icode{Variable} and \icode{diff}.
+The following example illustrate the issue with \emp{Variable} and \emp{diff}.
 \begin{python}
 e = 0
 v = variable(e)
 f = sin(v)
 g = diff(f, v)
 \end{python}
-Here \icode{v} is a variable that takes on the value 0, but
-\icode{sin(v)} cannot be simplified to 0 since the derivative of
-\icode{f} then would be 0.  The correct result here is \icode{g =
-cos(v)}. Printing \icode{f} and \icode{g} gives the strings
-\icode{sin(var1(0))} and \icode{d/d[var1(0)] (sin(var1(0)))}.
-Try just setting \icode{v = e} and see how \icode{f} and \icode{g}
+Here \emp{v} is a variable that takes on the value 0, but
+\emp{sin(v)} cannot be simplified to 0 since the derivative of
+\emp{f} then would be 0.  The correct result here is \emp{g =
+cos(v)}. Printing \emp{f} and \emp{g} gives the strings
+\emp{sin(var1(0))} and \emp{d/d[var1(0)] (sin(var1(0)))}.
+Try just setting \emp{v = e} and see how \emp{f} and \emp{g}
 becomes zero.
 
 %------------------------------------------------------------------------------
@@ -1488,8 +1487,8 @@ becomes zero.
 
 The expression tree does not have a separate data structure. It is
 merely a way of viewing the structure of an expression. Any expression
-object \icode{e} can be seen as the root of a tree, where
-\icode{e.operands()} returns its children. If some of the children are
+object \emp{e} can be seen as the root of a tree, where
+\emp{e.operands()} returns its children. If some of the children are
 equal, they will appear as many times as they appear in the
 expression. Thus it is easy to traverse the tree nodes (i.e. $v_i$ in
 the DAG), but eventual reuse of subexpressions is not directly
@@ -1502,14 +1501,14 @@ illustrated in Figure~\ref{ufl:fig:stiffness}.  The terminals $\uu$
 and $\vv$ have no children, and the term $\Grad\uu$ is itself
 represented by a tree with two nodes. Each time an operator is applied
 to some expressions, it will return a new tree root that references
-its operands. Note that the user will apply the functions \icode{grad}
-and \icode{inner} in her use of the language, while the names
-\icode{Grad}, \icode{Inner} and \icode{Argument} in this figure
-are the names of the \icode{Expr} subclasses used in \ufl{} to
+its operands. Note that the user will apply the functions \emp{grad}
+and \emp{inner} in her use of the language, while the names
+\emp{Grad}, \emp{Inner} and \emp{Argument} in this figure
+are the names of the \emp{Expr} subclasses used in \ufl{} to
 represent the expression objects.  In other words, taking the gradient
-of an expression with \icode{grad(u)} gives an expression
-representation \icode{Grad(u)}, and \icode{inner(a, b)} gives an
-expression representation \icode{Inner(a, b)}. This separation of
+of an expression with \emp{grad(u)} gives an expression
+representation \emp{Grad(u)}, and \emp{inner(a, b)} gives an
+expression representation \emp{Inner(a, b)}. This separation of
 language and representation is merely a design choice in the
 implementation of \ufl{}.
 
@@ -1534,12 +1533,12 @@ G = Graph(expression)
 V, E = G
 \end{python}
 One array (Python list)
-\icode{V} is used to store the unique vertices $\seq{v_i}_{i=1}^n$ of the
+\emp{V} is used to store the unique vertices $\seq{v_i}_{i=1}^n$ of the
 DAG.  For each vertex $v_i$ an expression node $y_i$ is stored to
 represent it.  Thus the expression tree for each vertex is also
 directly available, since each expression node is the root of its own
-expression tree. The edges are stored in an array \icode{E} with
-integer tuples \icode{(i,j)} representing an edge from $v_i$ to $v_j$,
+expression tree. The edges are stored in an array \emp{E} with
+integer tuples \emp{(i,j)} representing an edge from $v_i$ to $v_j$,
 i.e. that $v_j$ is an operand of $v_i$.  The vertex list in the graph
 is built using a postordering from a depth first traversal,
 which guarantees that the vertices are topologically sorted
@@ -1623,14 +1622,14 @@ incoming and outgoing edges.  A nice property of the computational
 graph built by \ufl{} is that no two vertices will represent the same
 identical expression.  During graph building, subexpressions are
 inserted in a hash map (Python dict) to achieve this. Some expression
-classes sort their arguments uniquely such that e.g. \icode{a*b} and
-\icode{b*a} will become the same vertex in the graph.
+classes sort their arguments uniquely such that e.g. \emp{a*b} and
+\emp{b*a} will become the same vertex in the graph.
 
 Free indices in expression nodes can complicate the interpretation of
 the linearized graph when implementing some algorithms, because an
 expression object with free indices represents not one value but a set
 of values, one for each permutation of the values its free indices can
-have.  One solution to this can be to apply \icode{expand\_indices}
+have.  One solution to this can be to apply \emp{expand\_indices}
 before constructing the graph, which will replace all expressions with
 free indices with equivalent expressions with explicit fixed indices.
 Note however that free indices cannot be regained after expansion.
@@ -1650,7 +1649,7 @@ However, a good form compiler should be able to produce better code.
 into subgraphs (partitions) based on dependencies of subexpressions,
 which enables quadrature based form compilers to easily place
 subexpressions inside the right sets of loops.  The function
-\icode{partition} implements this feature.  Each partition is
+\emp{partition} implements this feature.  Each partition is
 represented by a simple array of vertex indices, and each
 partition is labeled with a set of dependencies. By default,
 this set of dependencies use the strings 'x', 'c', and 'v\%d'
@@ -1670,10 +1669,10 @@ for deps in sorted(partitions.keys()):
 The output text from the program is included below.
 Notice that the literal constant 2 has no dependencies. Expressions in
 this partition can always be precomputed compile time. The
-\icode{Constant} \icode{c\_0} depends on data which varies for each
+\emp{Constant} \emp{c\_0} depends on data which varies for each
 cell, represented by 'c' in the dependency set, but not on spatial
 coordinates, so it can be placed outside the quadrature loop. The
-\icode{Function} \icode{w\_1} and expressions depending on it depends
+\emp{Function} \emp{w\_1} and expressions depending on it depends
 in addition on the spatial coordinates, represented by 'x', and
 therefore needs to be computed for each quadrature point.  Expressions
 depending on only the test or trial function are marked with 'v\%d'
@@ -1686,7 +1685,7 @@ precomputed in each quadrature point.  The actual runtime dependencies
 of a basis function in a finite element space is unknown to \ufl{},
 which is why the partition function takes an optional multifunction
 argument such that the form compiler writer can provide more accurate
-dependencies. We refer to the implementation of \icode{partition} for
+dependencies. We refer to the implementation of \emp{partition} for
 such implementation details.
 \begin{code}
 The following depends on ()
@@ -1721,7 +1720,7 @@ V[8] = v_{-2} * v_{-1} * c_0 * w_1 ** 2
 When any kind of derivative expression is declared by the end-user of
 the form language, an expression object is constructed to represent
 it, but nothing is computed.  The type of this expression object is a
-subclass of \icode{Derivative}. Before low level code can be generated
+subclass of \emp{Derivative}. Before low level code can be generated
 from the derivative expression, some kind of algorithm to evaluate
 derivatives must be applied, since differential operators are not
 available natively in low level languages such as C++.  Computing
@@ -1868,8 +1867,8 @@ expressions with free indices.  This issue does not affect the overall
 algorithms, but it does affect the local derivative rules for each
 expression type.
 
-Consider the expression \icode{diff(A, B)} with \icode{A} and
-\icode{B} matrix expressions.  The meaning of derivatives of tensors
+Consider the expression \emp{diff(A, B)} with \emp{A} and
+\emp{B} matrix expressions.  The meaning of derivatives of tensors
 w.r.t. to tensors is easily defined via index notation, which is
 heavily used within the differentiation rules:
 \begin{align}
@@ -1888,8 +1887,8 @@ attempted.  The simplest example of this is the expression $(v_i
 v_i)_{,j}$, which has one free index $j$.  If $j$ is replaced by $i$,
 the expression can still be well defined, but you would never write
 $(v_i v_i)_{,i}$ manually.  If the expression in the parenthesis is
-defined in a variable \icode{e = v[i]*v[i]}, the expression
-\icode{e.dx(i)} looks innocent. However, this will cause problems as
+defined in a variable \emp{e = v[i]*v[i]}, the expression
+\emp{e.dx(i)} looks innocent. However, this will cause problems as
 derivatives (including the index $i$) are propagated up to terminals.
 If this case is encountered in the current implementation of \ufl{},
 it will be detected and an error message will be triggered.
@@ -1925,34 +1924,34 @@ not been investigated.  Furthermore, alternative AD algorithms such as
 reverse mode can be experimented with in the future without concern
 for nested derivatives in the first implementations.
 
-An outer controller function \icode{apply\_ad} handles the application
+An outer controller function \emp{apply\_ad} handles the application
 of a single variable AD routine to an expression with possibly nested
 derivatives.  The AD routine is a function accepting a derivative
 expression node and returning an expression where the single variable
 derivative has been computed.  This routine can be an implementation
 of Algorithm~\ref{ufl:alg:forwardadprogram}.  The result of
-\icode{apply\_ad} is mathematically equivalent to the input, but with
+\emp{apply\_ad} is mathematically equivalent to the input, but with
 no derivative expression nodes left\footnote{Except direct spatial
   derivatives of form arguments, but that is an implementation
   detail.}.
 
-The function \icode{apply\_ad} works by traversing the tree
+The function \emp{apply\_ad} works by traversing the tree
 recursively in post-order, discovering subtrees where the root
 represents a derivative, and applying the provided AD routine to the
 derivative subtree.  Since the children of the derivative node has
-already been visited by \icode{apply\_ad}, they are guaranteed to be
+already been visited by \emp{apply\_ad}, they are guaranteed to be
 free of derivative expression nodes and the AD routine only needs to
 handle the case discussed above with algorithms
 \ref{ufl:alg:forwardad} and \ref{ufl:alg:forwardadprogram}.
 
 %\TODO{Is it $O(c^d n)$ instead? With c being the factor between the size of the derivative program and original expression.}
-The complexity of the \icode{ad\_routine} should be $O(n)$, with $n$
+The complexity of the \emp{ad\_routine} should be $O(n)$, with $n$
 being the size of the expression tree.  The size of the derivative
 expression is proportional to the original expression.  If there are
 $d$ derivative expression nodes in the expression tree, the complexity
-of this algorithm is $O(d n)$, since \icode{ad\_routine} is applied to
+of this algorithm is $O(d n)$, since \emp{ad\_routine} is applied to
 subexpressions $d$ times.  As a result the worst case complexity of
-\icode{apply\_ad} is $O(n^2)$, but in practice $d \ll n$.  A recursive
+\emp{apply\_ad} is $O(n^2)$, but in practice $d \ll n$.  A recursive
 implementation of this algorithm is shown in
 Figure~\ref{ufl:fig:applyad}.
 
@@ -1973,7 +1972,7 @@ def apply_ad(e, ad_routine):
         e = ad_routine(e)
     return e
 \end{python}
-\caption{Simple implementation of recursive \icode{apply\_ad} procedure.}
+\caption{Simple implementation of recursive \emp{apply\_ad} procedure.}
 \label{ufl:fig:applyad}
 \end{figure}
 
@@ -1996,9 +1995,9 @@ the differentiation variable.  Two more cases needs explaining, the
 user defined variables and derivatives w.r.t. the coefficients of a
 \texttt{Coefficient}.
 
-If $v$ is a \icode{Variable}, then we define $\frac{d t}{d v} \equiv
+If $v$ is a \emp{Variable}, then we define $\frac{d t}{d v} \equiv
 0$ for any terminal $t$. If $v$ is scalar valued then $\frac{d v}{d v}
-\equiv 1$. Furthermore, if $\VV$ is a tensor valued \icode{Variable},
+\equiv 1$. Furthermore, if $\VV$ is a tensor valued \emp{Variable},
 its derivative w.r.t. itself is
 \begin{align}
 \frac{d \VV}{d \VV}
@@ -2016,29 +2015,29 @@ v &= g, \\
 \frac{d v}{d z} &= \frac{d g}{d z}.
 \end{align}
 
-Finally, we consider the operator \icode{derivative}, which represents
+Finally, we consider the operator \emp{derivative}, which represents
 differentiation w.r.t. all coefficients $\{w_k\}$ of a function $w$.
-Consider an object \icode{element} which represents a finite element
+Consider an object \emp{element} which represents a finite element
 space $V_h$ with a basis $\{\phi_k\}$.  Next consider form arguments
 defined in this space:
 \begin{python}
 v = Argument(element)
 w = Coefficient(element)
 \end{python}
-The Argument instance \icode{v} represents any $v\in\{\phi_k\}$,
-while the \icode{Coefficient} instance \icode{w} represents the sum
+The Argument instance \emp{v} represents any $v\in\{\phi_k\}$,
+while the \emp{Coefficient} instance \emp{w} represents the sum
 \begin{align}
 w = \sum_k w_k \phi_k(x).
 \end{align}
-The derivative of \icode{w} w.r.t. any $w_k$ is the corresponding basis function in $V_h$,
+The derivative of \emp{w} w.r.t. any $w_k$ is the corresponding basis function in $V_h$,
 \begin{align}
 \frac{\partial w}{\partial w_k} = \phi_k, \quad k = 1, \ldots, |V_h|, \\
 \end{align}
-which can be represented by \icode{v}, since
+which can be represented by \emp{v}, since
 \begin{align}
 v \in \seq{ \phi_k }_{k=1}^{|V_h|} = \seq{ \frac{\partial w}{\partial w_k} }_{k=1}^{|V_h|}.
 \end{align}
-Note that \icode{v} should be a basis function instance that has not
+Note that \emp{v} should be a basis function instance that has not
 already been used in the form.
 
 %==============================================================================
@@ -2085,7 +2084,7 @@ which then enables the natural Python syntax for iteration over expression nodes
 for e in post_traversal(expression):
     post_action(e)
 \end{python}
-For efficiency, the actual implementation of \icode{post\_traversal}
+For efficiency, the actual implementation of \emp{post\_traversal}
 in \ufl{} is not using recursion.  Function calls are very expensive
 in Python, which makes the non-recursive implementation an order of
 magnitude faster than the above.
@@ -2128,7 +2127,7 @@ print m(x[0] * x[1])
 A common task in both symbolic computing and compiler implementation
 is the selection of some operation based on the type of an expression
 node.  For a selected few operations, this is done using overloading
-of functions in the subclasses of \icode{Expr}, but this is not
+of functions in the subclasses of \emp{Expr}, but this is not
 suitable for all operations.  In many cases type-specific operations
 are better implemented together in the algorithm instead of
 distributed across class definitions.  This implementation pattern
@@ -2149,28 +2148,28 @@ There are several problems with this approach, one of which is
 efficiency when there are many types to check.  A type based function
 dispatch mechanism with efficiency independent of the number of types
 is implemented as an alternative through the class
-\icode{MultiFunction}.  The underlying mechanism is a dict lookup
+\emp{MultiFunction}.  The underlying mechanism is a dict lookup
 (which is $O(1)$) based on the type of the input argument, followed by
 a call to the function found in the dict. The lookup table is built in
-the \icode{MultiFunction} constructor only once.  Functions to insert
+the \emp{MultiFunction} constructor only once.  Functions to insert
 in the table are discovered automatically using the introspection
 capabilites of Python.
 
 A multifunction is declared as a subclass of
-\icode{MultiFunction}. For each type that should be handled
+\emp{MultiFunction}. For each type that should be handled
 particularly, a member function is declared in the subclass.  The
-\icode{Expr} classes use the \icode{CamelCaps} naming convention,
-which is automatically converted to \icode{underscore\_notation} for
-corresponding function names, such as \icode{IndexSum} and
-\icode{index\_sum}.  If a handler function is not declared for a
+\emp{Expr} classes use the \emp{CamelCaps} naming convention,
+which is automatically converted to \emp{underscore\_notation} for
+corresponding function names, such as \emp{IndexSum} and
+\emp{index\_sum}.  If a handler function is not declared for a
 type, the closest superclass handler function is used instead.  Note
-that the \icode{MultiFunction} implementation is specialized to types
-in the \icode{Expr} class hierarchy.  The declaration and use of a
+that the \emp{MultiFunction} implementation is specialized to types
+in the \emp{Expr} class hierarchy.  The declaration and use of a
 multifunction is illustrated in Figure~\ref{ufl:fig:examplefunction}.
-Note that \icode{argument} and \icode{sum} will handle
-instances of the exact types \icode{Argument} and \icode{Sum},
-while \icode{terminal} and \icode{operator} will handle the types
-\icode{SpatialCoordinate} and \icode{Product} since they have no
+Note that \emp{argument} and \emp{sum} will handle
+instances of the exact types \emp{Argument} and \emp{Sum},
+while \emp{terminal} and \emp{operator} will handle the types
+\emp{SpatialCoordinate} and \emp{Product} since they have no
 specific handlers.
 
 %------------------------------------------------------------
@@ -2189,22 +2188,22 @@ def apply(e, multifunction):
     ops = [apply(o, multifunction) for o in e.operands()]
     return multifunction(e, *ops)
 \end{python}
-The basic idea is as follows. Given an expression node \icode{e},
+The basic idea is as follows. Given an expression node \emp{e},
 begin with applying the transformation to each child node.  Then
 return the result of some operation specialized according to the type
-of \icode{e}, using the already transformed children as input.
+of \emp{e}, using the already transformed children as input.
 
-The \icode{Transformer} class implements this pattern.  Defining a new
-algorithm using this pattern involves declaring a \icode{Transformer}
+The \emp{Transformer} class implements this pattern.  Defining a new
+algorithm using this pattern involves declaring a \emp{Transformer}
 subclass, and implementing the type specific operations as member
-functions of this class just as with \icode{MultiFunction}.  The
+functions of this class just as with \emp{MultiFunction}.  The
 difference is that member functions take one additional argument for
 each operand of the expression node. The transformed child nodes are
 supplied as these additional arguments.  The following code replaces
-terminal objects with objects found in a dict \icode{mapping}, and
+terminal objects with objects found in a dict \emp{mapping}, and
 reconstructs operators with the transformed expression trees. The
 algorithm is applied to an expression by calling the function
-\icode{visit}, named after the similar Visitor pattern.
+\emp{visit}, named after the similar Visitor pattern.
 \begin{python}
 class Replacer(Transformer):
     def __init__(self, mapping):
@@ -2222,11 +2221,11 @@ r = Replacer({f: f**2})
 g = r.visit(2*f)
 \end{python}
 After running this code the result is $g = 2 f^2$.  The actual
-implementation of the \icode{replace} function is similar to this
+implementation of the \emp{replace} function is similar to this
 code.
 
 In some cases, child nodes should not be visited before their parent
-node. This distinction is easily expressed using \icode{Transformer},
+node. This distinction is easily expressed using \emp{Transformer},
 simply by omitting the member function arguments for the transformed
 operands. See the source code for many examples of algorithms using
 this pattern.
@@ -2250,17 +2249,17 @@ more representation details.
 
 Some operators in \ufl{} are termed ``compound'' operators, meaning
 they can be represented by other more elementary operators.  Try
-defining an expression \icode{a = dot(grad(f*u), grad(v))}, and print
-\icode{repr(a)}. As you will see, the representation of \icode{a} is
-\icode{Dot(Grad(Product(f, u)), Grad(v))}, with some more details
-in place of \icode{f}, \icode{u} and \icode{v}.
+defining an expression \emp{a = dot(grad(f*u), grad(v))}, and print
+\emp{repr(a)}. As you will see, the representation of \emp{a} is
+\emp{Dot(Grad(Product(f, u)), Grad(v))}, with some more details
+in place of \emp{f}, \emp{u} and \emp{v}.
 By representing the gradient directly with a high
-level type \icode{Grad} instead of more low level types, the input
+level type \emp{Grad} instead of more low level types, the input
 expressions are easier to recognize in the representation, and
 rendering of expressions to for example \LaTeX{} format can show the
 original compound operators as written by the end-user.
 However, since many algorithms must implement actions for each
-operator type, the function \icode{expand\_compounds} is used to
+operator type, the function \emp{expand\_compounds} is used to
 replace all expression nodes of ``compound'' types with equivalent
 expressions using basic types. When this operation is applied to the
 input forms from the user, algorithms in both \ufl{} and the form
@@ -2271,26 +2270,26 @@ Equation~\eqref{ufl:eq:a_before_expand} results in the expression
 a_c &= \sum_i \frac{\partial v}{\partial x_i} \frac{\partial (u f)}{\partial x_i}.
 \end{align}
 
-Another important transformation is \icode{expand\_derivatives}, which
+Another important transformation is \emp{expand\_derivatives}, which
 applies automatic differentiation to expressions, recursively and for
 all kinds of derivatives.  The end result is that most derivatives are
 evaluated, and the only derivative operator types left in the
 expression tree applies to terminals. The precondition for this
-algorithm is that \icode{expand\_compounds} has been applied.
+algorithm is that \emp{expand\_compounds} has been applied.
 Expanding the derivatives in $a_c$ from
 Equation~\eqref{ufl:eq:a_after_expand_compounds} gives us
 \begin{align} \label{ufl:eq:a_after_expand_derivatives}
 a_d &= \sum_{i} \frac{\partial v}{\partial x_i} (u \frac{\partial f}{\partial x_i} + f \frac{\partial u}{\partial x_i}).
 \end{align}
 
-Index notation and the \icode{IndexSum} expression node type
+Index notation and the \emp{IndexSum} expression node type
 complicate interpretation of an expression tree somewhat,
 in particular in expressions with nested index sums.
 Since expressions with free indices will take on multiple values,
 each expression object represents not only one value but a set of values.
-The transformation \icode{expand\_indices} then comes in handy.
+The transformation \emp{expand\_indices} then comes in handy.
 The precondition for this algorithm
-is that \icode{expand\_compounds} and \icode{expand\_derivatives} have
+is that \emp{expand\_compounds} and \emp{expand\_derivatives} have
 been applied. The postcondition of this algorithm is that there are no
 free indices left in the expression. Expanding the indices in
 Equation~\eqref{ufl:eq:a_after_expand_derivatives} finally gives
@@ -2330,7 +2329,7 @@ print "\nad:", str(ad), "\n", tree_format(ad)
 print "\nai:", str(ai), "\n", tree_format(ai)
 \end{python}
 
-The print output showing \icode{a} is (with the details of the finite
+The print output showing \emp{a} is (with the details of the finite
 element object cut away for shorter lines):
 \begin{python}
 a:  (grad(v_{-2} * w_0)) . (grad(v_{-1}))
@@ -2349,8 +2348,8 @@ Dot
 The arguments labeled -1 and -2 refer to $v$ and $u$ respectively.
 
 % Show extract with Dot(a, b) -> IndexSum(Product(a[i], b[i]), i)
-In \icode{ac}, the \icode{Dot} product has been expanded to an
-\icode{IndexSum} of a \icode{Product} with two \icode{Indexed} operands:
+In \emp{ac}, the \emp{Dot} product has been expanded to an
+\emp{IndexSum} of a \emp{Product} with two \emp{Indexed} operands:
 \begin{python}
 IndexSum
 (
@@ -2370,14 +2369,14 @@ IndexSum
     MultiIndex((Index(10),), {Index(10): 2})
 )
 \end{python}
-The somewhat complex looking expression \icode{MultiIndex((Index(10),), \{Index(10): 2\})}
+The somewhat complex looking expression \emp{MultiIndex((Index(10),), \{Index(10): 2\})}
 can be read simply as ``index named $i_{10}$, bound to an axis with dimension 2''.
 
-Zooming in to one of the \icode{...} lines above, the representation
+Zooming in to one of the \emp{...} lines above, the representation
 of $\Grad(fu)$ must still keep the vector shape after being
 transformed to more basic expressions, which is why the
-\icode{SpatialDerivative} object is wrapped in a
-\icode{ComponentTensor} object:
+\emp{SpatialDerivative} object is wrapped in a
+\emp{ComponentTensor} object:
 \begin{python}
 ComponentTensor
 (
@@ -2407,9 +2406,9 @@ Indexed
 \end{python}
 This pattern acts as a relabeling of the index objects, renaming
 $i_{8}$ from inside $\ldots$ to $i_{10}$ on the outside.  When looking
-at the print of \icode{ad}, the result of the chain rule
-($(fu)' = u f' + f u'$) can be seen as the \icode{Sum} of two
-\icode{Product} objects.
+at the print of \emp{ad}, the result of the chain rule
+($(fu)' = u f' + f u'$) can be seen as the \emp{Sum} of two
+\emp{Product} objects.
 \begin{python}
 Sum
 (
@@ -2433,9 +2432,9 @@ Sum
     )
 )
 \end{python}
-Finally after index expansion in \icode{ai} (not shown here), no free
-\icode{Index} objects are left, but instead a lot of \icode{FixedIndex}
-objects can be seen in the print of \icode{ai}. Looking through the
+Finally after index expansion in \emp{ai} (not shown here), no free
+\emp{Index} objects are left, but instead a lot of \emp{FixedIndex}
+objects can be seen in the print of \emp{ai}. Looking through the
 full output from the example code above is strongly encouraged if you
 want a good understanding of the three transformations shown here.
 
@@ -2504,16 +2503,16 @@ print e((2, 3), { g: gh }) # prints 49
 \subsection{Viewing expressions} \label{ufl:sec:viewing}
 Expressions can be formatted in various ways for inspection, which is
 particularly useful while debugging.  The Python built in string
-conversion operator \icode{str(e)} provides a compact human readable
-string. If you type \icode{print e} in an interactive Python session,
-\icode{str(e)} is shown.  Another Python built in string operator is
-\icode{repr(e)}.  \ufl{} implements \icode{repr} correctly such that
-\icode{e == eval(repr(e))} for any expression \icode{e}.  The string
-\icode{repr(e)} reflects all the exact representation types used in an
+conversion operator \emp{str(e)} provides a compact human readable
+string. If you type \emp{print e} in an interactive Python session,
+\emp{str(e)} is shown.  Another Python built in string operator is
+\emp{repr(e)}.  \ufl{} implements \emp{repr} correctly such that
+\emp{e == eval(repr(e))} for any expression \emp{e}.  The string
+\emp{repr(e)} reflects all the exact representation types used in an
 expression, and can therefore be useful for debugging.  Another
-formatting function is \icode{tree\_format(e)}, which produces an
+formatting function is \emp{tree\_format(e)}, which produces an
 indented multi-line string that shows the tree structure of an
-expression clearly, as opposed to \icode{repr} which can return quite
+expression clearly, as opposed to \emp{repr} which can return quite
 long and hard to read strings.  Information about formatting of
 expressions as \LaTeX{} and the dot graph visualization format can be
 found in the manual.
@@ -2535,20 +2534,20 @@ language. Object orientation and operator overloading is well
 supported, and this is fundamental to the design of \ufl{}. The
 functional programming features of Python (such as generator
 expressions) are useful in the implementation of algorithms and form
-compilers. The built-in data structures \icode{list}, \icode{dict} and
-\icode{set} play a central role in fast implementations of scalable
+compilers. The built-in data structures \emp{list}, \emp{dict} and
+\emp{set} play a central role in fast implementations of scalable
 algorithms.
 
 There is one problem with operator overloading in Python, and that is
 the comparison operators. The problem stems from the fact that
-\icode{\_\_eq\_\_} or \icode{\_\_cmp\_\_} are used by the built-in
-data structures dict and set to compare keys, meaning that \icode{a ==
-  b} must return a boolean value for \icode{Expr} to be used as
-keys. The result is that \icode{\_\_eq\_\_} can not be overloaded to
-return some \icode{Expr} type representation such as \icode{Equals(a,
+\emp{\_\_eq\_\_} or \emp{\_\_cmp\_\_} are used by the built-in
+data structures dict and set to compare keys, meaning that \emp{a ==
+  b} must return a boolean value for \emp{Expr} to be used as
+keys. The result is that \emp{\_\_eq\_\_} can not be overloaded to
+return some \emp{Expr} type representation such as \emp{Equals(a,
   b)} for later processing by form compilers.  The other problem is
-that \icode{and} and \icode{or} cannot be overloaded, and therefore
-cannot be used in \icode{conditional} expressions.  There are good
+that \emp{and} and \emp{or} cannot be overloaded, and therefore
+cannot be used in \emp{conditional} expressions.  There are good
 reasons for these design choices in Python.  This conflict is the
 reason for the somewhat non-intuitive design of the comparison
 operators in \ufl{}.
@@ -2558,27 +2557,27 @@ operators in \ufl{}.
 
 The form compilers need to compute a unique signature of each form for
 use in a cache system to avoid recompilations.  A convenient way to
-define a signature is using \icode{repr(form)}, since the definition
-of this in Python is \icode{eval(repr(form)) == form}.  Therefore
-\icode{\_\_repr\_\_} is implemented for all \icode{Expr} subclasses.
+define a signature is using \emp{repr(form)}, since the definition
+of this in Python is \emp{eval(repr(form)) == form}.  Therefore
+\emp{\_\_repr\_\_} is implemented for all \emp{Expr} subclasses.
 
 Some forms are mathematically equivalent even though their
 representation is not exactly the same. \ufl{} does not use a truly
 canonical form for its expressions, but takes some measures to ensure
 that trivially equivalent forms are recognized as such.
 
-Some of the types in the \icode{Expr} class hierarchy (subclasses of
-\icode{Counted}), has a global counter to identify the order in which
+Some of the types in the \emp{Expr} class hierarchy (subclasses of
+\emp{Counted}), has a global counter to identify the order in which
 they were created.  This counter is used by form arguments (both
-\icode{Argument} and \icode{Coefficient}) to identify their relative
+\emp{Argument} and \emp{Coefficient}) to identify their relative
 ordering in the argument list of the form.  Other counted types are
-\icode{Index} and \icode{Label}, which only use the counter as a
+\emp{Index} and \emp{Label}, which only use the counter as a
 unique identifier.  Algorithms are implemented for renumbering of all
-\icode{Counted} types such that all counts start from 0.
+\emp{Counted} types such that all counts start from 0.
 
-In addition, some operator types such as \icode{Sum} and
-\icode{Product} maintains a sorted list of operands such that
-\icode{a+b} and \icode{b+a} are both represented as \icode{Sum(a, b)}.
+In addition, some operator types such as \emp{Sum} and
+\emp{Product} maintains a sorted list of operands such that
+\emp{a+b} and \emp{b+a} are both represented as \emp{Sum(a, b)}.
 This operand sorting is intentionally independent of the numbering of
 indices because that would not be stable. The reason for this instability
 is that the result of algorithms for renumbering indices depends
@@ -2587,7 +2586,7 @@ combined ensure that the signature of equal forms will stay the same.
 Note that the representation, and thus the signature,
 of a form may change with versions of \ufl{}.
 The following line prints the signature of a form with
-\icode{expand\_derivatives} and renumbering applied.
+\emp{expand\_derivatives} and renumbering applied.
 \begin{python}
 print repr(preprocess(myform).form\_data().form)
 \end{python}
@@ -2604,19 +2603,19 @@ of the algorithms we use.
 
 To write clear and efficient algorithms in Python, it is important to
 use the built in data structures correctly.  These data structures
-include in particular \icode{list}, \icode{dict} and \icode{set}.
+include in particular \emp{list}, \emp{dict} and \emp{set}.
 CPython \citep{Rossumothers}, the reference implementation of Python,
-implements the data structure \icode{list} as an array, which means
+implements the data structure \emp{list} as an array, which means
 append, and pop, and random read or write access are all O(1)
-operations.  Random insertion, however, is O(n).  Both \icode{dict}
-and \icode{set} are implemented as hash maps, the latter simply with
+operations.  Random insertion, however, is O(n).  Both \emp{dict}
+and \emp{set} are implemented as hash maps, the latter simply with
 no value associated with the keys. In a hash map, random read, write,
 insertion and deletion of items are all $O(1)$ operations, as long as
-the key types implement \icode{\_\_hash\_\_} and \icode{\_\_eq\_\_}
+the key types implement \emp{\_\_hash\_\_} and \emp{\_\_eq\_\_}
 efficiently. The dict data structure is used extensively by the Python
 language, and therefore particular attention has been given to make it
 efficient \citep{Kuchling2007}.  Thus to enjoy efficient use of these
-containers, all \icode{Expr} subclasses must implement these two
+containers, all \emp{Expr} subclasses must implement these two
 special functions efficiently. Such considerations have been important
 for making the \ufl{} implementation perform efficiently.
 
