@@ -1,8 +1,3 @@
-\newcommand{\TODO}[1]{\marginpar{\tiny TODO: #1}}
-
-\DefineVerbatimEnvironment{code}{Verbatim}{frame=single}
-%\DefineVerbatimEnvironment{icode}{Verbatim}{frame=none}
-
 % Used in algorithms
 \newcommand{\afor}{\textbf{for} {}}
 \newcommand{\aif}{\textbf{if} {}}
@@ -137,16 +132,16 @@ several other projects.  Sundance \citep{Long2003,Long2004a,Long2004}
 implements a symbolic engine directly in C++ to define variational
 forms, and has support for automatic differentiation.  The Life
 \citep{Prudhomme2006a,Prudhomme2006} project uses a domain specific
-language embedded in C++, based on expression template techniques
-to specify variational forms.  SfePy \citep{Cimrman2008} uses SymPy
-as a symbolic engine, extending it with finite element methods.
-GetDP \citep{DularGeuzaine2005} is another project using a domain
-specific language for variational forms.  The Mathematica package
-AceGen \citep{Korelc1997,Korelc2002} uses the symbolic capabilities
-of Mathematica to generate efficient code for finite element methods.
-All these packages have in common a focus on high level descriptions of
-partial differential equations to achive higher human efficiency in the
-development of simulation software.
+language embedded in C++, based on expression template techniques to
+specify variational forms.  SfePy \citep{Cimrman2008} uses SymPy as a
+symbolic engine, extending it with finite element methods.  GetDP
+\citep{DularGeuzaine2005} is another project using a domain specific
+language for variational forms.  The Mathematica package AceGen
+\citep{Korelc1997,Korelc2002} uses the symbolic capabilities of
+Mathematica to generate efficient code for finite element methods.
+All these packages have in common a focus on high level descriptions
+of partial differential equations to achieve higher human efficiency
+in the development of simulation software.
 
 \ufl{} almost resembles a library for symbolic computing, but its
 scope, goals and priorities are different from generic symbolic
@@ -368,16 +363,15 @@ TH = V * P
 ME = MixedElement(T, V, P)
 \end{python}
 In the first line a polygonal cell is selected from the set of
-predefined cells.  Then a scalar linear Lagrange element
-\emp{P} is declared, as well as a quadratic vector Lagrange element
-\emp{V}.  Next a symmetric rank 2 tensor element \emp{T} is
-defined, which is also piecewise constant on each cell.  The code
-pproceeds to declare a mixed element \emp{TH}, which combines the
-quadratic vector element \emp{V} and the linear scalar element
-\emp{P}. This element is known as the Taylor-Hood element.  Finally
-another mixed element with three subelements is declared. Note that
-writing \emp{T * V * P} would not result in a mixed element with
-three direct subelements, but rather
+predefined cells.  Then a scalar linear Lagrange element \emp{P} is
+declared, as well as a quadratic vector Lagrange element \emp{V}.
+Next a symmetric rank 2 tensor element \emp{T} is defined, which is
+also piecewise constant on each cell. The code proceeds to declare a
+mixed element \emp{TH}, which combines the quadratic vector element
+\emp{V} and the linear scalar element \emp{P}. This element is known
+as the Taylor-Hood element.  Finally another mixed element with three
+subelements is declared. Note that writing \emp{T * V * P} would not
+result in a mixed element with three direct subelements, but rather
 \emp{MixedElement(MixedElement(T, V), P)}.
 
 %==============================================================================
@@ -553,7 +547,7 @@ $w_k$
 w = \sum_{k=1}^{|V_h|} w_k \phi_k.
 \end{align}
 The exception is coefficient functions that can only be evaluated
-pointwise, which are declared with a finite element with family
+point-wise, which are declared with a finite element with family
 ``Quadrature''.  Basis functions are declared for an arbitrary element
 as in the following manner:
 \begin{python}
@@ -1408,7 +1402,7 @@ type hierarchy in two, as illustrated in Figure~\ref{ufl:fig:expr}.
 All expression objects are considered immutable; once constructed an
 expression object will never be modified.  Manipulating an expression
 should always result in a new object being created.  The immutable
-propery ensures that expression objects can be reused and shared
+property ensures that expression objects can be reused and shared
 between expressions without side effects in other parts of a program.
 This both reduces memory usage, avoids needless copying of objects,
 and simplifies recognition of common subexpressions.
@@ -1565,8 +1559,8 @@ print "str(e) = %s\n" % str(e)
 print "\n".join("V[%d] = %s" % (i, v) for (i, v) in enumerate(V)), "\n"
 print "\n".join("E[%d] = %s" % (i, e) for (i, e) in enumerate(E)), "\n"
 \end{python}
-An exerpt of the program output is shown here:
-\begin{code}
+An excerpt of the program output is shown here:
+\begin{gencode}
 V[0] = v_{-2}
 ...
 V[7] = v_{-1} * c_0 * w_1 ** 2
@@ -1574,13 +1568,13 @@ V[8] = v_{-2} * v_{-1} * c_0 * w_1 ** 2
 ...
 E[6] = (8, 0)
 E[7] = (8, 7)
-\end{code}
+\end{gencode}
 The two last edges shown here represent the dependencies of vertex 8
 on vertex 7 and 0, since $v_8 = v_0 v_7$. Run the code to see the full
 output of this code.  Try changing the expression and see what the
 graph looks like.
 
-%\begin{code}
+%\begin{gencode}
 %str(e) = v_{-2} * v_{-1} * c_0 * w_1 ** 2
 %
 %V[0] = v_{-2}
@@ -1601,7 +1595,7 @@ graph looks like.
 %E[5] = (7, 6)
 %E[6] = (8, 0)
 %E[7] = (8, 7)
-%\end{code}
+%\end{gencode}
 
 From the edges $E$, related arrays can be computed efficiently; in
 particular the vertex indices of dependencies of a vertex $v_i$ in
@@ -1621,7 +1615,7 @@ Similar functions exist for obtaining indices into $E$ for all
 incoming and outgoing edges.  A nice property of the computational
 graph built by \ufl{} is that no two vertices will represent the same
 identical expression.  During graph building, subexpressions are
-inserted in a hash map (Python dict) to achieve this. Some expression
+inserted in a hash map (Python dictionary) to achieve this. Some expression
 classes sort their arguments uniquely such that e.g. \emp{a*b} and
 \emp{b*a} will become the same vertex in the graph.
 
@@ -1687,7 +1681,7 @@ which is why the partition function takes an optional multifunction
 argument such that the form compiler writer can provide more accurate
 dependencies. We refer to the implementation of \emp{partition} for
 such implementation details.
-\begin{code}
+\begin{gencode}
 The following depends on ()
 V[4] = 2
 The following depends on ('c',)
@@ -1704,7 +1698,7 @@ The following depends on ('x', 'v-2')
 V[0] = v_{-2}
 The following depends on ('x', 'c', 'v-2', 'v-1')
 V[8] = v_{-2} * v_{-1} * c_0 * w_1 ** 2
-\end{code}
+\end{gencode}
 
 %==============================================================================
 \section{Computing derivatives} \label{ufl:sec:ad}
@@ -1944,7 +1938,6 @@ free of derivative expression nodes and the AD routine only needs to
 handle the case discussed above with algorithms
 \ref{ufl:alg:forwardad} and \ref{ufl:alg:forwardadprogram}.
 
-%\TODO{Is it $O(c^d n)$ instead? With c being the factor between the size of the derivative program and original expression.}
 The complexity of the \emp{ad\_routine} should be $O(n)$, with $n$
 being the size of the expression tree.  The size of the derivative
 expression is proportional to the original expression.  If there are
@@ -2148,12 +2141,12 @@ There are several problems with this approach, one of which is
 efficiency when there are many types to check.  A type based function
 dispatch mechanism with efficiency independent of the number of types
 is implemented as an alternative through the class
-\emp{MultiFunction}.  The underlying mechanism is a dict lookup
+\emp{MultiFunction}.  The underlying mechanism is a dictionary lookup
 (which is $O(1)$) based on the type of the input argument, followed by
-a call to the function found in the dict. The lookup table is built in
-the \emp{MultiFunction} constructor only once.  Functions to insert
-in the table are discovered automatically using the introspection
-capabilites of Python.
+a call to the function found in the dictionary. The lookup table is
+built in the \emp{MultiFunction} constructor only once.  Functions to
+insert in the table are discovered automatically using the
+introspection capabilities of Python.
 
 A multifunction is declared as a subclass of
 \emp{MultiFunction}. For each type that should be handled
@@ -2200,7 +2193,7 @@ functions of this class just as with \emp{MultiFunction}.  The
 difference is that member functions take one additional argument for
 each operand of the expression node. The transformed child nodes are
 supplied as these additional arguments.  The following code replaces
-terminal objects with objects found in a dict \emp{mapping}, and
+terminal objects with objects found in a dictionary \emp{mapping}, and
 reconstructs operators with the transformed expression trees. The
 algorithm is applied to an expression by calling the function
 \emp{visit}, named after the similar Visitor pattern.
@@ -2239,8 +2232,8 @@ There are many ways in which expression representations can be
 manipulated.  Here, we describe three particularly important
 transformations.  Note that each of these algorithms removes some
 abstractions, and hence may remove some opportunities for analysis or
-optimization. To demonstrate their effect, each tranformation will
-be applied below to the expression
+optimization. To demonstrate their effect, each transformation will be
+applied below to the expression
 \begin{align} \label{ufl:eq:a_before_expand}
 a   &= \Grad (f u) \cdot \Grad v.
 \end{align}
@@ -2296,19 +2289,18 @@ Equation~\eqref{ufl:eq:a_after_expand_derivatives} finally gives
 \begin{align} \label{ufl:eq:a_after_expand_indices}
 a_i &= \frac{\partial v}{\partial x_0} (u \frac{\partial f}{\partial x_0} + f \frac{\partial u}{\partial x_0}) + \frac{\partial v}{\partial x_1} (u \frac{\partial f}{\partial x_1} + f \frac{\partial u}{\partial x_1}).
 \end{align}
-We started with the higher level concepts gradient and dot product
-in Equation~\eqref{ufl:eq:a_before_expand}, and ended ut with
-only scalar addition, multiplication, and partial derivatives
-of the form arguments. A form compiler will typically start
-with $a_d$ or $a_i$, insert values for the argument derivatives,
-apply some other transformations, before finally generating code.
+We started with the higher level concepts gradient and dot product in
+Equation~\eqref{ufl:eq:a_before_expand}, and ended with only scalar
+addition, multiplication, and partial derivatives of the form
+arguments. A form compiler will typically start with $a_d$ or $a_i$,
+insert values for the argument derivatives, apply some other
+transformations, before finally generating code.
 
 Some example code to play around with should help in understanding
 what these algorithms do at the expression representation level.
-Since the printed output from this code is a bit lengthy, only
-key aspects of the output is repeated below. Copy this code
-to a python file or run it in a python interpreter to
-see the full output.
+Since the printed output from this code is a bit lengthy, only key
+aspects of the output is repeated below. Copy this code to a python
+file or run it in a python interpreter to see the full output.
 \begin{python}
 from ufl import *
 V = FiniteElement("CG", triangle, 1)
@@ -2541,7 +2533,7 @@ algorithms.
 There is one problem with operator overloading in Python, and that is
 the comparison operators. The problem stems from the fact that
 \emp{\_\_eq\_\_} or \emp{\_\_cmp\_\_} are used by the built-in
-data structures dict and set to compare keys, meaning that \emp{a ==
+data structures dictionary and set to compare keys, meaning that \emp{a ==
   b} must return a boolean value for \emp{Expr} to be used as
 keys. The result is that \emp{\_\_eq\_\_} can not be overloaded to
 return some \emp{Expr} type representation such as \emp{Equals(a,
@@ -2612,7 +2604,7 @@ and \emp{set} are implemented as hash maps, the latter simply with
 no value associated with the keys. In a hash map, random read, write,
 insertion and deletion of items are all $O(1)$ operations, as long as
 the key types implement \emp{\_\_hash\_\_} and \emp{\_\_eq\_\_}
-efficiently. The dict data structure is used extensively by the Python
+efficiently. The dictionary data structure is used extensively by the Python
 language, and therefore particular attention has been given to make it
 efficient \citep{Kuchling2007}.  Thus to enjoy efficient use of these
 containers, all \emp{Expr} subclasses must implement these two
