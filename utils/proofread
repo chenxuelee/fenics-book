@@ -1,0 +1,71 @@
+#!/usr/bin/env python
+#
+# Simple script for "proofreading" a LaTeX file.
+#
+# Anders Logg, 2010-12-16
+
+import sys
+
+def check_ie(text):
+    if "i.e." in text:
+        return "i.e. --> ; that is,"
+
+def check_cite(text):
+    if "\cite{" in text:
+        return "\cite{} --> \citet{} or \citep{}"
+
+def check_all(text):
+    "Check stuff"
+
+    warnings = []
+
+    # Check all
+    warnings += [check_ie(text)]
+    warnings += [check_cite(text)]
+
+    # I like this line
+    warnings = [warning for warning in warnings if warning is not None]
+
+    return warnings
+
+def strip_text(text):
+    "Remove newlines, whitespaces etc"
+    text = text.replace("\n", " ")
+    text = text.replace("\t", " ")
+    while True:
+        new_text = text.replace("  ", " ")
+        if len(new_text) == len(text):
+            break
+        text = new_text
+    return text
+
+if __name__ == "__main__":
+
+    # Get file name
+    if not len(sys.argv) == 2:
+        print "Usage: proofread file.tex"
+        sys.exit(1)
+    filename = sys.argv[1]
+
+    # Open file and read text
+    try:
+        file = open(filename)
+        text = file.read()
+        file.close()
+    except:
+        print "Unable to open file '%s'." % filename
+        sys.exit(1)
+
+    # Remove newlines, whitespaces etc
+    text = strip_text(text)
+
+    # Check stuff
+    warnings = check_all(text)
+
+    # Print results
+    if len(warnings) == 0:
+        print "%s: OK" % filename
+    else:
+        print "%s: %d warning(s)" % (filename, len(warnings))
+        for warning in warnings:
+            print "  " + warning
