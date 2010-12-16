@@ -13,8 +13,3 @@ else
     echo $BAD"Not so good"$NORMAL
     echo $WARNINGS | python -c "import sys; print '\n'.join(sys.stdin.read().split('LaTeX Warning: '))"
 fi
-
-for f in chapters/*; do
-    echo ""
-    utils/proofread $f/chapter.tex
-done
