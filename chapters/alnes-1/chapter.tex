@@ -68,72 +68,64 @@
 
 \editornote{Sort out what to do with all UFL specific macros and bold math fonts.}
 
-The Unified Form Language -- \ufl{}~\cite{AlnaesA.Logg2009} -- is a
-domain specific language for the declaration of finite element
+The Unified Form Language -- \ufl{} \citep{AlnaesA.Logg2009} --
+is a domain specific language for the declaration of finite element
 discretizations of variational forms and functionals. More precisely,
 the language defines a flexible user interface for defining finite
 element spaces and expressions for weak forms in a notation close to
 mathematical notation.
 
-The \fenics{} project provides a framework for
-building applications for solving partial differential equations (PDEs).
-\ufl{} is one of the core components of this framework.
-It defines the language you \emph{express} your PDEs in.
-It is the input language and front-end of the form compilers
-\ffc{} and \sfc{}, which are covered in Chapter~\ref{chap:logg-1}
-and Chapter~\ref{chap:alnes-3}.
-The \ufl{} implementation also provides algorithms that the
-form compilers can use to simplify the compilation process.
-The output from these form compilers is C++~\cite{Stroustrup1997}
-code conforming to the \ufc{} specification,
-which is explained in Chapter~\ref{chap:alnes-2}.
-This code can be used with the C++/Python library \dolfin{}
-\footnote{Note that in \pydolfin{}, some parts of \ufl{} is
-wrapped to blend in with other software components and make the
-compilation process hidden from the user.  This is not discussed
-here.}, which is covered in Chapter~\ref{chap:logg-2}.
+The \fenics{} project provides a framework for building applications
+for solving partial differential equations (PDEs).  \ufl{} is one of
+the core components of this framework.  It defines the language you
+\emph{express} your PDEs in.  It is the input language and front-end
+of the form compilers \ffc{} and \sfc{}, which are covered in
+Chapter~\ref{chap:logg-1} and Chapter~\ref{chap:alnes-3}.  The \ufl{}
+implementation also provides algorithms that the form compilers can use to
+simplify the compilation process.  The output from these form compilers is
+C++ \citep{Stroustrup1997} code conforming to the \ufc{} specification,
+which is explained in Chapter~\ref{chap:alnes-2}.  This code can be used
+with the C++/Python library \dolfin{}, which is covered in Chapter~\ref{chap:logg-2}.
 to efficiently assemble linear systems and compute solutions to PDEs.
 Note that this chapter does not cover how to actually solve equations
-defined in UFL. See Chapter~\ref{chap:langtangen} for a tutorial
-on how to use the complete \fenics{} framework to solve equations.
+defined in UFL. See Chapter~\ref{chap:langtangen} for a tutorial on how
+to use the complete \fenics{} framework to solve equations.
 
-This chapter is intended both for the \fenics{} user who wants to
-learn how to express her equations, and for other \fenics{} developers
-and technical users who wants to know how \ufl{} works on the inside.
-Therefore, the sections of this chapter are organized with an
-increasing amount of technical details.
-Sections~\ref{ufl:sec:overview}-\ref{ufl:sec:formtransformations} give
-an overview of the language as seen by the end-user and is intended
-for all audiences.
+This chapter is intended both for the \fenics{} user who wants
+to learn how to express her equations, and for other \fenics{}
+developers and technical users who wants to know how \ufl{}
+works on the inside.  Therefore, the sections of this chapter
+are organized with an increasing amount of technical details.
+Sections~\ref{ufl:sec:overview}-\ref{ufl:sec:formtransformations}
+give an overview of the language as seen by
+the end-user and is intended for all audiences.
 Sections~\ref{ufl:sec:representation}-\ref{ufl:sec:implementation}
-explain the design of the implementation and dive into some
-implementation details.  Many details of the language has to be
-omitted in a text such as this, and we refer to the \ufl{}
-manual~\cite{AlnaesA.Logg2009} for a more thorough description. Note that
-this chapter refers to \ufl{} version 0.5.4, and both the user
-interface and the implementation may change in future versions.
+explain the design of the implementation and dive into some implementation
+details.  Many details of the language has to be omitted in a text such
+as this, and we refer to the \ufl{} manual \citep{AlnaesA.Logg2009} for
+a more thorough description. Note that this chapter refers to \ufl{}
+version 0.5.4, and both the user interface and the implementation may
+change in future versions.
 
-Starting with a brief overview, we mention the main design goals for
-\ufl{} and show an example implementation of a non-trivial PDE in
-Section~\ref{ufl:sec:overview}.  Next we will look at how to define
-finite element spaces in Section~\ref{ufl:sec:elements}, followed by
-the overall structure of forms and their declaration in
-Section~\ref{ufl:sec:forms}.  The main part of the language is
-concerned with defining expressions from a set of data types and
-operators, which are discussed in Section~\ref{ufl:sec:defexpr}.
-Operators applying to entire forms is the topic of
-Section~\ref{ufl:sec:formtransformations}.
+Starting with a brief overview, we mention the main design goals
+for \ufl{} and show an example implementation of a non-trivial
+PDE in Section~\ref{ufl:sec:overview}.  Next we will look at how
+to define finite element spaces in Section~\ref{ufl:sec:elements},
+followed by the overall structure of forms and their declaration in
+Section~\ref{ufl:sec:forms}.  The main part of the language is concerned
+with defining expressions from a set of data types and operators, which
+are discussed in Section~\ref{ufl:sec:defexpr}.  Operators applying to
+entire forms is the topic of Section~\ref{ufl:sec:formtransformations}.
 
 The technical part of the chapter begins with
 Section~\ref{ufl:sec:representation} which discusses the
-representation of expressions.  Building on the notation and data
-structures defined there, how to compute derivatives is discussed in
-Section~\ref{ufl:sec:ad}.  Some central internal algorithms and key
-issues in their implementation are discussed in
-Section~\ref{ufl:sec:algorithms}.  Implementation details, some of
-which are specific to the programming language
-Python~\cite{Rossumothers}, is the topic of
-Section~\ref{ufl:sec:implementation}.  Finally,
+representation of expressions.  Building on the notation and
+data structures defined there, how to compute derivatives is
+discussed in Section~\ref{ufl:sec:ad}.  Some central internal
+algorithms and key issues in their implementation are discussed in
+Section~\ref{ufl:sec:algorithms}.  Implementation details, some of which
+are specific to the programming language Python \citep{Rossumothers},
+is the topic of Section~\ref{ufl:sec:implementation}.  Finally,
 Section~\ref{ufl:sec:future} discusses future prospects of the \ufl{}
 project.
 
@@ -142,28 +134,27 @@ project.
 
 The combination of domain specific languages and symbolic computing
 with finite element methods has been pursued from other angles in
-several other projects.  Sundance~\cite{Long2003,Long2004a,Long2004}
+several other projects.  Sundance \citep{Long2003,Long2004a,Long2004}
 implements a symbolic engine directly in C++ to define variational
-forms, and has support for automatic differentiation.  The
-Life~\cite{Prudhomme2006a,Prudhomme2006} project uses a domain specific language
-embedded in C++, based on expression template techniques to specify
-variational forms.  SfePy~\cite{Cimrman2008} uses SymPy as a symbolic
-engine, extending it with finite element methods.
-GetDP~\cite{DularGeuzaine2005} is another project using a domain
+forms, and has support for automatic differentiation.  The Life
+\citep{Prudhomme2006a,Prudhomme2006} project uses a domain specific
+language embedded in C++, based on expression template techniques
+to specify variational forms.  SfePy \citep{Cimrman2008} uses SymPy
+as a symbolic engine, extending it with finite element methods.
+GetDP \citep{DularGeuzaine2005} is another project using a domain
 specific language for variational forms.  The Mathematica package
-AceGen~\cite{Korelc1997,Korelc2002} uses the symbolic capabilities of
-Mathematica to generate efficient code for finite element methods.
-All these packages have in common a focus on high level descriptions
-of partial differential equations to achive higher human efficiency in
-the development of simulation software.
+AceGen \citep{Korelc1997,Korelc2002} uses the symbolic capabilities
+of Mathematica to generate efficient code for finite element methods.
+All these packages have in common a focus on high level descriptions of
+partial differential equations to achive higher human efficiency in the
+development of simulation software.
 
-\ufl{} almost resembles a library for symbolic computing,
-but its scope, goals and priorities are different from generic
-symbolic computing projects such as
-GiNaC~\cite{BauerFrinkKreckel2000},
-Swiginac~\cite{SkavhaugCertik2009} and SymPy~\cite{Certikothers2009}.  Intended as
-a domain specific language and form compiler frontend,
-\ufl{} is not suitable for large scale symbolic computing.
+\ufl{} almost resembles a library for symbolic computing, but its
+scope, goals and priorities are different from generic symbolic
+computing projects such as GiNaC \citep{BauerFrinkKreckel2000},
+Swiginac \citep{SkavhaugCertik2009} and SymPy \citep{Certikothers2009}.
+Intended as a domain specific language and form compiler frontend, \ufl{}
+is not suitable for large scale symbolic computing.
 
 %==============================================================================
 \section{Overview} \label{ufl:sec:overview}
@@ -193,7 +184,7 @@ language and adds additional capabilities.
 
 The efficiency of code generated by the new generation of form
 compilers based on \ufl{} has been verified to match previous form
-compiler benchmarks~\cite{AlnaesMardal2009b,OlgaardWells2010}.  The form
+compiler benchmarks \citep{AlnaesMardal2009b,OlgaardWells2010}.  The form
 compilation process is now fast enough to blend into the regular
 application build process.  Complicated forms that previously required
 too much memory to compile, or took tens of minutes or even hours to
@@ -234,7 +225,8 @@ S = 2*diff(W, C)
 L = inner(F*S, grad(phi0))*dx
 a = derivative(L, u, phi1)
 \end{python}
-\caption{\ufl{} implementation of hyperelasticity equations with a Mooney-Rivlin material law.}
+\caption{\ufl{} implementation of hyperelasticity equations with a
+Mooney-Rivlin material law.}
 \end{figure}
 
 One major motivating example during the initial development of \ufl{}
@@ -1579,7 +1571,7 @@ An exerpt of the program output is shown here:
 V[0] = v_{-2}
 ...
 V[7] = v_{-1} * c_0 * w_1 ** 2
-V[8] = v_{-2} * v_{-1} * c_0 * w_1 ** 2 
+V[8] = v_{-2} * v_{-1} * c_0 * w_1 ** 2
 ...
 E[6] = (8, 0)
 E[7] = (8, 7)
@@ -1600,7 +1592,7 @@ graph looks like.
 %V[5] = w_1 ** 2
 %V[6] = c_0 * w_1 ** 2
 %V[7] = v_{-1} * c_0 * w_1 ** 2
-%V[8] = v_{-2} * v_{-1} * c_0 * w_1 ** 2 
+%V[8] = v_{-2} * v_{-1} * c_0 * w_1 ** 2
 %
 %E[0] = (5, 3)
 %E[1] = (5, 4)
@@ -1609,7 +1601,7 @@ graph looks like.
 %E[4] = (7, 1)
 %E[5] = (7, 6)
 %E[6] = (8, 0)
-%E[7] = (8, 7) 
+%E[7] = (8, 7)
 %\end{code}
 
 From the edges $E$, related arrays can be computed efficiently; in
@@ -1763,7 +1755,8 @@ expressions.
 
 
 %------------------------------------------------------------
-\subsection{Approaches to computing derivatives} \label{ufl:sec:appcompder}
+\subsection{Approaches to computing derivatives}
+\label{ufl:sec:appcompder}
 
 Algorithms for computing derivatives are designed with different end
 goals in mind.  Symbolic Differentiation (SD) takes as input a single
@@ -1772,7 +1765,7 @@ derivative.  Automatic Differentiation (AD) takes as
 input a program to compute a function and produces a new program to
 compute the derivative of the function.  Several variants of AD
 algorithms exist, the two most common being Forward Mode AD and
-Reverse Mode AD~\cite{Griewank1989}.  More advanced algorithms exist, and
+Reverse Mode AD \citep{Griewank1989}.  More advanced algorithms exist, and
 is an active research topic. A \ufl{} expression
 is a symbolic expression, represented by an expression tree. But the
 expression tree is a directed acyclic graph that represents a program
@@ -1783,7 +1776,7 @@ Naively applied, SD can result in huge expressions, which can both
 require a lot of memory during the computation and be highly
 inefficient if written to code directly. However, some illustrations
 of the inefficiency of symbolic differentiation, such as
-in~\cite{Griewank1989}, are based on computing closed form expressions of
+in \citet{Griewank1989}, are based on computing closed form expressions of
 derivatives in some stand-alone computer algebra system (CAS).
 Copying the resulting large expressions directly into a computer code
 can lead to very inefficient code. The compiler may not be able to
@@ -1791,14 +1784,13 @@ detect common subexpressions, in particular if simplification and
 rewriting rules in the CAS has changed the structure of subexpressions
 with a potential for reuse.
 
-In general, AD is capable of handling algorithms that SD can not.  A
-tool for applying AD to a generic source code must handle many
-complications such as subroutines, global variables, arbitrary loops
-and
-branches~\cite{BischofCarleCorlissEtAl1992,BischofHovlandNorris2002,GieringKaminski1998}.  Since the
-support for program flow constructs in \ufl{} is very limited, the AD
-implementation in \ufl{} will not run into such complications.  In
-Section~\ref{ufl:sec:forwardad} the similarity between SD and forward
+In general, AD is capable of handling algorithms that SD can not.  A tool
+for applying AD to a generic source code must handle many complications
+such as subroutines, global variables, arbitrary loops and branches
+\citep{BischofCarleCorlissEtAl1992,BischofHovlandNorris2002,GieringKaminski1998}.
+Since the support for program flow constructs in \ufl{} is very limited,
+the AD implementation in \ufl{} will not run into such complications.
+In Section~\ref{ufl:sec:forwardad} the similarity between SD and forward
 mode AD in the context of \ufl{} is explained in more detail.
 
 %------------------------------------------------------------
@@ -1907,6 +1899,7 @@ indices to change any expression $(\sum_i e_i)_{,i}$ into $(\sum_j e_j)_{,i}$.
 
 %------------------------------------------------------------
 \subsection{Higher order derivatives}
+
 A simple forward mode AD implementation such as
 Algorithm~\ref{ufl:alg:forwardad} only considers one differentiation
 variable.  Higher order or nested differential operators must also be
@@ -1918,7 +1911,7 @@ a = \frac{d}{dx}\left( \frac{d}{dx} f(x) + 2 \frac{d}{dy} g(x,y) \right) .
 Considerations for implementations of nested derivatives
 in a functional\footnote{Functional as in functional languages.}
 framework have been explored in several
-papers~\cite{Karczmarczuk2001,PearlmutterSiskind2007,SiskindPearlmutter2008}.
+papers \citep{Karczmarczuk2001,PearlmutterSiskind2007,SiskindPearlmutter2008}.
 
 In the current \ufl{} implementation this is solved in a different
 fashion.  Considering Equation~\eqref{ufl:eq:nested}, the approach is
@@ -2049,8 +2042,10 @@ Note that \icode{v} should be a basis function instance that has not
 already been used in the form.
 
 %==============================================================================
-\section{Algorithms} \label{ufl:sec:algorithms}
+\section{Algorithms}
+\label{ufl:sec:algorithms}
 \index{algorithms}
+
 In this section, some central algorithms and key implementation issues
 are discussed, much of which relates to the Python programming
 language.  Thus, this section is mainly intended for developers and
@@ -2058,7 +2053,9 @@ others who need to relate to \ufl{} on a technical level.
 Python users may also find some of the techniques here interesting.
 
 %------------------------------------------------------------
-\subsection{Effective tree traversal in Python} \label{ufl:sec:traversal}
+\subsection{Effective tree traversal in Python}
+\label{ufl:sec:traversal}
+
 \index{expression trees}
 \index{tree traversal}
 
@@ -2135,7 +2132,7 @@ of functions in the subclasses of \icode{Expr}, but this is not
 suitable for all operations.  In many cases type-specific operations
 are better implemented together in the algorithm instead of
 distributed across class definitions.  This implementation pattern
-is called the Visitor pattern~\cite{GammaHelmJohnsonEtAl1995}.
+is called the Visitor pattern \citep{GammaHelmJohnsonEtAl1995}.
 The implementation in \ufl{} is somewhat different from the
 patterns used in a statically typed language such as C++.
 
@@ -2386,7 +2383,7 @@ ComponentTensor
 (
     SpatialDerivative
     (
-        Product     
+        Product
         (
             u
             f
@@ -2608,7 +2605,7 @@ of the algorithms we use.
 To write clear and efficient algorithms in Python, it is important to
 use the built in data structures correctly.  These data structures
 include in particular \icode{list}, \icode{dict} and \icode{set}.
-CPython~\cite{Rossumothers}, the reference implementation of Python,
+CPython \citep{Rossumothers}, the reference implementation of Python,
 implements the data structure \icode{list} as an array, which means
 append, and pop, and random read or write access are all O(1)
 operations.  Random insertion, however, is O(n).  Both \icode{dict}
@@ -2618,7 +2615,7 @@ insertion and deletion of items are all $O(1)$ operations, as long as
 the key types implement \icode{\_\_hash\_\_} and \icode{\_\_eq\_\_}
 efficiently. The dict data structure is used extensively by the Python
 language, and therefore particular attention has been given to make it
-efficient~\cite{Kuchling2007}.  Thus to enjoy efficient use of these
+efficient \citep{Kuchling2007}.  Thus to enjoy efficient use of these
 containers, all \icode{Expr} subclasses must implement these two
 special functions efficiently. Such considerations have been important
 for making the \ufl{} implementation perform efficiently.
@@ -2664,9 +2661,9 @@ To support the form compiler projects, algorithms and utilities for
 generating better code more efficiently could be included in \ufl{}.
 Such algorithms should probably be limited to algorithms such as
 general transformations of expression graphs which can be useful
-independently of form compiler specific approaches.
-In this area, more work on alternative automatic differentiation
-algorithms~\cite{ForthTadjouddinePryceEtAl2004,Tadjouddine2008} can be useful.
+independently of form compiler specific approaches.  In this area,
+more work on alternative automatic differentiation algorithms
+\citep{ForthTadjouddinePryceEtAl2004,Tadjouddine2008} can be useful.
 
 To summarize, \ufl{} is a central component in the \fenics{}
 framework, where it provides a rich form language,
