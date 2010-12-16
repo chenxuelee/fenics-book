@@ -40,8 +40,8 @@
 \newcommand{\spans}[1]{\mop{span}\left\{ #1 \right\}}
 
 %//////////////////////////////////////////////////////////////////////////////
-\fenicschapter{UFL: A finite element form language}
-              {UFL: A finite element form language}
+\fenicschapter{UFL: a finite element form language}
+              {UFL: a finite element form language}
               {Martin Sandve Aln\ae{}s}
               {alnes-1}
 %\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -222,14 +222,15 @@ has been the equations for elasticity with large deformations.  In
 particular, models of biological tissue use complicated hyperelastic
 constitutive laws with anisotropies and strong nonlinearities.  To
 implement these equations with \fenics{}, all three design goals
-listed above had to be adressed.  Below, one version of the
+listed above had to be addressed. Below, one version of the
 hyperelasticity equations and their corresponding \ufl{}
 implementation is shown.  Keep in mind that this is only intended as
 an illustration of the close correspondence between the form language
-and the natural formulation of the equations.  The meaning of
-these equations is not necessary for the reader to understand.
-Chapter~\ref{chap:narayanan} covers nonlinear elasticity in more detail.
-Note that many other examples are distributed together with \ufl{}.
+and the natural formulation of the equations.  The meaning of these
+equations is not necessary for the reader to understand.
+Chapter~\ref{chap:narayanan} covers nonlinear elasticity in more
+detail.  Note that many other examples are distributed together with
+\ufl{}.
 
 In the formulation of the hyperelasticity equations presented here,
 the unknown function is the displacement vector field $\uu$.  The
@@ -252,8 +253,8 @@ For simplicity in this example, we ignore external body and boundary
 forces and assume a quasi-stationary situation, leading to the
 following mechanics problem. Find $\uu$ such that
 \begin{align}
-\Div (\FF\SS) &= 0, \quad \mbox{in} \quad\Omega, \label{ufl:eq:ppeqzero} \\
-\uu &= \uu_0,       \quad \mbox{on} \quad\partial\Omega_0.
+\Div (\FF\SS) &= 0, \quad \mbox{in} \dx, \label{ufl:eq:ppeqzero} \\
+\uu &= \uu_0,       \quad \mbox{on} \ds.
 \end{align}
 The finite element method is presented in Chapter~\ref{chap:kirby-7},
 so we will only very briefly cover the steps we take here.
@@ -325,7 +326,7 @@ does not know anything about the actual polynomial basis or degrees of
 freedom. The polynomial basis is selected implicitly by choosing among
 predefined basic element families and providing a polynomial degree,
 but \ufl{} only assumes that there \emph{exists} a basis with a fixed
-ordering for each finite element space $V_h$, i.e.
+ordering for each finite element space $V_h$; that is,
 \begin{align}
 V_h = \spans{\phi_j}_{j=1}^{n}.
 \end{align}
@@ -812,7 +813,7 @@ without free indices are included, in particular \emp{abs(f)},
 variables.  The most used kind is spatial derivatives.  Expressions
 can also be differentiated w.r.t. arbitrary user defined variables.
 And the final kind of derivatives are derivatives of a form or
-functional w.r.t. the coefficients of a discrete function, i.e. a
+functional w.r.t. the coefficients of a discrete function; that is, a
 \emp{Coefficient} or \emp{Constant}.  Form derivatives are
 explained in Section \ref{ufl:sec:derivative}.
 
@@ -920,7 +921,8 @@ explains how derivatives are computed.
 \index{DG operators}
 \index{discontinuous Galerkin}
 \index{jump}
-\index{avg}
+\index{\emp{jump}}
+\index{\emp{avg}}
 \index{restriction}
 
 A few operators are provided for the implementation of discontinuous
@@ -1327,7 +1329,7 @@ Algorithm~\ref{ufl:alg:program} shows such a program.
 \afor $i = m+1, \ldots, n$:\\
 \tab $ y_i =  f_i(\seq{y_j}_{j\in\mI_i})$ \\
 $z = y_n$
-\caption{Program to compute an expression $z$}
+\caption{Program to compute an expression $z$.}
 \label{ufl:alg:program}
 \end{algorithm}
 
@@ -1478,8 +1480,8 @@ merely a way of viewing the structure of an expression. Any expression
 object \emp{e} can be seen as the root of a tree, where
 \emp{e.operands()} returns its children. If some of the children are
 equal, they will appear as many times as they appear in the
-expression. Thus it is easy to traverse the tree nodes (i.e. $v_i$ in
-the DAG), but eventual reuse of subexpressions is not directly
+expression. Thus it is easy to traverse the tree nodes; that is, $v_i$ in
+the DAG, but eventual reuse of subexpressions is not directly
 visible. Edges in the DAG does not appear explicitly, and the list of
 vertices can only be obtained by traversing the tree recursively and
 selecting unique objects.
@@ -1526,8 +1528,8 @@ DAG.  For each vertex $v_i$ an expression node $y_i$ is stored to
 represent it.  Thus the expression tree for each vertex is also
 directly available, since each expression node is the root of its own
 expression tree. The edges are stored in an array \emp{E} with
-integer tuples \emp{(i,j)} representing an edge from $v_i$ to $v_j$,
-i.e. that $v_j$ is an operand of $v_i$.  The vertex list in the graph
+integer tuples \emp{(i,j)} representing an edge from $v_i$ to $v_j$;
+that is, $v_j$ is an operand of $v_i$.  The vertex list in the graph
 is built using a postordering from a depth first traversal,
 which guarantees that the vertices are topologically sorted
 such that $j < i \,\, \foralls j \in \mI_i$.
@@ -1781,7 +1783,7 @@ In Section~\ref{ufl:sec:forwardad} the similarity between SD and forward
 mode AD in the context of \ufl{} is explained in more detail.
 
 %------------------------------------------------------------
-\subsection{Forward mode Automatic Differentiation}
+\subsection{Forward mode automatic differentiation}
 \label{ufl:sec:forwardad}
 
 Recall Algorithm~\ref{ufl:alg:program}, which represents a program for
@@ -1801,7 +1803,7 @@ This extension gives Algorithm~\ref{ufl:alg:forwardad}.
 \tab $\frac{d y_i}{d v} = \sum_{k\in\mI_i} \frac{\partial f_i}{\partial y_k} \frac{d y_k}{d v}$ \\
 $z = y_n$ \\
 $\frac{d z}{d v} = \frac{d y_n}{d v}$
-\caption{Forward mode AD on Algorithm~\ref{ufl:alg:program}}
+\caption{Forward mode AD on Algorithm~\ref{ufl:alg:program}.}
 \label{ufl:alg:forwardad}
 \end{algorithm}
 
@@ -2107,7 +2109,7 @@ print m(x)
 print m(x[0] + x[1])
 print m(x[0] * x[1])
 \end{python}
-\caption{Example declaration and use of a multifunction}
+\caption{Example declaration and use of a multifunction.}
 \label{ufl:fig:examplefunction}
 \end{figure}
 

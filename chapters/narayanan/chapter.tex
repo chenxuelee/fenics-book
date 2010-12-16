@@ -18,12 +18,12 @@
 \def\bu{\mbox{$ u$}}
 \def\bv{\mbox{$ v$}}
 \def\bw{\mbox{$ w$}}
-\def\twist{{\tt CBC.Twist}}
+\def\twist{\emp{CBC.Twist}}
 
 \fenicschapter{A computational framework for nonlinear elasticity}
-{cbc.twist}
-{Harish Narayanan}
-{narayanan}
+              {A computational framework for nonlinear elasticity}
+              {Harish Narayanan}
+              {narayanan}
 
 Nonlinear elasticity theory plays a fundamental role in modeling the
 mechanical response of many polymeric and biological materials. Such
@@ -283,7 +283,7 @@ def IsochoricRightCauchyGreen(u):
 
 In \twist, each of the forms listed in
 Table~\ref{tab:narayanan:straindefs} have been implemented in the file
-{\tt kinematics.py} in UFL notation that closely resemble their
+\emp{kinematics.py} in UFL notation that closely resemble their
 definitions above. Figure~\ref{code:narayanan:kinematics.py} presents
 a section of this file. Notice that it is straightforward to introduce
 other custom measures as required.
@@ -332,10 +332,10 @@ suitably differentiating it with respect to the appropriate strain
 measure. This allows the user to easily specify material models in
 terms of each of the strain measures introduced in
 Table~\ref{tab:narayanan:straindefs}. The base class for all material
-models, {\tt MaterialModel}, encapsulates this functionality. The
+models, \emp{MaterialModel}, encapsulates this functionality. The
 relevant method of this class is provided in
 Figure~\ref{code:narayanan:material_model_base.py}. The implementation
-relies heavily on the UFL {\tt diff()} operator.
+relies heavily on the UFL \emp{diff} operator.
 
 \begin{figure}[ht]
 \begin{python}
@@ -426,7 +426,7 @@ class MooneyRivlin(MaterialModel)
 \noindent Clearly, the code simply contains the strain energy function
 in classical notation, along with some metadata clarifying the number
 of material parameters and the strain measure the model relies on. The
-file {\tt material\_models.py} contains several other material models,
+file \emp{material\_models.py} contains several other material models,
 including {\em linear elasticity, neo Hookean, Isihara, Biderman,} and
 {\em Gent--Thomas} that come pre-implemented in \twist. (Refer to the
 article by \citet{MarckmannVerron2006} comparing several hyperelastic
@@ -538,7 +538,7 @@ this nonlinear form straightforward to implement, as evidenced by the
 code listing in Figure~\ref{code:narayanan:staticmomentumsolver}.
 
 This listing provides the relevant section of the static balance of
-linear momentum solver class, {\tt StaticMomentumBalanceSolver}. The
+linear momentum solver class, \emp{StaticMomentumBalanceSolver}. The
 class draws information about the problem (mesh, loading, boundary
 conditions and form of the stress equation derived from the material
 model) from the user-specified problem class,\footnote{Details of how
@@ -578,8 +578,7 @@ equation = VariationalProblem(a, L, bcu,
                               nonlinear = True)
 equation.solve(u)
 \end{python}
-\caption{The relevant section of the class {\tt
-    StaticMomentumBalanceSolver}, the solver for the static balance of
+\caption{The relevant section of the class \emp{StaticMomentumBalanceSolver}, the solver for the static balance of
   linear momentum.}
 \label{code:narayanan:staticmomentumsolver}
 \end{figure}
@@ -721,9 +720,7 @@ introduces no numerical dissipation.
 
 The method is briefly sketched below. For further details about the
 scheme itself, or its implementation in \twist, the interested reader
-is directed to the previously mentioned papers, and the {\tt
-MomentumBalanceSolver} class in the file {\tt
-solution\_algorithms.py}.
+is directed to the previously mentioned papers, and the \emp{MomentumBalanceSolver} class in the file \emp{solution\_algorithms.py}.
 
 Given initial conditions $\bu(\bX, 0) = \bu_{0}(\bX)$ and
 $\frac{\partial\bu}{\partial t}(\bX, 0) = \bv_{0}(\bX)$, we can
@@ -776,7 +773,7 @@ We close this subsection on time-stepping algorithms with one usage
 detail pertaining to \twist. By default, when solving a dynamics
 problem, \twist{} assumes that the user wants to use the HHT
 method. In case one wants to override this behavior, they can do so
-by returning {\tt "CG(1)"} in the {\tt time\_stepping()} method while
+by returning \emp{"CG(1)"} in the \emp{time\_stepping} method while
 specifying the problem. Figure~\ref{code:narayanan:dynamicrelease} is
 an example showing this.
 
@@ -787,8 +784,8 @@ computational framework's inner working, and are not at the level at
 which the user usually interacts with \twist{} (unless they are
 interested in extending it). In practice, the functionality of \twist{}
 is exposed to the user through two primary problem definition classes:
-{\tt StaticHyperelasticity} and {\tt Hyperelasticity}. These classes
-reside in {\tt problem\_definitions.py}, and contain numerous methods
+\emp{StaticHyperelasticity} and \emp{Hyperelasticity}. These classes
+reside in \emp{problem\_definitions.py}, and contain numerous methods
 for defining aspects of the nonlinear elasticity problem. As their
 names suggest, these are respectively used to describe static or
 dynamic problems in nonlinear elasticity.
@@ -797,8 +794,8 @@ Over the course of the following examples, we will see how various
 problems can be defined in \twist{} by suitably deriving from these
 problem classes and overloading relevant methods.\footnote{The
 examples presented in this chapter, along with a few others, reside in
-the {\tt demos/twist/} folder in \twist's source repository. They can
-be run by navigating to this folder and typing {\tt python
+the \emp{demos/twist/} folder in \twist's source repository. They can
+be run by navigating to this folder and typing \emp{python
 demo\_name.py} on the command-line.} We will also see some results
 from these calculations. The information defined in the problem
 classes are internally transferred to the solvers described earlier to
@@ -839,9 +836,9 @@ from cbc.twist import *
 \end{figure}
 
 \noindent The problem is completely specified by defining relevant
-methods in the user-created class {\tt Twist} (see
+methods in the user-created class \emp{Twist} (see
 Figure~\ref{code:narayanan:statictwist}), which derives from the base
-class {\tt StaticHyperelasticity}. \twist{} only requires relevant
+class \emp{StaticHyperelasticity}. \twist{} only requires relevant
 methods to be provided, and for the current problem, this includes the
 computational domain, Dirichlet boundary conditions and material
 model. The methods are fairly self-explanatory, but the following
@@ -886,8 +883,8 @@ class Twist(StaticHyperelasticity):
 \label{code:narayanan:statictwist}
 \end{figure}
 
-In order to solve this problem, an instance of the {\tt Twist} class
-is created and its {\tt solve()} method is called (see
+In order to solve this problem, an instance of the \emp{Twist} class
+is created and its \emp{solve} method is called (see
 Figure~\ref{code:narayanan:solveproblem}). This triggers a Newton
 solve which exhibits quadratic convergence (see
 Table~\ref{tab:narayanan:residualnorms}) and results in the
@@ -937,8 +934,8 @@ St.~Venant--Kirchhoff material with Lam\'e's parameters $\mu =
 3.8461$~N/m$^2$ and $\lambda = 5.76$~N/m$^2$) on the bottom surface,
 and tracks the motion of the cube over 2~s.
 
-The problem is specified in the user-created class {\tt Release},
-which derives from {\tt Hyperelasticity}. This example is similar to
+The problem is specified in the user-created class \emp{Release},
+which derives from \emp{Hyperelasticity}. This example is similar to
 the previous one, except that since it is a dynamic calculation, it also
 provides initial conditions, a reference density and information about
 time-stepping. Again, the methods listed in
@@ -993,7 +990,7 @@ class Release(Hyperelasticity):
 \label{code:narayanan:dynamicrelease}
 \end{figure}
 
-When {\tt Release} is instantiated and its {\tt solve()} method is
+When \emp{Release} is instantiated and its \emp{solve} method is
 called, we see the relaxation of the pre-twisted cube. After initial
 unwinding of the twist, the body proceeds to twist in the opposite
 direction due to inertia. This process repeats itself, and snapshots
@@ -1003,8 +1000,8 @@ highlights the energy conservation of the CG$_{1}$ numerical scheme used
 to time-step this problem by totaling the kinetic energy and
 potential energy of the body over the course of the
 calculation. \twist{} provides this information through the methods
-{\tt kinetic\_energy(v)} and {\tt potential\_energy(u)}, where {\tt v}
-and {\tt u} are velocity and displacement fields respectively.
+\emp{kinetic\_energy(v)} and \emp{potential\_energy(u)}, where \emp{v}
+and \emp{u} are velocity and displacement fields respectively.
 
 \begin{figure}[ht]
   \begin{center}
@@ -1057,8 +1054,8 @@ under entirely Neumann boundary conditions. In addition, this
 calculation points out that the framework can seamlessly handle
 problems in two dimensions as well.
 
-The problem is specified in the user-created class {\tt FishyFlow}
-derived from {\tt Hyperelasticity}. There is nothing new to note in
+The problem is specified in the user-created class \emp{FishyFlow}
+derived from \emp{Hyperelasticity}. There is nothing new to note in
 the code listing for this problem (Figure~\ref{code:narayanan:%
 fishyflow}), other than the fact that we now specify Neumann boundary
 conditions. The specification listing is not very long because
@@ -1099,11 +1096,11 @@ class FishyFlow(Hyperelasticity):
 \end{figure}
 
 To demonstrate one final piece of functionality of \twist, we don't
-solve the problem in the same manner as we did the first two
-examples; that is, we do not instantiate an object of class {\tt
-  FishyFlow} and call its {\tt solve()} method. Instead, we set up our
-own time loop and manually step through time using the {\tt step()}
-method. This is shown in Figure~\ref{code:narayanan:manualstep}.
+solve the problem in the same manner as we did the first two examples;
+that is, we do not instantiate an object of class \emp{FishyFlow} and
+call its \emp{solve} method. Instead, we set up our own time loop
+and manually step through time using the \emp{step} method. This is
+shown in Figure~\ref{code:narayanan:manualstep}.
 
 \begin{figure}[ht]
 \begin{python}
@@ -1118,8 +1115,8 @@ while t <= T:
     problem.update()
     t = t + dt
 \end{python}
-\caption{Stepping through time in an external time loop. {\tt step()}
-  steps the problem forward by one time step, and {\tt update()}
+\caption{Stepping through time in an external time loop. \emp{step}
+  steps the problem forward by one time step, and \emp{update}
   updates the values of all time-dependent variables to the current time.}
 \label{code:narayanan:manualstep}
 \end{figure}
@@ -1200,7 +1197,7 @@ polymer and biological tissue mechanics.
 
 \twist{} is a collaboratively developed open source project (released
 under the GNU GPL) that is freely available from its source repository
-at {\tt https://launchpad.net/cbc.solve/}. Its only dependency is a
+at \url{https://launchpad.net/cbc.solve/}. Its only dependency is a
 working FEniCS installation. \twist{} is released with the goal that
 it will allow users to easily solve problems in nonlinear elasticity
 as part of answering specific questions through computational
