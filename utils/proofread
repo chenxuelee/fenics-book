@@ -8,7 +8,7 @@ import sys
 
 # List of things to check
 checklist = [("i.e.",              "'; that is,'"),
-             ("\\cite",            "\\citet{} or \\citep{}"),
+             ("\\cite{",           "\\citet{} or \\citep{}"),
              ("multiindex",        "multi-index"),
              ("multi index",       "multi-index"),
              ("PyDOLFIN",          "DOLFIN"),
@@ -16,8 +16,12 @@ checklist = [("i.e.",              "'; that is,'"),
              ("authornote",        "fix!"),
              ("\\forall ",         "\\foralls"),
              ("\\forall\\",        "\\foralls"),
-             ("\\geq",             "\\geqslant"),
-             ("\\leq",             "\\leqslant"),
+             ("\\geq ",            "\\geqslant"),
+             ("\\geq\\",           "\\geqslant"),
+             ("\\geq\n",           "\\geqslant"),
+             ("\\leq ",            "\\leqslant"),
+             ("\\leq\\",           "\\leqslant"),
+             ("\\leq\n",           "\\leqslant"),
              ("\\mathcal{T} ",     "\\mathcal{T}_h"),
              ("\\mathcal{T}\\",    "\\mathcal{T}_h"),
              ("commandline",       "command-line"),
@@ -35,10 +39,44 @@ checklist = [("i.e.",              "'; that is,'"),
              (" dx",                "\\dx"),
              (" ds",                "\\ds")]
 
+uppercase = ["Argyris",
+             "Landweber",
+             "Laplacian",
+             "FEniCS",
+             "Lagrange",
+             "Crouzeix--Raviart",
+             "Raviart--Thomas",
+             "Brezzi--Douglas--Marini",
+             "Mardal-Tai-Winther",
+             "Arnold--Winther",
+             "Hermite",
+             "Morley",
+             "FFC",
+             "Navier--Stokes"]
+
+def check_capitalization(text):
+    warnings = []
+    for line in text.split("\n"):
+        for section in ("section", "paragraph", "fenicschapter"):
+            if ("%s{" % section) in line:
+                line = line.split("%s{" % section)[1]
+                line = line.split("}")[0]
+                for word in line.split(" ")[1:]:
+                    if word[0].isupper() and not word in uppercase:
+                        warnings.append("Capitalized section: %s" % line)
+                        break
+    return warnings
+
 def check_all(text):
     "Check stuff"
 
     warnings = []
+
+    # Checks performed before stripping
+    warnings += check_capitalization(text)
+
+    # Remove newlines, whitespaces etc
+    text = strip_text(text)
 
     # Check simple replacements
     for (a, b) in checklist:
@@ -77,9 +115,6 @@ if __name__ == "__main__":
     except:
         print "Unable to open file '%s'." % filename
         sys.exit(1)
-
-    # Remove newlines, whitespaces etc
-    text = strip_text(text)
 
     # Check stuff
     warnings = check_all(text)
