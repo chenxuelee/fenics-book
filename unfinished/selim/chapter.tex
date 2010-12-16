@@ -57,16 +57,15 @@ a solid structure, exerting a stress that causes deformation of the
 structure and, thus, alters the flow of the fluid itself. This vast
 category of multiphysics problems are of great importance for
 industrial related engineering applications, such as aircraft flutter,
-and for the study of the human respiratory system, which is a
-highly relevant research topic in biomedicine. The FSI problem is a
-fully coupled multiphysics problem, whether the problem is solved in a
-partitioned manner or by a monolithic approach. However, in
-many cases we are only interested in one physical output quantity of
-the fully coupled system, e.g., the displacement of the structure. In
-order to compute this particular physical output of interest with a
-high level of accuracy, a goal oriented adaptive finite element method
-can be used.
-
+and for the study of the human respiratory system, which is a highly
+relevant research topic in biomedicine. The FSI problem is a fully
+coupled multiphysics problem, whether the problem is solved in a
+partitioned manner or by a monolithic approach. However, in many cases
+we are only interested in one physical output quantity of the fully
+coupled system, e.g., the displacement of the structure. In order to
+compute this particular physical output of interest with a high level
+of accuracy, a goal oriented adaptive finite element method can be
+used.
 
 This chapter gives a short introduction to goal oriented adaptive
 finite element approximation for FSI problems and demonstrates how to
@@ -74,9 +73,8 @@ solve them using FEniCS. We start by formulating a FSI problem and
 show how it is implemented in FEniCS, and then define and explain the
 corresponding adaptive algorithm for the given FSI problem. For a more
 comprehensive discussion on goal oriented adaptive finite element
-methods for FSI problems, we refer to~\cite{SelimNarayananEtAl2010,
-  Dunne2007, GratschBathe2006, BengzonLarson2010, Van2009,
-  FickZeeBrummelen2008}.
+methods for FSI problems, we refer
+to~\citep{SelimNarayananEtAl2010,Dunne2007,GratschBathe2006,BengzonLarson2010,Van2009,FickZeeBrummelen2008}.
 
 %------------------------------------------------------------------------------
 \section{Fluid--structure interaction}
@@ -382,10 +380,10 @@ The two subproblems $(f)$, $(S)$ in~\eqref{selim:eq:FSIsystem} define
 a classic set of equations from fluid mechanics and structure
 mechanics. To solve the coupled system, a solver framework for
 handling both types of physics is needed. For this purpose, we have
-used the multiphysics framework \texttt{CBC.Solve} developed at the
+used the multiphysics framework \emp{CBC.Solve} developed at the
 Center for Biomedical Computing at Simula Research Laboratories in
-Oslo. Currently, \texttt{CBC.Solve} consists two core components;
-\texttt{CBC.Flow} and \texttt{CBC.Twist} which are frameworks
+Oslo. Currently, \emp{CBC.Solve} consists two core components;
+\emp{CBC.Flow} and \emp{CBC.Twist} which are frameworks
 explicitly developed for solving fluid mechanics problems and
 structure mechanics problems, respectively.  In the subsequent
 sections, we will briefly explain these frameworks and the code that
@@ -395,7 +393,7 @@ solves the FSI problem~\eqref{selim:eq:FSIsystem}.
 \subsection{Fluid subproblem}
 
 The fluid subproblem in~\eqref{selim:eq:FSIsystem} is solved using the
-\texttt{CBC.Solve} module \texttt{CBC.Flow}. Currently, the solver
+\emp{CBC.Solve} module \emp{CBC.Flow}. Currently, the solver
 handles incompressible Newtonian fluids only, but its overall goal is
 to implement a solver that can solve a larger class of fluid problems.
 The fluid problem can be solved in an Eulerian coordinate system or in
@@ -410,7 +408,7 @@ pressure. After this step, the pressure at the current time step is
 computed and corrected using the continuity equation. Finally, in the
 third step, the velocity is corrected using the corrected pressure.
 The implementation is illustrated with a code segment from the class
-\texttt{NavierStokesSolver} in Figure~\ref{selim:fig:fluidsolver}. For
+\emp{NavierStokesSolver} in Figure~\ref{selim:fig:fluidsolver}. For
 a more comprehensive discussion how to solve and implement different
 solvers for the incompressible Navier--Stokes equations in FEniCS, see
 Chapter~\ref{chap:kvs-1}.
@@ -446,15 +444,15 @@ Chapter~\ref{chap:kvs-1}.
         L3 = inner(u1, v)*dx \
            + inner(k*grad(p0 - p1), v)*dx
 \end{python}
-\caption{A code segment of the fluid solver in \texttt{CBC.flow}. The
-  momentum equation is multiplied with a test function \texttt{v} and
+\caption{A code segment of the fluid solver in \emp{CBC.flow}. The
+  momentum equation is multiplied with a test function \emp{v} and
   the continuity equation is multiplied with a test function
-  \texttt{q}. In the first step, the tentative velocity is computed
+  \emp{q}. In the first step, the tentative velocity is computed
   from the momentum equation using a fully implicit formulation of the
-  convective term and the previously computed pressure. Here, \texttt{w}
+  convective term and the previously computed pressure. Here, \emp{w}
   denotes the mesh velocity $\dot{u}_{_{M}}$. In the next step, the
   pressure is corrected with the continuity equation based on the
-  computed velocity \texttt{u1} from the first step. Finally, the
+  computed velocity \emp{u1} from the first step. Finally, the
   velocity is corrected using the corrected pressure.}
 \label{selim:fig:fluidsolver}
 \end{center}
@@ -464,7 +462,7 @@ Chapter~\ref{chap:kvs-1}.
 
 \subsection{Structure subproblem}
 
-\texttt{CBC.Twist} is a solver collection for structure mechanics
+\emp{CBC.Twist} is a solver collection for structure mechanics
 problems. This module solves the given structure problem in a
 Lagrangian coordinate system.  The solver allows the user to easily
 pose problems and provides many standard material models, including
@@ -485,30 +483,30 @@ in~\eqref{selim:eq:FSIsystem}. The structure stress tensor, regardless
 of material model, is given as the first Piola--Kirchhoff tensor and
 the nonlinear variational problem is solved using Newton's method.
 The implementation of the $cG(1)$ version is illustrated in the code
-segment from the class \texttt{CG1MomentumBalanceSolver} in
+segment from the class \emp{CG1MomentumBalanceSolver} in
 Figure~\ref{selim:fig:structuresolver}. For a more comprehensive
 discussion of how to solve structure problems using
-\texttt{CBC.Twist}, and especially how to implement different material
+\emp{CBC.Twist}, and especially how to implement different material
 models, see Chapter~\ref{chap:narayanan}.
 
 \begin{figure}
 \label{selim:fig:structuresolver}
 \caption{A code segment from the $cG(1)$ version of the structure
-  solver \texttt{CBC.Twist}.  The momentum equation is multiplied with
-  test functions \texttt{v}, \texttt{q} and adding the two equations
-  yields the nonlinear variational form \texttt{L}. The nonlinear
-  variational form \texttt{L} contains the structure velocity
-  \texttt{p} and the first Piola--Kirchhoff stress tensor
-  \texttt{sigma} (which is a function of the structure
-  displacement $\US$).  The nonlinear form \texttt{L} is
-  linearized using the FEniCS function \texttt{derivative} where
-  \texttt{U} represents the mixed finite element space containing the
+  solver \emp{CBC.Twist}.  The momentum equation is multiplied with
+  test functions \emp{v}, \emp{q} and adding the two equations
+  yields the nonlinear variational form \emp{L}. The nonlinear
+  variational form \emp{L} contains the structure velocity
+  \emp{p} and the first Piola--Kirchhoff stress tensor
+  \emp{sigma} (which is a function of the structure
+  displacement $\US$).  The nonlinear form \emp{L} is
+  linearized using the FEniCS function \emp{derivative} where
+  \emp{U} represents the mixed finite element space containing the
   structure solution $(\US, P_{_{S}})$.  We note that Neumann
   conditions, such a fluid stress, are imposed in the variational form
-  \texttt{L} while the Dirichlet conditions are set directly in the
+  \emp{L} while the Dirichlet conditions are set directly in the
   Newton solver. We also note that the proposed variational form holds
   for a vast amount of different structure models, where the first
-  Piola--Kirchhoff stress tensor \texttt{sigma} is given by an
+  Piola--Kirchhoff stress tensor \emp{sigma} is given by an
   appropriate material model.  }
 \begin{python}
 class CG1MomentumBalanceSolver(CBCSolver):
@@ -551,7 +549,7 @@ elements in space along with a standard $cG(1)$ formulation in time.
 The implementation of the mesh subproblem is illustrated in
 Figure~\ref{selim:fig:meshsolver}.
 \begin{figure}
-\caption{A code segment of the mesh solver \texttt{MeshSolver}.}
+\caption{A code segment of the mesh solver \emp{MeshSolver}.}
 \label{selim:fig:meshsolver}
 \begin{python}
   # Define cG(1) scheme for time-stepping
@@ -778,43 +776,43 @@ $E_c$ is only considered in the stopping criterion for the total
 error.
 
 The main outline of the adaptive FSI algorithm is depicted in
-Figure~\ref{selim:fig:adaptiveMAP}. In the \texttt{FSISolver}, the FSI
+Figure~\ref{selim:fig:adaptiveMAP}. In the \emp{FSISolver}, the FSI
 problem~\eqref{selim:eq:FSIsystem} (referred to as the primal problem)
-is solved in the module \texttt{PrimalSolver}, which solves and
+is solved in the module \emp{PrimalSolver}, which solves and
 transfers data from the three sub problems defined in
-\texttt{CBC.Twist}, \texttt{CBC.Flow} and \texttt{MeshSolver}. Once
+\emp{CBC.Twist}, \emp{CBC.Flow} and \emp{MeshSolver}. Once
 the entire primal problem is solved, the primal data is passed to the
-\texttt{DualSolver}. In the dual solver, the linearized dual
+\emp{DualSolver}. In the dual solver, the linearized dual
 problem~\eqref{selim:eq:dual} is solved. The primal and dual solutions
-are passed to the module \texttt{Residuals} where the error
+are passed to the module \emp{Residuals} where the error
 estimate~\eqref{selim:eq:aposteriori} is evaluated. The code for the
-\texttt{FSISolver} is illustrated in
+\emp{FSISolver} is illustrated in
 Figure~\ref{selim:fig:adaptiveMAP}.
 \begin{figure}
 \label{selim:fig:adaptiveMAP}
 \includegraphics[width=1.0\textwidth]{chapters/selim/pdf/adaptive.pdf}
 \caption{A schematic picture of the adaptive FSI algorithm. The primal
   problem ~\eqref{selim:eq:FSIsystem} is solved iteratively in the
-  \texttt{PrimalSolver} and the solution $U$ is passed to the
-  \texttt{FSISolver}. The dynamic time step $k_n$ is calculated for
-  each time step in the iterative solver \texttt{PrimalSolver}
+  \emp{PrimalSolver} and the solution $U$ is passed to the
+  \emp{FSISolver}. The dynamic time step $k_n$ is calculated for
+  each time step in the iterative solver \emp{PrimalSolver}
   using~\eqref{selim:eq:timestep2} in the module
-  \texttt{Residuals}. After the primal problem is solved on the entire
+  \emp{Residuals}. After the primal problem is solved on the entire
   time interval, the dual problem is solved with the same time steps
-  as in the primal solution in the module \texttt{DualSolver}. Once
+  as in the primal solution in the module \emp{DualSolver}. Once
   the dual is solved, the error estimates are evaluated and a new mesh
   is created.}
 \end{figure}
 
 \begin{figure}
 \label{selim:fig:FSISolver}
-\caption{The adaptive solver class \texttt{FSISolver}. Here, the
-  problem specific data is passed as the variable \texttt{problem}. In
+\caption{The adaptive solver class \emp{FSISolver}. Here, the
+  problem specific data is passed as the variable \emp{problem}. In
   the first adaptive loop, we make an initial guess of the stability
   factor $\mathcal{S}(T)=1$ in order to adapt the time step in the
-  first loop.  The variable name \texttt{error} represents the sum of
+  first loop.  The variable name \emp{error} represents the sum of
   $E_h + E_k + E_c$ in~\eqref{selim:eq:aposteriori} and
-  \texttt{indicator} represents $\eta_T$ in~\eqref{selim:eq:dorfler}.}
+  \emp{indicator} represents $\eta_T$ in~\eqref{selim:eq:dorfler}.}
 \begin{python}
 class FSISolver(CBCSolver):
 
