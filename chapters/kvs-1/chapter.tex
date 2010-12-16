@@ -62,7 +62,7 @@ We consider the incompressible Navier--Stokes equations with unit
 fluid density written in the form
 \begin{eqnarray}
   \label{eq:ns,mom}
-  \dot{u} + \nabla u \cdot u - \nabla \cdot \sigma  &=& f, \\
+  \dot{u} + \nabla u \, u - \nabla \cdot \sigma  &=& f, \\
   \label{eq:ns,con}
   \nabla \cdot u &=& 0,
 \end{eqnarray}
@@ -199,7 +199,7 @@ satisfied exactly (at the nodal points).
   Compute a tentative velocity $u_h^\bigstar$ by solving
   \begin{equation}\label{eq:chorin,1}
     \renni{v}{D_t^n u_h^\bigstar}
-    + \renni{v}{\nabla u_h^{n-1} \cdot u_h^{n-1}}
+    + \renni{v}{\nabla u_h^{n-1} \, u_h^{n-1}}
     + \renni{\nabla v}{\nu \nabla u_h^{\bigstar}}
     = \renni{v}{f^n} \quad \foralls v \in V_h,
   \end{equation}
@@ -270,7 +270,7 @@ where the velocity will tend to ``creep'' around the corners.
   \begin{equation}\label{eq:ipcs,1}
     \begin{split}
       \renni{v}{D_t^n u_h^{\bigstar}}
-      + \renni{v}{\nabla u_h^{n-1} \cdot u_h^{n-1}}
+      + \renni{v}{\nabla u_h^{n-1} \, u_h^{n-1}}
       + \renni{\epsilon(v)}{\sigma(u_h^{n-\frac{1}{2}}, p^{n-1}_h)}
       + \renni{v}{p^{n-1}_h n}_{\partial\Omega}
       - \renni{v}{\nu (\nabla u_h^{n-\frac{1}{2}})^{\top} n}_{\partial\Omega}
@@ -346,22 +346,22 @@ pressure. The derivation of the consistent splitting scheme is as
 follows. Multiply the momentum equation~\eqref{eq:ns,mom} by $\nabla
 q$ for $q
 \in H^1(\Omega)$ and integrate over the domain~$\Omega$ to obtain
-$\renni{\nabla q}{\dot{u} + \nabla u \cdot u - \nu \Delta u + \nabla
+$\renni{\nabla q}{\dot{u} + \nabla u \, u - \nu \Delta u + \nabla
   p} = \renni{\nabla q}{f}$. Since $\renni{\nabla q}{\dot{u}} =
 \renni{-q}{\nabla \cdot \dot{u}} + \renni{qn}{\dot{u}}_{\partial
   \Omega}$, it follows by~(\ref{eq:ns,con}) that
 \begin{equation}\label{eq:css,laplace}
-  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - \nabla u \cdot u +
+  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - \nabla u \, u +
     \nu \Delta u},
 \end{equation}
-if we assume that $\dot{u} = 0$ on~$\partial\Omega$. Next, we use
+if we assume that $\dot{u} = 0$ on~$\partial\Omega$. Next, we use the
 identity $\Delta v \equiv \nabla \nabla \cdot v - \nabla \times \nabla
 \times v$ together with the incompressibility
 constraint~(\ref{eq:ns,con}) to write the diffusive term
 of~(\ref{eq:css,laplace}) in
 \emph{rotational form}:
 \begin{equation}\label{eq:css,curl}
-  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - \nabla u \cdot u -
+  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - \nabla u \, u -
     \nu \nabla \times \nabla \times u}.
 \end{equation}
 This equation is the basis for the consistent splitting scheme. At
@@ -369,14 +369,14 @@ this point, we may formulate the CSS scheme as the solution of the
 following pair of variational problems:
 \begin{equation} \label{eq:css,u}
   \renni{D_t^n u_h}{v}
-  + \renni{\nabla u_h^{n-1} \cdot u_h^{n-1}}{v}
+  + \renni{\nabla u_h^{n-1} \, u_h^{n-1}}{v}
   + \renni{\nu \nabla u_h^n}{\nabla v}
   - \renni{p_h^{\bigstar}}{\nabla \cdot v}
   = \renni{f^n}{v},
 \end{equation}
 \begin{equation} \label{eq:css,pn}
   \renni{\nabla q}{\nabla p_h^n} =
-  \renni{\nabla q}{f^n -\nabla u_h^{n-1} \cdot u_h^{n-1} - \nu \nabla \times \nabla \times u_h^n},
+  \renni{\nabla q}{f^n -\nabla u_h^{n-1} \, u_h^{n-1} - \nu \nabla \times \nabla \times u_h^n},
 \end{equation}
 where $D_t^n u_h$ is an appropriate approximation of $\dot{u}_h$ and
 $p^{\bigstar}_h$ is an appropriate approximation of the pressure. In
@@ -432,7 +432,7 @@ The CSS scheme is summarized in Scheme~3/4.
   \begin{equation}\label{eq:css,2}
     \begin{split}
       \renni{v}{D_t^n u_h}
-      + \renni{v}{\nabla u_h^{n-1} \cdot u_h^{n-1}}
+      + \renni{v}{\nabla u_h^{n-1} \, u_h^{n-1}}
       + \renni{\epsilon(v)}{\sigma(u^{n-\frac{1}{2}}_h, p_h^{\bigstar})}
       + \renni{v}{\bar{p} n}_{\partial\Omega}
       - \renni{v}{\nu (\nabla \bar{u}_h^n)^{\top} n}_{\partial\Omega}
@@ -535,7 +535,7 @@ for all $(v, q) \in V_h \times Q_h$, where $u^{n-\frac{1}{2}} =
 ({u}^{n}_h + {u}^{n-1}_h) / 2$ and
 \begin{equation}
   SD_{\delta}
-  = \renni{\nabla v \cdot u_h^{n-\frac{1}{2}}}{\delta_1 \nabla u_h^{n-\frac{1}{2}} \cdot u_h^{n-\frac{1}{2}}}
+  = \renni{\nabla v \cdot u_h^{n-\frac{1}{2}}}{\delta_1 \nabla u_h^{n-\frac{1}{2}} \, u_h^{n-\frac{1}{2}}}
   + \renni{\nabla \cdot v}{\delta_2 \nabla \cdot u_h^{n-\frac{1}{2}}}.
 \end{equation}
 The G2 equations may be obtained by testing the incompressible
@@ -656,7 +656,7 @@ variational problem: find $(u^n_h, p^n_h)$ in $V_h \times Q_h$ such
 that
 \begin{eqnarray*}
     \frac{1}{k_n} \renni{v}{u^n_h - u^{n-1}_h}
-    + \renni{v}{\nabla u^{n-\frac{1}{2}}_h \cdot u^{n-\frac{1}{2}}_h}
+    + \renni{v}{\nabla u^{n-\frac{1}{2}}_h \, u^{n-\frac{1}{2}}_h}
     + \renni{\epsilon(v)}{\sigma(u^{n-\frac{1}{2}}_h, p^n_h)}
     - \renni{v}{\nu (\nabla u^{n-\frac{1}{2}}_h)^{\top} \cdot n}_{\partial \Omega}
     + \renni{v}{\bar{p}n} &=& \renni{v}{f}, \\
@@ -1064,7 +1064,7 @@ the channel. A zero Dirichlet boundary condition is imposed on the
 pressure at the outlet. The inflow velocity is a time-varying
 parabolic profile given by
 \begin{equation} \label{eq:cyl_inflow}
-  u(0, y, t) = (4 U_m y (H - y) \sin(\pi t/8)/H^{4}, 0), \quad t \leq 8,
+  u(0, y, t) = (4 U_m y (H - y) \sin(\pi t/8)/H^{4}, 0), \quad t \leqslant 8,
 \end{equation}
 where $U_m = 1.5$ and $H = 0.41$. The kinematic viscosity is $\nu =
 1/1000$. As a functional of interest, we consider the pressure
