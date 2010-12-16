@@ -1,8 +1,8 @@
 #!/bin/sh
 
-for f in chapters/*; do
+for f in `ls chapters`; do
     echo "Spell checking $f"
     echo "------------------------------------"
-    cat $f/chapter.tex | utils/stripfile | grep -v includegraphics | ispell -l -t -d american -p`pwd`/dictionary.txt
+    ./spellcheckchapter.sh $f
     echo ""
 done
