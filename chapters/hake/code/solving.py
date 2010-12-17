@@ -1,3 +1,4 @@
+# Python code for solving the system in Eq. 30.13
 # Model parameters
 dt_min = 1.0e-10; dt = dt_min; t = 0; c0 = 0.1; tstop = 1.0
 events = [0.2,tstop/2,tstop,tstop]; dt_expand = 2.0;
@@ -6,7 +7,7 @@ t_channels = {1:[0.2,tstop/2], 2:[tstop/2,tstop]}
 
 # Initialize the solution Function and the left and right hand side
 u = Function(Vs); x = u.vector()
-x[:] = c0#*exp(-a.valence*a.phi_0*exp(-a.kappa*mesh.coordinates()[:,-1]))
+x[:] = c0*np.exp(-a.valence*a.phi_0*np.exp(-a.kappa*mesh.coordinates()[:,-1]))
 b = Vector(len(x)); A = K.copy();
 
 solver = KrylovSolver("bicgstab","amg_hypre")

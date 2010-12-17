@@ -1,3 +1,4 @@
+# Python-like pseudo code for the time stepping algorithm used in diffsim
 while not stop_sim:
     # The next event
     event = min(discrete_objects)

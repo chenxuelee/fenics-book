@@ -1,7 +1,9 @@
-from numpy import *
+# Python code for the assembly of the matrices and vectors from Eq. (30.14)-(30.15)
+import numpy as np
 from dolfin import *
 
-mesh = Mesh('cleft_mesh.xml.gz')
+mesh = Mesh("cleft_mesh.xml.gz")
+mesh.order()
 
 Vs = FunctionSpace(mesh, "CG", 1)
 Vv = VectorFunctionSpace(mesh, "CG", 1)
@@ -12,20 +14,20 @@ u = TrialFunction(Vs)
 # Defining the electric field-function
 a = Expression(["0.0","0.0","phi_0*valence*kappa*sigma*exp(-kappa*x[2])"],
                defaults = {"phi_0":-2.2,"valence":2,"kappa":1,"sigma":1.e5},
-               V = Vv)
+               element=Vv.ufl_element())
 
 # Assembly of the K, M and A matrices
-K = assemble(inner(grad(u),grad(v))*dx)
+K = assemble(inner(grad(u), grad(v))*dx)
 M = assemble(u*v*dx)
-E = assemble(-u*inner(a,grad(v))*dx)
+E = assemble(-u*inner(a, grad(v))*dx)
 
 # Collecting face markers from a file, and skip the 0 one
-sub_domains = MeshFunction("uint",mesh,"cleft_mesh_face_markers.xml.gz")
+sub_domains = MeshFunction("uint", mesh, "cleft_mesh_face_markers.xml.gz")
 unique_sub_domains = list(set(sub_domains.values()))
 unique_sub_domains.remove(0)
 
 # Assemble matrices and source vectors from exterior facets domains
-domain = MeshFunction("uint",mesh,2)
+domain = MeshFunction("uint", mesh, 2)
 F = {};f = {};tmp = K.copy(); tmp.zero()
 for k in unique_sub_domains:
     domain.values()[:] = (sub_domains.values() != k)
