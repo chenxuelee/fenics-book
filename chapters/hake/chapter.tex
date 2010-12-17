@@ -36,7 +36,7 @@ used to model \Ca dynamics in a small sub-cellular domain called the
 dyadic cleft. The model includes \Ca diffusion, which is described by
 an advection-diffusion partial differential equation, and discrete
 channel dynamics, which are described by stochastic Markov
-models. Numerical methods implemented in \pydolfin solving the partial
+models. Numerical methods implemented in DOLFIN solving the partial
 differential equation will also be presented. In the last section, we
 describe a time stepping scheme that is used to solve both the
 stochastic and deterministic models. We will also present a solver
@@ -130,7 +130,7 @@ The dyadic cleft is the volume in the interior of the heart cell
 between a structure called the t-tubule (TT) and the SR. The TT is a
 network of pipe-like invaginations of the cell membrane that perforate
 the heart cell \citep{SoellerCannell1999}. In
-Fig.~\ref{fig:hake:morphology} \textbf{A}, a sketch of a small part of
+Figure~\ref{fig:hake:morphology} \textbf{A}, a sketch of a small part of
 a single TT together with a piece of SR is presented. Here we see that
 the junctional SR (jSR) is wrapped around the TT. The small volume
 between these two structures is the dyadic cleft. The space is not
@@ -140,7 +140,7 @@ or a rectangular slab
 \citep{PeskoffPostLanger1992,SoellerCannell1997,KohSrinivasanChingEtAl2006,
   TanskanenGreensteinChenEtAl2007}. In this study a disk with height
 $h$ = 12 nm and radius $r$ = 50 nm has been used for the domain
-$\Omega$ (see Fig.~\ref{fig:hake:morphology} \textbf{B}).
+$\Omega$ (see Figure~\ref{fig:hake:morphology} \textbf{B}).
 
 \subsection{\Ca diffusion}
 \label{sec:hake:ca-diffusion}
@@ -216,11 +216,11 @@ membrane. We will use $\psi_0=-2.2$ and $\kappa=1$ nm
 
 The boundary, $\partial\Omega$, is divided into 4 disjoint boundaries,
 $\partial\Omega_k$, for $k=0,\ldots,3$ (see
-Fig.~\ref{fig:hake:morphology} \textbf{B}). To each boundary we assign
+Figure~\ref{fig:hake:morphology} \textbf{B}). To each boundary we assign
 a flux, $J_{|\partial\Omega_k}=J_k$. The SR and TT membranes are
 impermeable to ions, effectively making
 $\partial\Omega_{\scriptscriptstyle\text{0}}$ in
-Fig.~\ref{fig:hake:morphology} \textbf{B} a no-flux boundary, giving
+Figure~\ref{fig:hake:morphology} \textbf{B} a no-flux boundary, giving
 us,
 \begin{equation}
   \label{eq:hake:no-flux}
@@ -228,7 +228,7 @@ us,
 \end{equation}
 We include 2 LCCs in our model. The \Ca flows into the cleft at the
 $\partial\Omega_{\scriptscriptstyle\text{[1,2]}}$ boundaries (see
-Fig.~\ref{fig:hake:morphology} \textbf{B}). \Ca entering via these
+Figure~\ref{fig:hake:morphology} \textbf{B}). \Ca entering via these
 channels then diffuses to the RyRs, triggering \Ca release from the
 SR. This additional \Ca flux will not be included in the simulations;
 however, the stochastic dynamics of the opening of the RyR channel
@@ -326,7 +326,7 @@ undergo a last conformational change to the open state
 that incorporates voltage-dependent activation together with a
 \Ca-dependent inactivation
 \citep{JafriRiceWinslow1998,GreensteinWinslow2002}. The state diagram
-of this model is presented in Fig.~\ref{fig:hake:markov-models}
+of this model is presented in Figure~\ref{fig:hake:markov-models}
 \textbf{A}. It consists of 12 states, where state 6 and 12 are the
 only conducting states and hence define the open states. The
 transition propensities are defined by a set of functions and
@@ -344,7 +344,7 @@ open by single \Ca ions attaching to the receptors on the cytosolic
 side. We will use a modified version of a phenomenological RyR model
 that mimics the physiological functions of the channel
 \citep{SternSongEtAl1999}. The model consists of four states where only
-one, state 2, is conducting (see Fig.~\ref{fig:hake:markov-models}
+one, state 2, is conducting (see Figure~\ref{fig:hake:markov-models}
 \textbf{B}). The $\alpha$ and $\gamma$ propensities are \Ca-dependent,
 representing the activation and inactivation dependency of cytosolic
 \CaC. The $\beta$ and $\delta$ propensities are constants. For
@@ -354,7 +354,7 @@ specific values of propensities; see \citet{SternSongEtAl1999}.
 
 In this section, we will describe the numerical methods used to solve
 the continuous part of the computational model of \Ca dynamics in the
-dyadic cleft. We will provide \pydolfin code for each part of the
+dyadic cleft. We will provide DOLFIN code for each part of the
 presentation. The first part of the section describes the
 discretization of the continuous problem using a finite element
 method. The second part describes a method to stabilize the
@@ -367,7 +367,7 @@ optimal stabilization parameters.
 %  xleftmargin=10mm,xrightmargin=15mm,
 %  numbers=left,numbersep=5pt]{chapters/hake/code/matrix_assemble.py}
 %  \vspace{-1.5em}
-%  \caption{Python code for the assembly of the matrices and vectors from Eq.~(\ref{eq:hake:matrices})-(\ref{eq:hake:vector}).}
+%  \caption{Python code for the assembly of the matrices and vectors from~(\ref{eq:hake:matrices})-(\ref{eq:hake:vector}).}
 %  \label{fig:hake:assembly-algorithm}
 %\end{figure}
 \subsection{Discretization}
@@ -400,15 +400,15 @@ $J_k$ are given by
 Eqs.~(\ref{eq:hake:no-flux})-(\ref{eq:hake:conc-dependent-flux}).
 
 The continuous equations are discretized using a finite element method
-in space. Eq.~(\ref{eq:hake:full_system}) is multiplied with a proper
+in space. Equation~(\ref{eq:hake:full_system}) is multiplied with a proper
 test function, $v$, and integrated over the spatial domain, thus
 obtaining:
 \begin{equation}
   \label{eq:hake:advection-diffusion-weak-form-0}
   \int_\Omega\dot{c}v \dx = \int_\Omega \left(\sigma\Delta c-\nabla(ca)\right) v \dx.
 \end{equation}
-Integration by parts, together with the boundary conditions in
-Eq.~(\ref{eq:hake:full_system}), yields:
+Integration by parts, together with the boundary conditions
+in~(\ref{eq:hake:full_system}), yields:
 \begin{equation}
   \label{eq:hake:advection-diffusion-weak-form}
   \int_\Omega\dot{c}v \dx = -\int_\Omega \left(\sigma\nabla c-ca\right)\cdot\nabla v \dx + \sum_k\int_{\partial\Omega_k} J_kv \ds{}_k.
@@ -417,7 +417,7 @@ Consider a mesh \T = $\left\{K\right\}$ of simplicial elements
 $K$. Let $V_h$ denote the space of piecewise linear polynomials,
 defined relative to the mesh \T. Using the backward Euler methods in
 time, we seek an approximation of $c$: $c_h\in V_h$ with nodal basis
-$\left\{\phi_i\right\}^N_{i=1}$. Eq.~(\ref{eq:hake:advection-diffusion-weak-form})
+$\left\{\phi_i\right\}^N_{i=1}$. Equation~(\ref{eq:hake:advection-diffusion-weak-form})
 can now be discretized as follows: Consider the \nth time step, then
 given $c_h^n$ find $c_h^{n+1} \in V_h$ such that
 \begin{equation}
@@ -478,10 +478,9 @@ vector elements given by:
 % space. In Section \ref{sec:hake:results} we will show the impact
 % different orders of this space has on the final result.\par
 
-The following \pydolfin code assembles the matrices and vectors from
+The following DOLFIN code assembles the matrices and vectors from
 Eqs.~(\ref{eq:hake:matrices})-(\ref{eq:hake:vector}):
 \begin{python}
-# Python code for the assembly of the matrices and vectors from Eq. (30.14)-(30.15)
 import numpy as np
 from dolfin import *
 
@@ -537,13 +536,12 @@ number we can start expanding it, by multiplying the time step with a
 constant $>$ 1.
 
 The sparse linear system is solved using the \petsc linear algebra
-backend \citep{BalayBuschelmanGroppEtAl2001} in \pydolfin together with
+backend \citep{BalayBuschelmanGroppEtAl2001} in DOLFIN together with
 the Bi-CGSTAB iterative solver \citep{Vorst1992}, and the BoomerAMG
 preconditioners from hypre \citep{FalgoutYang2002}. A script that
-solves the algebraic system from
-Eq.~(\ref{eq:hake:algebraic-equation}) together with a crude time
-stepping scheme for the opening and closing of the included LCC
-channel is presented below.
+solves the algebraic system from~(\ref{eq:hake:algebraic-equation})
+together with a crude time stepping scheme for the opening and closing
+of the included LCC channel is presented below.
 
 \subsection{Stabilization}
 \label{sec:hake:stabilization}
@@ -553,15 +551,15 @@ channel is presented below.
 \index{stabilization!element P\'eclet number}
 \index{tetgen}
 
-It turns out that the algebraic system in
-Eq.~(\ref{eq:hake:algebraic-equation}) can be numerically unstable for
+It turns out that the algebraic system
+in~(\ref{eq:hake:algebraic-equation}) can be numerically unstable for
 physiological relevant values of $a$. This is due to the transport
-term introduced by {\bfseries\itshape E}$_{ij}$ from
-Eq.~(\ref{eq:hake:matrices}). We have chosen to stabilize the system
+term introduced by {\bfseries\itshape E}$_{ij}$
+from~(\ref{eq:hake:matrices}). We have chosen to stabilize the system
 using the Streamline upwind Petrov-Galerkin (SUPG) method
 \citep{BrooksHughes1982}. This method adds an upwind discontinuous
-contribution to the test function in the streamline direction
-Eq.~(\ref{eq:hake:advection-diffusion-weak-form-0}):
+contribution to the test function in the streamline
+direction~(\ref{eq:hake:advection-diffusion-weak-form-0}):
 \begin{equation}
   \label{eq:hake:stabilizing-term}
   v' = v+s, \text{ where } s = \tau\frac{h\tau_e}{2\|a\|}a\cdot\nabla v.
@@ -593,7 +591,7 @@ might give improved stabilization \citep{JohnKnobloch2007}; for example
 \citet{TezduyarPark1986} use a length based on the size of the element
 in the direction of $a$.
 
-The \pydolfin code that assembles the SUPG part of the problem is
+The DOLFIN code that assembles the SUPG part of the problem is
 presented in the following script:
 \begin{python}
 # Python code for the assembly of the SUPG term for the mass and advection matrices
@@ -647,7 +645,7 @@ to to produce meshes with the required resolution \citep{Si2007}.
 %  xleftmargin=10mm,xrightmargin=15mm,
 %  numbers=left,numbersep=5pt]{chapters/hake/code/solving.py}
 %  \vspace{-1.5em}
-%  \caption{Python code for solving the system in Eq.~(\ref{eq:hake:algebraic-equation}), using the assembled matrices from the two former code examples from Fig.~\ref{fig:hake:assembly-algorithm}-\ref{fig:hake:SUPG-assembly-algorithm}.}
+%  \caption{Python code for solving the system in~(\ref{eq:hake:algebraic-equation}), using the assembled matrices from the two former code examples from Figure~\ref{fig:hake:assembly-algorithm}-\ref{fig:hake:SUPG-assembly-algorithm}.}
 %  \label{fig:hake:solving-algorithm}
 %\end{figure}
 
@@ -665,9 +663,9 @@ to to produce meshes with the required resolution \citep{Si2007}.
 
 \subsection{Solving the discretized system}
 
-The \pydolfin code that solves the discretized and stabilized system from Eq.~(\ref{eq:hake:algebraic-equation}) is given by:
+The DOLFIN code that solves the discretized and stabilized system
+from~(\ref{eq:hake:algebraic-equation}) is given by:
 \begin{python}
-# Python code for solving the system in Eq. (30.13)
 # Model parameters
 dt_min = 1.0e-10; dt = dt_min; t = 0; c0 = 0.1; tstop = 1.0
 events = [0.2,tstop/2,tstop,tstop]; dt_expand = 2.0;
@@ -728,7 +726,7 @@ hundred of channels are included.
   \includegraphics[width=\linewidth]{chapters/hake/pdf/traces_mesh_1}
   \caption[Concentration traces 1]{The figure shows concentration
     results from numerical solutions from Mesh 1 (see legend of
-    Fig.~\ref{fig:hake:error_plot}), for three different $\tau$,
+    Figure~\ref{fig:hake:error_plot}), for three different $\tau$,
     together with the analytic solution. The solutions were picked
     from a line between the points (0,0,0) and (0,0,12). We see that
     the solution with $\tau=0.10$ oscillates. The solution with
@@ -744,7 +742,7 @@ hundred of channels are included.
     \includegraphics[width=\largefig]{chapters/hake/pdf/traces_mesh_2}
     \caption[Concentration traces 2]{The figures show the
       concentration traces of the numerical solutions from Mesh 2 (see
-      legend of Fig.~\ref{fig:hake:error_plot}), for three different
+      legend of Figure~\ref{fig:hake:error_plot}), for three different
       $\tau$, together with the analytic solution. The solution traces
       in the two panels are picked from a line between the points
       (0,0,0) and (0,0,1.5), for the left panel, and between spatial
@@ -764,29 +762,29 @@ hundred of channels are included.
 \subsection{Finding an optimal stabilization parameter}
 The global stabilization parameter, $\tau$, is problem-dependent. To
 find an optimal $\tau$ for a certain electric field and mesh, the
-system in Eq.~(\ref{eq:hake:algebraic-equation}) is solved to steady
-state, defined as T = 1.0 ms, using only homogeneous Neumann boundary
-conditions. A homogeneous concentration of $c_0=0.1$ $\mu$M is used as
-the initial condition. The numerical solution is then compared with
-the analytic solution of the problem. This solution is acquired by
-setting $J=0$ in Eq.~(\ref{eq:hake:nernst-planck}) and solving for the
-$c$, with the following result:
+system in~(\ref{eq:hake:algebraic-equation}) is solved to steady
+state, defined as $T = 1.0\,\mathrm{ms}$, using only homogeneous
+Neumann boundary conditions. A homogeneous concentration of $c_0=0.1$
+$\mu$M is used as the initial condition. The numerical solution is
+then compared with the analytic solution of the problem. This solution
+is acquired by setting $J=0$ in~(\ref{eq:hake:nernst-planck}) and
+solving for the $c$, with the following result:
 \begin{equation}
   \label{eq:hake:analytic-solution}
   c(z) = c_b\e^{-2\psi(z)}.
 \end{equation}
-Here $\psi$ is given by Eq.~(\ref{eq:hake:electric_potential}), and
+Here $\psi$ is given by~(\ref{eq:hake:electric_potential}), and
 $c_b$ is the bulk concentration; that is, where $z$ is large. $c_b$ was
 chosen such that the integral of the analytic solution was equal to
 $c_0\times V$, where $V$ is the volume of the domain.
 
 The error of the numerical solution for different values of $\tau$ and
 for three different mesh resolutions is plotted in
-Fig.~\ref{fig:hake:error_plot}. The meshes are enumerated from 1-3,
+Figure~\ref{fig:hake:error_plot}. The meshes are enumerated from 1-3,
 and a higher number corresponds to a better resolved boundary layer at
 z=0 nm. As expected, we see that the mesh that resolves the boundary
 layer best produces the smallest error. The error is computed using
-the L$^2(\Omega)$ norm and is normalized by the L$^2(\Omega)$ norm of
+the $L^2(\Omega)$ norm and is normalized by the $L^2(\Omega)$ norm of
 the analytical solution,
 \begin{equation}
   \label{eq:hake:error_norm}
@@ -794,15 +792,15 @@ the analytical solution,
 \end{equation}
 where $n_T$ is the time step at $t=T$. The mesh resolutions are
 quantified by the number of vertices close to $z=0$. In the legend of
-Fig.~\ref{fig:hake:error_plot}, the median of the $z$ distance of all
+Figure~\ref{fig:hake:error_plot}, the median of the $z$ distance of all
 vertices and the total number of vertices in each mesh is presented.
 
 Traces from the actual simulations are plotted in
-Fig.~\ref{fig:hake:traces_mesh_1}-\ref{fig:hake:traces_mesh_3}. In
+Figure~\ref{fig:hake:traces_mesh_1}-\ref{fig:hake:traces_mesh_3}. In
 each figure are three numerical and one analytical solution plotted
 for each mesh. The numerical solutions are from simulations using
-three different $\tau$: 0.1, 0.6 and the L$^2$-optimal $\tau$ (see
-Fig.~\ref{fig:hake:error_plot}). The traces in the figures are from
+three different $\tau$: 0.1, 0.6 and the $L^2$-optimal $\tau$ (see
+Figure~\ref{fig:hake:error_plot}). The traces in the figures are from
 the discrete solution $c_h^{n_T}$, interpolated onto the straight line
 between the spatial points $p_0$=(0,0,0) and $p_1$=(0,0,12).
 
@@ -812,10 +810,10 @@ between the spatial points $p_0$=(0,0,0) and $p_1$=(0,0,12).
     \includegraphics[width=\largefig]{chapters/hake/pdf/traces_mesh_3}
     \caption[Concentration traces 3]{The figure shows the
       concentration traces of the numerical solutions from Mesh 3 (see
-      legend of Fig.~\ref{fig:hake:error_plot}), for three different
+      legend of Figure~\ref{fig:hake:error_plot}), for three different
       $\tau$, together with the analytic solution. The traces in the
       two panels were picked from the same lines for
-      Fig.~\ref{fig:hake:traces_mesh_2}. Again, we see from both
+      Figure~\ref{fig:hake:traces_mesh_2}. Again, we see from both
       panels that the solution with $\tau=0.10$ give the poorest
       solution. The solution with $\tau=0.38$ was the solution with
       smallest global error for this mesh (see
@@ -828,46 +826,46 @@ between the spatial points $p_0$=(0,0,0) and $p_1$=(0,0,12).
       solution.}
 \end{figure}
 
-In Fig.~\ref{fig:hake:traces_mesh_1} the traces from Mesh 1 are
+In Figure~\ref{fig:hake:traces_mesh_1} the traces from Mesh 1 are
 plotted. Here, we see that the numerical solutions are quite poor for
 some $\tau$. The solution with $\tau=0.10$ is not correct, as it
 produces negative concentrations, a physiological impossibility. The
 solution with $\tau=0.60$ seems more correct, but it undershoots the
 analytic solution at $z=0$, with $\simeq$1.7 $\mu$M. The solution with
-$\tau=0.22$ is the L$^2$-optimal solution for Mesh 1, and approximates
+$\tau=0.22$ is the $L^2$-optimal solution for Mesh 1, and approximates
 the analytic solution at $z=0$ well.
 
-In Fig.~\ref{fig:hake:traces_mesh_2}, the traces from Mesh 2 are
+In Figure~\ref{fig:hake:traces_mesh_2}, the traces from Mesh 2 are
 presented in two plots. The left plot shows the traces for $z<1.5$ nm,
 and the right shows traces for $z>10.5$ nm. In the left plot, we see
-the same tendency as in Fig.~\ref{fig:hake:traces_mesh_1}: an
+the same tendency as in Figure~\ref{fig:hake:traces_mesh_1}: an
 overshoot of the solution with $\tau=0.10$ and an undershoot of the
-solution with $\tau=0.60$. The L$^2$-optimal solution for $\tau=0.28$,
+solution with $\tau=0.60$. The $L^2$-optimal solution for $\tau=0.28$,
 overshoots the analytic solution for the shown interval in the left
 plot, but undershoots for the rest of the trace.
 
-In the last figure, Fig.~\ref{fig:hake:traces_mesh_3}, traces from
+In the last figure, Figure~\ref{fig:hake:traces_mesh_3}, traces from
 mesh 3 are presented. The results are also presented in two plots
 here, corresponding to the same $z$ interval as in
-Fig.~\ref{fig:hake:traces_mesh_2}. We see that the solution with
+Figure~\ref{fig:hake:traces_mesh_2}. We see that the solution with
 $\tau=0.10$ is again not acceptable in either interval. In the left
 plot, it clearly overshoots the analytic solution for most of the
 interval, and then undershoot the analytic solution for the rest of
 the interval. The solution with $\tau=0.60$ is improved here compared
 to the two previous plots. It undershoots the analytic solution at
 $z=0$; but stays closer for the rest of the interval as compared to
-the L$^2$-optimal solution. The L$^2$ norm penalizes larger distances
+the $L^2$-optimal solution. The $L^2$ norm penalizes larger distances
 between two traces; that is, weighting the error close to $z=0$ more
 than the rest. The optimal solution measured in the Max norm is given
 when $\tau=50$; result not shown.
 
 The numerical results tell us that the Streamline upwind
 Petrov-Galerkin method can be used to stabilize the Finite element
-solution of the advection-diffusion problem presented in
-Eq.~(\ref{eq:hake:full_system}). Three different meshes that resolve
-the boundary layer at z=0 nm differently were used. For each mesh a
-global $\tau$, which produce an L$^2$ optimal solution, were
-obtained. To test convergence rate we also did simulations with
+solution of the advection-diffusion problem presented
+in~(\ref{eq:hake:full_system}). Three different meshes that resolve
+the boundary layer at $z=0\,\mathrm{nm}$ differently were used. For
+each mesh a global $\tau$, which produce an $L^2$ optimal solution,
+were obtained. To test convergence rate we also did simulations with
 homogeneously refined meshes. The largest mesh had $\simeq$180 000
 number of vertices. The error for the optimal $\tau$ for each mesh
 resolution were compared and linear convergence rate was obtained;
@@ -890,26 +888,20 @@ parallel solvers.
 % analysis.
 
 % These results tell us that it is difficult to obtain accurate
-% numerical solution for the advection-diffusion problem presented in
-% Eq.~(\ref{eq:hake:full_system}). Using a finer mesh close to $z=0$
+% numerical solution for the advection-diffusion problem presented
+% in~(\ref{eq:hake:full_system}). Using a finer mesh close to $z=0$
 % could help, but it will create a larger algebraic system. It is
-% interesting to notice that the L$^2$ optimal solutions is better
+% interesting to notice that the $L^2$ optimal solutions is better
 % close to $z=0$, than other solutions and the solution for the
 % largest $\tau$ is better than other for $z$ > 2 nm. For a modeller,
 % these constraints are important to know about; the solution at $z=0$
 % and $z=12$ nm are the most important, as \Ca interact with other
-% proteins at these points.
-%\label{sec:hake:solution}
-%\begin{figure}
-%  \centering
-%  \LVerbatimInput[fontsize=\scriptsize,frame=lines,
-%  framerule=0.4mm,
-%  xleftmargin=10mm,xrightmargin=15mm,
-%  numbers=left,numbersep=5pt]{chapters/hake/code/time_stepping_algorithm.py}
-%  \vspace{-1.5em}
-%  \caption{Python-like pseudo code for the time stepping algorithm used in our simulator}
-%  \label{fig:hake:time-stepping-algorithm}
-%\end{figure}
+% proteins at these points.  \label{sec:hake:solution} \begin{figure}
+% \centering \LVerbatimInput[fontsize=\scriptsize,frame=lines,
+% framerule=0.4mm, xleftmargin=10mm,xrightmargin=15mm,
+% numbers=left,numbersep=5pt]{chapters/hake/code/time_stepping_algorithm.py} \vspace{-1.5em} \caption{Python-like
+% pseudo code for the time stepping algorithm used in our
+% simulator} \label{fig:hake:time-stepping-algorithm} \end{figure}
 \begin{figure}
   \label{fig:hake:time-line}
   \centering
@@ -925,9 +917,9 @@ parallel solvers.
 \section{\texttt{diffsim} an event-driven simulator}
 \label{sec:hake:diffsim}
 \index{time stepping} \index{\texttt{diffsim}} \index{FEniCS Apps} In
-the \pydolfin scripts above, we show how a simple continuous solver
-can be built with \pydolfin. By pre-assembling the matrices from
-Eq.~(\ref{eq:hake:matrices}), a flexible system for adding and
+the DOLFIN scripts above, we show how a simple continuous solver can
+be built with DOLFIN. By pre-assembling the matrices
+from~(\ref{eq:hake:matrices}), a flexible system for adding and
 removing boundary fluxes corresponding to the state of the channels
 can be constructed. The solving script uses fixed time points for the
 channel state transitions. At these time points, we minimize \Dt so we
@@ -941,9 +933,7 @@ variables. For such scenarios, an event-driven simulator called
 chapter, the algorithm underlying the time stepping scheme in
 \texttt{diffsim} will be presented. An example of how one can use
 \texttt{diffsim} to describe and solve a model of \Ca dynamics in the
-dyadic cleft is also demonstrated. The \texttt{diffsim} software is
-freely available at
-URL:\url{http://www.fenicsproject.org/wiki/FEniCS_Apps}.
+dyadic cleft is also demonstrated.
 
 \subsection{Stochastic system}
 
@@ -1030,7 +1020,7 @@ chosen \Dt, solve for the \Ca field, broadcast the solution, and, last
 but not least, execute the discrete event that is scheduled to happen
 at \Dt.
 
-In Fig.~\ref{fig:hake:time-line}, we show an example of a possible
+In Figure~\ref{fig:hake:time-line}, we show an example of a possible
 realization of this algorithm. In \textbf{A}, we have realized a time
 event at t=2.0 ms. The next event to be realized is a stochastic
 transition, the one with smallest value below the ticks. In \textbf{B}
@@ -1128,22 +1118,20 @@ dynamics of the RyRs and the LCCs. The simulation is driven by a
 so-called dynamic voltage clamp. With a voltage clamp we can
 dynamically clamp the voltage to a certain wave form. The wave form
 can be acquired from experiments. The data that define the voltage
-clamp are read from a file using utilities from \numpy
-\packagefont{Python} packages.
+clamp are read from a file using utilities from NumPy Python packages.
 
 \section{Discussion}
 
 We have presented a computational model of \Ca dynamics of the dyadic
 cleft in heart cells. It consists of a coupled stochastic and
-continuous system. We have showed how one can use \pydolfin to
-discretise and solve the continuous system using a finite element
-method. Because the continuous system is an advection-diffusion
-equation that produces unstable discretizations, we investigate how
-one can use the streamline upwind/Petrov-Galerkin method for
-stability. We employ three different meshes, each with different
-resolutions at the boundary layer of the electrical potential, and
-find an L$^2$-optimal global stabilization parameter $\tau$ for each
-mesh.
+continuous system. We have showed how one can use DOLFIN to discretise
+and solve the continuous system using a finite element method. Because
+the continuous system is an advection-diffusion equation that produces
+unstable discretizations, we investigate how one can use the
+streamline upwind/Petrov-Galerkin method for stability. We employ
+three different meshes, each with different resolutions at the
+boundary layer of the electrical potential, and find an $L^2$-optimal
+global stabilization parameter $\tau$ for each mesh.
 
 We do not present a solver for the stochastic system. However, we
 outline a time stepping scheme that can be used to couple the
