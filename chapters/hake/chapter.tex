@@ -28,10 +28,10 @@ From the time we are children, we are told that we should drink milk
 because it is an important source of calcium (\Ca), and that \Ca is
 vital for a strong bone structure. What we do not hear as frequently
 is that \Ca is one of the most important cellular messengers in the
-human body \cite{AlbertsBrayLewisEtAl2002}. In particular, \Ca controls
-cell death, neural signaling, secretion of different chemical
-substances, and the focus of this chapter: the contraction
-of cells in the heart.\par
+human body \cite{AlbertsBrayLewisEtAl2002}. In particular, \Ca
+controls cell death, neural signaling, secretion of different chemical
+substances, and the focus of this chapter: the contraction of cells in
+the heart.
 
 In this chapter, we will present a computational model that can be
 used to model \Ca dynamics in a small sub-cellular domain called the
@@ -44,19 +44,21 @@ describe a time stepping scheme that is used to solve both the
 stochastic and deterministic models. We will also present a solver
 framework, \texttt{diffsim}, that implements this time stepping scheme
 together with the numerical methods to solve the model described
-above.\par
+above.
 
 \section{Biological background}
 \index{sarcoplasmic reticulum}
 \index{ryanodine receptor}
 %\index{L-type Ca channels}
 \index{cell membrane} \index{excitation contraction coupling}
-\index{cytosol}In a healthy heart, every heart beat originates in the
-sinoatrial node where pacemaker cells trigger an electric signal. This
-signal is a difference in electric potential between the interior and
-exterior of the heart cells; these two domains are separated by the
-cell membrane. The difference in the electric potential between these
-two domains is called the membrane potential. The membrane potential
+\index{cytosol}
+
+In a healthy heart, every heart beat originates in the sinoatrial node
+where pacemaker cells trigger an electric signal. This signal is a
+difference in electric potential between the interior and exterior of
+the heart cells; these two domains are separated by the cell
+membrane. The difference in the electric potential between these two
+domains is called the membrane potential. The membrane potential
 propagates through the whole heart via electrical currents which move
 through the cell membrane using specific ion channels. The actively
 propagating membrane potential is called an action potential. When an
@@ -72,7 +74,7 @@ generating contraction in the heart cell and \Ca serves as the
 trigger. The strength of the contraction is controlled by the strength
 of the \Ca concentration (\CaC) in cytosol. The contraction is
 succeeded by a period of relaxation, caused by the extraction of \Ca
-from the intracellular space by various proteins. \par
+from the intracellular space by various proteins.
 
 This chain of events is known as the Excitation Contraction (EC)
 coupling \cite{Bers2001}. Several severe heart diseases can be related
@@ -84,7 +86,7 @@ of different protein species. Computational methods have emerged as a
 natural complement to experimental studies to better understand this
 process. In this chapter, we focus on the initial phase of EC
 coupling, wherein \Ca flows into the cell and triggers further \Ca
-release.\par
+release.
 
 \begin{figure}[t]
 \label{fig:hake:morphology}
@@ -112,44 +114,49 @@ release.\par
 
 \section{Mathematical models}
 \label{sec:hake:mathematical-models}
+
 In this section, we describe the computational model for the early
 phase of EC coupling. We first present the morphology of the dyadic
 cleft, and how we model this in our study. We then describe the
 mathematical formulation for the diffusion of \Ca inside the cleft as
 well for the \Ca fluxes across the boundaries. Finally, we discuss
 stochastic models that govern discrete channel dynamics of the LCCs
-and RyRs.\par
+and RyRs.
 
-\subsection*{Morphology}
+\subsection{Morphology}
 \label{sec:hake:morphology}
 \index{cell membrane} \index{dyadic cleft} \index{t-tubule}
-\index{diffusion constant} The dyadic cleft is the volume in the
-interior of the heart cell between a structure called the t-tubule
-(TT) and the SR. The TT is a network of pipe-like invaginations of the
-cell membrane that perforate the heart cell
-\cite{SoellerCannell1999}. In Fig.~\ref{fig:hake:morphology}
-\textbf{A}, a sketch of a small part of a single TT together with a
-piece of SR is presented. Here we see that the junctional SR (jSR) is
-wrapped around the TT. The small volume between these two structures
-is the dyadic cleft. The space is not well defined, as it is crowded
-with channel proteins, and varies in size. In computational studies,
-it is commonly approximated as a disk or a rectangular slab
+\index{diffusion constant}
+
+The dyadic cleft is the volume in the interior of the heart cell
+between a structure called the t-tubule (TT) and the SR. The TT is a
+network of pipe-like invaginations of the cell membrane that perforate
+the heart cell \cite{SoellerCannell1999}. In
+Fig.~\ref{fig:hake:morphology} \textbf{A}, a sketch of a small part of
+a single TT together with a piece of SR is presented. Here we see that
+the junctional SR (jSR) is wrapped around the TT. The small volume
+between these two structures is the dyadic cleft. The space is not
+well defined, as it is crowded with channel proteins, and varies in
+size. In computational studies, it is commonly approximated as a disk
+or a rectangular slab
 \cite{PeskoffPostLanger1992,SoellerCannell1997,KohSrinivasanChingEtAl2006,
   TanskanenGreensteinChenEtAl2007}. In this study a disk with height
 $h$ = 12 nm and radius $r$ = 50 nm has been used for the domain
-$\Omega$ (see Fig.~\ref{fig:hake:morphology} \textbf{B}).\par
+$\Omega$ (see Fig.~\ref{fig:hake:morphology} \textbf{B}).
 
-\subsection*{\Ca Diffusion}
+\subsection{\Ca Diffusion}
 \label{sec:hake:ca-diffusion}
 
-\paragraph*{Electro-Diffusion}
+\paragraph{Electro-Diffusion.}
 \index{Fick's second law} \index{screening} \index{electro-diffusion}
 \index{advection-diffusion} \index{Gouy-Chapman} \index{Nernst-Planck
-  equation} We will use Fick's second law to model diffusion of \Ca in
-the dyadic cleft. The diffusion constant of \Ca is set to $\sigma$ =
-$10^5$ nm$^2$ ms$^{-1}$ \cite{LangerPeskoff1996}. Close to the cell
-membrane, ions are affected by an electric potential caused by
-negative charges on the membrane
+  equation}
+
+We will use Fick's second law to model diffusion of \Ca in the dyadic
+cleft. The diffusion constant of \Ca is set to $\sigma$ = $10^5$
+nm$^2$ ms$^{-1}$ \cite{LangerPeskoff1996}. Close to the cell membrane,
+ions are affected by an electric potential caused by negative charges
+on the membrane
 \cite{McLaughlinSzaboEisenman1971,LangnerCafisoMarceljaEtAl1990}. The
 potential attenuates rapidly as it is countered by positive ions that
 are attracted by the negative electrical field. This process is known
@@ -181,7 +188,7 @@ mass, we arrive at the advection-diffusion equation,
   \label{eq:hake:advection-diffusion}
   \dot{c}=\sigma\left(\Delta c + \nabla\cdot\left(2\,cE\right)\right),
 \end{equation}
-where $\dot{c}$ is the time derivative of $c$.\par
+where $\dot{c}$ is the time derivative of $c$.
 
 The strength of $\psi$ is defined by the amount of charge at the cell
 membrane and by the combined screening effect of all the ions in the
@@ -199,9 +206,9 @@ approximation of the electric potential in the solution,
 Here $\psi_0$ is the non-dimensional potential at the membrane,
 $\kappa$ the inverse Debye length and $z$ the distance from the cell
 membrane. We will use $\psi_0=-2.2$ and $\kappa=1$ nm
-\cite{SoellerCannell1997}.\par
+\cite{SoellerCannell1997}.
 
-\paragraph*{Boundary fluxes}
+\paragraph{Boundary fluxes.}
 \index{stochastic channel}
 \index{t-tubule}
 \index{sarcoplasmic reticulum}
@@ -230,7 +237,7 @@ however, the stochastic dynamics of the opening of the RyR channel
 will be considered. The \Ca that enters the dyadic cleft diffuses into
 the main compartment of cytosol, introducing a third flux. This flux
 is included in the model at the
-$\partial\Omega_{\scriptscriptstyle\text{3}}$ boundary.\par
+$\partial\Omega_{\scriptscriptstyle\text{3}}$ boundary.
 
 The LCC is a stochastic channel that is either open or closed. When
 the channel is open, \Ca flows into the cleft. The current amplitude
@@ -250,7 +257,8 @@ J_{\scriptscriptstyle[2,3]}= \left\{
 \end{equation}
 \noindent where $i$ is the amplitude, 2 the valence of \Ca, $F$
 Faraday's constant and $A$ the area of the channel. Note that an
-inward current is, by convention, negative.\par
+inward current is, by convention, negative.
+
 The flux to the cytosol is modeled as a concentration-dependent flux,
 \begin{equation}
   \label{eq:hake:conc-dependent-flux}
@@ -259,7 +267,7 @@ The flux to the cytosol is modeled as a concentration-dependent flux,
 where $c$ is the concentration in the cleft at the boundary, $c_0$ the
 concentration in the cytosol, and \Ds~is an approximation of the
 distance to the center of the cytosol. In our model, we have used \Ds
-= 50 nm.\par
+= 50 nm.
 
 \begin{figure}[t]
   \label{fig:hake:markov-models}
@@ -291,45 +299,48 @@ distance to the center of the cytosol. In our model, we have used \Ds
     $\beta$ and $\delta$ propensities are constant.}
 \end{figure}
 
-\subsection*{Stochastic models of single channels}
+\subsection{Stochastic models of single channels}
 \label{sec:hake:stochastic-models}
 \index{stochastic channel} \index{Markov chain model} \index{Discrete
-  state} \index{propensity functions} Discrete and stochastic Markov
-chain models are used to describe single channel dynamics for the LCC
-and RyR. Such models are described by a certain number of discrete
-states. Each channel can be in any one of these states, and a
-transition between two states is a stochastic event. The frequency of
-these events is determined by the so called propensity functions
-associated with each transition. These functions, which may vary with
-time, characterize the probability per unit time that the
-corresponding transition event occurs. Each Markov model defines its
-own propensity functions. \par
+  state} \index{propensity functions}
 
-\paragraph*{L-type \Ca channel}
+Discrete and stochastic Markov chain models are used to describe
+single channel dynamics for the LCC and RyR. Such models are described
+by a certain number of discrete states. Each channel can be in any one
+of these states, and a transition between two states is a stochastic
+event. The frequency of these events is determined by the so called
+propensity functions associated with each transition. These functions,
+which may vary with time, characterize the probability per unit time
+that the corresponding transition event occurs. Each Markov model
+defines its own propensity functions.
+
+\paragraph{L-type \Ca channel.}
 \label{sec:hake:lcc}
-%\index{L-type Ca channels}
-The LCC opens when an action potential arrives at the cell, and the
-channel inactivates when \Ca ions bind to binding sites on the
-intracellular side of the channel. An LCC is composed of a complex of
-four transmembrane subunits. Each of these can be permissive or
-non-permissive. For the whole channel to be open, all four subunits
-must be permissive, and the channel must then undergo a last
-conformational change to the open state \cite{Hille2001}. In this
-chapter, we employ a Markov model of the LCC that incorporates
-voltage-dependent activation together with a \Ca-dependent
-inactivation \cite{JafriRiceWinslow1998,GreensteinWinslow2002}. The state
-diagram of this model is presented in
-Fig.~\ref{fig:hake:markov-models} \textbf{A}. It consists of 12
-states, where state 6 and 12 are the only conducting states and hence
-define the open states. The transition propensities are defined by a
-set of functions and constants, which are all described in
-\citet{GreensteinWinslow2002}.\par
 
-\paragraph*{Ryanodine receptors}
+%\index{L-type Ca channels} The LCC opens when an action potential
+arrives at the cell, and the channel inactivates when \Ca ions bind to
+binding sites on the intracellular side of the channel. An LCC is
+composed of a complex of four transmembrane subunits. Each of these
+can be permissive or non-permissive. For the whole channel to be open,
+all four subunits must be permissive, and the channel must then
+undergo a last conformational change to the open state
+\cite{Hille2001}. In this chapter, we employ a Markov model of the LCC
+that incorporates voltage-dependent activation together with a
+\Ca-dependent inactivation
+\cite{JafriRiceWinslow1998,GreensteinWinslow2002}. The state diagram
+of this model is presented in Fig.~\ref{fig:hake:markov-models}
+\textbf{A}. It consists of 12 states, where state 6 and 12 are the
+only conducting states and hence define the open states. The
+transition propensities are defined by a set of functions and
+constants, which are all described in \citet{GreensteinWinslow2002}.
+
+\paragraph{Ryanodine receptors.}
 \label{sec:hake:ryr}
-\index{ryanodine receptor} RyRs are \Ca specific channels that are
-gathered in clusters at the SR membrane in the dyadic cleft. These
-clusters can consist of several hundred RyRs
+\index{ryanodine receptor}
+
+RyRs are \Ca specific channels that are gathered in clusters at the SR
+membrane in the dyadic cleft. These clusters can consist of several
+hundred RyRs
 \cite{BeuckelmannWier1988,Franzini-ArmstrongProtasiRamesh1999}. They
 open by single \Ca ions attaching to the receptors on the cytosolic
 side. We will use a modified version of a phenomenological RyR model
@@ -339,9 +350,10 @@ one, state 2, is conducting (see Fig.~\ref{fig:hake:markov-models}
 \textbf{B}). The $\alpha$ and $\gamma$ propensities are \Ca-dependent,
 representing the activation and inactivation dependency of cytosolic
 \CaC. The $\beta$ and $\delta$ propensities are constants. For
-specific values of propensities, see \citet{SternSongEtAl1999}.\par
+specific values of propensities, see \citet{SternSongEtAl1999}.
 
 \section{Numerical methods for the continuous system}
+
 In this section, we will describe the numerical methods used to solve
 the continuous part of the computational model of \Ca dynamics in the
 dyadic cleft. We will provide \pydolfin code for each part of the
@@ -349,7 +361,7 @@ presentation. The first part of the section describes the
 discretization of the continuous problem using a finite element
 method. The second part describes a method to stabilize the
 discretization, and we also conduct a parameter study to find the
-optimal stabilization parameters.\par
+optimal stabilization parameters.
 %\begin{figure}
 %  \centering
 %  \LVerbatimInput[fontsize=\scriptsize,frame=lines,
@@ -360,8 +372,9 @@ optimal stabilization parameters.\par
 %  \caption{Python code for the assembly of the matrices and vectors from Eq.~(\ref{eq:hake:matrices})-(\ref{eq:hake:vector}).}
 %  \label{fig:hake:assembly-algorithm}
 %\end{figure}
-\subsection*{Discretization}
+\subsection{Discretization}
 \label{sec:hake:discretization}
+
 The continuous problem is defined by
 Eqs.~(\ref{eq:hake:advection-diffusion}~-\ref{eq:hake:conc-dependent-flux})
 together with an initial condition. Given a bounded domain $\Omega
@@ -386,7 +399,7 @@ and $c(\cdot,0) = c_0(x)$. Here $a=a(x)=2\sigma E(x)$ and $J_k$ is the
 $\bigcup^4_{k=1}\partial\Omega_k=\partial\Omega$, $\partial_nc =
 \nabla c\cdot n$, where $n$ is the outward normal on the boundary. The
 $J_k$ are given by
-Eqs.~(\ref{eq:hake:no-flux})-(\ref{eq:hake:conc-dependent-flux}).\par
+Eqs.~(\ref{eq:hake:no-flux})-(\ref{eq:hake:conc-dependent-flux}).
 
 The continuous equations are discretized using a finite element method
 in space. Eq.~(\ref{eq:hake:full_system}) is multiplied with a proper
@@ -421,7 +434,7 @@ is expressed as a weighted sum of basis functions,
 \end{equation}
 where $C_j^n$ are the coefficients. Due to the choice of $V_h$, the
 number of unknowns, $N$, will coincide with the number of vertices of
-the mesh.\par
+the mesh.
 
 %\begin{figure}
 %  \centering
@@ -523,7 +536,7 @@ either added to or removed from the system. To be able to resolve
 sharp time gradients correctly, we need to take smaller time steps
 following such an event. After the time step has been reset to a small
 number we can start expanding it, by multiplying the time step with a
-constant $>$ 1.\par
+constant $>$ 1.
 
 The sparse linear system is solved using the \petsc linear algebra
 backend \cite{BalayBuschelmanGroppEtAl2001} in \pydolfin together with
@@ -532,9 +545,9 @@ preconditioners from hypre \cite{FalgoutYang2002}. A script that
 solves the algebraic system from
 Eq.~(\ref{eq:hake:algebraic-equation}) together with a crude time
 stepping scheme for the opening and closing of the included LCC
-channel is presented below.\par
+channel is presented below.
 
-\subsection*{Stabilization}
+\subsection{Stabilization}
 \label{sec:hake:stabilization}
 \index{stabilization}
 \index{stabilization!Streamline upwind Petrov-Galerkin}
@@ -568,7 +581,7 @@ where $\PEe$ is the element P\'eclet number:
   \PEe = \frac{\|a\|h}{2\sigma}.
 \end{equation}
 When $\PEe$ is larger than 1, the system becomes unstable, and
-oscillations are introduced.\par
+oscillations are introduced.
 
 In the 1D case with a uniform mesh, the stabilization term defined by
 Eqs.~(\ref{eq:hake:element-tau})-(\ref{eq:hake:peclet}) can give exact
@@ -580,7 +593,7 @@ $h$. This is what \dolfin implements in the function
 \texttt{Cell.diameter()}. We recognize that other choices exist, which
 might give improved stabilization \cite{JohnKnobloch2007}; for example
 \citet{TezduyarPark1986} use a length based on the size of the element
-in the direction of $a$.\par
+in the direction of $a$.
 
 The \pydolfin code that assembles the SUPG part of the problem is
 presented in the following script:
@@ -618,7 +631,7 @@ tau = 0.28; E.axpy(tau, E_stab, True); M.axpy(tau, M_stab,True)
 In the above script, two matrices, \texttt{E\_stab} and
 \texttt{M\_stab}, are assembled. Both matrices are added to the
 corresponding advection and mass matrices \texttt{E} and \texttt{M},
-weighted by the global parameter \texttt{tau}.\par
+weighted by the global parameter \texttt{tau}.
 
 A mesh with finer resolution close to the TT surface, at $z=0$ nm, is
 used to resolve the steep gradient of the solution in this area. It is
@@ -627,7 +640,7 @@ P\'eclet number larger than 1. However the field attenuate quickly: at
 $z=3$ nm, the field is down to 5\% of the maximum amplitude, and at
 $z=5$ nm, it is down to 0.7\%. The mesh can thus be fairly coarse in
 the interior of the domain. The mesh generator \texttt{tetgen} is used
-to to produce meshes with the required resolution \cite{Si2007}.\par
+to to produce meshes with the required resolution \cite{Si2007}.
 
 %\begin{figure}
 %  \centering
@@ -652,7 +665,8 @@ to to produce meshes with the required resolution \cite{Si2007}.\par
     and 0.38.}
 \end{figure}
 
-\subsection*{Solving the discretized system}
+\subsection{Solving the discretized system}
+
 The \pydolfin code that solves the discretized and stabilized system from Eq.~(\ref{eq:hake:algebraic-equation}) is given by:
 \begin{python}
 # Python code for solving the system in Eq. (30.13)
@@ -710,7 +724,7 @@ discretization directly into a variational form. However, by
 pre-assemble the matrices and source vectors we do not have to
 reassemble the linear system during the time stepping, and time is
 saved during execution. This becomes important when larger meshes and
-hundred of channels are included.\par
+hundred of channels are included.
 \begin{figure}
   \label{fig:hake:traces_mesh_1}
   \includegraphics[width=\linewidth]{chapters/hake/pdf/traces_mesh_1}
@@ -766,7 +780,7 @@ $c$, with the following result:
 Here $\psi$ is given by Eq.~(\ref{eq:hake:electric_potential}), and
 $c_b$ is the bulk concentration, i.e., where $z$ is large. $c_b$ was
 chosen such that the integral of the analytic solution was equal to
-$c_0\times V$, where $V$ is the volume of the domain.\par
+$c_0\times V$, where $V$ is the volume of the domain.
 
 The error of the numerical solution for different values of $\tau$ and
 for three different mesh resolutions is plotted in
@@ -783,8 +797,7 @@ the analytical solution,
 where $n_T$ is the time step at $t=T$. The mesh resolutions are
 quantified by the number of vertices close to $z=0$. In the legend of
 Fig.~\ref{fig:hake:error_plot}, the median of the $z$ distance of all
-vertices and the total number of vertices in each mesh is
-presented.\par
+vertices and the total number of vertices in each mesh is presented.
 
 Traces from the actual simulations are plotted in
 Fig.~\ref{fig:hake:traces_mesh_1}-\ref{fig:hake:traces_mesh_3}. In
@@ -793,7 +806,7 @@ for each mesh. The numerical solutions are from simulations using
 three different $\tau$: 0.1, 0.6 and the L$^2$-optimal $\tau$ (see
 Fig.~\ref{fig:hake:error_plot}). The traces in the figures are from
 the discrete solution $c_h^{n_T}$, interpolated onto the straight line
-between the spatial points $p_0$=(0,0,0) and $p_1$=(0,0,12).\par
+between the spatial points $p_0$=(0,0,0) and $p_1$=(0,0,12).
 
 \begin{figure}
   \label{fig:hake:traces_mesh_3}
@@ -824,7 +837,7 @@ produces negative concentrations, a physiological impossibility. The
 solution with $\tau=0.60$ seems more correct, but it undershoots the
 analytic solution at $z=0$, with $\simeq$1.7 $\mu$M. The solution with
 $\tau=0.22$ is the L$^2$-optimal solution for Mesh 1, and approximates
-the analytic solution at $z=0$ well.\par
+the analytic solution at $z=0$ well.
 
 In Fig.~\ref{fig:hake:traces_mesh_2}, the traces from Mesh 2 are
 presented in two plots. The left plot shows the traces for $z<1.5$ nm,
@@ -833,7 +846,7 @@ the same tendency as in Fig.~\ref{fig:hake:traces_mesh_1}: an
 overshoot of the solution with $\tau=0.10$ and an undershoot of the
 solution with $\tau=0.60$. The L$^2$-optimal solution for $\tau=0.28$,
 overshoots the analytic solution for the shown interval in the left
-plot, but undershoots for the rest of the trace. \par
+plot, but undershoots for the rest of the trace.
 
 In the last figure, Fig.~\ref{fig:hake:traces_mesh_3}, traces from
 mesh 3 are presented. The results are also presented in two plots
@@ -848,7 +861,7 @@ $z=0$; but stays closer for the rest of the interval as compared to
 the L$^2$-optimal solution. The L$^2$ norm penalizes larger distances
 between two traces, i.e., weighting the error close to $z=0$ more than
 the rest. The optimal solution measured in the Max norm is given when
-$\tau=50$; result not shown.\par
+$\tau=50$; result not shown.
 
 The numerical results tell us that the Streamline upwind
 Petrov-Galerkin method can be used to stabilize the Finite element
@@ -860,7 +873,7 @@ obtained. To test convergence rate we also did simulations with
 homogeneously refined meshes. The largest mesh had $\simeq$180 000
 number of vertices. The error for the optimal $\tau$ for each mesh
 resolution were compared and linear convergence rate was obtained;
-result not shown.\par
+result not shown.
 
 The largest mesh in our test problems, the one that resolves the
 boundary layer best, is not large: $\simeq$ 24 000 vertices. The
@@ -873,7 +886,7 @@ vertices for the highest resolution we use in this chapter. A mesh
 with such a size would be a challenge for a serial solver, and
 parallel solvers need to be employed. The software that will be
 presented next, \texttt{diffsim}, does unfortunately not support
-parallel solvers. \par
+parallel solvers.
 % Include in comment to reviewers: As \texttt{diffsim} unfortunatly
 % only can run serial jobs we did not go further in our error
 % analysis.
@@ -887,7 +900,7 @@ parallel solvers. \par
 % largest $\tau$ is better than other for $z$ > 2 nm. For a modeller,
 % these constraints are important to know about; the solution at $z=0$
 % and $z=12$ nm are the most important, as \Ca interact with other
-% proteins at these points.\par
+% proteins at these points.
 %\label{sec:hake:solution}
 %\begin{figure}
 %  \centering
@@ -950,9 +963,10 @@ chapter, the algorithm underlying the time stepping scheme in
 \texttt{diffsim} to describe and solve a model of \Ca dynamics in the
 dyadic cleft is also demonstrated. The \texttt{diffsim} software is
 freely available at
-URL:\url{http://www.fenicsproject.org/wiki/FEniCS_Apps}.\par
+URL:\url{http://www.fenicsproject.org/wiki/FEniCS_Apps}.
 
-\subsection*{Stochastic system}
+\subsection{Stochastic system}
+
 \label{sec:hake:stochastic-system}
 \index{Gillespie method} \index{Markov chain model} \index{propensity
   function} \index{channel transition} The stochastic evolution of the
@@ -961,7 +975,7 @@ Markov chain models presented in Section
 method \cite{Gillespie1977}, which resembles one presented in
 \citet{RudigerShuaiHuisingaEtAl2007}. Here we will not go into detail,
 but rather focus on the part of the method that has importance for the
-overall time stepping algorithm.\par
+overall time stepping algorithm.
 
 The solution of the included stochastic Markov chain models is stored
 in a state vector, \texttt{S}. Each element in \texttt{S} corresponds
@@ -978,9 +992,10 @@ Gillespie method assumes that any continuous variables on which a
 certain propensity function depends are constant during a time
 step. The error incurred by this assumption is reduced by taking
 smaller time steps right after a channel transition, as the continuous
-field is indeed changing dramatically during this time period. \par
+field is indeed changing dramatically during this time period.
 
-\subsection*{Time stepping algorithm}
+\subsection{Time stepping algorithm}
+
 \label{sec:hake:event-driven-simulator}
 To simplify the presentation of the time stepping algorithm, we only
 consider one continuous variable, here for example, the \Ca field. A
@@ -1033,15 +1048,14 @@ object returns \texttt{True} when stepped, we exit the loop and
 continue. Next, we have to update the other discrete objects with the
 chosen \Dt, solve for the \Ca field, broadcast the solution, and, last
 but not least, execute the discrete event that is scheduled to happen
-at \Dt.\par
+at \Dt.
 
 In Fig.~\ref{fig:hake:time-line}, we show an example of a possible
 realization of this algorithm. The example starts at t=2ms at the
 top-most timeline represented by \textbf{A}, and it includes three
 different types of \texttt{DiscreteObject}s: \texttt{i})
 \texttt{DtExpander}, \texttt{ii}) \texttt{StochasticHandler}, and
-\texttt{iii}) \texttt{TStop}. See the figure legend for more
-details.\par
+\texttt{iii}) \texttt{TStop}. See the figure legend for more details.
 %\begin{figure}
 %  \centering
 %  \LVerbatimInput[fontsize=\scriptsize,frame=lines,
@@ -1052,8 +1066,9 @@ details.\par
 %  \caption{An example of how \texttt{diffsim} can be used to simulate the time to RyR release latency, from a small dyad who's domain is defined by the mesh in the file \texttt{cleft\_mesh\_with\_RyR.xml.gz}.}
 %  \label{fig:hake:diffsim_test}
 %\end{figure}
-\subsection*{\texttt{diffsim}: an example}
+\subsection{\texttt{diffsim}: an example}
 \index{\texttt{diffsim}} \index{event-driven simulator}
+
 \texttt{diffsim} is a versatile, event-driven simulator that
 incorporates the time stepping algorithm presented in the previous
 section together with the infrastructure to solve models with one or
@@ -1120,9 +1135,10 @@ so-called dynamic voltage clamp. With a voltage clamp we can
 dynamically clamp the voltage to a certain wave form. The wave form
 can be acquired from experiments. The data that define the voltage
 clamp are read from a file using utilities from \numpy
-\packagefont{Python} packages.\par
+\packagefont{Python} packages.
 
 \section{Discussion}
+
 We have presented a computational model of \Ca dynamics of the dyadic
 cleft in heart cells. It consists of a coupled stochastic and
 continuous system. We have showed how one can use \pydolfin to
@@ -1133,7 +1149,7 @@ one can use the streamline upwind/Petrov-Galerkin method for
 stability. We employ three different meshes, each with different
 resolutions at the boundary layer of the electrical potential, and
 find an L$^2$-optimal global stabilization parameter $\tau$ for each
-mesh.\par
+mesh.
 
 We do not present a solver for the stochastic system. However, we
 outline a time stepping scheme that can be used to couple the
