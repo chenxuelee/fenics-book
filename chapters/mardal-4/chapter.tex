@@ -23,15 +23,15 @@
               {Kent-Andre Mardal}
               {mardal-4}
 
-In this chapter we will describe the implementation of block
-preconditioned Krylov solvers for systems of partial differential
-equations (PDEs) using the Python interfaces of DOLFIN and
-Trilinos\index{Trilinos}.  We will start by reviewing the abstract
-theory of constructing preconditioners\index{preconditioner} by
-considering the differential operators as mappings in properly chosen
-Sobolev spaces.  We will then present several examples, namely the
-Poisson problem, the Stokes problem, the time-dependent Stokes problem
-and finally a mixed formulation of the Hodge Laplacian.
+In this chapter we describe the implementation of block preconditioned
+Krylov solvers for systems of partial differential equations (PDEs)
+using the Python interfaces of DOLFIN and Trilinos\index{Trilinos}.
+We start by reviewing the abstract theory of constructing
+preconditioners\index{preconditioner} by considering the differential
+operators as mappings in properly chosen Sobolev spaces. We then
+present several examples, namely the Poisson problem, the Stokes
+problem, the time-dependent Stokes problem and finally a mixed
+formulation of the Hodge Laplacian.
 
 \section{Abstract framework for constructing preconditioners}
 
@@ -67,13 +67,13 @@ $\mathcal{B}\mathcal{A}: H \rightarrow H$ and
 \|(\mathcal{B}\mathcal{A})^{-1}\|_{\mathcal{L}(H, H)} \le C^2.
 \end{equation}
 Hence, the spectrum and therefore the condition number of the
-preconditioned operator,
+preconditioned operator is bounded:
 \begin{equation}
-\kappa(\mathcal{B}\mathcal{A}) = \|\mathcal{B}\mathcal{A}\|_{\mathcal{L}(H, H)} \|(\mathcal{B}\mathcal{A})^{-1}\|_{\mathcal{L}(H, H)} \le C^4
+  \kappa(\mathcal{B}\mathcal{A}) = \|\mathcal{B}\mathcal{A}\|_{\mathcal{L}(H, H)} \|(\mathcal{B}\mathcal{A})^{-1}\|_{\mathcal{L}(H, H)} \le C^4.
 \end{equation}
-is bounded.  One example of such a preconditioner is the Riesz operator
-$\mathcal{R}$; that is, the identity mapping between $H'$ and $H$.
-In this case
+One example of such a preconditioner is the Riesz operator
+$\mathcal{R}$; that is, the identity mapping between $H'$ and $H$.  In
+this case
 \begin{equation}
 \|\mathcal{R}\|_{\mathcal{L}(H', H)} = 1 \quad \mbox{and} \quad
 \|\mathcal{R}^{-1}\|_{\mathcal{L}(H, H')} = 1.
@@ -111,7 +111,7 @@ safety checks, command-line arguments, definitions of \emp{Functions}
 and \emp{Subdomains} are often removed to shorten the presentation.
 
 \subsection{The Poisson problem with homogeneous Neumann conditions}
-The Poisson equation with Neumann conditions reads: \\
+The Poisson equation with Neumann conditions reads:
 Find $u$ such that
 \begin{eqnarray}
 -\Delta u &= &f \mbox{ in } \Omega,  \\
@@ -257,7 +257,7 @@ a = dot(grad(v), grad(u))*dx
 L = v*f*dx + v*g*ds
 
 # Assemble symmetric matrix and vector
-A, b = assemble_system(a,L)
+A, b = assemble_system(a, L)
 
 # create solution vector (also used as start vector)
 x = b.copy()
@@ -265,7 +265,7 @@ x.zero()
 
 # subtract mean value from right hand-side
 c = b.array()
-c -= sum(c)/len(c)
+c -= sum(c) / len(c)
 b[:] = c
 
 # create preconditioner
@@ -274,7 +274,7 @@ x, e, iter = Krylov.precondconjgrad_eigest(B, A, x, b, 10e-6, True, 100)
 
 print "Number of iterations ", iter
 print "Eigenvalues ", e
-print "kappa(BA) ", e[len(e)-1]/e[0]
+print "kappa(BA) ", e[len(e)-1] / e[0]
 \end{python}
 In Table~\ref{tabel:neumann} we list the number of iterations for
 convergence and the estimated condition number of the preconditioned
@@ -337,7 +337,7 @@ H^1_g \times L_0^2$ defined as
 \]
 where
 \begin{eqnarray}
-(K u, v) &=& \int_\Omega \nabla u: \nabla v \, \dx \\
+(K u, v) &=& \int_\Omega \nabla u: \nabla v \, \dx, \\
 (L p, q) &=& \int_\Omega p \, q \, \dx .
 \end{eqnarray}
 We refer to \citet{MardalWinther11} for a mathematical explanation of
@@ -413,11 +413,11 @@ class SaddlePrec:
         self.L_prec = MLPreconditioner(L)
         self.n = K.size(0)
         self.m = L.size(0)
-        self.x = Vector(self.n+self.m)
+        self.x = Vector(self.n + self.m)
 
     def __mul__(self, b):
 
-        self.x = Vector(self.n+self.m)
+        self.x = Vector(self.n + self.m)
         x = self.x
         n = self.n
         m = self.m
@@ -434,7 +434,7 @@ V = VectorFunctionSpace(mesh, "CG", 2)
 Q = FunctionSpace(mesh, "CG", 1)
 mixed = V + Q
 
-f = Constant(mesh, (0,0))
+f = Constant(mesh, (0, 0))
 g = Constant(mesh, 0)
 
 u, p = TrialFunctions(mixed)
@@ -456,11 +456,11 @@ v, q = TestFunction(V), TestFunction(Q)
 
 k = inner(grad(u), grad(v))*dx
 l = p*q*dx
-L0 = dot(v,f)*dx
+L0 = dot(f, v)*dx
 L1 = q*g*dx
 
-K, b0 = assemble_system(k,L0,bc)
-L, b1 = assemble_system(l,L1)
+K, b0 = assemble_system(k, L0, bc)
+L, b1 = assemble_system(l, L1)
 
 x = Vector(b.size())
 x.zero()
@@ -505,8 +505,8 @@ behaves like Stokes problem, with a non-harmful low order
 term. However as $k$ approaches zero the problems change to the mixed
 formulation of a Poisson equation; that is,
 \begin{eqnarray}
-u - \nabla p &=& f, \quad \Omega \\
-\nabla \cdot u  &=& 0, \quad \Omega
+u - \nabla p &=& f, \quad \mbox{in} \ \Omega, \\
+\nabla \cdot u  &=& 0, \quad \mbox{in} \ \Omega.
 \end{eqnarray}
 This problem is not an well-defined operator from $H^1_0 \times L_0^2$
 into its dual. Instead, it is a mapping from $H(div) \times L_0^2$ to
@@ -529,9 +529,9 @@ Such a $\mathcal{B}$ can be defined as
 \]
 where
 \begin{eqnarray}
-(K u, v) &=& \int_\Omega \nabla u: \nabla v \, \dx \\
-(L p, q) &=& \int_\Omega k^{-1} p q \, \dx \\
-(M p, q) &=& \int_\Omega \nabla p \cdot  \nabla q \, \dx .
+(K u, v) &=& \int_\Omega \nabla u: \nabla v \, \dx, \\
+(L p, q) &=& \int_\Omega k^{-1} p q \, \dx, \\
+(M p, q) &=& \int_\Omega \nabla p \cdot  \nabla q \, \dx.
 \end{eqnarray}
 Again we refer to \citet{MardalWinther11} and references therein, for
 an overview and more comprehensive mathematical derivation of the
@@ -561,12 +561,12 @@ bilinear forms:
 k = dot(u, v)*dx +  k*inner(grad(u), grad(v))*dx
 l = kinv*p*q*dx
 m = dot(grad(p),grad(q))*dx
-L0 = dot(v,f)*dx
+L0 = dot(f, v)*dx
 L1 = q*g*dx
 
-K, b0 = assemble_system(k,L0,bc)
-L, b1 = assemble_system(l,L1)
-M, b1 = assemble_system(m,L1)
+K, b0 = assemble_system(k, L0, bc)
+L, b1 = assemble_system(l, L1)
+M, b1 = assemble_system(m, L1)
 \end{python}
 Also the code for the block preconditioner is analogous, except that
 it is based on three matrices:
@@ -616,7 +616,7 @@ The variational form is: \\
 Find $u, p \in H_0(\operatorname{curl}) \times H^1_0$ such that
 \begin{eqnarray}
 \int_\Omega \nabla \times u \cdot \nabla \times v \, \dx
-- \int_\Omega \nabla p v \, dx  &=& \int_\Omega f v \, \dx  \quad \foralls v \in H_0(\operatorname{curl}) \\
+- \int_\Omega \nabla p v \, dx  &=& \int_\Omega f v \, \dx  \quad \foralls v \in H_0(\operatorname{curl}), \\
  \int_\Omega u  \nabla q  \, dx - \int_\Omega p q \, \dx   &=& 0 \quad
  \foralls q \in H^1_0 .
 \end{eqnarray}
@@ -638,8 +638,8 @@ Let
 where,
 \begin{eqnarray}
 (A u, v) &=& \int_\Omega \nabla \times u \cdot \nabla \times v \, \dx, \\
-(B p, v) &=&  - \int_\Omega \nabla p v \, \dx \\
-(C p, q) &=&  - \int_\Omega p q \, \dx
+(B p, v) &=&  - \int_\Omega \nabla p v \, \dx, \\
+(C p, q) &=&  - \int_\Omega p q \, \dx.
 \end{eqnarray}
 Then $\mathcal{A}: H_0(\operatorname{curl}) \times H^1_0 \rightarrow
 H^{-1}(\operatorname{curl}) \times H^{-1}$, where
@@ -669,7 +669,7 @@ K_h  = A_h +  B_h^* C^{-1}_h B_h,
 \]
 A problem here is that $C^{-1}_h$ is a dense matrix. However, we lump $C_h$ matrix before inverting it; that is,
 \[
-L_h  = A_h +  B_h^* (diag(C_h))^{-1} B_h,
+L_h  = A_h +  B_h^* (\mathrm{diag}(C_h))^{-1} B_h,
 \]
 The matrix $L_h$ is then in some sense a vector Laplacian,
 incorporating the mixed discretization technique.  To test the
@@ -703,12 +703,12 @@ lump inversion etc. using PyTrilinos.
 V = FunctionSpace(mesh, "N1curl", 1)
 Q = FunctionSpace(mesh, "CG", 1)
 
-u,p = TrialFunction(V), TrialFunction(Q)
-v,q = TestFunction(V), TestFunction(Q)
+u, p = TrialFunction(V), TrialFunction(Q)
+v, q = TestFunction(V), TestFunction(Q)
 
 aa = dot(u, v)*dx + dot(curl(v), curl(u))*dx
 bb = dot(grad(p), v)*dx
-ff = q*p*dx
+ff = p*q*dx
 
 AA = assemble(aa)
 BB = assemble(bb)
