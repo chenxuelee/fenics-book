@@ -911,6 +911,7 @@
 \newcommand{\@tufte@fps}{}
 
 \newboolean{@tufte@float@star}
+\newboolean{@tufte@float@flip}
 \newlength{\@tufte@float@contents@width}
 
 %%
@@ -924,6 +925,10 @@
     \ifthenelse{\equal{#3}{star}}%
       {\gsetboolean{@tufte@float@star}{true}}%
       {\gsetboolean{@tufte@float@star}{false}}%
+    % Should we flip caption to the left
+    \ifthenelse{\equal{#3}{flip}}%
+      {\gsetboolean{@tufte@float@flip}{true}}%
+      {\gsetboolean{@tufte@float@flip}{false}}%
     % Check page side (recto/verso) and store detected value -- can be overriden in environment contents
     \@tufte@checkoddpage%
     \ifthenelse{\boolean{@tufte@odd@page}}%
@@ -968,7 +973,9 @@
       \begin{minipage}[\floatalignment]{\linewidth}%
         \ifthenelse{\boolean{@tufte@float@star}}%
           {\@tufte@float@fullwidth[\@tufte@caption@vertical@offset]{\@tufte@figure@box}{\@tufte@caption@box}}%
-          {\@tufte@float@textwidth[\@tufte@caption@vertical@offset]{\@tufte@figure@box}{\@tufte@caption@box}}%
+          {\ifthenelse{\boolean{@tufte@float@flip}}%
+            {\@tufte@float@textwidth[\@tufte@caption@vertical@offset]{\@tufte@caption@box}{\@tufte@figure@box}}%
+            {\@tufte@float@textwidth[\@tufte@caption@vertical@offset]{\@tufte@figure@box}{\@tufte@caption@box}}}%
       \end{minipage}%
     \end{fullwidth}%
     \@tufte@orig@endfloat% end original LaTeX float environment
@@ -1057,6 +1064,19 @@
   {\begin{@tufte@float}[#1]{figure}{star}}
   {\end{@tufte@float}}
 
+% Added this and flip stuff above //Anders
+% Figure with caption on the left. Seems like vertical spacing is
+% based on whatever is on the left so this can be used to handle
+% figures with very long captions which would otherwise run into
+% the text below.
+\newenvironment{figurewithlongcaption}[1][]%
+  {\begin{@tufte@float}[#1]{figure}{flip}}
+  {\end{@tufte@float}}
+
+%\renewenvironment{figure*}[1][htbp]%
+\renewenvironment{figure*}[1][]%
+  {\begin{@tufte@float}[#1]{figure}{star}}
+  {\end{@tufte@float}}
 
 %%
 % Full-width table
