@@ -1,5 +1,5 @@
-\fenicschapter{Instant: Just-in-Time Compilation of C/C++ Code in Python}
-              {Instant: Just-in-Time Compilation of C/C++ Code in Python}
+\fenicschapter{Instant: Just-in-Time Compilation of C/C++ in Python}
+              {Instant: Just-in-Time Compilation of C/C++ in Python}
               {Ilmar M. Wilbers, Kent-Andre Mardal and Martin S. Aln{\ae}s}
               {wilbers}
 
@@ -76,7 +76,7 @@ add_func = inline(c_code)
 sum = add_func(3, 4.5)
 print 'The sum of 3 and 4.5 is', sum
 \end{python}
-When run this script produces the following output: 
+When run, this script produces the following output: 
 \begin{python}
  > python ex1.py 
 --- Instant: compiling ---
@@ -88,8 +88,8 @@ SWIG and Distutils.
 The inlined function is written in standard C. SWIG supports almost
 all of C and C++, including classes and templates. 
 The first time the Python script is run, it will use a few second to compile the C code.  
-The next time, however, the compilation is omitted, given that no changes are made to the
-C source code.
+The next time, however, the compilation is omitted, given that no changes 
+have been made to the C source code.
 
 %Note that a raw string is used in this example, to avoid
 %Python interpreting escape sequences such as '\verb@\@\emp{n}'. Alternatively,
@@ -306,7 +306,7 @@ instant_ext = \
 \end{python}
 Note that the arguments \emp{include\_\-headers}, \emp{init\_\-code}, and the
 first element of \emp{system\_\-headers} could have been omitted if we 
-used \emp{inline\_\-module\_\-with\_\-numpy} instead of \emp{build\_\-module}. 
+used \emp{inline\_\-module\_\-with\_\-numpy}(see below) instead of \emp{build\_\-module}. 
 The complete code can be found in \emp{ex3.py}. 
 
 In Table \ref{speed-up2} we have compared the timings of running with
@@ -462,7 +462,7 @@ and the file containing the wrapper code (named \emp{*\_wrap.cxx}) in the tempor
 
 The second type of error occurs when SWIG is not able to parse the code. These errors  
 are easily identified by the first line in the error message, namely 
-\emp{Error: Syntax error in input(1).}. 
+\emp{Error: Syntax error in input(1).} 
 \begin{python}
 instant_module_815d9b7181988c1596a71b62f8a17936a77e5944.i:39: Error: Syntax error in input(1).
 running build_ext
@@ -477,7 +477,7 @@ gcc: instant_module_815d9b7181988c1596a71b62f8a17936a77e5944_wrap.cxx: No such f
 gcc: no input files
 \end{python}
 SWIG reports that it is unable to parse the Instant generated interface file (named \emp{*.i}) 
-and that the problem arise at line 39.  In this case, you should have a look in the 
+and that the problem arises at line 39.  In this case, you should have a look in the 
 generated interface file in the temporary directory. 
 
 Finally, Python may not be able to import the module from the cache. There might be numerous reasons for this; 
@@ -510,7 +510,7 @@ to the local cache to find the error.
 The previous section concentrated on the usage of Instant.
 In this section we explain what Instant does.
 We will again use our first example, but we set the module name explicitly with the 
-keyword argument \emp{modulename} to see more clearly ie., 
+keyword argument \emp{modulename} to see more clearly what happens: 
 \begin{python}
 from instant import inline
 code = r'''
@@ -547,13 +547,14 @@ and executed. During execution, \emp{setup.py} first runs SWIG on the interface 
 producing \emp{ex4\_wrap.cxx} and \emp{ex4.py}. The first file
 is then compiled into a shared library  \emp{\_ex4.so}
 (note the leading underscore). The file \emp{ex4-0.0.0.egg-info}
-and the directory \emp{build} is also created by Distutils.  
+and the directory \emp{build} are also created by Distutils.  
 The output from executing the Distutils file is stored in the file
 \emp{compile.log}.  Finally, a checksum file named
 \emp{ex4.checksum} is generated, containing a checksum based on
 the files present in the directory. The final step consists of moving the whole
 directory from its temporary location to either cache or a user-specified
-directory. The file \emp{\_\-\_\-init\_\-\_\-.py} imports the module \emp{ex4}.
+directory. The file \emp{\_\-\_\-init\_\-\_\-.py} imports the module
+\emp{ex4} into Python.
 
 The script \index{\emp{instant-clean}}\emp{instant-clean} removes
 compiled modules from the Instant cache, located in the directory
@@ -568,7 +569,7 @@ of the variables describing that array in the C code. For a 1D
 array, this means the names of the variables containing the length of the
 array (an \emp{int}), and the array pointer. The array pointer 
 can have several types, but the default is \emp{double}. For 2D arrays we need three strings, two
-for the length in each dimension. This following example illustrate the array specification:
+for the length in each dimension, and one for the array pointer. This following example illustrate the array specification:
 \begin{python}
 arrays = [['len', 'a'],                        # a 1D array / vector  
           ['len_bx', 'len_by', 'b'],           # a matrix 
@@ -728,7 +729,7 @@ applications.
 \subsection[build\_module]{\emp{build\_module}}
 This function is the most important one in Instant, and for most applications
 the only one that developers need to use (together with the wrapper functions). 
-The return argument is the compiled module which,
+The return argument is the compiled module, which
 can be used directly in the calling code. 
 
 There are a number of keyword arguments, and we will explain them in detail
@@ -835,14 +836,14 @@ SWIG programmers. The keywords arguments are as follows:
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: Directories to search for header files for building the
-      extension module. Needs to be absolute path names.
+      extension module. Need to be absolute path names.
   \end{itemize}
 \item \emp{library\_\-dirs}
   \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: Directories to search for libraries (\emp{-l}) for building
-      the extension module. Needs to be absolute paths.
+      the extension module. Need to be absolute paths.
   \end{itemize}
 \item \emp{libraries}
   \begin{itemize}
@@ -857,13 +858,13 @@ SWIG programmers. The keywords arguments are as follows:
     \item Default: \emp{['-c++', '-fcompact', '-O', '-I.', '-small']}
     \item Type: List of strings
     \item Comment: Arguments to swig, e.g. \emp{['-lpointers.i']}
-      to include the SWIG pointers.i library.
+      to include the SWIG library \emp{pointers.i}.
   \end{itemize}
 \item \emp{swig\_\-include\_\-dirs}
   \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
-    \item Comment: Directories to include in the 'swig' command.
+    \item Comment: Directories to include in the \emp{swig} command.
   \end{itemize}
 \item \emp{cppargs}
   \begin{itemize}
@@ -911,7 +912,7 @@ SWIG programmers. The keywords arguments are as follows:
   \begin{itemize}
     \item Default: \emp{True}
     \item Type: Boolean
-    \item Comment: Indicate if you want to generate the setup.py file.
+    \item Comment: Indicate if you want to generate the \emp{setup.py} file.
   \end{itemize}
 \item \emp{signature}
   \begin{itemize}
@@ -940,13 +941,13 @@ function.
 
 \subsection[inline\_with\_numpy]{\emp{inline\_with\_numpy}}
 The difference between this function and the \emp{inline} function is that
-C-arrays can be used. This means that the necessary arguments
+C arrays can be used. This means that the necessary arguments
 (\emp{init\_\-code}, \emp{system\_\-headers}, and \emp{include\_\-dirs}) for converting
 NumPy arrays to C arrays are set by the function.
 
 \subsection[inline\_module\_with\_numpy]{\emp{inline\_module\_with\_numpy}}
 The difference between this function and the \emp{inline\_\-module} function is
-that C-arrays can be used.  This means that the necessary arguments
+that C arrays can be used.  This means that the necessary arguments
 (\emp{init\_\-code}, \emp{system\_\-headers}, and \emp{include\_\-dirs}) for converting
 NumPy arrays to C arrays are set by the function.
 
@@ -964,15 +965,15 @@ with a function \emp{signature}.
 Using the module name or signature, assuming the module \emp{instant\_\-ext}
 exists in the current working directory or the Instant cache, we import a
 module in the following way:
-\begin{code}
+\begin{python}
 instant_ext = import_module('instant_ext')
-\end{code}
+\end{python}
 An object and a directory can be used as input provided that this object includes a
 function \emp{signature()} and that the module is located in the
 directory:
-\begin{code}
+\begin{python}
 instant_ext = import_module(object, dir)
-\end{code}
+\end{python}
 If the module is found, the imported module is placed in the memory cache.
 
 \subsection[header\_and\_libs\_from\_pkgconfig]{\emp{header\_and\_libs\_from\_pkgconfig}}
@@ -986,12 +987,12 @@ lists with the include directories, the compile flags, the libraries, and the li
 directories of the package names given as arguments. If \emp{returnLinkFlags}
 is \emp{True}, the link flags are returned as a fifth list. 
 It is used as follows: 
-\begin{code}
+\begin{python}
 inc_dirs, comp_flags, libs, lib_dirs, link_flags = \
 header_and_libs_from_pkgconfig('ufc-1', 'libxml-2.0',
                                'numpy-1',
                                returnLinkFlags=True)
-\end{code}
+\end{python}
 
 \subsection[get\_status\_output]{\emp{get\_status\_output}}
 This function provides a platform-independent way of running processes in the
