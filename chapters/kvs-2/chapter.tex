@@ -8,45 +8,45 @@ medicine. Using traditional engineering techniques, one may compute,
 e.g., the blood flow in arteries and the resulting stress on the
 vessel wall to understand, treat and prevent various cardiovascular
 diseases. This chapter is devoted to the computation of blood flow in
-large cerebral arteries and the blood flow affects the development
-and rupture of
-aneurysms. We discuss the process from generating geometries from
-medical imaging data to performing patient-specific simulations of
-hemodynamics in FEniCS.  Specifically, we present three different
-applications: simulations related to a recently published study
-by~\citet{LindekleivValen-SendstadMorganEtAl2010} concerning gender
-differences in cerebral arteries, a study of the carotid arteries of a
-canine with an induced aneurysm described
-in~\citet{JiangJohnsonValen-SendstadEtAl2010}, and a study of the blood
-flow in a healthy Circle of Willis, where patient-specific velocity
-measurements are compared with a model for the peripheral resistance.
+large cerebral arteries and the blood flow affects the development and
+rupture of aneurysms. We discuss the process from generating
+geometries from medical imaging data to performing patient-specific
+simulations of hemodynamics in FEniCS.  Specifically, we present three
+different applications: simulations related to a recently published
+study by~\citet{LindekleivValen-SendstadMorganEtAl2010} concerning
+gender differences in cerebral arteries, a study of the carotid
+arteries of a canine with an induced aneurysm described
+in~\citet{JiangJohnsonValen-SendstadEtAl2010}, and a study of the
+blood flow in a healthy Circle of Willis, where patient-specific
+velocity measurements are compared with a model for the peripheral
+resistance.
 
 %------------------------------------------------------------------------------
 \section{Medical background} \label{Medical_Background}
 
 Stroke is a leading cause of death in the developed part of the
-world \citep{Feigin2005}, and mortality rates could increase dramatically
-in the years to come \citep{MurrayLopez1997}. Stroke is caused by an
-insufficient supply of blood to parts of the brain. There are mainly
-two different types of strokes, ischemia caused by obstructions in
-the blood vessels, and subarachnoid hemorrhage caused by the rupture
-of one or more aneurysms. Aneurysms typically
-develop in or near the so-called Circle of Willis (CoW), which is an
-arterial network of vessels at the base of the brain. The function of
-this circle is believed to be to ensure a robust and redundant system
-in the sense that the brain will receive a sufficient amount of blood
-even if one of the vessels is occluded or under-developed. This network
-connects the internal carotid arteries (ICA) and the vertebral arteries
-(VA) into a circle-like structure. This network is the main supplier
-of blood to the brain. Figure~\ref{fig:kvs-2:textbook-circle} shows
-the circle as typically depicted in textbooks. Blood enters the circle
-through the ICAs, which are located at the front of the neck and the VAs
-located in the back of the neck.  The VAs join in the Basilar Artery
-(BA), and blood leaves the circle in the front through the Anterior
-Cerebral Arteries (ACA), in the back through the Posterior Cerebral
-Arteries (PCA), and at the sides through the Middle Cerebral Arteries
-(MCA). A patient-specific circle, the one used in Section~\ref{cok},
-is shown in Figure~\ref{fig:kvs-2:circle_kent}.
+world \citep{Feigin2005}, and mortality rates could increase
+dramatically in the years to come \citep{MurrayLopez1997}. Stroke is
+caused by an insufficient supply of blood to parts of the brain. There
+are mainly two different types of strokes, ischemia caused by
+obstructions in the blood vessels, and subarachnoid hemorrhage caused
+by the rupture of one or more aneurysms. Aneurysms typically develop
+in or near the so-called Circle of Willis (CoW), which is an arterial
+network of vessels at the base of the brain. The function of this
+circle is believed to be to ensure a robust and redundant system in
+the sense that the brain will receive a sufficient amount of blood
+even if one of the vessels is occluded or under-developed. This
+network connects the internal carotid arteries (ICA) and the vertebral
+arteries (VA) into a circle-like structure. This network is the main
+supplier of blood to the brain. Figure~\ref{fig:kvs-2:textbook-circle}
+shows the circle as typically depicted in textbooks. Blood enters the
+circle through the ICAs, which are located at the front of the neck
+and the VAs located in the back of the neck.  The VAs join in the
+Basilar Artery (BA), and blood leaves the circle in the front through
+the Anterior Cerebral Arteries (ACA), in the back through the
+Posterior Cerebral Arteries (PCA), and at the sides through the Middle
+Cerebral Arteries (MCA). A patient-specific circle, the one used in
+Section~\ref{cok}, is shown in Figure~\ref{fig:kvs-2:circle_kent}.
 
 % Figure from old book (Gray's anatomy) which has expired Copyright,
 % copied from wikipedia: http://en.wikipedia.org/wiki/Circle_of_Willis
@@ -73,9 +73,9 @@ Aneurysms are relatively common. As many as 1--6\% of the population
 develop aneurysms during their
 lifetime \citep{Weir2002}. Unfortunately, aneurysms often rupture at a
 relatively early age. The average age of rupture is 52
-years \citep{Humphrey2001}. An intracranial aneurysm is a dilatation of
-the blood vessel wall, and the reason for initialization, growth and
-rupture of aneurysms are largely unknown.  What is known is that
+years \citep{Humphrey2001}. An intracranial aneurysm is a dilatation
+of the blood vessel wall, and the reason for initialization, growth
+and rupture of aneurysms are largely unknown.  What is known is that
 increased wall shear stress (WSS) affects vascular endothelial cell
 turnover \citep{DAVIESREMUZZIGORDONEtAl1986}, that aneurysms may grow
 in the direction of low wall shear
@@ -83,14 +83,14 @@ stress \citep{BousselRayzMcCullochEtAl2008}, and that flow pattern and
 impingement zones affect the possibility of
 rupture \citep{CebralCastroBurgessEtAl2005}. The vessel wall clearly
 responds to mechanical stimuli and this is the reason why wall shear
-stress is believed to be of special importance when trying to understand the
-pathogenesis of intracranial aneurysms. It is also known that the
-cerebral arteries lack perivascular support and the walls are
-relatively thin relative to the rest of the intracranial
+stress is believed to be of special importance when trying to
+understand the pathogenesis of intracranial aneurysms. It is also
+known that the cerebral arteries lack perivascular support and the
+walls are relatively thin relative to the rest of the intracranial
 vasculature \citep{Humphrey2001,Stehbens1975}.  Furthermore, the
 anatomy of cerebral vessels varies greatly. Only around 50\% of the
-general population have a complete and well-balanced circle; the rest either have
-under-developed vessels or the vessels are missing
+general population have a complete and well-balanced circle; the rest
+either have under-developed vessels or the vessels are missing
 completely \citep{Fung1984}. Gender, ethnicity, and lifestyle have
 shown to be of
 importance \citep{MhurchuAndersonJamrozikEtAl2001,LongstrethNelsonKoepsellEtAl1994,KongableLanzinoGermansonEtAl1996}.
@@ -167,16 +167,13 @@ assemble(Lt, tensor=shear_stress.vector())
 \subsection{Boundary conditions} \label{resistance_bcs}
 
 For transient inlet boundary conditions, one option is to apply
-velocity waveform data in the ICA
-from \citet{FordAlperinLeeEtAl2005}, where the average velocity was
-measured for seventeen young patients at rest. The nondimensionalized
-velocity is illustrated in Figure~\ref{fig:kvs-2:ford}. The inlet
-velocity profile is easy to measure through the ICA or the
-VA using transcranial Doppler. This enables
-patient-specific velocity measurements such as in the CoW study in
-Section~\ref{cok}.
-
-
+velocity waveform data in the ICA from \citet{FordAlperinLeeEtAl2005},
+where the average velocity was measured for seventeen young patients
+at rest. The nondimensionalized velocity is illustrated in
+Figure~\ref{fig:kvs-2:ford}. The inlet velocity profile is easy to
+measure through the ICA or the VA using transcranial Doppler. This
+enables patient-specific velocity measurements such as in the CoW
+study in Section~\ref{cok}.
 
 \begin{figure}
   \center\includegraphics[width=\largefig]{chapters/kvs-2/pdf/systolic.pdf}
@@ -209,7 +206,8 @@ pressure (85 mmHg) which is applied to the inlet and $u$ is the
 velocity. The coefficients in Table~\ref{resistance_coeff} are
 from \citet{AlastrueyParkerPeiroEtAl2007} and show a clear relation
 between the diameter of the vessel and the resistance coefficient. The
-implementation of the resistance boundary condition is shown in Figure~\ref{fig:kvs-2:resistance_code}.
+implementation of the resistance boundary condition is shown in
+Figure~\ref{fig:kvs-2:resistance_code}.
 
 \begin{table}
   \begin{center}
@@ -229,7 +227,6 @@ implementation of the resistance boundary condition is shown in Figure~\ref{fig:
 \end{table}
 
 \begin{figure}
-  %\codesize
   \begin{center}
     \begin{python}
 # Outflow boundary value for pressure
@@ -287,15 +284,15 @@ in order to converge.
     \caption{Image segmentation process; from MRI to mesh.}
 \end{figure*}
 
-Patient-specific geometries are computed from Computed
-Tomography Angiography (CTA) or Magnetic Resonance Angiography (MRA)
-images as follows. A stack of 2D images is used as input to the \citet{vmtk}, where a 3D surface model is generated
-based upon the light intensity in the pictures using
-level set techniques. A volume is then created from the surface, from
-which a mesh can be generated. This process is illustrated in
-Figure~\ref{fig:kvs-2:imagseg}, where the mesh of a blood vessel
-extracted from the geometry is shown to the right. The final mesh is
-used as input to the flow solver.
+Patient-specific geometries are obtained from Computed Tomography
+Angiography (CTA) or Magnetic Resonance Angiography (MRA) images as
+follows. A stack of 2D images is used as input to the \citet{vmtk},
+where a 3D surface model is generated based upon the light intensity
+in the pictures using level set techniques. A volume is then created
+from the surface, from which a mesh can be generated. This process is
+illustrated in Figure~\ref{fig:kvs-2:imagseg}, where the mesh of a
+blood vessel extracted from the geometry is shown to the right. The
+final mesh is used as input to the flow solver.
 
 %------------------------------------------------------------------------------
 \section{Gender differences in the intracranial vasculature} \label{gender}
@@ -309,14 +306,14 @@ intracranial bifurcations.
 
 Females are more likely to harbor intracranial aneurysms than men and,
 consequentially, more frequently get subarachnoid hemorrhage
-(SAH) \citep{EdenMeurerSanchezEtAl2008}. The reason is not
-known, but studies suggest an increased risk of aneurysm rupture after
-the age of fifty, in the postmenopausal years. This might indicate the
-influence of hormonal factors on the vessel wall. This hypothesis is
-supported by the reduced risk of SAH with increased parity. However,
-studies have failed to prove a decisive correlation between hormonal
-factors and the risk of SAH. Another hypothesis is that high values of
-wall shear stress may influence the initialization of aneurysms. With
+(SAH) \citep{EdenMeurerSanchezEtAl2008}. The reason is not known, but
+studies suggest an increased risk of aneurysm rupture after the age of
+fifty, in the postmenopausal years. This might indicate the influence
+of hormonal factors on the vessel wall. This hypothesis is supported
+by the reduced risk of SAH with increased parity. However, studies
+have failed to prove a decisive correlation between hormonal factors
+and the risk of SAH. Another hypothesis is that high values of wall
+shear stress may influence the initialization of aneurysms. With
 measurements of radii and angles of intracranial bifurcations
 available from a previous study in our group,
 see \citet{IngebrigtsenMorganFaulderEtAl2004}, we therefore wished to
@@ -326,12 +323,11 @@ forces by numerical simulations.
 \subsection{Method}
 
 Measurements of 49 patients were performed to obtain the geometric
-quantities of
-the MCA and ICA bifurcations. The averaged values for the diameters
-were used to create one idealized
-bifurcation of the MCA and ICA for both females and males. The model
-basically consists of three cylinders connected with a smoothing at
-the interface to give a physiologically correct appearance.
+quantities of the MCA and ICA bifurcations. The averaged values for
+the diameters were used to create one idealized bifurcation of the MCA
+and ICA for both females and males. The model basically consists of
+three cylinders connected with a smoothing at the interface to give a
+physiologically correct appearance.
 
 Average gender specific blood flow velocity measurements from the ICA
 and MCA from \citet{KrejzaSzydlikLiebeskindEtAl2005} were used as
@@ -364,7 +360,8 @@ except from the peak values in the vicinity of the bifurcations. Even
 though the model is simple, the aim was to demonstrate a principle
 with a potentially important application, that is, that WSS may be of
 importance in the initialization and rupture of intracranial
-aneurysms. Furthermore, the results correlate well with the fact that women develop more aneurysms than men.
+aneurysms. Furthermore, the results correlate well with the fact that
+women develop more aneurysms than men.
 
 \begin{figure}
   \center\includegraphics[width=\largefig]{chapters/kvs-2/pdf/bifurcation_clean.pdf}
@@ -411,20 +408,20 @@ $\beta$		  & $68.8^\circ$ & $72.5^\circ$   & $49.7^\circ$ & $50.5^\circ$\\
 In another study, see \citet{JiangJohnsonValen-SendstadEtAl2010}, we
 quantitatively compared CFD, assuming Newtonian flow with rigid walls,
 with four-dimensional Phase Contrast Magnetic Resonance Angiography
-(PC MRA) techniques. The intention was both to verify the computational 
-techniques for creating  patient-specific models and corresponding CFD results and
-to understand and quantify the accuracy of the simplest possible flow
-model against state-of-the-art measurements.
+(PC MRA) techniques. The intention was both to verify the
+computational techniques for creating patient-specific models and
+corresponding CFD results and to understand and quantify the accuracy
+of the simplest possible flow model against state-of-the-art
+measurements.
 
 Four-dimensional PC MRA is a noninvasive technique to measure flow in
 the vascular system. The image acquisition consists of a scan time of
-roughly 8 minutes. The canine had  an average heart rate
-of 101 beats per minute,
-so the obtained images are an average over 808 heart cycles. There is
-naturally no guarantee for a constant heart beat in the canine, and
-this is of course error prone. However, in humans with larger
-diameters in the vasculatory system, errors have been shown to be of
-order 3-10\% in the pulmonary arteries;
+roughly 8 minutes. The canine had an average heart rate of 101 beats
+per minute, so the obtained images are an average over 808 heart
+cycles. There is naturally no guarantee for a constant heart beat in
+the canine, and this is of course error prone. However, in humans with
+larger diameters in the vasculatory system, errors have been shown to
+be of order 3-10\% in the pulmonary arteries;
 see \citet{LotzMeierLeppertEtAl2002,EvansIwaiGristEtAl1993}.
 
 The resolution is coarse in both space and time, and computation of
@@ -453,22 +450,17 @@ width.
 Three weeks after the artificial aneurysm was created, the canine was
 anesthetized and subjected to 4D PC MRA imaging studies; that is, the
 velocity measurements were performed. The raw data from the 4D PC MRA
-scan measurements are
-shown in Figure~\ref{fig:kvs-2:mass_dog} where each solid line
-represents the sum of fluxes at different cross sections of the
-inlet and outlet arteries. The picture to the left in
+scan measurements are shown in Figure~\ref{fig:kvs-2:mass_dog} where
+each solid line represents the sum of fluxes at different cross
+sections of the inlet and outlet arteries. The picture to the left in
 Figure~\ref{fig:kvs-2:mass_dog} shows the sum of velocities at the
-inlet, which is one artery, while the picture to the right shows the output
-flux; that is, the sum of the outflow in both
-outflow arteries. For a more thorough description, we
-refer to \citet{JiangJohnsonValen-SendstadEtAl2010}. 
-%To get higher
-%resolution images (of the vasculature only and not flow measurements),
-%the canine underwent 3D Digital Subtraction Angiography (DSA) within
-%24 hours. 
-The coarse data obtained from 4D PC MRA is shown in
-the left and middle images of Figure~\ref{fig:kvs-2:dog_mri}, while the
-corresponding CFD simulation is shown to the right.
+inlet, which is one artery, while the picture to the right shows the
+output flux; that is, the sum of the outflow in both outflow
+arteries. For a more thorough description, we refer
+to \citet{JiangJohnsonValen-SendstadEtAl2010}.  The coarse data
+obtained from 4D PC MRA is shown in the left and middle images of
+Figure~\ref{fig:kvs-2:dog_mri}, while the corresponding CFD simulation
+is shown to the right.
 
 
 \begin{figure}
@@ -497,24 +489,23 @@ Section~\ref{vmtk}. We solved the incompressible Navier--Stokes
 equations using an Incremental Pressure Correction Scheme (IPCS) as
 described in Chapter~\ref{chap:kvs-1}. We used first order elements
 for both velocity and pressure, simulated over four heart beats, and
-obtained the results from the last cycle. 
-%The CFL number is a dimensionless number that describes the temporal resolution relative to the grid spacing.  
-With a CFL number of roughly ten, the number of
-time steps was 696 per cardiac cycle. As inflow boundary conditions,
-we used an average value from the five lower most voxels (three
-dimensional pixels / samples from the measurements) in the
-$z$-direction. For the outflow, we applied a resistance boundary
-condition as described in section ~\ref{resistance_bcs}. The inflow
-was calculated according to Figure~\ref{fig:kvs-2:inflow_codeI} and
+obtained the results from the last cycle. With a CFL number of
+roughly ten, the number of time steps was 696 per cardiac cycle. As
+inflow boundary conditions, we used an average value from the five
+lower most voxels (three dimensional pixels / samples from the
+measurements) in the $z$-direction. For the outflow, we applied a
+resistance boundary condition as described in section
+~\ref{resistance_bcs}. The inflow was calculated according to
+Figure~\ref{fig:kvs-2:inflow_codeI} and
 Figure~\ref{fig:kvs-2:inflow_codeII}.
 
 Figure~\ref{fig:kvs-2:inflow_codeI} shows how the values in
 Figure~\ref{fig:kvs-2:mass_dog} are returned as a spline function. The
 factor \emp{(133.0/256)**-2} scales the voxel size to the matrix size,
 so that the focus of the image corresponds to the actual size in
-millimeters. The \emp{t}
-variable is the end time, and the scalar $0.037$ is the equally spaced
-times of where measurements for \emp{v} were made.
+millimeters. The \emp{t} variable is the end time, and the scalar
+$0.037$ is the equally spaced times of where measurements for \emp{v}
+were made.
 
 \begin{figure}
   %\codesize
@@ -591,18 +582,15 @@ to \citet{JiangJohnsonValen-SendstadEtAl2010}.
 The reason for using the average values of the five lower most cross
 sections as inflow is that given the resolution of the 4D PC MRA, each
 level of voxels is not necessarily mass conserving. As seen in
-Figure~\ref{fig:kvs-2:mass_dog}, the sum of mass in a plane may vary by as
-much as 20\% between the different sections (the solid lines).  It is also clearly
-visible in this figure that peak systole appears at time step four in
-both left (inflow) and right (outflow) image of the figure, but the
-``bump'' at mid deceleration has shifted from time step seven at the
-inflow to eight at the outflow.  This may be because of the 
-so-called Windkessel effect, which may only be captured using a fluid
-structure interaction model, 
-but it is difficult to conclude due to the coarseness of the measurements.
-%This effect is also visible as the
-%variation of how much the lines are spread vertically through the
-%heart cycle.
+Figure~\ref{fig:kvs-2:mass_dog}, the sum of mass in a plane may vary
+by as much as 20\% between the different sections (the solid lines).
+It is also clearly visible in this figure that peak systole appears at
+time step four in both left (inflow) and right (outflow) image of the
+figure, but the ``bump'' at mid deceleration has shifted from time
+step seven at the inflow to eight at the outflow.  This may be because
+of the so-called Windkessel effect, which may only be captured using a
+fluid structure interaction model, but it is difficult to conclude due
+to the coarseness of the measurements.
 
 A limitation of the current study is that the results should not be
 interpreted as physiologically correct since the technique consists of
@@ -616,13 +604,12 @@ Figure~\ref{fig:kvs-2:dog_mri}, there are no boundary layers due to
 isotropic voxels, and the colors appear brighter since high velocities
 are possible close to the wall.  The CFD simulations have short arrows
 at the same location indicating that the boundary layer has been
-resolved and we get lower velocity magnitudes.
-This is an obvious drawback with
-the 4D PC MRA. Thus, we get a good agreement with the velocity
-measurements, but poor agreement for computed wall shear stresses. The
-reason for this is believed to be the poor spatial resolution of the
-4D PC MRA data. For a more thorough description, we refer
-to \citet{JiangJohnsonValen-SendstadEtAl2010}.
+resolved and we get lower velocity magnitudes.  This is an obvious
+drawback with the 4D PC MRA. Thus, we get a good agreement with the
+velocity measurements, but poor agreement for computed wall shear
+stresses. The reason for this is believed to be the poor spatial
+resolution of the 4D PC MRA data. For a more thorough description, we
+refer to \citet{JiangJohnsonValen-SendstadEtAl2010}.
 
 Each of the two methods has its strengths and weaknesses. While 4D PC
 MRA is fast, cheap, and harmless, it uses average values over a voxel
@@ -646,15 +633,14 @@ non-Newtonian effects are of importance.
 
 In a study performed in collaboration with clinicians from the
 Neuroradiology department at Rikshospitalet University Hospital in
-Oslo, we wanted to
-investigate whether we are able to reproduce velocities in a full
-Circle of Willis with measurements at the inflow and compare with
-measurements at the outflow using resistance boundary conditions from
-the
+Oslo, we wanted to investigate whether we are able to reproduce
+velocities in a full Circle of Willis with measurements at the inflow
+and compare with measurements at the outflow using resistance boundary
+conditions from the
 literature \citep{AlastrueyParkerPeiroEtAl2007,Vignon-ClementelFigueroaJansenEtAl2006}.
 Such an evaluation or verification of boundary conditions is
-essential, before proceeding with more sophisticated models 
-for the entire intracranial vasculature.
+essential, before proceeding with more sophisticated models for the
+entire intracranial vasculature.
 
 \begin{figure}
   \begin{center}
@@ -672,53 +658,25 @@ for the entire intracranial vasculature.
 
 Transcranial Doppler (TCD) was performed on a healthy volunteer at
 rest. During the velocity recording, the average pulse was about 73
-beats per minute. The velocity measurements
-were used as input to the vessels that are the main suppliers
-of blood to the brain, that is, the ICAs and
-VAs. Figure~\ref{fig:kvs-2:cok_inflow} shows the resulting waveform
-(right) that was applied from the measurements (left). The figure
-shows the ICA velocities from the top with equal value at peak systole
-(120cm/s) and differing at end diastole (minimum 50cm/s in right ICA
-and 20 cm/s in left ICA). The lower most line has a different waveform
-and shows values for two superimposed VAs since they are equal. The
-vasculature (based on an MRA scan) for this patient was already available from a
-previous study performed nine months earlier. The major vessels (ICA,
-MCA, PCA, ACA, VA, BA) were segmented as described in
-Section~\ref{vmtk}. The simulations were performed on meshes with
-three boundary layers where the number of tetrahedron cells were approximately
-$400\;000$, $900\;000$ and $2\;600\;000$. We used
-continuous linear elements for both velocities and pressure, 
-and an incremental pressure
-correction scheme with Adams--Bashford implicit convection and
-Crank--Nicolson diffusion to solve the incompressible Navier--Stokes
-equations. The resolution in time was 3532 time steps per heart beat
-on the coarsest mesh.
-
-%Figure~\ref{fig:kvs-2:outflow_code} shows how the outflow boundary
-%conditions are set. The numbers 6 to 13 refer to the labels for the
-%different outlets. For each outlet, the class
-%\emp{OutflowBoundaryValue()} is called, which returns a value for the
-%pressure. Finally, the specific outlet is applied to a list of
-%boundary conditions used in the Navier--Stokes solver.
-
-%\begin{figure}
-%  %\codesize
-%  \begin{center}
-%    \begin{python}
-%for i in (6,7,8,9,10,11,12,13):
-%	g = OutflowBoundaryValue()
-%	g.init(self, i)
-%	self.gps.append(g)
-%	bc = DirichletBC(Q, g, self.sub_domains, i)
-%	g.current_t = 0
-%	self.gps.append(g)
-%	bcp.append(bc)
-%   \end{python}
-%    \caption{Calculation of resistance outflow boundary conditions for
-%      the pressure in the patient-specific CoW.}
-%    \label{fig:kvs-2:outflow_code}
-%  \end{center}
-%\end{figure}
+beats per minute. The velocity measurements were used as input to the
+vessels that are the main suppliers of blood to the brain, that is,
+the ICAs and VAs. Figure~\ref{fig:kvs-2:cok_inflow} shows the
+resulting waveform (right) that was applied from the measurements
+(left). The figure shows the ICA velocities from the top with equal
+value at peak systole (120cm/s) and differing at end diastole (minimum
+50cm/s in right ICA and 20 cm/s in left ICA). The lower most line has
+a different waveform and shows values for two superimposed VAs since
+they are equal. The vasculature (based on an MRA scan) for this
+patient was already available from a previous study performed nine
+months earlier. The major vessels (ICA, MCA, PCA, ACA, VA, BA) were
+segmented as described in Section~\ref{vmtk}. The simulations were
+performed on meshes with three boundary layers where the number of
+tetrahedron cells were approximately $400\;000$, $900\;000$ and
+$2\;600\;000$. We used continuous linear elements for both velocities
+and pressure, and an incremental pressure correction scheme with
+Adams--Bashford implicit convection and Crank--Nicolson diffusion to
+solve the incompressible Navier--Stokes equations. The resolution in
+time was 3532 time steps per heart beat on the coarsest mesh.
 
 \subsection{Results}
 
@@ -817,13 +775,3 @@ def area(self, i):
       non-uniform flow in ICA.}
     \label{fig:kvs-2:cok_ica}
 \end{figure}
-
-%\section*{Source code and data}
-%
-%The source code for this chapter can be found at
-%\url{www.fenics.<org/to_be_decided/kvs-2}. The solver builds on the
-%code developed in Chapter~[kvs-1]. We have also included velocities
-%and anatomy from the MRA and the DSA data from the canine
-%study. Finally, we include MR data for the patient-specific Circle of
-%Willis and corresponding transcranial ultrasound images for the blood
-%velocities.
