@@ -421,7 +421,7 @@ functions of the test and trial spaces are the same (modulo boundary
 conditions), will produce discrete equations that correspond to
 central differencing in space. Therefore, we employ the standard
 Galerkin method for spatial discretization. For the temporal
-discretiztion we will here follow 
+discretization we will here follow 
 \citet{SimoArmero1994} and describe a family of solvers for the
 transient NS equations.
 
@@ -498,13 +498,13 @@ approaches is often referred to as fractional step methods.
 
 The fundamental problem in \eqref{eq:mortensen:NS_d} is that the
 pressure $p_{n-1/2}$ is unknown. One approximation is then to use the
-known pressure gradient $\nabla p_{n-3/2}$ from the previous timestep
+known pressure gradient $\nabla p_{n-3/2}$ from the previous time step
 as a first guess. Then \eqref{eq:mortensen:NS_d} can be solved for
 $\vec{u}_n$. Unfortunately, this $\vec{u}_n$ will most likely not also
 fulfill \eqref{eq:mortensen:cont_d}. Moreover, there is no obvious
 way to advance $p$ to time $t_{n-1/2}$. Still, we may correct the
 solution of \eqref{eq:mortensen:NS_d} found by using an old
-pressure. Let us denote this tenative or intermediate solution by
+pressure. Let us denote this tentative or intermediate solution by
 $\vec{u}_I$ ($I$ for intermediate). Its equation is
 \begin{equation}
 \label{eq:mortensen:NS_FS}
@@ -614,7 +614,7 @@ pressure simultaneously; that is, in a fully coupled manner.  Naturally,
 such a coupled solver incurs a much larger memory cost which makes it
 less suitable for large-scale turbulence applications. However, there
 is no splitting error and thus the method can in general take longer
-timesteps and be particularly useful for validating fractional step
+time steps and be particularly useful for validating fractional step
 solvers.
 
 The convective term contains two velocity fields $\tilde{\vec{u}}$ and
@@ -747,7 +747,7 @@ the benchmark Chapter~[kvs-1], and are thus not repeated here.
 %     a0 = lhs(F)
 %     L0 = rhs(F)
 % ecod
-% Here u0 and u1 represent known velocity fields at timesteps $n-1$ and $n$ respectively and p0 is the latest available pressure. The pressure correction (\eqref{eq:mortensen:PC}) is implemented as
+% Here u0 and u1 represent known velocity fields at time steps $n-1$ and $n$ respectively and p0 is the latest available pressure. The pressure correction (\eqref{eq:mortensen:PC}) is implemented as
 % bcod
 %     a1 =  inner(grad(q), grad(p))*dx
 %     L1 = -(1.0/k)*q*div(u2)*dx
@@ -801,7 +801,7 @@ time-derivative terms, giving rise to three identical mass matrix
 blocks, and three scalar viscosity (or similarly convection) terms,
 giving rise to three Laplacian ``stiffness matrix'' blocks.  Moreover,
 these blocks are constant in time and do not have to be reassembled
-every timestep.
+every time step.
 
 We could gain a potentially significant speed-up by exploiting the
 mentioned properties and thereby avoid computing and assembling large
@@ -819,7 +819,7 @@ therefore go through the relevant optimization steps here in detail.
    convection $(\vec{u}\cdot\nabla)$, and diffusion terms
    $(\nu\nabla^2)$, and take advantage of the fact that for the total
    coefficient matrix it is only the nonlinear convection term that
-   needs to be reassembled at every timestep. The matrices for the
+   needs to be reassembled at every time step. The matrices for the
    linear, constant-in-time accumulation and diffusion terms can be
    assembled before going into the time loop.
 
@@ -845,7 +845,7 @@ Ac = assemble(conv(u_1, uc, vc)*dx)
 \end{python}
 Here \emp{u\_1} is the \emp{Function} on the space \emp{V} holding the
 approximation of the convecting velocity (taken as $\vec{u}_{n-1}$ in
-this example).  The matrx \emp{Ac} is of size $n_v\times n_v$ ($n_v$
+this example).  The matrix \emp{Ac} is of size $n_v\times n_v$ ($n_v$
 equals \emp{Vc.dim()}).  The large matrix for the complete velocity
 vector field can now be obtained simply by copying this \emp{Ac}
 matrix to the three diagonal slots in the $3\times 3$ block matrix
@@ -883,7 +883,7 @@ process.
   segregated solvers using two different convection schemes in the
   Taylor Green problem. For each solver the first two numbers
   represent total time and time spent in the solver loop. Numbers in
-  paranthesis show timings for the solver and assembler respectively.
+  parenthesis show timings for the solver and assembler respectively.
 }
 \vskip 1.5ex
 \centering
@@ -901,7 +901,7 @@ process.
 Table \ref{tab:mortensen:speed-up} shows briefly the effect of the
 speed up routines on the CPU-time for the Taylor--Green problem (see
 Sec. \ref{sec:mortensen:TG}) with $Re=100$ on a $16^3$ mesh using four
-timesteps and a total integration time of 0.5. The naive
+time steps and a total integration time of 0.5. The naive
 implementations referenced in Table \ref{tab:mortensen:speed-up} uses
 one line of code style and lhs/rhs to extract forms for the numerical
 schemes. This corresponds roughly to the code presented in the
@@ -910,12 +910,12 @@ solver and similar for the segregated solver. The optimized versions
 have been implemented following the steps outlined above. The two CPU
 times shown are the total time and the time spent inside the time
 integration loop; that is, the total time minus the time it takes to set
-up the problem for looping. The two numbers in paranthesis show the
+up the problem for looping. The two numbers in parenthesis show the
 time spent in the Krylov solvers and the assemblers
 respectively. Evidently, with the implicit solvers we can for this
 problem obtain a speed-up factor of nearly 40 (662/17) for the coupled
 solver. Most of this speed up follows from minimizing the amount of
-code that needs to be reassembled every timestep and by avoiding a
+code that needs to be reassembled every time step and by avoiding a
 direct assembly of a large $(n_vd+n_p)\times (n_vd+n_p)$ matrix. As
 can be seen, the Krylov solvers are for the optimized solvers
 approximately a factor 3 faster all over, which is attributed to the
@@ -952,7 +952,7 @@ initial-boundary value problem
  u(x,0) &=-\text{sin}(\pi x)+\kappa \xi,
 \label{eq:mortensen:burgers}
 \end{align}
-wher $\xi$ is a random number between 0 and 1, which is used to create a
+where $\xi$ is a random number between 0 and 1, which is used to create a
 discrete ``white noise'' (uncorrelated) fluctuating velocity field resembling turbulence, and $\kappa$ is the amplitude of the perturbation. %Like for the NS equations there is accumulation, a nonlinear convection term and diffusion, yet there is no pressure-velocity coupling, which makes Burger's equation easier to implement and solve. Furthermore, several analytical solutions are known for a variety of initial conditions. In this work, though, we will only use conservation of the solution's kinetic energy as a measure of accuracy.
 % For the current initialization and $\kappa=0$, the Burger's equation
 % allows a series analytical solution \citet{}
@@ -1095,7 +1095,7 @@ stability of the numerical time integration scheme thus becomes an
 important factor. Furthermore, the Reynolds number may be varied over
 decades (both the viscous and the inviscid limits), and a wide range
 of different solutions may be explored, as any mode (not just the
-unstable one) yields a different analytical solution. Alltogether,
+unstable one) yields a different analytical solution. Altogether,
 this makes the OS equation an ideal testcase for NS solvers.
 
 \paragraph{Solution of the Orr--Sommerfeld equation}
@@ -1163,7 +1163,7 @@ here, and the source code can be found in the file
 of DOLFIN \emp{Functions} with the Orr--Sommerfeld solution, a subclass
 called \emp{U0} of the DOLFIN class \emp{Expression} is implemented
 such that it solves the eigenvalue problem on creation and overloads
-the eval function with the equivalence of
+the \emp{eval} function with the equivalence of
 \eqref{eq:mortensen:channel}. To initialize the specified
 initial velocity field we need to create an instance of the \emp{U0}
 class and interpolate it onto the appropriate function space: \emp{V}
@@ -1237,7 +1237,7 @@ perturbation flow energy computed as
    of convection are here represented with solid, dashed and dotted
    lines respectively. The fully coupled and fractional step solvers
    are represented with gray and black lines, respectively. For all
-   results the timestep used is 0.005. Note that in (a) the black and
+   results the time step used is 0.005. Note that in (a) the black and
    gray curves are practically identical (the error in the fully
    coupled solver is approximately 2\% less throughout). }
 \label{fig:mortensen:OS_init_dx}
@@ -1261,7 +1261,7 @@ followed by the skew and divergence forms, whereas exactly the
 opposite behavior is observed for the implicit solver.
 
 To investigate the spatial discretization with the P2/P1 elements we
-keep the timestep constant and small at 0.005 and vary the mesh size
+keep the time step constant and small at 0.005 and vary the mesh size
 from 16 to 48 in the \emp{Rectangle} class. The accumulated error is
 shown in Figure~\ref{fig:mortensen:OS_init_dx}, where we observe the
 third order accuracy that was expected for Taylor-Hood elements. Again
@@ -1301,7 +1301,7 @@ capture the instability with ease and evolves more or less exactly
 according to the true solution of the eigenvalue problem. There are
 only minor differences between the fractional step and the fully
 coupled solver, which is not unexpected since we are using a very
-short timestep and the (second order in time) error in fractional step
+short time step and the (second order in time) error in fractional step
 splitting (the only difference between the two methods) is thus
 minimized. By increasing the CFL number it can be shown that the fully
 coupled solver remains accurate for longer time-steps. Note that the
@@ -1313,7 +1313,7 @@ when we are really interested in solving instability problems, where
 the most important physical process is that energy changes form (from
 the mean flow to the perturbation). Also shown in
 Figure~\ref{fig:mortensen:OS_long_time} with circles is the result of
-using the same number of degrees of freedom and timestep with a
+using the same number of degrees of freedom and time step with a
 cell-vertex based finite volume solver. The finite volume solver is
 discretized in a similar manner as our FEniCS solvers with implicit
 convection \eqref{eq:mortensen:IM2} using Adams-Bashforth projection
@@ -1356,7 +1356,7 @@ also by \citet{MalikZangHussaini1984} and \citet{CanutoHussainiQuarteroniEtAl200
 Finally, we consider a real transition to turbulence problem. The
 Taylor--Green vortex is characterized by an initialization based on an
 asymptotic expansion in time in a triply periodic domain spanning
-$[-\pi,\pi]$ in all threee directions. The deterministic initial
+$[-\pi,\pi]$ in all three directions. The deterministic initial
 condition that is left to evolve and destabilize into a chaotic
 turbulent flow is given by
 \begin{align}
@@ -1390,14 +1390,14 @@ nodal Gauss-Lobatto-Legendre basis functions and Fourier expansions in
 one homogeneous direction. To validate the Taylor--Green case we use 30
 times 30 homogeneous elements of order 6 in both x and y-directions
 and 144 planes in the $z$-direction that is solved using Fourier
-expansions. The timestep in the second order timestepping routine is
+expansions. The time step in the second order time stepping routine is
 set to 0.005.
 
 Figure~\ref{fig:mortensen:dissipation} shows the error in average rate
 of dissipation and kinetic energy computed using $Re=100$ and a
 \emp{UnitCube} domain with $16^3$, $24^3$ and $32^3$ bricks (each
 being divided into 6 tetrahedra). The CFL number used is 0.05, which
-practically eliminates temporal errors. With this small timestep it is
+practically eliminates temporal errors. With this small time step it is
 nearly impossible to distinguish between the results of using explicit
 \eqref{eq:mortensen:EX} or implicit \eqref{eq:mortensen:IM2}
 convection and thus only the latter is shown.
