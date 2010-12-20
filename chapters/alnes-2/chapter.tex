@@ -1,5 +1,5 @@
-\fenicschapter{UFC: A Finite Element Code Generation Interface}
-              {UFC: A Finite Element Code Generation Interface}
+\fenicschapter{UFC: a finite element code generation interface}
+              {UFC: a finite element code generation interface}
               {Martin Sandve Aln\ae{}s, Anders Logg and Kent-Andre Mardal}
               {logg-4}
 
@@ -18,82 +18,119 @@ abstract C++ classes using plain C arrays for data transfer.
 
 This chapter gives a short overview of the UFC interface. For a more
 comprehensive discussion, we refer to the UFC
-manual~\cite{AlnaesLangtangenEtAl2007} and the
-paper~\cite{AlnaesLoggMardalEtAl2009aa}.
+manual~\citet{AlnaesLangtangenEtAl2007} and the
+paper~\citet{AlnaesLoggMardalEtAl2009}.
+
+%------------------------------------------------------------------------------
+\section{Overview}
+\label{sec:alnes-2overview}
+
+A key step in the solution of partial differential equations by the
+finite element method is the assembly of linear and nonlinear systems
+of equations. The implementation of such solvers is much helped by the
+existence of generic software libraries that provide data structures
+and algorithms for computational meshes and linear algebra. This
+allows the implementation of a generic assembly algorithm that may be
+partly reused from one application to another. However, since the
+inner loop of the assembly algorithm inherently depends on the partial
+differential equation being solved and the finite elements used to
+produce the discretization, this inner loop must typically be supplied
+by the user. Writing the inner loop is a challenging task that is
+prone to errors, and which prohibits rapid prototyping and
+experimentation with models and discretization methods.
+
+The FEniCS tool-chain of FIAT--UFC--FFC/SFC--UFC--DOLFIN is an attempt
+to solve this problem. By generating automatically the inner loop
+based on a high-level description of the finite element variational
+problem (in the UFL form language), FEniCS is able to provide a
+completely generic implementation of the assembly algorithm as part of
+DOLFIN. This is illustrated in
+Figure~\ref{fig:alnes-2:ufc_flowdiagram}. We note from this figure
+that the user input is partitioned into two sets: a first subset
+consisting of the finite element variational problem that requires
+code generation, and a second subset consisting of the mesh and
+coefficient data that is given as input to the assembler.
+
+\begin{figure*}
+  \begin{center}
+    \includegraphics[width=\fullfig]{chapters/alnes-2/pdf/ufc_flowdiagram.pdf}
+    \caption{A flow diagram of finite element assembly in FEniCS.}
+    \label{fig:alnes-2:ufc_flowdiagram}
+  \end{center}
+\end{figure*}
 
 %------------------------------------------------------------------------------
 \section{Finite element discretization and assembly}
-\label{sec:fem}
+\label{sec:alnes-2fem}
 
-In Chapter~[logg-3], we described the assembly algorithm for computing
-the global rank~$\rho$ tensor~$A$ corresponding to a multilinear
-form~$a$ of arity~$\rho$,
+In Chapter~\ref{chap:logg-3}, we described the assembly algorithm for
+computing the global rank~$\rho$ tensor~$A$ corresponding to a
+multilinear form~$a$ of arity~$\rho$:
 \begin{equation} \label{eq:varform}
   \begin{split}
-    a &: V_h^1 \times V_h^2 \times \cdots \times V_h^{\rho} \, \times \,
-         W_h^1 \times W_h^2 \times \cdots \times W_h^n \rightarrow \R, \\
-    a &\mapsto a(v_1, v_2, \ldots, v_{\rho}; w_1, w_2, \ldots, w_n).
+    a &: W_{1,h} \times W_{2,h} \times \cdots \times W_{n,h} \, \times \,
+    V_{\rho,h} \times \cdots \times V_{2,h} \times V_{1,h} \rightarrow \R, \\
+    a &\mapsto a(w_1, w_2, \ldots, w_n; v_{\rho}, \ldots, v_2, v_1);
   \end{split}
 \end{equation}
-Here, $\{V_h^j\}_{j=1}^{\rho}$ is a sequence of discrete function
-spaces for the \emph{primary arguments} $\{v_j\}_{j=1}^{\rho}$ of the
-form and $\{W_h^j\}_{j=1}^n$ is a sequence of discrete function spaces
-for the \emph{coefficients} $\{w_j\}_{j=1}^{\rho}$ of the
-form. Typically, the arity is $\rho=1$ for a linear form or $\rho=2$
-for a bilinear form. In the simplest case, all function spaces are
-equal but there are many important examples, such as mixed methods,
-where the arguments come from different function spaces. The choice of
+Here, $\{V_{j,h}\}_{j=1}^{\rho}$ is a sequence of discrete function
+spaces for the \emph{arguments} $\{v_j\}_{j=1}^{\rho}$ of the form and
+$\{W_{j,h}^j\}_{j=1}^n$ is a sequence of discrete function spaces for
+the \emph{coefficients} $\{w_j\}_{j=1}^n$ of the form. Typically, the
+arity is $\rho=1$ for a linear form or $\rho=2$ for a bilinear
+form. In the simplest case, all function spaces are equal but there
+are many important examples, such as mixed methods, where the
+arguments come from different function spaces. The choice of
 coefficient function spaces depends on the application; a polynomial
 basis simplifies exact integration, while in some cases evaluating
 coefficients in quadrature points may be required.
 
-As we saw in Chapter~[logg-3], the global tensor~$A$ can be computed
-by summing contributions from the cells and facets of a mesh. We refer
-to these contributions as either cell tensors or facet
-tensors. Although one may formulate a generic assembly algorithm, the
-cell and facet tensors must be computed differently depending on the
-variational form, and their entries must be inserted differently into
-the global tensor depending on the choice of finite element
-spaces. This is handled in FEniCS by implementing a generic assembly
-algorithm (as part of DOLFIN) that relies on special-purpose generated
-code (by FFC or SFC) for computing the cell and facet tensors, and for
-computing the local-to-global map for insertion of the cell and facet
-tensors into the global matrix.
+As we saw in Chapter~\ref{chap:logg-3}, the global tensor~$A$ can be
+computed by summing contributions from the cells and facets of a
+mesh. We refer to these contributions as either \emph{cell tensors} or
+\emph{facet tensors}. Although one may formulate a generic assembly
+algorithm, the cell and facet tensors must be computed differently
+depending on the variational form, and their entries must be inserted
+differently into the global tensor depending on the choice of finite
+element spaces. This is handled in FEniCS by implementing a generic
+assembly algorithm (as part of DOLFIN) that relies on special-purpose
+generated code (by FFC or SFC) for computing the cell and facet
+tensors, and for computing the local-to-global map for insertion of
+the cell and facet tensors into the global matrix.
 
 The UFC interface assumes that the multilinear form~$a$
 in~\eqref{eq:varform} can be expressed as a sum of integrals over the
-cells~$\mathcal{T}$, the exterior facets~$\partial_e \mathcal{T}$, and
-the interior facets~$\partial_i \mathcal{T}$ of the mesh. The
-integrals may be expressed on disjoint subsets $\mathcal{T} =
-\cup_{k=1}^{n_c} \mathcal{T}_k$, $\partial_e \mathcal{T} =
-\cup_{k=1}^{n_e} \partial_e \mathcal{T}_k$, and $\partial_i
-\mathcal{T} = \cup_{k=1}^{n_i} \partial_i \mathcal{T}_k$
+cells~$\mathcal{T}_h$, the exterior facets~$\partial_h$, and the
+interior facets~$\partial_h^0$ of the mesh. The integrals may then be
+expressed on disjoint subsets $\mathcal{T}_h = \cup_{k=1}^{n_c}
+\mathcal{T}_{h,k}$, $\partial_h = \cup_{k=1}^{n_f} \partial_{h,k}$,
+and $\partial_{h,k}^0 = \cup_{k=1}^{n_f^0} \partial_{h,k}^0$,
 respectively. In particular, it is assumed that the multilinear form
 can be expressed in the following canonical form:
 \begin{equation} \label{eq:form_integrals}
   \begin{split}
-    a(v_1, v_2, \ldots, v_{\rho}; w_1, w_2, \ldots,  w_n)
+    a(w_1, w_2, \ldots, w_n; v_{\rho}, \ldots, v_2, v_1)
     &=
-    \sum_{k=1}^{n_c} \sum_{T\in\mathcal{T}_k} \int_{T}
-    I^c_k(v_1, v_2, \ldots, v_{\rho}; w_1, w_2, \ldots w_n) \dx \\
+    \sum_{k=1}^{n_c} \sum_{T\in\mathcal{T}_{h,k}} \int_{T}
+    I^c_k(w_1, w_2, \ldots, w_n; v_{\rho}, \ldots, v_2, v_1) \dx \\
     &+
-    \sum_{k=1}^{n_e} \sum_{S\in\partial_e\mathcal{T}_k} \int_{S}
-    I^e_k(v_1, v_2, \ldots, v_{\rho}; w_1, w_2, \ldots,  w_n) \ds \\
+    \sum_{k=1}^{n_f} \sum_{S\in\partial_{h,k}} \int_{S}
+    I^f_k(w_1, w_2, \ldots, w_n; v_{\rho}, \ldots, v_2, v_1) \ds \\
     &+
-    \sum_{k=1}^{n_i} \sum_{S^0\in\partial_i\mathcal{T}_k} \int_{S^0}
-    I^i_k(v_1, v_2, \ldots, v_{\rho}; w_1, w_2, \ldots, w_n) \ds.
+    \sum_{k=1}^{n_f^0} \sum_{S^0\in\partial_{h,k}^0} \int_{S^0}
+    I^{f,0}_k(w_1, w_2, \ldots, w_n; v_{\rho}, \ldots, v_2, v_1) \dS.
   \end{split}
 \end{equation}
 We refer to an integral $I^c_k$ over a cell~$T$ as a \emph{cell
-  integral}, an integral over an exterior facet~$S$ as an
+  integral}, an integral $I^f_k$ over an exterior facet~$S$ as an
 \emph{exterior facet integral} (typically used to implement Neumann
-and Robin type boundary conditions), and to an integral over an
-interior facet~$S^0$ as an \emph{interior facet integral} (typically
-used in discontinuous Galerkin methods).
+and Robin type boundary conditions), and to an integral $I^{f,0}_k$
+over an interior facet~$S^0$ as an \emph{interior facet integral}
+(typically used in discontinuous Galerkin methods).
 
 %------------------------------------------------------------------------------
 \section{The UFC interface}
-\label{sec:ufc:syntax}
+\label{sec:alnes-2:ufc:syntax}
 
 \begin{figure}
   \begin{center}
@@ -103,7 +140,8 @@ used in discontinuous Galerkin methods).
   \end{center}
 \end{figure}
 
-The UFC interface consists of a small collection of abstract C++
+The UFC interface\footnote{This chapter describes version 1.4 of the
+  UFC interface.} consists of a small collection of abstract C++
 classes that represent common components for assembling tensors using
 the finite element method. The full UFC interface is specified in a
 single header file~\emp{ufc.h}. The UFC classes are accompanied by a
@@ -118,9 +156,7 @@ operations.\footnote{The exceptions are the functions to initialize a
 
 Figure (\ref{fig:uml}) shows all UFC classes and their relations. The
 classes \emp{mesh}, \emp{cell}, and \emp{function} provide the means
-for communicating mesh and coefficient function data as
-arguments.
-
+for communicating mesh and coefficient function data as arguments.
 The integrals of~\eqref{eq:form_integrals} are represented by one of
 the following classes:
 \begin{itemize}
@@ -137,8 +173,7 @@ compute their respective contribution from a cell or facet during
 assembly. A code fragment from the \emp{form} class declaration is
 shown below.
 
-{\scriptsize
-\begin{code}
+\begin{c++}
 class form
 {
 public:
@@ -157,20 +192,19 @@ public:
   create_interior_facet_integral(unsigned int i) const = 0;
 
 };
-\end{code}
-}
+\end{c++}
 
 The \emp{form} class also specifies functions for creating
 \emp{finite\_element} and \emp{dof\_map} objects for the finite
-element function spaces $\{V_h^j\}_{j=1}^{\rho}$ and
-$\{W_h^j\}_{j=1}^n$ of the variational form.  The
+element function spaces $\{V_{j,h}\}_{j=1}^{\rho}$ and
+$\{W_{j,h}\}_{j=1}^n$ of the variational form. The
 \emp{finite\_element} object provides functionality such as evaluation
 of degrees of freedom and evaluation of basis functions and their
 derivatives. The \emp{dof\_map} object provides functionality such as
 tabulating the local-to-global map of degrees of freedom on a single
 element, as well as tabulation of subsets associated with particular
-mesh entities, used to apply Dirichlet boundary conditions and build
-connectivity information.
+mesh entities, which is used to apply Dirichlet boundary conditions
+and build connectivity information.
 
 Both the \emp{finite\_element} and \emp{dof\_map} classes can
 represent mixed elements, in which case it is possible to obtain
@@ -178,21 +212,21 @@ represent mixed elements, in which case it is possible to obtain
 in a hierarchical manner. Vector elements composed of scalar elements
 are in this context seen as special cases of mixed elements where all
 subelements are equal. As an example, consider the \emp{dof\_map} for
-a $P_2-P_1$ Taylor--Hood element. From this \emp{dof\_map} it is
-possible to extract one \emp{dof\_map} for the quadratic vector
-element and one \emp{dof\_map} for the linear scalar element. From the
-vector element, a \emp{dof\_map} for the quadratic scalar element of
-each vector component can be obtained. This can be used to access subcomponents
-from the solution of a mixed system.
+a $\mathcal{P}_2$--$\mathcal{P}_1$ Taylor--Hood element. From this
+\emp{dof\_map} it is possible to extract one \emp{dof\_map} for the
+quadratic vector element and one \emp{dof\_map} for the linear scalar
+element. From the vector element, a \emp{dof\_map} for the quadratic
+scalar element of each vector component can be obtained. This can be
+used to access subcomponents from the solution of a mixed system.
 
 \subsection{Stages in the assembly algorithm}
 
 Next, we focus on a few key parts of the interface and explain how
 these can be used to implement the assembly algorithm presented in
-Chapter~[logg-3]. The general algorithm consists of three stages:
-(i) assembling the contributions from all cells, (ii) assembling the
-contributions from all exterior facets, and (iii) assembling the
-contributions from all interior facets.
+Chapter~\ref{chap:logg-3}. The general algorithm consists of three
+stages: (i) assembling the contributions from all cells, (ii)
+assembling the contributions from all exterior facets, and (iii)
+assembling the contributions from all interior facets.
 
 Each of the three assembly stages (i)--(iii) is further composed of
 five steps. In the first step, a cell~$T$ is fetched from the mesh,
@@ -202,8 +236,7 @@ mesh entities in the cell. This step depends on the specific mesh
 being used.
 
 \begin{figure}
-{\scriptsize
-\begin{code}
+\begin{c++}
 class cell
 {
 public:
@@ -232,62 +265,62 @@ public:
   double** coordinates;
 
 };
-\end{code}
-}
+\end{c++}
 \caption{Data structure for communicating cell data.}
 \label{fig:cellcode}
 \end{figure}
 
-In the second step, the coefficients in
-$\{W_h^j\}_{j=1}^n$ are restricted to the local cell~$T$. If a
-coefficient $w_j$ is not given as a linear combination of basis
-functions for $W_h^j$, it must at this step be interpolated into
-$W_h^j$, using the interpolant defined by the degrees of freedom of
-$W_h^j$ (one common choice of interpolation is point evaluation at the set of nodal points). In
-this case, the coefficient function is passed as an implementation of
-the \emp{function} interface (a simple functor) to the
+In the second step, the coefficients in $\{W_{j,h}\}_{j=1}^n$ are
+restricted to the local cell~$T$. If a coefficient $w_j$ is not given
+as a linear combination of basis functions for $W_{j,h}$, it must at
+this step be interpolated into $W_{j,h}$, using the interpolant
+defined by the degrees of freedom of $W_{j,h}$. One common choice of
+interpolation is point evaluation at the set of nodal points. In this
+case, the coefficient function is passed as an implementation of the
+\emp{function} interface (a simple functor) to the
 function~\emp{evaluate\_dofs} in the UFC \emp{finite\_element} class.
 
-{\scriptsize
-\begin{code}
+\begin{c++}
 /// Evaluate linear functionals for all dofs on the function f
 virtual void evaluate_dofs(double* values,
                            const function& f,
                            const cell& c) const = 0;
-\end{code}
-}
+\end{c++}
+Here, \emp{double* values} is a pointer to the first element of an
+array of double precision floating point numbers which will be filled
+with the values of the degrees of freedom of the function~\emp{f} on
+the current cell.
 
 In the third step, the local-to-global map of degrees of freedom is
 tabulated for each of the function spaces. That is, for each of the
 local discrete finite element spaces on $T$, we tabulate the
 corresponding global degrees of freedom.
 
-{\scriptsize
-\begin{code}
+\begin{c++}
 /// Tabulate the local-to-global mapping of dofs on a cell
 void dof_map::tabulate_dofs(unsigned int* dofs,
                             const mesh& m,
                             const cell& c) const
-\end{code}
-}
+\end{c++}
 Here, \emp{unsigned int* dofs} is a pointer to the first element of an
 array of unsigned integers that will be filled with the
 local-to-global map on the current cell during the function call.
 
-In the fourth step, the local element tensor contributions (cell or
-exterior/interior facet tensors) are computed. This is done by a call
-to the function~\emp{tabulate\_tensor}, illustrated below for a
-cell integral.
-{\scriptsize
-\begin{code}
+In the fourth step, the local element tensor contribution (cell or
+exterior/interior facet tensor) is computed. This is done by a call to
+the function~\emp{tabulate\_tensor}, illustrated below for a cell
+integral.
+\begin{c++}
 /// Tabulate the tensor for the contribution from a local cell
 virtual void tabulate_tensor(double* A,
                              const double * const * w,
                              const cell& c) const = 0;
-\end{code}
-}
-Similarly, one may evaluate interior and exterior facet contributions
-using slightly different function signatures.
+\end{c++}
+Here, \emp{double* A} is a pointer to the first element of an array of
+double precision floating point numbers which will be filled with the
+values of the element tensor, flattened into one array of
+numbers. Similarly, one may evaluate interior and exterior facet
+contributions using slightly different function signatures.
 
 Finally, at the fifth step, the local element tensor contributions are
 added to the global tensor, using the local-to-global maps previously
@@ -308,19 +341,60 @@ Figure~\ref{fig:uml} and consist of format strings for the skeleton of
 each subclass. The following code illustrates how to generate a
 subclass of the UFC \emp{form} class.
 
-{\scriptsize
-\begin{code}
+\begin{c++}
 from ufc_utils import form_combined
 
 implementation = {}
+implementation["classname"] = "my_form"
+implementation["members"] = ""
+implementation["constructor_arguments"] = ""
+implementation["initializer_list"] = ""
+implementation["constructor"] = "// Do nothing"
+implementation["destructor"] = "// Do nothing"
 implementation["signature"] = "return \"my form\""
 implementation["rank"] = "return 2;"
 implementation["num_coefficients"] = "return 0;"
-...
+implementation["num_cell_integrals"] = "return 3;"
+implementation["num_interior_facet_integrals"] = "return 1;"
+implementation["num_exterior_facet_integrals"] = "return 0;"
+implementation["create_finite_element"] = "\
+switch (i)
+{
+case 0:
+  return new my_finite_element_0();
+case 1:
+  return new my_finite_element_1();
+default:
+  return 0;
+}"
+implementation["create_dof_map"] = "\
+switch (i)
+{
+case 0:
+  return new my_dof_map_0();
+case 1:
+  return new my_dof_map_1();
+default:
+  return 0;
+}"
+implementation["create_cell_integral"] = "\
+switch (i)
+{
+case 0:
+  return new my_cell_integral_0();
+case 1:
+  return new my_cell_integral_1();
+case 2:
+  return new my_cell_integral_2();
+default:
+  return 0;
+}"
+implementation["create_exterior_facet_integral"] = "\
+return new my_exterior_facet_integral();"
+implementation["create_interior_facet_integral"] = "return 0;"
 
 print form % implementation
-\end{code}
-}
+\end{c++}
 
 This generates code for a single header file that also contains the
 implementation of each function in the UFC \emp{form} interface. It is
@@ -333,13 +407,13 @@ The \emp{ufc\_utils} module also contains the utility function
 based on generated UFC code. This process involves compilation,
 linking, and loading of the generated C++ code as well as generating a
 Python wrapper module using Instant/SWIG as described in
-Chapter~[wilbers].
+Chapter~\ref{chap:wilbers}.
 
 %------------------------------------------------------------------------------
 \section{Examples}
-\label{sec:examples}
+\label{sec:alnes-2:examples}
 
-In this section, we demonstrate how UFC is used in practice for
+In this section, we demonstrate how UFC can be used in practice for
 assembly of finite element forms. First, we demonstrate how one may
 implement a simple assembler based on generated UFC code. We then show
 examples of input to the form compilers FFC and SFC as well as part of
@@ -347,24 +421,143 @@ the corresponding UFC code generated as output.
 
 \subsection{Assembler}
 
-\input{chapters/alnes-2/assembly_cpp.tex}
+The simple assembler presented in this section assumes that the
+degrees of freedom of the finite element spaces involved depend only
+on vertices; that is, we assume piecewise linear elements. We also
+assume that the assembled form is a tensor of rank two (a matrix),
+that we may insert values into the given matrix data structure by
+simply assigning values to the entries of the matrix, that the form
+does not depend on any coefficients, and that the form is expressed as
+a single cell integral. In practice, the efficient insertion of
+entries into a sparse matrix typically requires a the use of a special
+optimized library call. For example, entries may be inserted (added)
+to a sparse PETSc matrix by a call to \emp{MatSetValues} and to a
+sparse Trilinos/Epetra matrix by a call to
+\emp{SumIntoGlobalValues}. For a complete implementation of an
+assembler for general rank tensors and generic linear algebra
+libraries that provide an insertion operation, we refer to the class
+\emp{Assembler} in DOLFIN (\emp{Assembler.cpp}). The code example
+presented below is available in the supplementary material for this
+chapter (\emp{assemble.cpp}).
+
+\begin{c++}
+void assemble(Matrix& A, ufc::form& form, dolfin::Mesh& mesh)
+{
+  // Get dimensions
+  const uint D = mesh.topology().dim();
+  const uint d = mesh.geometry().dim();
+
+  // Initialize UFC mesh data structure
+  ufc::mesh ufc_mesh;
+  ufc_mesh.topological_dimension = D;
+  ufc_mesh.geometric_dimension = d;
+  ufc_mesh.num_entities = new uint[D + 1];
+  for (uint i = 0; i <= D; i++)
+    ufc_mesh.num_entities[i] = 0;
+  ufc_mesh.num_entities[0] = mesh.num_vertices();
+  ufc_mesh.num_entities[D] = mesh.num_cells();
+
+  // Initialize UFC cell data structure, assuming that the
+  // cell is a simplex and only vertices are used for dofs
+  ufc::cell ufc_cell;
+  switch (D)
+  {
+  case 1:
+    ufc_cell.cell_shape = ufc::interval;
+    break;
+  case 2:
+    ufc_cell.cell_shape = ufc::triangle;
+    break;
+  default:
+    ufc_cell.cell_shape = ufc::tetrahedron;
+    break;
+  }
+  ufc_cell.topological_dimension = D;
+  ufc_cell.geometric_dimension = d;
+  ufc_cell.entity_indices = new uint * [D + 1];
+  for (uint i = 0; i <= D; i++)
+    ufc_cell.entity_indices[i] = 0;
+  uint vertices_per_cell = D + 1;
+  ufc_cell.entity_indices[0] = new uint[vertices_per_cell];
+  ufc_cell.entity_indices[D] = new uint[1];
+  ufc_cell.coordinates = new double * [vertices_per_cell];
+  for (uint i = 0; i <= D; i++)
+    ufc_cell.coordinates[i] = new double[d];
+
+  // Create cell integrals, assuming there is only one
+  ufc::cell_integral* cell_integral = form.create_cell_integral(0);
+
+  // Create dof maps for rows and columns
+  ufc::dof_map* dof_map_0 = form.create_dof_map(0);
+  ufc::dof_map* dof_map_1 = form.create_dof_map(1);
+
+  // Initialize dof maps
+  dof_map_0->init_mesh(ufc_mesh);
+  dof_map_1->init_mesh(ufc_mesh);
+
+  // Omitting code for dof map initialization on cells, which is not
+  // needed for code generated by FFC but which is generally required
+
+  // Get local and global dimensions
+  uint m = dof_map_0->max_local_dimension();
+  uint n = dof_map_1->max_local_dimension();
+  uint M = dof_map_0->global_dimension();
+  uint N = dof_map_1->global_dimension();
+
+  // Initialize array of local-to-global maps
+  uint* dofs_0 = new uint[m];
+  uint* dofs_1 = new uint[n];
+
+  // Initialize array of values for the cell matrix
+  double* A_T = new double[m * n];
+
+  // Initialize global matrix
+  A.init(M, N);
+
+  // Iterate over the cells of the mesh
+  for (dolfin::CellIterator cell(mesh); !cell.end(); ++cell)
+  {
+    // Update UFC cell data structure for current cell
+    ufc_cell.entity_indices[D][0] = cell->index();
+    for (dolfin::VertexIterator vertex(*cell); !vertex.end(); ++vertex)
+    {
+      ufc_cell.entity_indices[0][vertex.pos()] = vertex->index();
+      for (uint i = 0; i < d; i++)
+        ufc_cell.coordinates[vertex.pos()][i] = vertex->x(i);
+    }
+
+    // Compute local-to-global map for degrees of freedom
+    dof_map_0->tabulate_dofs(dofs_0, ufc_mesh, ufc_cell);
+    dof_map_1->tabulate_dofs(dofs_1, ufc_mesh, ufc_cell);
+
+    // Compute the cell matrix A_T
+    cell_integral->tabulate_tensor(A_T, 0, ufc_cell);
+
+    // Add entries to global matrix
+    for (uint i = 0; i < m; i++)
+      for (uint j = 0; j < m; j++)
+        A(dofs_0[i], dofs_1[j]) += A_T[i*n + j];
+  }
+
+  // Omitting code for deleting allocated arrays
+}
+\end{c++}
 
 \subsection{Generated UFC code}
 
-The form language UFL described in Chapter~[alnes-1] provides a simple
-language for specification of variational forms, which may be entered
-either directly in Python or in text files given to a form compiler.
-We consider the following definition of the bilinear form $a(v, u) =
-\inner{\nabla v}{\nabla u}$ in UFL:
-\begin{code}
+The form language UFL described in Chapter~\ref{chap:alnes-1} provides
+a simple language for specification of variational forms, which may be
+entered either directly in Python or in text files given to a form
+compiler.  We consider the following definition of the bilinear form
+$a(u, v) = \inner{\nabla u}{\nabla v}$ in UFL:
+\begin{c++}
 element = FiniteElement("CG", "triangle", 1)
 
-v = TestFunction(element)
 u = TrialFunction(element)
-f = Coefficient(element)
+v = TestFunction(element)
 
-a = inner(grad(v), grad(u))*dx
-\end{code}
+a = inner(grad(u), grad(v))*dx
+\end{c++}
 
 When compiling this code, a C++ header file is created, containing UFC
 code that may be used to assemble the global sparse stiffness matrix
@@ -372,8 +565,7 @@ for Poisson's equation. Below, we present the code generated for
 evaluation of the element stiffness matrix for the bilinear
 form~\emp{a} using FFC. Similar code may be generated using SFC.
 
-{\scriptsize
-\begin{code}
+\begin{c++}
 /// Tabulate the tensor for the contribution from a local cell
 virtual void tabulate_tensor(double* A,
                              const double * const * w,
@@ -423,8 +615,7 @@ virtual void tabulate_tensor(double* A,
   A[7] = 0.500000000000000*G0_1_0;
   A[8] = 0.500000000000000*G0_1_1;
 }
-\end{code}
-}
+\end{c++}
 
 Having computed the element tensor, one needs to compute the
 local-to-global map in order to know where to insert the local
@@ -436,8 +627,8 @@ be extracted from the \emp{cell} attribute \emp{entity\_indices}.  For
 linear Lagrange elements on triangles, each degree of freedom is
 associated with a global vertex. Hence, FFC constructs the map by
 picking the corresponding global vertex number for each degree of
-freedom as demonstrated below.  {\scriptsize
-\begin{code}
+freedom as demonstrated below.
+\begin{c++}
 virtual void tabulate_dofs(unsigned int* dofs,
                            const ufc::mesh& m,
                            const ufc::cell& c) const
@@ -446,13 +637,13 @@ virtual void tabulate_dofs(unsigned int* dofs,
   dofs[1] = c.entity_indices[0][1];
   dofs[2] = c.entity_indices[0][2];
 }
-\end{code}
-}
+\end{c++}
+
 For quadratic Lagrange elements, a similar map is generated based on
 global vertex and edge numbers (entities of dimension zero and one
 respectively). We list the code for \emp{tabulate\_dofs} generated by
-FFC for quadratic Lagrange elements below.  {\scriptsize
-\begin{code}
+FFC for quadratic Lagrange elements below.
+\begin{c++}
 virtual void tabulate_dofs(unsigned int* dofs,
                            const ufc::mesh& m,
                            const ufc::cell& c) const
@@ -467,14 +658,13 @@ virtual void tabulate_dofs(unsigned int* dofs,
   dofs[5] = offset + c.entity_indices[1][2];
   offset += m.num_entities[1];
 }
-\end{code}
-}
+\end{c++}
 
 %------------------------------------------------------------------------------
 \section{Numbering conventions}
-\label{sec:numbering}
+\label{sec:alnes-2:numbering}
 
-UFC relies on a set of numbering conventions for cells, vertices, and
+UFC relies on a set of numbering conventions for cells, vertices and
 other mesh entities. The numbering scheme ensures that form compilers
 (FFC and SFC) and assemblers (DOLFIN) can communicate data required
 for tabulating the cell and facet tensors as well as local-to-global
@@ -493,28 +683,28 @@ maps.
 
 UFC has been used for many applications, including the Poisson
 equation; convection--diffusion--reaction equations; continuum
-equations for linear elasticity, hyperelasticity, and plasticity; the
+equations for linear elasticity, hyperelasticity and plasticity; the
 incompressible Navier--Stokes equations; mixed formulations for the
 Hodge Laplacian; and many more. The types of finite elements involved
 include standard continuous Lagrange elements of arbitrary order,
 discontinuous Galerkin formulations, Brezzi--Douglas--Marini elements,
-Raviart--Thomas elements, Crouzeix--Raviart elements, and Nedelec
+Raviart--Thomas elements, Crouzeix--Raviart elements and \nedelec{}
 elements.
 
-The form compilers FFC and SFC described in Chapters~[logg-1]
-and~[alnes-2] are UFC compliant, both generating efficient UFC code
-from an abstract problem definition. The assembler in DOLFIN uses the
-generated UFC code, communicates with the DOLFIN mesh data structure
-to extract \emp{ufc::mesh} and \emp{ufc::cell} data, and assembles the
-global tensor into a data structure implemented by one of a number of
-linear algebra backends supported by DOLFIN, including PETSc, Trilinos
-(Epetra), uBLAS, and MTL4.
+The form compilers FFC and SFC described in Chapters~\ref{chap:logg-1}
+and~\ref{chap:alnes-2} are UFC compliant, both generating efficient
+UFC code from an abstract problem definition. The assembler in DOLFIN
+uses the generated UFC code, communicates with the DOLFIN mesh data
+structure to extract \emp{ufc::mesh} and \emp{ufc::cell} data, and
+assembles the global tensor into a data structure implemented by one
+of a number of linear algebra backends supported by DOLFIN, including
+PETSc, Trilinos (Epetra), uBLAS and MTL4.
 
 One of the main limitations in the current version (1.4) of the UFC
-interface is the assumption of a homogeneous mesh, that is, only one
+interface is the assumption of a homogeneous mesh; that is, only one
 cell shape is allowed throughout the mesh. Thus, although mesh
 ordering conventions have been defined for the interval, triangle,
-tetrahedron, quadrilateral, and hexahedron, only one type of shape can
+tetrahedron, quadrilateral and hexahedron, only one type of shape can
 be used at any time. Another limitation is that only one fixed finite
 element space can be chosen for each argument of the form, which
 excludes $p$-refinement (increasing the element order in a subset of
@@ -534,13 +724,13 @@ functions for evaluating multiple degrees of freedom
 (\emp{evaluate\_dofs} in addition to \emp{evaluate\_dof}) and multiple
 basis functions (\emp{evaluate\_basis\_all} in addition to
 \emp{evaluate\_basis}). In contrast to other FEniCS components, few
-changes are made to the UFC interface in order to have a stable
+changes are made to the UFC interface in order to maintain a stable
 interface for both form compilers (FFC and SFC) and assemblers
 (DOLFIN).
 
 %------------------------------------------------------------------------------
 \section*{Acknowledgment}
 
-The authors would like to thank Johan Hake, Ola
-Skavhaug, Garth Wells, Kristian \O{}lgaard, and Hans Petter
-Langtangen for their contributions to UFC.
+The authors would like to thank Johan Hake, Ola Skavhaug, Garth Wells,
+Kristian \O{}lgaard and Hans Petter Langtangen for their contributions
+to UFC.
