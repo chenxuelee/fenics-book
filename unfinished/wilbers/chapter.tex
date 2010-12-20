@@ -1,5 +1,5 @@
-\fenicschapter{Instant: Just-in-Time Compilation of C/C++ in Python}
-              {Instant: Just-in-Time Compilation of C/C++ in Python}
+\fenicschapter{Instant: Just-in-time compilation of C/C++ in Python}
+              {Instant: Just-in-time compilation of C/C++ in Python}
               {Ilmar M. Wilbers, Kent-Andre Mardal and Martin S. Aln{\ae}s}
               {wilbers}
 
@@ -9,7 +9,7 @@ C/C++ code.
 Instant accepts plain C/C++ and is therefore conveniently combined with the code generating tools in DOLFIN, FFC, and SFC.   
 
 
-\section{Brief Overview of Instant and its role in FEniCS}
+\section{Brief overview of Instant and its role in FEniCS}
 
 In FEniCS, FFC and SFC are form compilers that generate UFC compliant C++ code based on the language UFL.  
 Within FFC and SFC, Instant is used to JIT-compile the C++ code to a Python module.   
@@ -32,36 +32,6 @@ arrays between the Python code and the C/C++ code.
 
 \section{Examples}
 \label{wilbers:sec:examples}
-%All code from the examples in this section can be found
-%online\footnote{http://www.fenics.org/pub/documents/book/instant/examples}.
-%We will refer
-%to this location as \emp{\$examples}.
-%
-%\subsection{Installing Instant}
-%Before trying to run the examples, you need to install Instant.
-%The latest Instant release can be downloaded from the FEniCS
-%website~\cite{www:fenics}. It is
-%available both as a source code tarball and as a Debian package. In addition, the latest
-%source code can be checked out using
-%Mercurial~\cite{www:mercurial}:
-%\begin{code}
-%hg clone http://www.fenics.org/hg/instant
-%\end{code}
-%Installing Instant
-%from the source code is done with a regular Distutils script, i.e,
-%\begin{code}
-%python setup.py install
-%\end{code}
-%After successfully
-%installing Instant, one can verify the installation by running the scripts
-%\emp{run\_\-tests.py} followed by \emp{rerun\_\-tests.py} in the
-%\emp{tests}-directory of the source code. The first will run all the examples after having
-%cleaned the Instant cache, the second will run all examples using the
-%compiled modules found in the Instant cache from the previous execution.
-%%If PyChecker\footnote{http://pychecker.sourceforge.net/} is installed, one can
-%%also run \emp{run\_\-pychecker.py}.
-%
-%
 \subsection{Hello World}
 Our first example demonstrates the usage of Instant in a very simple case:
 \begin{python}
@@ -109,7 +79,7 @@ output.set_logging_level('DEBUG')
 %cache and the arguments to the Distutils file when building the module.
 %This example can be found in the file \emp{examples/ex1.py}.
 
-\subsection{NumPy Arrays}
+\subsection{NumPy arrays}
 One basic problem with wrapping C and C++ code is how to handle dynamically
 allocated arrays. Arrays allocated
 dynamically are typically represented in C/C++ by a pointer to the first element
@@ -223,7 +193,7 @@ CPU time with C       & 4.0e-6  & 1.1e-5 & 1.0e-4 & 1.0e-3 & 1.1e-2  \\ \hline
 The complete code for this example can be found in \emp{ex2.py}.
 
 
-\subsection{NumPy Arrays and OpenMP}
+\subsection{NumPy arrays and OpenMP}
 It is easy to speed up code on parallel computers with OpenMP. In 
 the following code preprocessor directives like '\emp{\#pragma omp \ldots}' are OpenMP directives and
 OpenMP functions always start with \emp{omp}.
@@ -246,11 +216,11 @@ u_{i,j}^l =
 \end{align}\label{u}
 Here, $u_{i,j}^l$ represents $u$ at the grid point $x_i$ and $y_j$ at
 time level $t_l$, where
-\begin{align*}
+\begin{align}
 x_i &= i\Delta x, i = 0, \ldots, n\\
 y_i &= j\Delta y, j = 0, \ldots, m\textrm{ and}\\
 t_l &= l\Delta t,
-\end{align*}
+\end{align}
 Also, $k_{i+\frac{1}{2},j}$ is short for $k(x_{i+\frac{1}{2}},y_j)$.
 
 The code for calculating the next time step using OpenMP looks like:
@@ -331,103 +301,6 @@ using Instant and OpenMP on different numbers of CPUs/threads.}
 \end{center}
 \end{table}
 
-%\subsection{Code Generation}
-%Instant is often used together with code generation tools (or compilers) such
-%as FFC~\cite{FFC} and SFC~\cite{MardalAlnaes2009}. While these compilers are advanced
-%tools that translate abstract formulations of finite element methods into C++,
-%Instant has a relatively simple role in this picture. We will illustrate this
-%here in a simple situation. We will assume that we want to solve the Poisson
-%equation
-%\begin{equation}
-%-\Delta u = f,
-%\end{equation}
-%and that we want to use the so-called 'method of manufactured solution' to check the
-%convergence of the error as a function of the mesh size parameter $h$. This method
-%include the following steps:
-%\begin{enumerate}
-%\item find an analytical expression for $u$,
-%\item compute $f=-\Delta u$,
-%\item solve the Poisson equation using the source
-%term $f$ and Dirichlet boundary conditions set as $u$ on the whole boundary,
-%\item compute the difference between the analytical solution $u$ and the computed
-%solution $u_h$, as a function of $h$.
-%\end{enumerate}
-%The following code, found in \emp{\$examples/ex7.py}, shows how
-%we can compute the source term $f$ as a function of the analytical solution
-%$u$, using \index{Swiginac}Swiginac~\cite{SkavhaugCertik2009}
-%\begin{code}
-%from swiginac import *
-%x = symbol('x'); y = symbol('y')
-%u = sin(x*x)*cos(y);
-%f = - diff(diff(u,x),x) - diff(diff(u,y),y)
-%\end{code}
-%In the following we generate code for a DOLFIN \emp{Function}
-%\begin{code}
-%def expression2string(name, expression):
-%    c_code = """
-%    #include <dolfin.h>
-%    using namespace dolfin;
-%    class %s : public Function
-%    {
-%        virtual double eval(const double* p) {
-%            const double x = p[0];
-%            const double y = p[1];
-%            return %s;
-%        }
-%    };
-%    """ % expression.printc()
-%    return (name, c_code)
-%\end{code}
-%Finally, we inline this DOLFIN function using Instant as follows
-%\begin{code}
-%(includes, flags, libraries, libdirs) = \
-%            instant.header_and_libs_from_pkgconfig("dolfin")
-%U_module = instant.inline_module(expression2string("u", u), \
-%         system_headers=includes, cppargs=flags, lddargs=libraries,\
-%         library_dirs=libdirs)
-%U = U_module.U
-%F_module = instant.inline_module(expression2string("f", f), \
-%         system_headers=includes, cppargs=flags, lddargs=libraries,\
-%         library_dirs=libdirs)
-%F = F_module.F
-%
-%\end{code}
-%
-%Since, \emp{U} and \emp{F} are now standard DOLFIN functions they can be used
-%in a standard fashion and solving the Poisson equation is then done as follows
-%\begin{code}
-%# Define boundary condition
-%bc = DirichletBC(V, U, DirichletBoundary())
-%
-%# Define variational problem
-%v = TestFunction(V)
-%u = TrialFunction(V)
-%a = inner(grad(v), grad(u))*dx
-%L = v*F*dx
-%
-%# Compute solution
-%problem = VariationalProblem(a, L, bc)
-%u = problem.solve()
-%\end{code}
-%The complete code is found in \emp{\$examples/ex8.py}).
-%
-%Notice that Instant is also used in assembly here, where either FFC or SFC translate the UFL
-%description of the variational problem into (UFC-compliant) C++ code that is inlined with
-%Instant. We refer to the Chapters~\ref{FFC},~\ref{SFC},~\ref{UFC},
-%and~\ref{UFL} for more information on this.
-%We also remark that Dolfin has functionality for compiling functions and that the above
-%code is only meant for illustration. The reader is encouraged to use this functionality instead
-%of the more manual approach described above. It is done as follows:
-%\begin{code}
-%# Source term, using compiled C++ expression
-%class Source(Function):
-%    cppexpr = ("A*exp(-(pow(x[0]-0.5,2) + pow(x[1]-0.5,2))/B)")
-%    default = {"A":500.0,"B":0.02}
-%\end{code}
-%Code generation example (advanced with SFC). FIXME: Martin should we give more details
-%about how instant can be used more generally here ? .
-%
-
 \section{Errors encountered when using Instant}
 
 There are basically three different types of errors you can encounter when using Instant. 
@@ -504,7 +377,7 @@ Traceback (most recent call last):
 In this case it is advantageous to make a local cache, using the  \emp{cache\_dir="test\_cache"}, and go 
 to the local cache to find the error.  
 
-\section{Instant Explained}
+\section{Instant explained}
 \label{wilbers:sec:explained}
 
 The previous section concentrated on the usage of Instant.
@@ -562,7 +435,7 @@ compiled modules from the Instant cache, located in the directory
 The script \index{\emp{instant-showcache}}\emp{instant-showcache} shows the modules located in the
 Instant cache.
 
-\subsection{Arrays and Typemaps}\label{wilbers:sec:arrays}
+\subsection{Arrays and typemaps}\label{wilbers:sec:arrays}
 Instant has support for converting NumPy arrays to C arrays and vice
 versa. Each array specification is a list containing the names
 of the variables describing that array in the C code. For a 1D
@@ -1016,7 +889,7 @@ installed SWIG is equal or greater than the version passed to the function. It
 also has one keyword argument, \emp{same}. If it is \emp{True}, the function
 returns \emp{True} if and only if the two versions are the same.
 
-\section{Related Works}
+\section{Related works}
 There exist several packages that are similar to Instant.
 We mention \index{Weave} ~\citet{www:weave},
 \index{Cython}
