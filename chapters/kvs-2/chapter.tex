@@ -195,7 +195,7 @@ The simplest way to describe the outflow is by applying a zero
 traction boundary condition at the outflow. However, the flow division
 in a bifurcation is dependent on the downstream vasculature, and the
 zero traction boundary condition does not capture this very
-well. Therefore, to model the the peripheral resistance, a resistance
+well. Therefore, to model the peripheral resistance, a resistance
 model may be used for the pressure, while a Neumann condition
 (${\partial u / \partial n} = 0 $) is applied to the velocity. The
 value of the resistance boundary condition is proportional to the
@@ -209,7 +209,7 @@ pressure (85 mmHg) which is applied to the inlet and $u$ is the
 velocity. The coefficients in Table~\ref{resistance_coeff} are
 from \citet{AlastrueyParkerPeiroEtAl2007} and show a clear relation
 between the diameter of the vessel and the resistance coefficient. The
-implementation is shown in Figure~\ref{fig:kvs-2:resistance_code}.
+implementation of the resistance boundary condition is shown in Figure~\ref{fig:kvs-2:resistance_code}.
 
 \begin{table}
   \begin{center}
@@ -287,10 +287,9 @@ in order to converge.
     \caption{Image segmentation process; from MRI to mesh.}
 \end{figure*}
 
-Segmentation of patient-specific geometries are based upon Computed
+Patient-specific geometries are computed from Computed
 Tomography Angiography (CTA) or Magnetic Resonance Angiography (MRA)
-images. A stack of 2D images is used as input to the Vascular Modeling
-Toolkit (VMTK) \citep{vmtk}, where a 3D surface model is generated
+images as follows. A stack of 2D images is used as input to the \citet{vmtk}, where a 3D surface model is generated
 based upon the light intensity in the pictures using
 level set techniques. A volume is then created from the surface, from
 which a mesh can be generated. This process is illustrated in
@@ -326,7 +325,8 @@ forces by numerical simulations.
 
 \subsection{Method}
 
-Measurements of 49 patients were performed to obtain the geometries of
+Measurements of 49 patients were performed to obtain the geometric
+quantities of
 the MCA and ICA bifurcations. The averaged values for the diameters
 were used to create one idealized
 bifurcation of the MCA and ICA for both females and males. The model
@@ -364,8 +364,7 @@ except from the peak values in the vicinity of the bifurcations. Even
 though the model is simple, the aim was to demonstrate a principle
 with a potentially important application, that is, that WSS may be of
 importance in the initialization and rupture of intracranial
-aneurysms. Furthermore, the results suggest that women develop more
-aneurysms than men.
+aneurysms. Furthermore, the results correlate well with the fact that women develop more aneurysms than men.
 
 \begin{figure}
   \center\includegraphics[width=\largefig]{chapters/kvs-2/pdf/bifurcation_clean.pdf}
@@ -412,8 +411,8 @@ $\beta$		  & $68.8^\circ$ & $72.5^\circ$   & $49.7^\circ$ & $50.5^\circ$\\
 In another study, see \citet{JiangJohnsonValen-SendstadEtAl2010}, we
 quantitatively compared CFD, assuming Newtonian flow with rigid walls,
 with four-dimensional Phase Contrast Magnetic Resonance Angiography
-(PC MRA) techniques. The intention was both to verify the scientific
-techniques of going from a patient-specific model to CFD results and
+(PC MRA) techniques. The intention was both to verify the computational 
+techniques for creating  patient-specific models and corresponding CFD results and
 to understand and quantify the accuracy of the simplest possible flow
 model against state-of-the-art measurements.
 
@@ -425,7 +424,7 @@ so the obtained images are an average over 808 heart cycles. There is
 naturally no guarantee for a constant heart beat in the canine, and
 this is of course error prone. However, in humans with larger
 diameters in the vasculatory system, errors have been shown to be of
-order 3-10+\% in the pulmonary arteries;
+order 3-10\% in the pulmonary arteries;
 see \citet{LotzMeierLeppertEtAl2002,EvansIwaiGristEtAl1993}.
 
 The resolution is coarse in both space and time, and computation of
@@ -459,8 +458,9 @@ shown in Figure~\ref{fig:kvs-2:mass_dog} where each solid line
 represents the sum of fluxes at different cross sections of the
 inlet and outlet arteries. The picture to the left in
 Figure~\ref{fig:kvs-2:mass_dog} shows the sum of velocities at the
-inlet, which is one artery, while the picture to the right show both
-the arteries where the outflow is. For a more thorough description, we
+inlet, which is one artery, while the picture to the right shows the output
+flux; that is, the sum of the outflow in both
+outflow arteries. For a more thorough description, we
 refer to \citet{JiangJohnsonValen-SendstadEtAl2010}. To get higher
 resolution images (of the vasculature only and not flow measurements),
 the canine underwent 3D Digital Subtraction Angiography (DSA) within
@@ -494,9 +494,9 @@ Section~\ref{vmtk}. We solved the incompressible Navier--Stokes
 equations using an Incremental Pressure Correction Scheme (IPCS) as
 described in Chapter~\ref{chap:kvs-1}. We used first order elements
 for both velocity and pressure, simulated over four heart beats, and
-obtained the results from the last cycle. The CFL number is a
-dimensionless number that describes the temporal resolution relative
-to the grid spacing.  With a CFL number of roughly ten, the number of
+obtained the results from the last cycle. 
+%The CFL number is a dimensionless number that describes the temporal resolution relative to the grid spacing.  
+With a CFL number of roughly ten, the number of
 time steps was 696 per cardiac cycle. As inflow boundary conditions,
 we used an average value from the five lower most voxels (three
 dimensional pixels / samples from the measurements) in the
@@ -509,7 +509,7 @@ Figure~\ref{fig:kvs-2:inflow_codeI} shows how the values in
 Figure~\ref{fig:kvs-2:mass_dog} are returned as a spline function. The
 factor \emp{(133.0/256)**-2} scales the voxel size to the matrix size,
 so that the focus of the image corresponds to the actual size in
-millimeters, and returns a value for the velocity. The \emp{t}
+millimeters. The \emp{t}
 variable is the end time, and the scalar $0.037$ is the equally spaced
 times of where measurements for \emp{v} were made.
 
@@ -593,11 +593,13 @@ much as 20\% between the different sections (the solid lines).  It is also clear
 visible in this figure that peak systole appears at time step four in
 both left (inflow) and right (outflow) image of the figure, but the
 ``bump'' at mid deceleration has shifted from time step seven at the
-inflow to eight at the outflow.  This is a visualization of the
-so-called Windkessel effect, which may be captured using a fluid
-structure interaction model. This effect is also visible as the
-variation of how much the lines are spread vertically through the
-heart cycle.
+inflow to eight at the outflow.  This may be because of the 
+so-called Windkessel effect, which may only be captured using a fluid
+structure interaction model, 
+but it is difficult to conclude due to the coarseness of the measurements.
+%This effect is also visible as the
+%variation of how much the lines are spread vertically through the
+%heart cycle.
 
 A limitation of the current study is that the results should not be
 interpreted as physiologically correct since the technique consists of
@@ -639,17 +641,17 @@ non-Newtonian effects are of importance.
 
 \subsection{Background}
 
-In a study performed in collaboration with doctors from the
+In a study performed in collaboration with clinicians from the
 Neuroradiology department at Rikshospitalet University Hospital in
-Oslo\footnote{\url{http://www.rikshospitalet.no}}, we wanted to
+Oslo, we wanted to
 investigate whether we are able to reproduce velocities in a full
 Circle of Willis with measurements at the inflow and compare with
 measurements at the outflow using resistance boundary conditions from
 the
 literature \citep{AlastrueyParkerPeiroEtAl2007,Vignon-ClementelFigueroaJansenEtAl2006}.
 Such an evaluation or verification of boundary conditions is
-essential, before proceeding with more sophisticated problems related
-to the entire intracranial vasculature.
+essential, before proceeding with more sophisticated models 
+for the entire intracranial vasculature.
 
 \begin{figure}
   \begin{center}
@@ -682,7 +684,8 @@ MCA, PCA, ACA, VA, BA) were segmented as described in
 Section~\ref{vmtk}. The simulations were performed on meshes with
 three boundary layers where the number of tetrahedron cells were approximately
 $400\;000$, $900\;000$ and $2\;600\;000$. We used
-$\mathcal{P}_1$--$\mathcal{P}_1$ elements and an incremental pressure
+continuous linear elements for both velocities and pressure, 
+and an incremental pressure
 correction scheme with Adams--Bashford implicit convection and
 Crank--Nicolson diffusion to solve the incompressible Navier--Stokes
 equations. The resolution in time was 3532 time steps per heart beat
@@ -748,7 +751,7 @@ is difficult to perform and subject to errors. Personal communication
 with the neuroradiologist suggests errors at the scale of 20\%.
 Second, we have no information on when peak systole appears in the
 different arteries. It seams reasonable that there is a small shift in
-time since the blood goes from the heart and through different
+time since the blood flows from the heart and through different
 arteries before it meets in CoW. At present, we have not been able to
 quantify this shift. Third, the velocity itself may differ at
 different times for various reasons. This is illustrated by the cells
