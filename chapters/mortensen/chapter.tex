@@ -2,14 +2,16 @@
 %\newcommand{\mmo}[1]{{\bf mmo: #1}}
 %\newcommand{\kentc}[1]{\marginpar{\tiny KAM: #1}}
 
-\renewcommand{\vec}[1]{\ensuremath{{ #1 \xspace}}}
+%\renewcommand{\vec}[1]{\ensuremath{{ #1 \xspace}}}
+\renewcommand{\vec}[1]{\ensuremath{{#1}}}
 %\renewcommand{\eqref}[1]{\left(\ref{#1}\right)}
 \newcommand{\Nset}{\ensuremath{\mathbb{N}}\xspace}
 \newcommand{\Zset}{\ensuremath{\mathbb{Z}}\xspace}
 \newcommand{\Qset}{\ensuremath{\mathbb{Q}}\xspace}
 %\newcommand{\Rset}{\ensuremath{\mathbb{R}}\xspace}
 \newcommand{\Cset}{\ensuremath{\mathbb{C}}\xspace}
-\newcommand{\Hset}{\ensuremath{\mathbb{H}}\xspace}
+%\newcommand{\Hset}{\ensuremath{\mathbb{H}}\xspace}
+\newcommand{\Hdivnull}{\ensuremath{Z}}
 
 \fenicschapter{Simulations of transitional flows}
               {Simulations of transitional flows}
@@ -20,7 +22,7 @@
 The purpose of this work is to validate Navier--Stokes (NS) solvers
 implemented in FEniCS for unstable, transitional flows. Solvers for
 the NS equations have already been discussed in the benchmark
-Chapter~[kvs-1] for laminar flows. In this chapter focus is put more
+Chapter~\ref{chap:kvs-1} for laminar flows. In this chapter focus is put more
 directly on flow energy and energy conservation, features of primary
 importance in turbulence applications. We emphasize the treatment of
 the nonlinear convection term, where various forms (standard,
@@ -37,7 +39,7 @@ perturbation in two dimensions and finally the full-blown
 three-dimensional unstable and transitional Taylor--Green vortex.
 
 The solvers and problems are implemented to fit in the problem solving
-environment described in the benchmark Chapter~[kvs-1].
+environment described in the benchmark Chapter~\ref{chap:kvs-1}.
 
 \section{Background}
 
@@ -53,7 +55,7 @@ numerical solutions.
 For incompressible Newtonian fluids the NS equations read
 % The Navier--Stokes (NS) equations are a differential form of the conservation laws for mass and momentum that governs the motion in time \textit{t} of Newtonian incompressible fluids. In the event that body (volumetric) forces $\text{f}$ also act on the fluid element, the momentum concervation law becomes a balance law and the equations read
 \begin{align}
- \frac{\partial \vec{u}}{\partial t}+\vec{u}\cdot \nabla \vec{u} &= \nu \nabla^2 \vec{u} -\frac{1}{\rho} \nabla p +\vec{f}, \label{eq:mortensen:NS}\\
+ \frac{\partial \vec{u}}{\partial t}+\nabla \vec{u} \,  \vec{u}  &= \nu \nabla^2 \vec{u} -\frac{1}{\rho} \nabla p +\vec{f}, \label{eq:mortensen:NS}\\
  \nabla \cdot \vec{u} &=0.
  \label{eq:mortensen:cont}
 \end{align}
@@ -61,7 +63,7 @@ Here $\vec{u}(\text{x},t)$ is the velocity vector, $\vec{x}$ is the
 Cartesian coordinate vector, $\nu$ the kinematic viscosity
 ($\mu/\rho$), $\rho$ density, $\mu$ molecular viscosity,
 $p(\vec{x},t)$ pressure, and the volumetric body forces is represented
-with $\vec{f}$ (e.g., the gravitational force or the Coriolis forces
+with $\vec{f}$ (the gravitational force or the Coriolis forces
 associated with the imposition of frame rotation). In the absence of
 viscosity the principle of conservation of energy can also (in
 addition to mass and momentum) be directly imposed on the NS
@@ -173,8 +175,8 @@ unstable nonlinear convection term.) Another example of transition can
 be found in the wakes downstream bluff bodies placed in an incoming
 laminar flow. Here the transition is promoted by the strong shear
 layer formed by the recirculation region aft the body. In any case, in
-order for transition to occur, imposed disturbances triggered by,
-e.g., obstacles, a sudden pressure fluctuation, or even a sound wave,
+order for transition to occur, imposed disturbances triggered by
+obstacles, sudden pressure fluctuations, or even a sound waves,
 must grow and become unstable and finally chaotic. By introducing
 systematic perturbations of the NS equations one can study these
 phenomena and watch how they experience resonance and grow or
@@ -223,8 +225,8 @@ of vectors or matrix fields on $\Omega$ is then denoted as
  \label{eq:mortensen:L2}
 \end{equation}
 where $\vec{a}$ and $\vec{u}$ are arbitrary vector fields on
-$\Omega$. Furthermore, let \Hset be the space of $L_2(\Omega)$-smooth
-vector fields and denote by $\Hset_{div}$ the subspace of
+$\Omega$. Furthermore, let $L^2$ be the space of square integrable
+functions and denote by $\Hdivnull$ the subspace of
 divergence-free vector fields.
 
 Let the convection of any vector field be written in general form as
@@ -232,7 +234,7 @@ $B(\vec{u},\vec{a})$. Here, $\vec{u}$ is the \emph{convecting
   velocity}, while $\vec{a}$ is the \emph{convected vector
   field}. Then the standard convective term,
 \begin{equation}
-B(\vec{u},\vec{a}) = \vec{u}\cdot \nabla \vec{a},
+B(\vec{u},\vec{a}) =  \nabla \vec{a} \, \vec{u},
 \end{equation}
 can be multiplied by the vector $\vec{b}$ and integrated by parts to yield
 \begin{equation}
@@ -241,7 +243,7 @@ can be multiplied by the vector $\vec{b}$ and integrated by parts to yield
 \end{equation}
 If we for simplicity assume homogeneous Dirichlet boundary conditions
 the last term falls. Furthermore, if the velocity is divergence free
-($\vec{u}\in \Hset_{div}$), the following result can be obtained for
+($\vec{u}\in \Hdivnull$), the following result can be obtained for
 the standard convection form
 \begin{equation}
 \bigl( B(\vec{u},\vec{a}), \vec{b} \bigr) = -\bigl( \vec{a}, B(\vec{u},\vec{b}) \bigr).
@@ -261,7 +263,7 @@ represents transport of kinetic energy:
 \begin{equation}
 \label{eq:mortensen:conv:K}
 \left(B(\vec{u}, \vec{u}), \vec{u} \right)
-= \int_\Omega (\vec{u}\cdot\nabla\vec{u})\cdot\vec{u}\dx
+= \int_\Omega (\nabla\vec{u} \, \vec{u})\cdot\vec{u}\dx
 = \int_\Omega \vec{u}\cdot\nabla K(\vec{u})\dx  
 = B(\vec{u}, \vec{u}\cdot\vec{u}),
 \end{equation}
@@ -281,14 +283,14 @@ B(\vec{u},\vec{a})=\nabla \cdot (\vec{u} \otimes \vec{a})
 \end{equation}
 follows from the standard simply by utilizing the divergence constraint. And the well-known skew-symmetric (or just skew) form is simply a combination of the standard and divergence forms
 \begin{equation}
- B(\vec{u},\vec{a}) = \frac{1}{2}\left[ \vec{u}\cdot \nabla \vec{a} + \nabla \cdot (\vec{u} \otimes \vec{a}) \right].
+ B(\vec{u},\vec{a}) = \frac{1}{2}\left[ \nabla \vec{a} \, \vec{u}\cdot  + \nabla \cdot (\vec{u} \otimes \vec{a}) \right].
 \label{eq:mortensen:skew}
 \end{equation}
 It can easily be shown, by multiplying \eqref{eq:mortensen:skew}
 with $\vec{a}$ and integrating by parts, that the skew-symmetric form
 of \eqref{eq:mortensen:skew} ensures that \eqref{eq:mortensen:B0}
-holds for any velocity field $\vec{u} \in \Hset$, and not just the
-divergence free $\vec{u} \in \Hset_{div}$. This is an important
+holds for any velocity field $\vec{u} \in L^2$, and not just the
+divergence free $\vec{u} \in \Hdivnull$. This is an important
 result, because in fractional step (projection) methods for the NS
 equations the divergence constraint is not always fulfilled, at least
 not for intermediate velocity fields. With the skew-form it is ensured
@@ -641,7 +643,7 @@ by one.
 \label{sec:mortensen:impl_fenics}
 
 The solvers and problems under investigation are implemented much in
-the same way as described in the benchmark Chapter~[kvs-1], but the
+the same way as described in the benchmark Chapter~\ref{chap:kvs-1}, but the
 naming convention for the variables is somewhat different. Here we
 introduce \emp{u} and \emp{p} for the unknown velocity $\vec{u}_n$ and
 pressure $p$ in the variational formulation of the governing
@@ -715,7 +717,7 @@ def conv(u_tilde, u_bar, v, mode='standard'):
 The fractional step Navier--Stokes solver is somewhat more elaborate
 than the fully coupled, since there are more steps involved. The
 details of several fractional step solvers have already been given in
-the benchmark Chapter~[kvs-1], and are thus not repeated here.
+the benchmark Chapter~\ref{chap:kvs-1}, and are thus not repeated here.
 
 % If Eqs. (\eqref{eq:mortensen:NS_FS}) and (\eqref{eq:mortensen:PC}) are multiplied by the testfunctions $\vec{v}$ and $q$ respectively and integrated over the domain we obtain the variational forms
 % \begin{equation}
@@ -803,21 +805,21 @@ giving rise to three Laplacian ``stiffness matrix'' blocks.  Moreover,
 these blocks are constant in time and do not have to be reassembled
 every time step.
 
-We could gain a potentially significant speed-up by exploiting the
+We could gain a potentially significant speed--up by exploiting the
 mentioned properties and thereby avoid computing and assembling large
 parts of the total coefficient matrix. This is perhaps not important
 for smaller 2D problems, but for larger 3D problems the naive
 implementation is much slower than an algorithm exploiting the special
 structure of the NS equations.  For CFD practitioners using FEniCS
-this speed-up is significant and makes in fact the efficiency of a
+this speed--up is significant and makes in fact the efficiency of a
 fairly quickly homemade FEniCS-based NS solver compete with expensive,
 and much less flexible, state-of-the-art CFD software.  We shall
 therefore go through the relevant optimization steps here in detail.
 
 \begin{itemize}
- \item[(1)] Split \emp{F} into accumulation $(\partial /\partial t)$,
-   convection $(\vec{u}\cdot\nabla)$, and diffusion terms
-   $(\nu\nabla^2)$, and take advantage of the fact that for the total
+ \item[(1)] Split \emp{F} into accumulation $(\partial \vec{u}/\partial t)$,
+   convection $(\nabla \vec{u} \, \vec{u})$, and diffusion terms
+   $(\nu\nabla^2 \vec{u})$, and take advantage of the fact that for the total
    coefficient matrix it is only the nonlinear convection term that
    needs to be reassembled at every time step. The matrices for the
    linear, constant-in-time accumulation and diffusion terms can be
@@ -853,16 +855,16 @@ that makes up the whole convection matrix for the velocity vector
 field.  At the time of this writing, it is for a 3D problem
 approximately 20 times faster to assemble this \emp{Ac} than
 assembling the $n_vd\times n_vd$ matrix for the complete convection
-term $\vec{u}_{n-1}\nabla \vec{u}$ by \emp{assemble(conv(u\_1, u,
+term $\nabla \vec{u} \, \vec{u}_{n-1}$ by \emp{assemble(conv(u\_1, u,
   v)*dx)}
 
 \item[(3)] The right-hand side of the linear system can be reassembled
   each time step using matrix-vector products and vector additions
-  only, a procedure that is described in Chapter~[langtangen]. Note
-  that the convection matrix \emp{Ac}, which is reassembled every time
-  step and corresponds to the operator $\vec{u}_{n-1}\cdot\nabla$, can
-  be used to compute a $\vec{u}_{n-1}\cdot\nabla\vec{u}_{n-1}$ as a
-  matrix-vector product \emp{Ac*u\_1.vector()}.
+  only, a procedure that is described in Chapter~\ref{chap:langtangen}. 
+%  Note that the convection matrix \emp{Ac}, which is reassembled every time
+%  step and corresponds to the operator $\vec{u}_{n-1}\cdot\nabla$, can
+%  be used to compute a $\vec{u}_{n-1}\cdot\nabla\vec{u}_{n-1}$ as a
+%  matrix-vector product \emp{Ac*u\_1.vector()}.
 
 \item[(4)] The sparse coefficient matrix can be compressed by removing
   redundant zeroes. For 3D problems the assembled diffusion matrix
@@ -899,7 +901,7 @@ process.
 \label{tab:mortensen:speed-up}
 \end{table}
 Table \ref{tab:mortensen:speed-up} shows briefly the effect of the
-speed up routines on the CPU-time for the Taylor--Green problem (see
+speed-up routines on the CPU-time for the Taylor--Green problem (see
 Sec. \ref{sec:mortensen:TG}) with $Re=100$ on a $16^3$ mesh using four
 time steps and a total integration time of 0.5. The naive
 implementations referenced in Table \ref{tab:mortensen:speed-up} uses
@@ -914,7 +916,7 @@ up the problem for looping. The two numbers in parenthesis show the
 time spent in the Krylov solvers and the assemblers
 respectively. Evidently, with the implicit solvers we can for this
 problem obtain a speed-up factor of nearly 40 (662/17) for the coupled
-solver. Most of this speed up follows from minimizing the amount of
+solver. Most of this speed--up follows from minimizing the amount of
 code that needs to be reassembled every time step and by avoiding a
 direct assembly of a large $(n_vd+n_p)\times (n_vd+n_p)$ matrix. As
 can be seen, the Krylov solvers are for the optimized solvers
@@ -948,7 +950,7 @@ evolved in a triply periodic domain with no obstructions.
 The nonlinear Burger's equation is considered here as an
 initial-boundary value problem
 \begin{align}
- \frac{\partial u}{\partial t}+u\nabla u &= \nu \nabla^2 u, \quad x \in (-1,1), \quad 0<t, \quad u(\pm 1,t)=0. \\
+ \frac{\partial u}{\partial t}+\nabla u \, u &= \nu \nabla^2 u, \quad x \in (-1,1), \quad 0<t, \quad u(\pm 1,t)=0. \\
  u(x,0) &=-\text{sin}(\pi x)+\kappa \xi,
 \label{eq:mortensen:burgers}
 \end{align}
@@ -974,7 +976,7 @@ in all our investigations of this case. In one single space dimension
 the convection terms need some modification from
 Section~\ref{sec:mortensen:NS-solver} due to the fact that in 1D the
 velocity is a scalar and the correlation between standard and
-divergence forms reads $u\nabla u =0.5 \nabla u^2$. To arrive at a
+divergence forms reads $\nabla u \, u =0.5 \nabla u^2$. To arrive at a
 skew-symmetric form the following combination of standard and
 divergence forms is used
 \begin{equation}
