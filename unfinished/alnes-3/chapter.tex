@@ -31,7 +31,7 @@ GiNaC~\cite{BauerFrinkKreckel2000} is an open source C++ library for symbolic ca
 It contains the tools for doing basic manipulations of polynomials, like algebraic operations, 
 differentiation, and integration. 
 The following example shows basic use of the library,  
-\begin{code}
+\begin{c++}
   // create a polynomial function
   symbol x("x");
   ex f = x*(1-x);
@@ -47,7 +47,7 @@ The following example shows basic use of the library,
   // integration
   ex intf  = integral(x,0,1,f).eval_integ();
   std::cout <<" integral of f from 0 to 1 is: "<<intf<<std::endl;
-\end{code}
+\end{c++}
 We will not go deeply into GiNaC here, but refer the reader to the 
 GiNaC tutorial and reference which can be found on its webpage. There are, however, a few
 issues we need to address to explain basic GiNaC usage. First of all, GiNaC 
@@ -70,7 +70,7 @@ Swiginac is a Python interface to GiNaC created using SWIG.
 Swiginac provides a more or less direct translation of GiNaC to Python, 
 but has features that makes it easy to program in a Pythonic way. 
 The following code translates the above C++ example to Python, using Swiginac:
-\begin{code}
+\begin{python}
 from swiginac import *
 x = symbol('x')
 f = x*(1-x) 
@@ -83,7 +83,7 @@ print "df/dx = ", dfdx
 
 intf = integral(x,0,1,f).eval_integ()
 print "integral of f from 0 to 1 is:", intf 
-\end{code}
+\end{python}
 
 \section{SyFi - Symbolic Finite Elements}
 
@@ -106,7 +106,7 @@ The following example illustrates how to use SyFi to do finite element calculati
 Here, we create a Langrange element of second order and use the basis functions to compute a 
 stiffness element matrix on a reference triangle. We also print both the integrand and 
 the element matrix entries to the screen. 
-\begin{code}
+\begin{python}
 from swiginac import *
 from SyFi import * 
 
@@ -125,9 +125,9 @@ for i in range(0, fe.nbf()):
 	print "integrand[%d, %d]  =%s;" % (i,j,integrand.printc())
 	integral = t.integrate(integrand) 
 	print "A[%d, %d]          =%s;" % (i,j,integral.printc())
-\end{code}
+\end{python}
 The output from executing the above code is: 
-\begin{code}
+\begin{c++}
 integrand[0, 0]  =2.0*pow( 4.0*y+4.0*x-3.0,2.0);
 A[0, 0]          =1.0;
 integrand[0, 1]  = -4.0*( 4.0*y+4.0*x-3.0)*x+-4.0*( y+2.0*x-1.0)*( 4.0*y+4.0*x-3.0);
@@ -137,7 +137,7 @@ A[0, 2]          =(1.0/6.0);
 integrand[0, 3]  = -4.0*y*( 4.0*y+4.0*x-3.0)+-4.0*( 4.0*y+4.0*x-3.0)*( 2.0*y+x-1.0);
 A[0, 3]          =-(2.0/3.0);
 ....
-\end{code}
+\end{c++}
 Here, we see that the expressions are printed to the screen as symbolic expressions
 in C++ syntax. Hence, the output is very reader--friendly and this can be very useful during debugging.  
 We remark that also Python and LaTeX output can be generated using the \emp{printpython} and \emp{printlatex} functions. 
@@ -145,7 +145,7 @@ We remark that also Python and LaTeX output can be generated using the \emp{prin
 All elements in SyFi are implemented in C++. Here, however, for simplicity we list a definition 
 of the Crouzeix-Raviart element in Python.  The following code is the complete
 finite element definition: 
-\begin{code}
+\begin{python}
 class CrouzeixRaviart: 
   """Python implementation of the Crouzeix-Raviart element.""" 
 
@@ -181,7 +181,7 @@ class CrouzeixRaviart:
   def N(self,i): return self.Ns[i]
   def dof(self,i): return self.dofs[i]
   def nbf(self): return len(self.Ns)
-\end{code}
+\end{python}
 The process of defining a finite element in SyFi is similar for all elements and,
 as the above code shows,  it resembles the Ciarlet definition closely, see also Chapter \cite{kirby-1}. 
 First, we construct a polynomial space. In the code above, this is performed by calling the \emp{bernstein}
@@ -189,10 +189,10 @@ function. The \emp{bernstein} functions takes as input a simplex and the order o
 which can be of arbitrary order. This function produces a tuple consisting of 
 the polynomial, its coefficients (or degrees of freedom), and the basis functions
 representing the polynomial space $P$: 
-\begin{code}
+\begin{python}
 In  : bernstein(1, triangle, "a")
 Out : [-a0_2*(-1+y+x)+y*a0_0+x*a0_1, [a0_0, a0_1, a0_2], [y, x, 1-y-x]]
-\end{code}
+\end{python}
 In the above code, we used a triangle and the order of the polynomial was one. The next task is to 
 define a set of degrees of freedom, i.e., a set of functionals $L_j : P \rightarrow \R$. 
 For the Crouzeix-Raviart element, the degrees of freedom are simply the integrals 
@@ -205,7 +205,7 @@ These equations are then solved, using \emp{lsolve}, to compute the basis functi
 coefficients \emp{[a0\_0, a0\_1, a0\_2]}  are determined for each specific basis function.
 
 The basis functions of this element can then be displayed as follows: 
-\begin{code}
+\begin{python}
 p0 = [0,0,0]; p1 = [1,0,0]; p2 = [0,1,0]; 
 triangle = Triangle(p0, p1, p2) 
 
@@ -213,15 +213,15 @@ fe = CrouzeixRaviart(triangle)
 for i in range(0,fe.nbf()): 
   print "N(%d)       = "%i,   fe.N(i)
   print "grad(N(%d)) = "%i,   grad(fe.N(i))
-\end{code}
+\end{python}
 giving the following output: 
-\begin{code}
+\begin{c++}
 N(0)       =  1/6*(-3+3*x+3*y+z)*2**(1/2)+1/6*2**(1/2)*(3*x-z)+1/6*2**(1/2)*(3*y-z)
 grad(N(0)) =  [[2**(1/2)],[2**(1/2)],[-1/6*2**(1/2)]]
 N(1)       =  1-2*x-1/3*z
 grad(N(1)) =  [[-2],[0],[-1/3]]
 ...
-\end{code}
+\end{c++}
 
 
 
@@ -230,7 +230,7 @@ grad(N(1)) =  [[-2],[0],[-1/3]]
 As mentioned earlier, SFC translates UFL code to UFC code. Consider the 
 following UFL code for defining the a variational problem for solving
 the Poisson problem, implemented in a file \emp{Poisson.ufl}:
-\begin{code}
+\begin{python}
 cell = triangle
 element = FiniteElement("CG", cell, 1)
 
@@ -242,33 +242,33 @@ g = Coefficient(element)
 
 a = c*dot(grad(u),grad(v))*dx
 L = -f*v*dx + g*v*ds
-\end{code}
+\end{python}
 SFC translates this UFL form to UFC code as follows: 
-\begin{code}
+\begin{bash}
 sfc -w1  -ogenerated_code Poisson.ufl
-\end{code}
+\end{bash}
 The generated code can be utilized in Dolfin in a standard fashion. 
 For a complete example consider the demo \emp{demo/Poisson2D/cpp} that
 comes with the SyFi package. 
 
 In PyDolfin, the form compiler may be chosen at run time by setting:  
-\begin{code}
+\begin{python}
   parameters["form_compiler"]["name"]="sfc"
-\end{code}
+\end{python}
 The form compiler can be tuned with a range of options. A complete list of options is obtained as follows:  
-\begin{code}
+\begin{python}
 import sfc 
 from sfc.common.options import default_options
 sfc_options = default_options()
-\end{code}
+\end{python}
 The object \emp{sfc\_options} is of type \emp{ParameterDict}, which is a dictionary with some 
 additional functionality. One may use the following forms to set options before passing them to \emp{assemble}.  
-\begin{code}
+\begin{python}
 sfc_options.code.integral.integration_method = "symbolic" # default is "quadrature"  
 # alternatively:  
 # sfc_options["code"]["integral"]["integration_method"] = "symbolic"  
 A = assemble(a, form_compiler_parameters=sfc_options)
-\end{code}
+\end{python}
 
 Earlier versions of SFC was slow for complicated nonlinear equations as shown in \cite{AlnaesMardal2009b}.
 However, with the introduction of UFL \cite{AlnaesThesis, AlnaesA.Logg2009}, quite complicated 
@@ -288,7 +288,7 @@ Here, $\mathbf{u}$ is the unknown displacement, $\mathbf{v}$ is a test function,
 is a matrix, $\lambda$ and $K$  are  material parameters, $\LL$ is the system of nonlinear equations to be solved, and 
 $\JJ_F$ is the corresponding Jacobian. 
 This variational form is implemented as follows: 
-\begin{code}
+\begin{python}
   mesh = UnitSquare(N, N)
   V = VectorFunctionSpace(mesh, "CG", order)
   Q = FunctionSpace(mesh, "CG", order)
@@ -324,7 +324,7 @@ This variational form is implemented as follows:
   J = derivative(F, U, u)
   
   A = assemble(J)
-\end{code}
+\end{python}
 
 To test the computational efficiency of the generated code
 for this problem, we compare the assembly of $\JJ_F$ with the assembly a corresponding linear
@@ -374,7 +374,7 @@ This dictionary with code is then combined with format strings from the
 UFC utility Python module to generate UFC compliant code.  
 An example of a format string is shown below.
 
-\begin{code}
+\begin{python}
 cell_integral_implementation = """\
 /// Constructor
 %(classname)s::%(classname)s() : ufc::cell_integral()
@@ -396,9 +396,9 @@ void %(classname)s::tabulate_tensor(double* A,
 %(tabulate_tensor)s
 }
 """
-\end{code}
+\end{python}
 Using this template, the code generation in SFC is then performed as follows:  
-\begin{code}
+\begin{python}
 def generate_cell_integral_code(integrals, formrep):
     sfc_debug("Entering generate_cell_integral_code")
     itgrep = CellIntegralRepresentation(integrals, formrep)
@@ -425,10 +425,10 @@ def generate_cell_integral_code(integrals, formrep):
              { "body": ccode, "name": itgrep.classname, "includes": cincludes }
     sfc_debug("Leaving generate_cell_integral_code")
     return itgrep.classname, (hcode, ccode), includes
-\end{code}
+\end{python}
 
 As seen above, the \emp{CellIntegralCG} class is again mirrored by a corresponding class \emp{CellIntegralRepresentation}, 
-\begin{code}
+\begin{python}
 class CellIntegralRepresentation(IntegralRepresentation):
     def __init__(self, integrals, formrep):
         IntegralRepresentation.__init__(self, integrals, formrep, False)
@@ -448,7 +448,7 @@ class CellIntegralRepresentation(IntegralRepresentation):
             D = self.formrep.D_sym
             A = integrand * D
             ...     
-\end{code}
+\end{python}
 The representation classes are quite involved, in particular when using quadrature since
 the graph structures from UFL is parsed and used to build up an efficient representation 
 for the code generation. The details of this is, however, beyond the scope of the current chapter.  
