@@ -27,7 +27,10 @@ This chapter is deliberately short and only gives the reader a taste of the capa
 However, most features are covered by the more comprehensive manual. 
 This chapter is organized as follows: We begin with a short description of GiNaC 
 and Swiginac, before we present how finite elements are used and defined using SyFi.   
-Then, we present how to use SFC in the \dolfin\ environment, and end with a short description of the basic structure of SFC. 
+Then, we present how to use SFC in the \dolfin\ environment, and end with a
+short description of the basic structure of SFC. SyFi is implemented in
+C++, but has a Python interface. SFC is implemented in Python because 
+code generation is much more convenient in this language.     
 %The code examples accompanying this chapter can be found in  
 %\emp{\$FENICSBOOK/src/syfi-sfc}.
 
@@ -78,6 +81,8 @@ The complete code can be found at \emp{syfi-sfc/ginac}.
 Swiginac is a Python interface to GiNaC created using SWIG.  
 Swiginac provides a more or less direct translation of GiNaC to Python, 
 but has features that makes it easy to program in a Pythonic way. 
+For instance, Swiginac unwraps the \emp{ex} objects and provides typemaps between Python lists and GiNaC
+lists (\emp{lst}). 
 The following code translates the above C++ example to Python, using Swiginac:
 \begin{python}
 from swiginac import *
@@ -157,6 +162,9 @@ All elements in SyFi are implemented in C++. Here, however, for simplicity we li
 of the Crouzeix-Raviart element in Python.  The following code is the complete
 finite element definition: 
 \begin{python}
+from swiginac import *
+from SyFi import *
+
 class CrouzeixRaviart(object): 
   """Python implementation of the Crouzeix-Raviart element.""" 
 
@@ -259,6 +267,11 @@ SFC translates this UFL form to UFC code as follows:
 \begin{bash}
 sfc -w1  -ogenerated_code Poisson.ufl
 \end{bash}
+Here, \emp{-w1} means that \dolfin\ wrappers are generated, while
+\emp{-ogenerate\_code} means that the generated code should be located
+in the directory \emp{generate\_code}. Notice that the flags and
+corresponding options are not separated by whitespaces. A complete
+list of options is obtained with \emp{sfc -h}.  
 The generated code can be utilized in Dolfin in a standard fashion. 
 For a complete example consider the demo \emp{demo/Poisson2D/cpp} that
 comes with the SyFi package. 
