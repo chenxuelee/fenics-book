@@ -60,7 +60,10 @@ contains many different types like \emp{symbol}, \emp{matrix}, \emp{function}, e
 Normally, one does not need to worry about these types since the type \emp{ex}, which
 was used above, can represent any mathematical object (\emp{ex} is basically a place-holder for the underlying 
 object). Still, there are mathematical operations that can only be applied on particular 
-types. For instance, functions can only differentiated with respect to symbols, as shown above.  
+types. For instance, functions can only differentiated with respect to
+symbols, as shown above.  Notice also that GiNaC overloads operators
+like \emp{==} to enable creation of equations and inequalities, which
+may be represented as  expressions of type \emp{relations} (or \emp{ex}). 
 
 Symbolic calculations can be computationally demanding. Therefore, GiNaC separates between 
 the construction and evaluation of expressions. This is illustrated in the above example by
@@ -102,7 +105,8 @@ With these utilities it is easy to define finite elements.
 Some elements that have been implemented include:
 continuous and discontinuous Lagrangian elements, 
 the Crouzeix-Raviart element, the Raviart-Thomas element, various H(div) and H(curl) Nedelec 
-elements, and the Hermite elements. A complete list of elements can be found
+elements, and the Hermite elements, see Chapter~\ref{chap:kirby-6} for
+a description of these elements. A complete list of elements can be found
 in the user manual. The mentioned elements are defined for arbitrary order, except for
 the Crouzeix-Raviart and Hermite elements. Not all of these elements are, however, 
 supported by the form compiler. 
@@ -118,7 +122,7 @@ from SyFi import *
 #initialize SyFi in 2D
 initSyFi(2)
 
-# create reference triange 
+# create reference triangle 
 t = ReferenceTriangle() 
 
 # create second order Langrange element
@@ -151,7 +155,7 @@ All elements in SyFi are implemented in C++. Here, however, for simplicity we li
 of the Crouzeix-Raviart element in Python.  The following code is the complete
 finite element definition: 
 \begin{python}
-class CrouzeixRaviart: 
+class CrouzeixRaviart(object): 
   """Python implementation of the Crouzeix-Raviart element.""" 
 
   def __init__(self, polygon):  
@@ -166,11 +170,11 @@ class CrouzeixRaviart:
     and put them in Ns and dofs, respectively.  """
 
     # create the polynomial space
-    N, coeff, basis = bernstein(1,triangle,"a")
+    N, variables, basis = bernstein(1,self.polygon,"a")
 
     # define the degrees of freedom 
     for i in range(0,3): 
-      edge = triangle.line(i)
+      edge = self.polygon.line(i)
       dofi = edge.integrate(N) 
       self.dofs.append(dofi)
 
@@ -276,11 +280,12 @@ sfc_options.code.integral.integration_method = "symbolic" # default is "quadratu
 A = assemble(a, form_compiler_parameters=sfc_options)
 \end{python}
 
-Earlier versions of SFC was slow for complicated nonlinear equations as
+Earlier versions of SFC were slow for complicated nonlinear equations as
 shown in \citep{AlnaesMardal2009b}.
 However, with the introduction of UFL \citep{AlnaesThesis, AlnaesA.Logg2009}, quite complicated 
-equations can be handled without loosing computational efficiency. Consider for example an elasticity problem 
-where the constitutive law is a quite complicated variant of Fung, described by 
+equations can be handled without losing computational efficiency. Consider for example an elasticity problem 
+where the constitutive law is a quite complicated variant of
+Fung~\citep{Fung1993}, described by 
 the following equations: 
 \begin{eqnarray}
 \mathbf{F} &=& \mathbf{I} + (\nabla \mathbf{u})^T, \\  
@@ -367,7 +372,7 @@ for more discussions on the topic of efficient compiling of linear and nonlinear
 \authornote{A few words about instant}
 
 
-Finally, we shortly describe the overall design of the code generation software.
+Finally, we briefly describe the overall design of the code generation software.
 UFC defines the interface of the code produced by SFC. 
 In SFC, each UFC class is mirrored by  subclasses of the class \emp{CodeGenerator} called 
 \emp{FormCG}, \emp{DofMapCG}, \emp{FiniteElementCG}, and \emp{CellIntegralCG}, etc. 
@@ -457,7 +462,7 @@ class CellIntegralRepresentation(IntegralRepresentation):
             ...     
 \end{python}
 The representation classes are quite involved, in particular when using quadrature since
-the graph structures from UFL is parsed and used to build up an efficient representation 
+the graph structures from UFL are parsed and used to build up an efficient representation 
 for the code generation. The details of this is, however, beyond the scope of the current chapter.  
 
 
