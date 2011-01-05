@@ -206,8 +206,15 @@ Note that we need to include \emp{std\_string.i} in the \emp{Array\_2.i}.
 In Python, we can then call \emp{print} on an instance of \emp{Array}.
 
 \subsection{The constructor: \emp{Array(int n\_, double* a\_);}}
-The fourth problem is related to pointer handling in C/C++ and how SWIG deals with pointers. From the constructor signature alone, it is not clear whether \emp{double *} points to a single value or to the first element of an array.
-Therefore, SWIG takes a conservative approach and handles pointers as pointers, not assuming anything about the length. In this example, we do of course know that \emp{double* a} points to the first element of an array of length \emp{n}. However, SWIG provides the \emp{typemap} concept to enable mappings between C/C++ types and Python objects. The following code demonstrates how to map a \numpy array to the \emp{(int n\_, double* a\_)} arguments in the constructor.
+The fourth problem is related to pointer handling in C/C++ and SWIG. From
+the constructor signature alone, it is not clear whether \emp{double* a\_} points to a single value or to the first element of an array.
+Therefore, SWIG takes a conservative approach and handles pointers as
+pointers. This leads to the erroneous behaviour of the constructor in the
+above example, where  \emp{double* a\_} points to the first element of an array of length \emp{n}. 
+As a remedy, SWIG provides the \emp{typemap} concept to enable mappings
+between C/C++ and Python types. The following code, explained in detail
+below, demonstrates how to map a \numpy array to the \emp{(int n\_, double* a\_)} 
+arguments in the constructor.
 \begin{c++}
 %typemap(in) (int n_, double* a_){
   if (!PyArray_Check($input)) {
@@ -223,22 +230,33 @@ Therefore, SWIG takes a conservative approach and handles pointers as pointers, 
   $2 = static_cast<double*>(PyArray_DATA(pyarray));
 }
 \end{c++}
-A reader not familiar with the C-APIs of Python and \numpy will probably consider this typemap code as fairly technical. But it is a good example as it demonstrates the possibilities typemaps give us.\par
-The first line specifies that the typemap should be applied to input \emp{(in)} arguments in the C++ library, which has the signature \emp{int n\_,double* a\_}. The \$ prefixed variables are used to map in and output variables in the typemap. The variables \$1 and \$2 maps to the first and second argument of the typemap, i.e., \emp{n\_} and \emp{a\_}. Furthermore, \$input maps to a pointer to the Python object a user is calling the SWIG generated method with. \par
-In the next three lines we check if the input Python object is a \numpy array, and raise an exception if not.
-Note that any Python C-API function that returns \emp{NULL} tells the Python interpreter that an exception has occurred. Python will then raise the error set by the \emp{PyErr\_SetString} statement. Next, we cast the Python object pointer to a \numpy array pointer and check if the data type of the \numpy array is correct, i.e. that it contains doubles. Then, we acquire the data from the \numpy array and assign the two input variables.\par
+The first line specifies that the typemap should be applied to the input
+\emp{(in)} arguments of operators, functions, and methods with 
+\emp{int n\_,double* a\_} arguments in the signature. 
+The \$ prefixed variables are used to map input and output variables in the typemap; 
+that is, the variables \$1 and \$2 map to the first and second output C
+arguments of the typemap, \emp{n\_} and \emp{a\_}, while \emp{\$input}
+maps to the Python input. 
 
-A user defined typemap should be followed by a \emp{\%typecheck} directive
-in case of overloading. SWIG relies on such directives to resolve which of the overloaded C++ methods that should be
-called when the corresponding Python method is called\footnote{In Python you cannot overload class methods, i.e., only one method with the same name per class is allowed. You can define several methods with the same name in Python, however, only one of them will actually exist.}. If a wrapped C++ class has overloaded methods, SWIG dynamically needs to figure out which one of them it should call. This process is called dynamic dispatch. SWIG first check the number of arguments. If several methods has the same number of arguments SWIG use a priority system, based on an internal type priority numbering. See the SWIG documentation~\cite{www:swig} for more information on the built in type priorities SWIG uses. When a user defines a typemap for a new type he also need to associate the typemap with such a priority number, which is done by the \emp{\%typecheck} directive.\par
-A suitable typecheck for our example typemap looks like:
+In the next three lines, we check that the input Python object is a \numpy array, and raise an exception if not.
+Note that any Python C-API function that returns \emp{NULL} tells the
+Python interpreter that an exception has occurred. Python will then raise
+an error, with the error message set by the \emp{PyErr\_SetString}
+function. Next, we cast the Python object pointer to a \numpy array pointer
+and check that the data type of the \numpy array is correct; that is, that it contains doubles. Then, we acquire the data from the \numpy array and assign the two input variables.\par
+
+Overloading operators, functions and methods is not possible in Python.
+Instead, Python dynamically determines what code to call,  
+a process which is called dynamic dispatch.
+To generate proper wrapper code, 
+SWIG relies on \emp{\%typecheck} directives to resolve the overloading. 
+A suitable typecheck for our example typemap is:
 \begin{c++}
 %typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) (int n_, double* a_) {
    $1 = PyArray_Check($input) ? 1 : 0;
  }
 \end{c++}
-Here \emp{SWIG\_TYPECHECK\_DOUBLE\_ARRAY} is a \emp{typedef} for the priority number assigned for arrays of doubles. The typecheck should return 1 if the Python object \emp{\$input} has the correct type, and 0 otherwise.\par
-
+Here, \emp{SWIG\_TYPECHECK\_DOUBLE\_ARRAY} is a \emp{typedef} for the priority number assigned for arrays of doubles. The typecheck should return 1 if the Python object \emp{\$input} has the correct type, and 0 otherwise.
 \section{SWIG and PyDolfin}
 We are now ready to describe some of the specializations we have done in an effort to make PyDolfin both usable and more \textit{Pythonic}. The interface files resides in the \emp{dolfin/swig} directory, and are organized into \textit{i)} global files, which apply to the whole \dolfin library, and \textit{ii)} kernel module files that apply to specific modules in \dolfin. The latter files are divided into \emp{$\ldots$\_pre.i} and \emp{$\ldots$\_post.i} files, which are applied respectively before and after the inclusion of the header files of the particular kernel module. The modules follows the catalog structure of \dolfin: \emp{common}, \emp{parameters}, \emp{la}, \emp{mesh} and so forth. The global interface files are all included in \emp{dolfin.i}, the main SWIG interface file. The kernel module interface files are included, together with the C++ header files, in the automatically generated \emp{kernel\_modules.i} file.\par
 
