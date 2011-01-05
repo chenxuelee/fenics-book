@@ -1,4 +1,4 @@
-\fenicschapter{SyFi -- Symbolic Finite Elements and its Form Compiler SFC  }
+\fenicschapter{SyFi -- Symbolic Finite Elements \\ and its Form Compiler SFC  }
               {SyFi and SFC}
               {Martin Sandve Aln\ae s and Kent-Andre Mardal}
               {alnes-3}
@@ -21,7 +21,8 @@ SFC can be used in \fenics\ as a form compiler. Similar to \ffc\ it
 translates \ufl\ code (see Chapter~\ref{chap:alnes-1}) 
 into UFC code (see Chapter~\ref{chap:alnes-2}), 
 which can be used by the \dolfin\ assembler described in
-Chapter~\ref{chap:logg-3}. 
+Chapter~\ref{chap:logg-3}. The UFC code is JIT compiled using Instant, see
+Chapter~\ref{chap:wilbers}. 
 
 This chapter is deliberately short and only gives the reader a taste of the capabilities of SyFi and SFC. 
 However, most features are covered by the more comprehensive manual. 
@@ -389,8 +390,6 @@ for more discussions on the topic of efficient compilation of linear and nonline
 
 \section{Code generation design}
 
-\authornote{A few words about instant}
-
 
 Finally, we briefly describe the overall design of the code generation software.
 UFC defines the interface of the code produced by SFC. 
@@ -458,8 +457,9 @@ def generate_cell_integral_code(integrals, formrep):
     sfc_debug("Leaving generate_cell_integral_code")
     return itgrep.classname, (hcode, ccode), includes
 \end{python}
-
-As seen above, the \emp{CellIntegralCG} class is again mirrored by a corresponding class \emp{CellIntegralRepresentation}, 
+As seen above, the \emp{CellIntegralCG} class is again mirrored by a
+corresponding class \\ 
+\emp{CellIntegralRepresentation}, 
 \begin{python}
 class CellIntegralRepresentation(IntegralRepresentation):
     def __init__(self, integrals, formrep):
@@ -481,9 +481,18 @@ class CellIntegralRepresentation(IntegralRepresentation):
             A = integrand * D
             ...     
 \end{python}
-The representation classes are quite involved, in particular when using quadrature since
-the graph structures from UFL are parsed and used to build up an efficient representation 
-for the code generation. The details of this is, however, beyond the scope of the current chapter.  
+The representation classes are quite involved, in particular when using
+quadrature since this is where the 
+graph structures (\emp{Graph} in UFL) are used to split the expressions 
+in smaller sub-expressions. 
+SFC makes GiNaC symbols that represent temporary variables for all
+sub-expressions. Based on the partition from UFL, the temporary variables
+are placed at different locations in the loops in the generated code, 
+depending on sub-expressions depedency. 
+The sub-expression associated with each temporary variable is then 
+translated to a C/C++ string using GiNaC. Finally, SFC puts it all together
+into a tabulate tensor implementation in the code generation classes,
+     \emp{*CG.py}.
 
 
 
