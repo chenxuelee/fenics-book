@@ -5,9 +5,9 @@
 
 
 This chapter describes decisions made and lessons learnt
-in the implementation of PyDolfin. The chapter is quite technical, since
+in the implementation of PyDOLFIN. The chapter is quite technical, since
 we aim at giving the reader a thorough understanding of the implementation
-of PyDolfin. 
+of PyDOLFIN. 
 
 \section{Background}
 Python has over the last decade become an established platform
@@ -44,7 +44,7 @@ Writing such interfaces, often called wrapper code, is quite involved.
 Therefore, a number of wrapper code generators have been developed in the
 recent years, some examples are   
  \citet{Peterson}, \citet{SIP}, \citet{Siloon}, and \citet{www:swig}. 
- SWIG has been used to create PyDolfin and will therefore be in focus in
+ SWIG has been used to create PyDOLFIN and will therefore be in focus in
  this chapter. SWIG is a mature wrapper code generator that support many languages and is extensively documented.
 
 \subsection{Basic SWIG}
@@ -243,7 +243,7 @@ Note that any Python C-API function that returns \emp{NULL} tells the
 Python interpreter that an exception has occurred. Python will then raise
 an error, with the error message set by the \emp{PyErr\_SetString}
 function. Next, we cast the Python object pointer to a \numpy array pointer
-and check that the data type of the \numpy array is correct; that is, that it contains doubles. Then, we acquire the data from the \numpy array and assign the two input variables.\par
+and check that the data type of the \numpy array is correct; that is, that it contains doubles. Then, we acquire the data from the \numpy array and assign the two input variables.
 
 Overloading operators, functions and methods is not possible in Python.
 Instead, Python dynamically determines what code to call,  
@@ -257,23 +257,36 @@ A suitable typecheck for our example typemap is:
  }
 \end{c++}
 Here, \emp{SWIG\_TYPECHECK\_DOUBLE\_ARRAY} is a \emp{typedef} for the priority number assigned for arrays of doubles. The typecheck should return 1 if the Python object \emp{\$input} has the correct type, and 0 otherwise.
-\section{SWIG and PyDolfin}
-We are now ready to describe some of the specializations we have done in an effort to make PyDolfin both usable and more \textit{Pythonic}. The interface files resides in the \emp{dolfin/swig} directory, and are organized into \textit{i)} global files, which apply to the whole \dolfin library, and \textit{ii)} kernel module files that apply to specific modules in \dolfin. The latter files are divided into \emp{$\ldots$\_pre.i} and \emp{$\ldots$\_post.i} files, which are applied respectively before and after the inclusion of the header files of the particular kernel module. The modules follows the catalog structure of \dolfin: \emp{common}, \emp{parameters}, \emp{la}, \emp{mesh} and so forth. The global interface files are all included in \emp{dolfin.i}, the main SWIG interface file. The kernel module interface files are included, together with the C++ header files, in the automatically generated \emp{kernel\_modules.i} file.\par
+\section{SWIG and PyDOLFIN}
+To make PyDOLFIN more \textit{Pythonic}, we have made a number of
+specializations, along the lines mentioned above, that we will now go
+through. But let us start with the
+overall picture.   
+The interface files resides in the \emp{dolfin/swig} directory, and are
+organized into \textit{i)} global files, that apply to the entire \dolfin
+library, and \textit{ii)} kernel module files that apply to specific
+\dolfin modules. The latter files are divided into \emp{$\ldots$\_pre.i}
+and \emp{$\ldots$\_post.i} files, which are applied before and after the
+inclusion of the header files of the particular kernel module, respectively. 
+The kernel modules (\emp{kernel\_module.i} mirror the structure of \dolfin: \emp{common}, \emp{parameters}, \emp{la}, \emp{mesh} and so forth. The global interface files are all included in \emp{dolfin.i}, the main SWIG interface file. The kernel module interface files are included, together with the C++ header files, in the automatically generated \emp{kernel\_modules.i} file.
 
-We will here walk through the main interface file of \emp{dolfin.i} and address the global interface files. Then we will address some issues in the module specific interface files.\par
+The following sections deal with the main
+interface file of \emp{dolfin.i} and address the global interface files. Then we will address some issues in the module specific interface files.
 
 \subsection{\emp{dolfin.i} and the \emp{cpp} module}
 The file \emp{dolfin.i} starts by defining the name of the generated Python module.
 \begin{c++}
 %module(package="dolfin", directors="1") cpp
 \end{c++}
-This statement tells SWIG to create a module called \emp{cpp} that resides in the package of \emp{dolfin}. We have also enabled the use of directors. The latter is required to be able to subclass \dolfin classes in Python. We will return to this below. By naming the generated extension module \emp{cpp}, and putting it in the \emp{dolfin} Python package, we hide the generated interface into a sub module of dolfin; the \emp{dolfin.cpp} module. A user can access the \emp{cpp} module from Python by:
-\begin{python}
-import dolfin.cpp as cpp
-\end{python}
-In the \emp{dolfin} module we then import the generated classes and functions we want to expose to the \emp{dolfin} namespace. This is done in the \emp{\_\_init\_\_.py} file that resides in the \emp{site-packages/dolfin/} directory. In \emp{\_\_init\_\_.py} we also import pure Python classes and functions, which are defined in Python module files. These files also reside in the \emp{site-packages/dolfin/} directory.\par
+This statement tells SWIG to create a module called \emp{cpp} that resides
+in the package of \emp{dolfin}. We have also enabled the use of directors.
+The latter is required to be able to subclass \dolfin classes in Python,
+and issue that will be discussed below.  By naming the generated extension module
+\emp{cpp}, and including it in the \emp{dolfin} Python package, we hide the generated interface into a sub module of dolfin; the \emp{dolfin.cpp} module. 
+The \emp{dolfin} module then imports the needed classes and functions 
+from \emp{dolfin.cpp} in the \emp{\_\_init\_\_.py} file along with  pure Python classes and functions. 
 
-The next two blocks in \emp{dolfin.i} defines code that will be inserted into the SWIG generated C++ wrapper file.
+The next two blocks of \emp{dolfin.i} defines code that will be inserted into the SWIG generated C++ wrapper file.
 \begin{c++}
 %{
 #include <dolfin/dolfin.h>
@@ -285,14 +298,45 @@ The next two blocks in \emp{dolfin.i} defines code that will be inserted into th
 import_array();
 %}
 \end{c++}
-SWIG will insert any code that resides in a \emp{\%\{$\ldots$\}\%} block, verbatim at the top of the generated C++ wrapper file (\emp{\%\{$\ldots$\}\%} is short for \emp{\%header\%\{$\ldots$\}\%}). Hence, the first block of code is similar to the include statements you would put in a standard C++ program. The code in the second block, \emp{\%init\%\{$\ldots$\}\%}, is inserted in the code where the Python module is initialized. The \emp{import\_array()} function has to be called to initialize the C-API of \numpy and make the \numpy specific macros available. SWIG provides several such blocks, each inserting code verbatim into the wrapper file at different positions, see SWIG documentation for more alternatives\cite{www:swig}.\par
+SWIG inserts code that resides in a \emp{\%\{$\ldots$\}\%} block, verbatim
+at the top of the generated C++ wrapper file. Note that
+\emp{\%\{$\ldots$\}\%} is short for \emp{\%header\%\{$\ldots$\}\%}. Hence,
+the first block of code is similar to the include statements you would
+put in a standard C++ program. The code in the second block,
+\emp{\%init\%\{$\ldots$\}\%}, is inserted in the code where the Python
+module is initialized. A typical example of such a function is
+\emp{import\_array()}, which initialize the \numpy module. SWIG provides
+several such statements, each inserting code verbatim into the wrapper file
+at different positions.
+
 
 \subsection{Reference counting using shared\_ptr}
-In the example with the wrapping of the \emp{operator+=}\footnote{A discussion of how to implement operator+= in C++ can be found in \cite{Mey97}.} method above, we see that it is important to prevent premature destruction of the underlying C++ object. A nice feature of SWIG is that we can declare that a wrapped class shall store the underlying C++ object using a \emp{shared\_ptr} instead of a raw pointer. By doing this SWIG does not have to explicitly delete the C++ object when the reference count of the Python object reach zero, but rather decreases the count on the \emp{shared\_ptr}. \dolfin provides a \emp{shared\_ptr} interface for some crucial classes, which interact nicely with the \emp{shared\_ptr} stored C++ objects in \dolfin. \par
+In the previous example dealing with \emp{operator+=}, we saw that it is
+important to prevent premature destruction of underlying C++ objects. A
+nice feature of SWIG is that we can declare that a wrapped class shall
+store the underlying C++ object using a shared pointer \emp{shared\_ptr}, instead of a raw
+pointer. By doing so, the underlying C++ object is not explicitly deleted
+when the reference count of the Python object reach zero, instead the
+reference count on the \emp{shared\_ptr} is decreased. \dolfin provides a
+\emp{shared\_ptr} interface for some crucial classes, which interact
+seamlessly with the \emp{shared\_ptr} stored C++ objects in \dolfin. 
 
-To get this working in PyDolfin we need to include the \emp{boost\_shared\_ptr.i} file. In this file two user macros are declared: \emp{SWIG\_}\-\emp{SHARED\_}\-\emp{PTR} and \emp{SWIG\_}\-\emp{SHARED\_PTR\_}\-\emp{DERIVED}\footnote{In SWIG version 2.0 and above, these macros are superseeded by the single \emp{\%shared\_ptr} directive.}. We call these macros with each class we want to use \emp{shared\_ptr} storage as arguments. In PyDolfin we do this in the \emp{shared\_ptr\_classes.i} file. In addition to store an instance of the particular class using a \emp{shared\_ptr}, the macros also declares typemaps for passing a \emp{shared\_ptr} stored object to a method that expects a reference or pointer to such an objects. This means that the typemap pass a de-referenced \emp{shared\_ptr} to the function. This behavior can lead to unintentional trouble as we circumvent the \emp{shared\_ptr} mechanism.\par
+Shared pointers are provided by the the \emp{boost\_shared\_ptr.i} file. 
+This file declares two user macros: \emp{SWIG\_}\-\emp{SHARED\_}\-\emp{PTR}
+and \emp{SWIG\_}\-\emp{SHARED\_PTR\_}\-\emp{DERIVED}\footnote{In SWIG
+version 2.0 and above, these macros are superseeded by the single
+\emp{\%shared\_ptr} directive.}. These macros must be called for each class we
+want shared pointers.  In PyDOLFIN this is done in the \emp{shared\_ptr\_classes.i} file. 
+Note that the macros also declare typemaps for passing a
+\emp{shared\_ptr} stored object to method that expects a reference or
+a pointer. This means that the typemap pass a
+de-referenced \emp{shared\_ptr} to the function. This behavior can lead to
+unintentional trouble because the \emp{shared\_ptr} mechanism is circumventeded.
 
-In \dolfin we store instances of some crucial classes internally with \emp{shared\_ptr}s. The same classes are naturally declared as being stored with \emp{shared\_ptr} in the Python interface, using the above mention directives. When objects of these classes are passed as argument to methods or constructors in \dolfin, we usually define two such methods: a \emp{shared\_ptr} and a reference version. The following code snippet illustrates two constructors of \emp{Function}, each taking a \emp{FunctionSpace} as an argument\footnote{Instances of \emp{FunctionSpace} are stored using \emp{shared\_ptr} in the \dolfin C++ library.}:
+In \dolfin, instances of some crucial classes are stored internally with
+\emp{shared\_ptr}s. These classes also uses \emp{shared\_ptr} in the Python
+interface. When objects of these classes are passed as arguments to methods
+or constructors in \dolfin, two versions are needed: a \emp{shared\_ptr} and a reference version. The following code snippet illustrates two constructors of \emp{Function}, each taking a \emp{FunctionSpace} as an argument\footnote{Instances of \emp{FunctionSpace} are stored using \emp{shared\_ptr} in the \dolfin C++ library.}:
 \begin{c++}
 /// Create function on given function space
 explicit Function(const FunctionSpace& V);
@@ -300,22 +344,39 @@ explicit Function(const FunctionSpace& V);
 /// Create function on given function space (shared data)
 explicit Function(boost::shared_ptr<const FunctionSpace> V);
 \end{c++}
-As instances of \emp{FunctionSpace} in PyDolfin are stored using \emp{shared\_ptr} we want SWIG to use the second constructor. However, SWIG generates de-reference typemaps for the first constructor. So when we instantiate a \emp{Function} with a \emp{FunctionSpace}, SWIG will unfortunately pick the first constructor instead of the correct second one. So the \emp{FunctionSpace} is passed without increasing the reference count of the \emp{shared\_ptr}. This undermines the whole concept of \emp{shared\_ptr}. To prevent this faulty behavior we ignore the reference constructor from the interface that is wrapped (see \emp{function\_pre.i}).
+Instances of \emp{FunctionSpace} in PyDOLFIN are stored using
+\emp{shared\_ptr}. Hence, we want SWIG to use the second constructor. However, 
+SWIG generates de-reference typemaps for the first constructor. So when a
+\emp{Function} is instantiated with a \emp{FunctionSpace}, SWIG will
+unfortunately pick the first constructor and the \emp{FunctionSpace} is
+passed without increasing the reference count of the \emp{shared\_ptr}.
+This undermines the whole concept of \emp{shared\_ptr}. To prevent this
+faulty behavior, we ignore the reference constructor (see \emp{function\_pre.i}):
 \begin{c++}
  %ignore dolfin::Function::Function(const FunctionSpace&);
 \end{c++}
 
 \subsection{Typemaps}
-The types included in the \emp{kernel\_module.i} file are mostly wrapped nicely with SWIG. However, as in the \emp{Array} example above, there exist corner-cases which are problematic. In \emp{dolfin.i} we include three different types of global typemaps: \textit{i)} general-, \textit{ii)} \numpy- and, \textit{iii)} std\_vector-typemaps. These are implemented in the interface files: \emp{typemaps.i}, \emp{numpy\_}\emp{typemaps.i} and \emp{std\_}\emp{vector\_}\emp{typemaps.i}. We will here present some of the typemaps defined in these files.\par
+Most types in the \emp{kernel\_module.i} file are wrapped nicely
+with SWIG. However, as in the \emp{Array} example above, there is need for 
+typemaps, for instance to handle \numpy arrays.  
+In \emp{dolfin.i} we include three different types of global typemaps:
+\textit{i)} general-, \textit{ii)} \numpy- and, \textit{iii)}
+std\_vector-typemaps. These are implemented in the interface files:
+\emp{typemaps.i}, \emp{numpy\_}\emp{typemaps.i} and
+\emp{std\_}\emp{vector\_}\emp{typemaps.i}. Here, we present some of the typemaps defined in these files.
 
-\paragraph{\emp{typemaps.i:}}
-In \emp{typemaps.i} we define typemaps for four different basic types. In- and out-typemaps for \emp{dolfin::uint}, and \emp{dolfin::real}, an in-typemap for \emp{int}, and an out-typemap macro for \emp{std::pair<}\-\emp{dolfin::uint,}\-\emp{dolfin::uint>}.\par
+In \emp{typemaps.i}, typemaps for four different basic types are defined. In- and out-typemaps for \emp{dolfin::uint}, and \emp{dolfin::real}, an in-typemap for \emp{int}, and an out-typemap macro for \emp{std::pair<}\-\emp{dolfin::uint,}\-\emp{dolfin::uint>}.
 
-We start with the simplest typemap, an out-typemap for \emp{dolfin::uint} (notice that Python does not have \emp{unsigned int}):
+The simplest typemap is an out-typemap for \emp{dolfin::uint}, which is needed since Python does not have \emp{unsigned int}:
 \begin{c++}
 %typemap(out) dolfin::uint = int;
 \end{c++}
-This typemap specifies that a function returning a \emp{dolfin::uint} should use the built-in out-typemap for \emp{int}. SWIG let us reuse a typemap simply by copying it. We could have used the same feature for the corresponding in-typemap, however an unfortunate bug force us to implement the whole typemap from scratch. The typemap looks like this:
+This typemap specifies that a function returning a \emp{dolfin::uint}
+should use the built-in out-typemap for \emp{int}. SWIG lets us reuse a
+typemap by simply copying it. We could have used the same feature for the
+corresponding in-typemap, however an unfortunate bug, explained below,  
+forces us to implement the whole typemap from scratch. The typemap looks like this:
 \begin{c++}
 %typemap(in) dolfin::uint
 {
@@ -332,18 +393,46 @@ This typemap specifies that a function returning a \emp{dolfin::uint} should use
 }
 \end{c++}
 %$ to fool emacs highlight...
-We see that the typemap resembles the \numpy typemap above. We first check that the object is of integer type. The check is performed by the \emp{PyInteger\_}\emp{Check} function. We have implemented the \emp{PyInteger\_}\emp{Check} function instead of using the built in Python C-API macro \emp{PyInt\_Check}, which combined with \numpy, cause the above mentioned bug. Next, we convert the Python integer to a \emp{long} and check if it is positive. Finally, we assign the input argument \$1 to a \emp{dolfin::uint} casted version of the value. If one of the checks fails we use a built in SWIG function, \emp{SWIG\_exception} to raise a python exception. These predefined SWIG exceptions are defined in the \emp{exception.i} file, which we need to include in our \emp{dolfin.i} file. The \emp{\$argnum} variable expands to the argument number of a function or methods that expects a \emp{dolfin::uint}. Including this number in the string will create a more understandable error message. Finally, we define a corresponding typecheck for the typemap, which is not shown here. After the \emp{dolfin::uint} typemap we also define an in-typemap for the \emp{int} type, which is almost a copy of the \emp{uint} typemap and therefore not presented here.\par
-The out-typemap for \emp{std::pair}\-\emp{<dolfin::uint,}\-\emp{dolfin::uint>} returns a Python tuple of two integers:\begin{c++}
+The typemap has the same structure as the \numpy typemap above. We first
+check that the object is of integer type, with the
+\emp{PyInteger\_}\emp{Check} function. Here, we have implemented the
+\emp{PyInteger\_}\emp{Check} function ourselves instead of using the 
+Python  macro \emp{PyInt\_Check}. The reason is that
+\emp{PyInt\_Check} can not be combined with \numpy, which is the above
+mentioned bug. Next, we convert the Python integer to a \emp{long} and
+check whether it is positive. Finally, we assign the input argument \$1 to
+a \emp{dolfin::uint} casted version of the value. If either of these checks
+fail, we use the built in SWIG function, \emp{SWIG\_exception} to raise a
+Python exception. These predefined SWIG exceptions are defined in the
+\emp{exception.i} file, included in \emp{dolfin.i}. Note that SWIG expands
+the \emp{\$argnum} variable to the number of the argument using
+the  \emp{dolfin::uint} typemap. Including this number in the string
+creates  more understandable error message. 
+%Finally, we define a corresponding typecheck for the typemap, which is not shown here. 
+%After the \emp{dolfin::uint} typemap we also define an in-typemap for the \emp{int} type, 
+%which is almost a copy of the \emp{uint} typemap and therefore not presented here.
+Finally, we present the out-typemap for
+\emp{std::pair}\-\emp{<dolfin::uint,}\-\emp{dolfin::uint>},  
+which returns a Python tuple of two integers:\begin{c++}
 %typemap(out) std::pair<dolfin::uint,dolfin::uint>
 {
   $result = Py_Build Value("ii",$1.first,$1.second);
 }
 \end{c++}
 %$ here to fool emacs highlightings
-This is an example of a short and comprehensive typemap. It uses the Python C-API function \emp{Py\_BuildValue} to build a tuple of the two values in the \emp{std::pair} object.\par
+This is an example of a short and comprehensive typemap. It uses the Python C-API function \emp{Py\_BuildValue} to build a tuple of the two values in the \emp{std::pair} object.
 
-\paragraph{\emp{numpy\_typemaps.i:}}
-In \emp{numpy\_typemaps.i} we define in-typemaps for arrays of primitive types: \emp{double}, \emp{int} and \emp{dolfin::uint}. As in the \emp{Array} example above, these typemaps are defined so one can pass a \numpy array of the corresponding type as the argument. Instead of writing one typemap for each primitive type, we write a SWIG macro, which is called using the different types as argument. The code in the typemaps are inserted directly in the wrapper code, with the different variable names: \emp{\$1} \emp{\$2}, \emp{\$input}, substituted with the actual argument names. This can produce a lot of code as some of these typemaps are used frequently. We have therefore put the typemap code into a function, which is called from the typemap instead. The whole macro looks like:
+In \emp{numpy\_typemaps.i}, typemaps for arrays of primitive types:
+\emp{double}, \emp{int} and \emp{dolfin::uint} are defined. 
+As in the \emp{Array} example above, these typemaps are defined so a \numpy
+array of the corresponding type can be passed as the argument to functions,
+methods, and operators. 
+Instead of writing one typemap for each primitive type, we defined a SWIG
+macro, which is called with different types as argument. Using macros may
+produce a lot of code as some of these typemaps are used frequently. To
+avoid code bloat, most of the typemap code is place in the function
+\emp{convert\_numpy\_to\_}, which is called
+by typemap. The entire macro reads:
 \begin{c++}
 %define UNSAFE_NUMPY_TYPEMAPS(TYPE,TYPE_UPPER,NUMPY_TYPE,TYPE_NAME,DESCR)
 %{
@@ -378,38 +467,56 @@ if (!convert_numpy_to_ ## TYPE_NAME ## _array_no_check($input,$1))
 %enddef
 \end{c++}
 The first line defines the signature of the macro. The macro is called using 5 arguments:
-\begin{itemize}
-\item \emp{TYPE}: The name of the primitive type: \emp{dolfin::uint}, \emp{double}
-\item \emp{TYPE\_UPPER}: The name of the typecheck-name SWIG uses: \emp{INT32}, \emp{DOUBLE}
-\item \emp{NUMPY\_TYPE}: The name of the \numpy type: \emp{NPY\_UINT}, \emp{NPY\_DOUBLE}
-\item \emp{TYPE\_NAME}: A short typename used in exception string: \emp{uint}, \emp{double}
-\item \emp{DESCR}: A description character used in \numpy to describe the type: \emp{'I'}, \emp{'d'}
-\end{itemize}
+\begin{enumerate}
+\item \emp{TYPE} is the name of the primitive type. Examples are 
+\emp{dolfin::uint} and \emp{double}.
+\item \emp{TYPE\_UPPER} is the name of the typecheck-name SWIG uses. Examples
+are \emp{INT32} and \emp{DOUBLE}.
+\item \emp{NUMPY\_TYPE} is the name of the \numpy type. Examples are
+\emp{NPY\_UINT} and \emp{NPY\_DOUBLE}.
+\item \emp{TYPE\_NAME} is a short typename used in exception string.
+Examples are \emp{uint} and \emp{double}.
+\item \emp{DESCR} is a description character used in \numpy to describe the
+type. Examples are \emp{'I'} and \emp{'d'}.
+\end{enumerate}
 We can then call the macro to instantiate the typemaps and typechecks.
 \begin{c++}
 UNSAFE_NUMPY_TYPEMAPS(dolfin::uint,INT32,NPY_UINT,uint,I)
 UNSAFE_NUMPY_TYPEMAPS(double,DOUBLE,NPY_DOUBLE,double,d)
 \end{c++}
-Here we have instantiated the typemap for a \emp{dolfin::uint} and a \emp{double} array. The typemap does not use any check of the length of the handed \numpy array. This means that a user can easily trigger a segmentation fault, and it is why we have named the typemap unsafe.\par
-
-The typemap function
+Here, we have instantiated the typemap for a \emp{dolfin::uint} and a
+\emp{double} array. The above typemap does not check the length of the handed \numpy array 
+and is therefore unsafe. Corresponding safe typemaps can also be found in
+\emp{numpy\_typemaps.i}. 
+The typemap function in the third line of the typemap
 \begin{c++}
   SWIGINTERN bool convert_numpy_to_ ## TYPE_NAME ## _array_no_check(PyObject* input, TYPE*& ret)
 \end{c++}
-takes a pointer to a \emp{PyObject} as input. The function will return \emp{true} if the conversion is successful and \emp{false} otherwise. The converted array will be returned by the \emp{TYPE*\& ret} argument. The peculiar naming convention of \emp{to\_ \#\# TYPE\_NAME \#\# \_array} will be translated into \emp{to\_double\_array} if \emp{TYPE\_NAME} is set to \emp{double}\par
+takes a pointer to a \emp{PyObject} as input. This function returns
+\emp{true} if the conversion is successful and \emp{false} otherwise. The
+converted array will be returned by the \emp{TYPE*\& ret} argument. 
+Finally, the \emp{\%apply TYPE* \{TYPE* \_array\}} directive means that we want the typemap to apply to any argument of type \emp{TYPE*} with argument name \emp{\_array}. This is another way of copying a typemap, similar to what we did for the \emp{dolfin::uint} out-typemap above.
 
-The \emp{\%apply TYPE* \{TYPE* \_array\}} directive means that we want the typemap to apply to any argument of type \emp{TYPE*} with argument name \emp{\_array}. This is another way of copying a typemap, similar to what we did for the \emp{dolfin::uint} out-typemap above.\par
+In \emp{std\_vector\_typemaps.i}, two typemap macros for passing
+\emp{std::vector<Type>} between Python and C++ are defined. One is an
+in-typemap macro for passing a std::vector of pointers of \dolfin objects
+to a C++ function. The other is an out-typemap macro for passing a
+\emp{std::vector} of primitives, using \numpy arrays, to Python. It is not
+strictly necessary to add these typemaps as SWIG provides a
+\emp{std::vector} type. However, the SWIG \emp{std::vector} functionality
+is not very Pythonic and we have therefore chosen to implement our own typemaps to handle \emp{std::vector} arguments.
 
-In \emp{numpy\_typemaps.i} we define an other typemap macro too: \emp{SAFE\_}\-\emp{NUMPY\_}\-\emp{TYPEMAPS}, which will instantiate typemaps which extract the length of the incoming \numpy array. The information of the array length is passed to the C++ function for further length check.\par
-
-\paragraph{\emp{std\_vector\_typemaps.i:}}
-In \emp{std\_vector\_typemaps.i} we define two typemap macros for passing \emp{std::}\-\emp{vector<Type>} between Python and C++. One is an in-typemap macro for passing a std::vector of pointers of \dolfin objects to a C++ function, and the other one is an out-typemap macro for passing a \emp{std::vector} of primitives, using \numpy arrays, to Python. It is not strictly necessary to add these typemaps as SWIG provides a \emp{std::vector} type. These types works more or less as a Python versions of the \emp{std::vector}. Unfortunately are objects of these types quite static and not very Pythonic. The amount of wrapper code that is constructed is also comparable high. We have therefore chosen to include our own typemaps to handle \emp{std::vector} arguments.\par
-
-The first typemap macro makes it possible to use a Python list of \dolfin objects instead of a \emp{std:vector} of pointers to such objects. We do not know if the handed \dolfin objects are stored using a \emp{shared\_ptr} or not, so we need to provide a typemap that works for both situations. We also need to create typemaps for signatures where \emp{const} is used differently. Typically a signature can look like:
+The first typemap macro enables the use of a Python list of \dolfin objects
+instead of a \emp{std:vector} of pointers to such objects. Since  the
+handed \dolfin objects may and may not be stored using a \emp{shared\_ptr},
+we provide a  typemap that works for both situations. 
+We also create typemaps for signatures where \emp{const} are used. 
+Typically a signature can look like:
 \begin{c++}
 {const} std::vector<{const} dolfin::TYPE *>
 \end{c++}
-where \emp{const} is optional. This is handled by adding a second macro which is called by the first one. The second macro takes two optional \emp{const} arguments.
+where \emp{const} is optional. 
+To handle the optional \emp{const}s we use nested macros:  
 \begin{c++}
 %define IN_TYPEMAPS_STD_VECTOR_OF_POINTERS(TYPE)
 // Make SWIG aware of the shared_ptr version of TYPE
@@ -440,23 +547,25 @@ IN_TYPEMAP_STD_VECTOR_OF_POINTERS(TYPE,const,const)
       py_item = PyList_GetItem($input,i);
       res = SWIG_ConvertPtrAndOwn(py_item, &itemp, $descriptor(dolfin::TYPE *), 0, &newmem);
       if (SWIG_IsOK(res)) {
-	tmp_vec.push_back(reinterpret_cast<dolfin::TYPE *>(itemp));
+          tmp_vec.push_back(reinterpret_cast<dolfin::TYPE *>(itemp));
       }
       else
       {
-	// If failed with normal pointer conversion then
-	// try with shared_ptr conversion
-	newmem = 0;
-	res = SWIG_ConvertPtrAndOwn(py_item, &itemp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< dolfin::TYPE > *), 0, &newmem);
-	if (SWIG_IsOK(res))
-	{
-	  tmp_vec.push_back(reinterpret_cast<SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<dolfin::TYPE> *>(itemp)->get() );
-	}
-	else
-	{
-	  SWIG_exception(SWIG_TypeError, "list of TYPE expected (Bad conversion)");
-	}
-      }
+        // If failed with normal pointer conversion then
+        // try with shared_ptr conversion
+        newmem = 0;
+        res = SWIG_ConvertPtrAndOwn(py_item, &itemp, 
+                 $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< dolfin::TYPE > *), 0, &newmem);
+        if (SWIG_IsOK(res))
+        {
+           tmp_vec.push_back(reinterpret_cast<
+              SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<dolfin::TYPE> *>(itemp)->get() );
+        }
+        else
+        {
+           SWIG_exception(SWIG_TypeError, "list of TYPE expected (Bad conversion)");
+        }
+       }
     }
     $1 = &tmp_vec;
   }
@@ -467,14 +576,34 @@ IN_TYPEMAP_STD_VECTOR_OF_POINTERS(TYPE,const,const)
 }
 %enddef
 \end{c++}
-In the typemap we first check that we get a Python list. We then iterate over the items and try to acquire the specified C++ object by converting the Python object to the underlying C++ pointer. This is done by:
+In the typemap, we first check that we get a Python list. We then iterate
+over the items and try to acquire the specified C++ object by converting
+the Python object to the underlying C++ pointer. This is accomplished by:
 \begin{c++}
 res = SWIG_ConvertPtrAndOwn(py_item, &itemp, $descriptor(dolfin::TYPE *), 0, &newmem);
 \end{c++}
 %$ here to fool emacs...
-If the conversion is successful we push the C++ pointer to the \emp{tmp\_vec}. If the conversion fails we try to acquire a \emp{shared\_ptr} version of the C++ object instead. If neither of the two conversions succeed we raise an error.\par
+If the conversion is successful we push the C++ pointer to the \emp{tmp\_vec}. If the conversion fails we try to acquire a \emp{shared\_ptr} version of the C++ object instead. If neither of the two conversions succeed we raise an error.
 
-The second typemap defined for \emp{std::vector} arguments, is a so called argout-typemap. This kind of typemap is used to return values from arguments. In C++, are arguments commonly used to return values from a function when it has several return values. In Python a function can return several values. We will remove the return argument from the function interface and use the argout-typemap to return the values through the return statement instead. The whole typemap macro looks like:
+The second typemap defined for \emp{std::vector} arguments, is a so called
+argout-typemap. This kind of typemap is used to return values from
+arguments. In C++, non \emp{const} references or pointers arguments are
+commonly used both as input and output of functions. In Python, output
+should be returned. 
+The following call to the \emp{GenericMatrix::getrow} method   illustrates
+the difference between C++ and Python. The C++ signature is:
+\begin{c++}
+GenericMatrix::getrow(dolfin::uint row, std::vector<uint>& columns, std::vector<double>& values)
+\end{c++}
+Here, \emp{columns} and \emp{values} are used to return the sparsity pattern and values of row number \emp{row}. In Python this would look like:
+\begin{python}
+columns, values = A.getrow(row)
+\end{python}
+
+
+
+To obtain the desired Python behaviour we employ 
+argout-typemaps. The following typemap macro defines such typemaps:   
 \begin{c++}
 %define ARGOUT_TYPEMAP_STD_VECTOR_OF_PRIMITIVES(TYPE, TYPE_UPPER, ARG_NAME, NUMPY_TYPE)
 // In typemap removing the argument from the expected in list
@@ -520,16 +649,14 @@ The second typemap defined for \emp{std::vector} arguments, is a so called argou
 %enddef
 \end{c++}
 %$ emacs gets confused
-The macro defines first an in-typemap that removes the argument and instantiate the \emp{std::vector} that will be passed as argument to the C++ function. Code that is defined in the argout-typemap is inserted after the C++ call. Here we need to transdorm the returned C++ argument into a Python argument. We do this by instantiating a \numpy array: \emp{ret}, and filling it with the values from the \emp{std::vector}. Note that we here are forced to copy the values. The rest of the typemap deals with situations where this typemap is used to return several out arguments. If we did not deal with this situation, each return argument would overwrite any previous created return argument, with memory corruption as result.\par
+The macro begins by defining an in-typemap that removes the output argument
+and instantiates the \emp{std::vector} that will be passed as argument to
+the C++ function. Then we have the code for the argout-typemap, which is inserted after the
+C++ call. Here, the "returned" C++ arguments are transformed to Python
+arguments, by instantiating a \numpy array \emp{ret} and filling it with
+the values from the \emp{std::vector}. Note that here we are forced to copy
+the values, or else the return argument would overwrite any previous created return argument, with memory corruption as result.
 
-An example of how this typemap works is illustrated by the wrapped \emp{GenericMatrix.getrow} method. In C++ this looks like:
-\begin{c++}
-GenericMatrix::getrow(dolfin::uint row, std::vector<uint>& columns, std::vector<double>& values)
-\end{c++}
-Here, \emp{columns} and \emp{values} are used to return the sparsity pattern and values of row number \emp{row}. In python this would look like:
-\begin{python}
-columns, values = A.getrow(row)
-\end{python}
 
 \subsection{\dolfin header files and Python docstrings}
 SWIG needs to know what part of \dolfin that should be wrapped to Python. This information is provided in the file \emp{kernel\_module.i}. This file is automatically generated by the Python script \emp{generate.py}. Python docstring information is also generated by running \emp{generate.py}. This is done by a python script that extracts C++ documentation from the header files. The comments are then transformed into SWIG docstring directives like:
@@ -538,10 +665,11 @@ SWIG needs to know what part of \dolfin that should be wrapped to Python. This i
 Return current UFC cell (if available)
 ";
 \end{c++}
-and saved to a SWIG interface file: \emp{docstrings.i}. This file is then included from the main \emp{dolfin.i} file. The \emp{kernel\_module.i} and the \emp{docstrings.i} files are not generated automatically during the build process. So when ever a header file is added or subtracted from the \dolfin library one needs to manually run \emp{generate.py}, which updates the \emp{kernel\_module.i} and the \emp{docstrings.i} files.\par
+and saved to a SWIG interface file: \emp{docstrings.i}. This file is then included from the main \emp{dolfin.i} file. The \emp{kernel\_module.i} and the \emp{docstrings.i} files are not generated automatically during the build process. So when ever a header file is added or subtracted from the \dolfin library one needs to manually run \emp{generate.py}, which updates the \emp{kernel\_module.i} and the \emp{docstrings.i} files.
+
 
 \subsection{Specializations of kernel modules}
-\dolfin is divided into kernel modules that follows the directory structure of the \emp{dolfin} directory. As mentioned above we have organized the SWIG directives for these modules into a \emp{$\ldots$\_pre.i} and \emp{$\ldots$\_post.i}. Not all modules have such files, which means that we have not implemented any specializations for such a module. Here we will highlight some SWIG directives we have used to specialize the \emp{mesh} and \emp{la} modules. We encourage users who want to get a full overview of all the specializations in PyDolfin, to take a look into the different SWIG interface files included in the distribution.\par
+\dolfin is divided into kernel modules that follows the directory structure of the \emp{dolfin} directory. As mentioned above we have organized the SWIG directives for these modules into a \emp{$\ldots$\_pre.i} and \emp{$\ldots$\_post.i}. Not all modules have such files, which means that we have not implemented any specializations for such a module. Here we will highlight some SWIG directives we have used to specialize the \emp{mesh} and \emp{la} modules. We encourage users who want to get a full overview of all the specializations in PyDOLFIN, to take a look into the different SWIG interface files included in the distribution.
 
 \paragraph{The \emp{mesh} module}
 The \emp{mesh} module defines the \emp{Mesh} class, the \emp{MeshFunctions}, all \emp{MeshEntities}, and built-in meshes. In \dolfin,  the geometrical and topological information of a \emp{Mesh} is stored using contiguous arrays. These are directly accessible from Python using access methods that return \numpy arrays of the underlying data. This means that a user have direct access to the contiguous arrays and any changes to a \numpy array that wrap the data will change the underlying data too. This means that a user can move a mesh 1 unit to the right by:
@@ -578,7 +706,7 @@ This code tells SWIG that we want to extend the C++ extension layer of the \emp{
   PyArray_INCREF(array);
 % enddef
 \end{c++}
-The macro takes five arguments: \emp{dim\_size}, \emp{m}, and \emp{n} set the dimension of the \numpy array. \emp{dataptr} is a pointer that points to the first element of the contiguous array, and \emp{TYPE} is the type of the elements in the array. The \numpy macro \emp{PyArray\_}\emp{SimpleNewFromData} creates a \numpy array that just wraps the data pointer passed to it. When the \numpy array is destroyed the data is not. This prevents data to be corrupted when the \numpy array gets out of scope. \par
+The macro takes five arguments: \emp{dim\_size}, \emp{m}, and \emp{n} set the dimension of the \numpy array. \emp{dataptr} is a pointer that points to the first element of the contiguous array, and \emp{TYPE} is the type of the elements in the array. The \numpy macro \emp{PyArray\_}\emp{SimpleNewFromData} creates a \numpy array that just wraps the data pointer passed to it. When the \numpy array is destroyed the data is not. This prevents data to be corrupted when the \numpy array gets out of scope. 
 
 In a similar fashion, we use the \emp{MAKE\_}\emp{ARRAY} macro to wrap the connectivity information to Python. This is done with the following SWIG directives found in the \emp{mesh\_pre.i} files.
 \begin{c++}
@@ -594,7 +722,7 @@ In a similar fashion, we use the \emp{MAKE\_}\emp{ARRAY} macro to wrap the conne
   ...
 }
 \end{c++}
-Here we extend the C++ extension layer of the \emp{dolfin::}\emp{MeshConnectivity} class with a \emp{\_\_call\_\_} method. The method returns all connections between two types of topological dimensions in the mesh.\par
+Here we extend the C++ extension layer of the \emp{dolfin::}\emp{MeshConnectivity} class with a \emp{\_\_call\_\_} method. The method returns all connections between two types of topological dimensions in the mesh.
 
 In \emp{mesh\_pre.i} we also declare that it should be possible to subclass SubDomain in Python. This is done using the \emp{\%director} directive.
 \begin{c++}
@@ -617,7 +745,7 @@ Even if it by concept and name is an \textit{in}-typemap, one can look at it as 
 %clear const double* x;
 %clear double* values;
 \end{c++}
-By this we can safely use the function \emp{geometric\_dimension} in the typemap as we know it will only apply to the methods of the \emp{SubDomain} class. We know this because \emp{SubDomain} is the only director class in the \emp{mesh} module.\par
+By this we can safely use the function \emp{geometric\_dimension} in the typemap as we know it will only apply to the methods of the \emp{SubDomain} class. We know this because \emp{SubDomain} is the only director class in the \emp{mesh} module.
 
 \dolfin comes with a \emp{Mesh}\-\emp{Enitity}\-\emp{Iterator} class. This class let a user easily iterate over a given \emp{MeshEntity}: \emp{cell}, \emp{vertex} and so forth. The iterators are mapped to Python by making the increment and de-reference operators in \emp{MeshEnitityIterator} available in Python. This is done by renaming them in \emp{mesh\_pre.i}:
 \begin{c++}
@@ -651,7 +779,7 @@ for cell in cells(mesh):
 \end{python}
 
 \paragraph{The \emp{la} module}
-The vector and matrix classes that comes in the \emp{la} module is heavily specialized in PyDolfin. This is because we want the linear algebra interface to be intuitive and integrate nicely with \numpy.\par
+The vector and matrix classes that comes in the \emp{la} module is heavily specialized in PyDOLFIN. This is because we want the linear algebra interface to be intuitive and integrate nicely with \numpy.
 
 We start the specializations by ignoring all of the implemented C++ operators, just like we did for the \emp{operator+=()} in the \emp{Array} example above. This is done in the \emp{la\_pre.i} file:
 \begin{c++}
@@ -662,7 +790,7 @@ We start the specializations by ignoring all of the implemented C++ operators, j
 %ignore dolfin::GenericVector::operator+=;
 %ignore dolfin::GenericVector::operator-=;
 \end{c++}
-Here we first rename the assignment operator to \emp{\_assign}, and then we ignore the other operators. The \emp{\_assign} operator is meant to be used by the \emp{slice} operator implemented in \emp{la\_post.i}. Note that we only have to ignore the virtual operators in the base class \emp{GenericVector}. This is connected to how SWIG handles polymorphism. SWIG do not implement a Python version of a virtual method in a derived class. It is only implemented in the base class. When a virtual method is called in a derived class the call is directed to the Python method of the base class. The call ends up in the SWIG generated C++ code for the base class method, which just calls the method on the handed object. So this is a good example of how polymorphism in Python and C++ can work together. Hence, when we ignore all the above mentioned operators we also ignore the same operators in the derived classes. This means that when we re-implement them in \emp{la\_post.i} we only have to implement the corresponding special methods in the \emp{GenericVector} class.\par
+Here we first rename the assignment operator to \emp{\_assign}, and then we ignore the other operators. The \emp{\_assign} operator is meant to be used by the \emp{slice} operator implemented in \emp{la\_post.i}. Note that we only have to ignore the virtual operators in the base class \emp{GenericVector}. This is connected to how SWIG handles polymorphism. SWIG do not implement a Python version of a virtual method in a derived class. It is only implemented in the base class. When a virtual method is called in a derived class the call is directed to the Python method of the base class. The call ends up in the SWIG generated C++ code for the base class method, which just calls the method on the handed object. So this is a good example of how polymorphism in Python and C++ can work together. Hence, when we ignore all the above mentioned operators we also ignore the same operators in the derived classes. This means that when we re-implement them in \emp{la\_post.i} we only have to implement the corresponding special methods in the \emp{GenericVector} class.
 
 The following code snippet from \emp{la\_post.i}, shows how two special methods in the Python interface of \emp{GenericVector} are implemented:
 \begin{c++}
@@ -697,9 +825,9 @@ The following code snippet from \emp{la\_post.i}, shows how two special methods 
    ...
 %} }
 \end{c++}
-Here we first expose \emp{operator*=} to Python by implementing the \emp{\_scale} method for scalars and the \emp{\_vec\_mul} method for other vectors. These methods are then used in the \emp{\_\_mul\_\_} special method in the Python interface. We also see how the \emp{\_\_add\_\_} special method is implemented. We use the \emp{axpy} method that adds a scaled version of another vector to it self. The \emp{axpy} method requires that we call it with a vector from the same linear algebra backend. This is checked by the private method \emp{\_\_is\_compatibable}.\par
+Here we first expose \emp{operator*=} to Python by implementing the \emp{\_scale} method for scalars and the \emp{\_vec\_mul} method for other vectors. These methods are then used in the \emp{\_\_mul\_\_} special method in the Python interface. We also see how the \emp{\_\_add\_\_} special method is implemented. We use the \emp{axpy} method that adds a scaled version of another vector to it self. The \emp{axpy} method requires that we call it with a vector from the same linear algebra backend. This is checked by the private method \emp{\_\_is\_compatibable}.
 
-Vectors and matrices in PyDolfin support access and assignment using: slices, \numpy arrays of booleans or integers, and list of integers. This is achieved by only using the \emp{get} and \emp{set} methods in the \emp{GenericVector} and \emp{GenericMatrix} interface. To help converting the Python structures used for indexing to indices that can be used in the \emp{get} and \emp{set} methods, we define a C++ class \emp{Indices}. This class together with subclasses for different index types is defined in the file \emp{Indices.i}. This file is included directly into the C++ wrapper file using a \emp{\%\{$\ldots$\}\%} block in \emp{la\_post.i}. The actual call to the \emp{get} and \emp{set} methods is performed in dedicated helper functions, which are defined in the file \emp{la\_get}\emp{\_set\_items.i}. The methods are wrapped to Python and used directly in the Python layer of the \emp{GenericVector} and \emp{GenericMatrix} classes.
+Vectors and matrices in PyDOLFIN support access and assignment using: slices, \numpy arrays of booleans or integers, and list of integers. This is achieved by only using the \emp{get} and \emp{set} methods in the \emp{GenericVector} and \emp{GenericMatrix} interface. To help converting the Python structures used for indexing to indices that can be used in the \emp{get} and \emp{set} methods, we define a C++ class \emp{Indices}. This class together with subclasses for different index types is defined in the file \emp{Indices.i}. This file is included directly into the C++ wrapper file using a \emp{\%\{$\ldots$\}\%} block in \emp{la\_post.i}. The actual call to the \emp{get} and \emp{set} methods is performed in dedicated helper functions, which are defined in the file \emp{la\_get}\emp{\_set\_items.i}. The methods are wrapped to Python and used directly in the Python layer of the \emp{GenericVector} and \emp{GenericMatrix} classes.
 \begin{c++}
 %extend dolfin::GenericVector {
   %pythoncode %{
@@ -721,12 +849,12 @@ Vectors and matrices in PyDolfin support access and assignment using: slices, \n
   ...
 %} }
 \end{c++}
-Here we see an example on how the slice and index access is implemented in the Python layer of \emp{GenericVector}. When accessing a vector using a full slice, \emp{v[:]}, \emp{\_\_getslice\_\_} is called with \emp{i} = 0 and \emp{j} = a-large-number (default in Python).  If this happens we return a copy of the vector, and otherwise we create a slice and pass it to \emp{\_\_getitem\_\_}. In this method we check if the \emp{indices} argument is a Python \emp{int} or \numpy \emp{integer} if so we assume the user wants a single item. We then call the helper function \emp{\_get\_vector}\emp{\_single\_item} that makes the actual call to the \emp{get} method in the \emp{GenericVector}. If the indices is a slice, a \numpy array or list we expect the user wants a sub-vector of the vector, and the helper function \emp{\_get\_vector}\emp{\_sub\_vector} is called.\par
+Here we see an example on how the slice and index access is implemented in the Python layer of \emp{GenericVector}. When accessing a vector using a full slice, \emp{v[:]}, \emp{\_\_getslice\_\_} is called with \emp{i} = 0 and \emp{j} = a-large-number (default in Python).  If this happens we return a copy of the vector, and otherwise we create a slice and pass it to \emp{\_\_getitem\_\_}. In this method we check if the \emp{indices} argument is a Python \emp{int} or \numpy \emp{integer} if so we assume the user wants a single item. We then call the helper function \emp{\_get\_vector}\emp{\_single\_item} that makes the actual call to the \emp{get} method in the \emp{GenericVector}. If the indices is a slice, a \numpy array or list we expect the user wants a sub-vector of the vector, and the helper function \emp{\_get\_vector}\emp{\_sub\_vector} is called.
 
 \section{JIT Compiling of \ufl forms, \emp{Expressions} and \emp{SubDomains}}
-In PyDolfin we make use of just in time (JIT) generated \ufc code that is compiled, linked and imported into Python using Instant~\cite{WestlieMardalAlnaes2009}. This process is facilitated by employing the Unified Form Language (\ufl) together with a \ufl and \ufc compatible form compiler (\ffc or \sfc), into PyDolfin. When a \ufl form is assembled in PyDolfin, we JIT compile it and import the generated \ufc object in Python. The \ufc form is then used to create a \dolfin form that can be assembled using the SWIG wrapped assemble routines in \dolfin. If the handed \ufl form includes a coefficient function, it will generate \ufc code that includes routines to evaluate this function in the correct finite element function space. These routines consist of callback functions to \ufc functions. When a \ufc form is assembled a user need to pass these callback functions. \dolfin provides two classes that can be used for these callback functions: \textit{i)} \emp{Expression}, which can be sub classed by implementing an \emp{eval} method, and \textit{ii)} \emp{Function} which is a discrete finite element function (defined by a vector of expansion coefficients together with a \emp{FunctionSpace}). Both the \emp{Expression} and \emp{Function} classes are extended with the \emp{Function} class from \ufl in PyDolfin. In this way we can use the extended classes both to define variational forms, using the \ufl \emp{Function}, and they can be automatically passed to the assemble routines in \dolfin. \par
+In PyDOLFIN we make use of just in time (JIT) generated \ufc code that is compiled, linked and imported into Python using Instant~\cite{WestlieMardalAlnaes2009}. This process is facilitated by employing the Unified Form Language (\ufl) together with a \ufl and \ufc compatible form compiler (\ffc or \sfc), into PyDOLFIN. When a \ufl form is assembled in PyDOLFIN, we JIT compile it and import the generated \ufc object in Python. The \ufc form is then used to create a \dolfin form that can be assembled using the SWIG wrapped assemble routines in \dolfin. If the handed \ufl form includes a coefficient function, it will generate \ufc code that includes routines to evaluate this function in the correct finite element function space. These routines consist of callback functions to \ufc functions. When a \ufc form is assembled a user need to pass these callback functions. \dolfin provides two classes that can be used for these callback functions: \textit{i)} \emp{Expression}, which can be sub classed by implementing an \emp{eval} method, and \textit{ii)} \emp{Function} which is a discrete finite element function (defined by a vector of expansion coefficients together with a \emp{FunctionSpace}). Both the \emp{Expression} and \emp{Function} classes are extended with the \emp{Function} class from \ufl in PyDOLFIN. In this way we can use the extended classes both to define variational forms, using the \ufl \emp{Function}, and they can be automatically passed to the assemble routines in \dolfin. 
 
-We provide two ways of defining an \emp{Expression} in PyDolfin: \textit{i)} sub classing \emp{Expression} directly in Python, and \textit{ii)} through the compile function interface. The first is done by implementing the \emp{eval} method in a sub class of Expression:
+We provide two ways of defining an \emp{Expression} in PyDOLFIN: \textit{i)} sub classing \emp{Expression} directly in Python, and \textit{ii)} through the compile function interface. The first is done by implementing the \emp{eval} method in a sub class of Expression:
 \begin{python}
 class MyExpression(Expression):
     def eval(self, values, x):
@@ -748,11 +876,11 @@ public:
   }
 };
 \end{c++}
-The name of the sub class is generated from a hash of the passed expression string. The code is inserted into \emp{namespace dolfin} and the appropriate \emp{\#include} is also inserted in the code. Instant is used to compile and link a Python module from the generated code. The class is imported into Python and used to dynamically construct a class that inherits the generated class together with \emp{ufl.Function} and \emp{Expression}. Dynamic creation of classes in Python is done using so called meta-classes. One can look at a meta-class as an object that instantiate classes. In \emp{site-packages/dolfin/expression.py} we define \emp{ExpressionMetaClass}, the meta-class we use for \emp{Expression}.\par
+The name of the sub class is generated from a hash of the passed expression string. The code is inserted into \emp{namespace dolfin} and the appropriate \emp{\#include} is also inserted in the code. Instant is used to compile and link a Python module from the generated code. The class is imported into Python and used to dynamically construct a class that inherits the generated class together with \emp{ufl.Function} and \emp{Expression}. Dynamic creation of classes in Python is done using so called meta-classes. One can look at a meta-class as an object that instantiate classes. In \emp{site-packages/dolfin/expression.py} we define \emp{ExpressionMetaClass}, the meta-class we use for \emp{Expression}.
 
-The strength with the first example is that a user can define more complex \emp{eval} methods. However, because Python callbacks are quite expensive, this will dominate the time it takes to assemble a form in PyDolfin. It is therefore useful to use the compiled expression, as no Python callback is needed.\par
+The strength with the first example is that a user can define more complex \emp{eval} methods. However, because Python callbacks are quite expensive, this will dominate the time it takes to assemble a form in PyDOLFIN. It is therefore useful to use the compiled expression, as no Python callback is needed.
 
-PyDolfin also provides functionality to construct C++ code and JIT compile sub classes of \emp{SubDomain}. Of course one can sub class the \emp{SubDomain} directly in Python. However, if a user wants to avoid Python callbacks he or she can just do:
+PyDOLFIN also provides functionality to construct C++ code and JIT compile sub classes of \emp{SubDomain}. Of course one can sub class the \emp{SubDomain} directly in Python. However, if a user wants to avoid Python callbacks he or she can just do:
 \begin{python}
 sd = compile_subdomains(['(fabs(x[0]) < DOLFIN_EPS) && on_boundary'])
 \end{python}
@@ -768,7 +896,7 @@ public:
   }
 };
 \end{c++}
-The class name is also here generated from a hash of the passed string. The code is included into \emp{namespace dolfin} and passed to Instant, where it is JIT compiled. \emp{compile}\emp{\_subdomains} instantiates the class and returns a \emp{SubDomain} object.\par
+The class name is also here generated from a hash of the passed string. The code is included into \emp{namespace dolfin} and passed to Instant, where it is JIT compiled. \emp{compile}\emp{\_subdomains} instantiates the class and returns a \emp{SubDomain} object.
 
 %\section{Memory Management}
 %
@@ -832,7 +960,12 @@ we print out the first entry of the element matrix after \emp{tabulate\_tensor} 
 \end{figure}
 
 \paragraph{Acknowledgments.}
-The authors are very thankful to Johan Jansson who initiated the use of SWIG to wrap \dolfin to Python. We are also thankful to Ola Skavhaug who substantially extended the amount of \dolfin that got wrapped to Python and to Martin Alnaes who contributed to the JIT compilations of \emp{Expressions} and \emp{SubDomains}.
+The authors are very thankful to Johan Jansson who initiated the use of
+SWIG to wrap \dolfin to Python. We are also thankful to Ola Skavhaug who
+substantially extended the amount of \dolfin that got wrapped to Python and
+to Martin Alnaes who contributed to the JIT compilations of
+\emp{Expressions} and \emp{SubDomains}. 
+Finally, Marie Rognes has improved the language in this chapter significantly. 
 
 %%% Local Variables:
 %%% mode: latex
