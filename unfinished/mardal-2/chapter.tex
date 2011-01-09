@@ -767,6 +767,8 @@ The following typemap enables seemless integration of
 \numpy array and the \emp{Array<double>\&} in  
 the \emp{inside} and \emp{map} methods. 
 \begin{c++}
+
+FIXME 
 %typemap(directorin) const double* x {
   {
     // Compute size of x
@@ -952,56 +954,58 @@ The class name is also here generated from a hash of the passed string. The code
 %Shared Pointers.
 
 \section{Debugging Mixed Language Applications}
-Debugging mixed language applications, in this case written in
-Python and C++, can be more challenging than debugging application
-written in one language. The main reason being that most debuggers are written
-for either compiled languages or scripting languages. However, as
+
+Debugging mixed language applications may be more challenging than debugging
+single language applications.  The main reason is that debuggers are written
+mainly for either compiled languages or scripting languages. However, as
 we will show, mixed language applications can be debugged in much of the same way
-as compiled languages. In fact, the combination of the interactive environment
-of Python and the debugging capabilities of \emp{ddd} is more flexible than typical
-debugging environment for compiled languages. We will demonstrate setting breakpoints and
-printing out the entries in the element matrix in the standard \dolfin demo,
-solving Poisson equation on the unit square, see \emp{demo/pde/}\emp{poisson/python/}\emp{demo.py}. We start by running
+as compiled languages. 
+
+Before starting the debugger, you should make sure that your library, 
+or the relavant parts of it, 
+is compiled with the debugging on. With GCC this is done with the \emp{-g}
+option. The additional debugging information in the code slows down 
+the performance. Therefore, \dolfin\ is by default not compiled with
+\emp{-g}.   
+After compiling the code with debugging information, you may start 
+Python in \citet{www:gdb}, the GNU Project Debugger, as follows:     
+\begin{c++}
+gdb python
+(gdb) run
+...
+\end{c++}
+The problem with GDB is that only one thread is running. This means that
+you will not be able to set break points and so on once you have started
+the Python interpreter.  
+
+However, \citet{www:ddd}, the Data Display Debugger, facilitates running the debugger and the Python
+interpreter in two different threads. That is, you will have two interactive
+threads, one debugger and the Python interpreter,  during your debugging
+session. The DDD debugger is started as:    
 \begin{c++}
 ddd python
 \end{c++}
-The crucial next step is to start the Python session in a separate execution window by clicking on \emp{View->Execution Window} as shown in the uppermost picture in  Figure \ref{figure12}.
-The Python session may then be started by typing 'run' in the gdb shell.
-After this the session runs in two threads, the debugging thread and the
-Python thread. We start by importing \dolfin in the Python shell. After this we can inspect the \dolfin source code by clicking at \emp{File->Open Source ...} and \emp{Load Shared Object Library Symbols} (always remember to load the shared library) as shown in the lower-most picture in Figure \ref{figure12}. In this case we choose to look at the file \emp{Assembler.cpp} as shown in the uppermost picture in Figure \ref{figure34}. We may then search for e.g. \emp{tabulate\_tensor} as shown in lower-most picture of Figure \ref{figure34} and
-setting a break point by a right click on the appropriate line as shown in \ref{fig5}. Finally, in Figure 6
-we print out the first entry of the element matrix after \emp{tabulate\_tensor} is done.
+The crucial next step is to start the Python session in a separate
+execution window by clicking on \emp{View->Execution Window}. 
+Then you start the Python sesssion: 
 \begin{c++}
 (gdb) run
 \end{c++}
-\begin{figure}[htbp]
-  \subfloat{ \includegraphics[width=8cm]{chapters/mardal-2/pdf/fig1.pdf}} \\
-  \subfloat{ \includegraphics[width=8cm]{chapters/mardal-2/pdf/fig2.pdf}}
-  \caption{Upper Picture: Starting a separate thread for the Python session in ddd.
-           Lower Picture: Opening the source code after the \dolfin library has been loaded into Python.}
-  \label{figure12}
-\end{figure}
-\begin{figure}
-  \subfloat{ \includegraphics[width=8cm]{chapters/mardal-2/pdf/fig3.pdf}} \\
-  \subfloat{ \includegraphics[width=8cm]{chapters/mardal-2/pdf/fig4.pdf}}
-\caption{Upper Picture: Navigating through the source code for finding the assembly loop.
-         Lower Picture: Searching for the function \emp{tabulate\_tensor.} }
-\label{figure34}
-\end{figure}
+After importing for your module you may click or search (using the
+\emp{Lookup} field)  through the  source code  
+to  set breakpoints, print variables and so on. 
 
-\begin{figure}
-  \subfloat{ \includegraphics[width=8cm]{chapters/mardal-2/pdf/fig5.pdf}} \\
-  \subfloat{ \includegraphics[width=8cm]{chapters/mardal-2/pdf/fig6.pdf}}
-\caption{Setting a breakpoint after tabulate tensor and printing out the first element matrix entry.}
-\label{fig5}
-\end{figure}
+Another useful application for analyzing memory management is
+\citet{www:valgrind}. To find memory leaks, do as follows:    
+\begin{bash}
+valgrind --leak-check=full python test_script.py
+\end{bash}
+Valgrind also provides various profilers for performance testing. 
 
 \paragraph{Acknowledgments.}
-The authors are very thankful to Johan Jansson who initiated the use of
-SWIG to wrap \dolfin to Python. We are also thankful to Ola Skavhaug who
-substantially extended the amount of \dolfin that got wrapped to Python and
-to Martin Alnaes who contributed to the JIT compilations of
-\emp{Expressions} and \emp{SubDomains}. 
+The authors are very thankful to Johan Jansson who initiated PyDolfin and 
+to Ola Skavhaug and Martin S. Aln\ae s who have contributed significantly to
+the development.
 Finally, Marie Rognes has improved the language in this chapter significantly. 
 
 %%% Local Variables:
