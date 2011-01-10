@@ -766,32 +766,20 @@ To avoid code bloat, this feature is only included for certain classes.
 The following typemap enables seemless integration of
 \numpy array and the \emp{Array<double>\&} in  
 the \emp{inside} and \emp{map} methods. 
-\begin{c++}
 
-FIXME 
-%typemap(directorin) const double* x {
-  {
-    // Compute size of x
-    npy_intp dims[1] = {this->geometric_dimension()};
-    $input = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, reinterpret_cast<char *>(const_cast<double*>($1_name)));
-  }
-}
-%typemap(directorin) double* y = const double* x;
-\end{c++}
-Even if it by concept and name is an \textit{in}-typemap, one can look at it as an out-typemap
-(since it is a typemap for a callback function). SWIG needs to wrap the arguments that the implemented \emp{inside} or \emp{map} method in Python are called with. The above typemaps are inserted in the \emp{inside} and \emp{map} methods of the SWIG created C++ director class, which is a sub class of \emp{dolfin::SubDomain}. By applying the typemap in \emp{mesh\_pre.i} we activate the typemaps for the \emp{mesh} module. In \emp{mesh\_post.i} we deactivate the typemaps with the directives:
-\begin{c++}
-%clear const double* x;
-%clear double* values;
-\end{c++}
-By this we can safely use the function \emp{geometric\_dimension} in the typemap as we know it will only apply to the methods of the \emp{SubDomain} class. We know this because \emp{SubDomain} is the only director class in the \emp{mesh} module.
-
-\dolfin comes with a \emp{Mesh}\-\emp{Enitity}\-\emp{Iterator} class. This class let a user easily iterate over a given \emp{MeshEntity}: \emp{cell}, \emp{vertex} and so forth. The iterators are mapped to Python by making the increment and de-reference operators in \emp{MeshEnitityIterator} available in Python. This is done by renaming them in \emp{mesh\_pre.i}:
+\dolfin comes with a \emp{Mesh}\-\emp{Enitity}\-\emp{Iterator} class. This
+class lets a user iterate over a given \emp{MeshEntity}: a \emp{cell},
+a \emp{vertex} and so forth. The iterators are mapped to Python by the
+increment and de-reference operators in \emp{MeshEnitityIterator}. This
+enabling is done by renaming these operators in \emp{mesh\_pre.i}:
 \begin{c++}
 %rename(_increment) dolfin::MeshEntityIterator::operator++;
 %rename(_dereference) dolfin::MeshEntityIterator::operator*;
 \end{c++}
-In \emp{mesh\_post.i} we then implement the Python iterator protocol\footnote{The Python iterator protocol consist of the two methods \emp{\_\_iter\_\_} and \emp{next}} for the \emp{Mesh}\-\emp{Enitity}\-\emp{Iterator} by extending the class:
+In \emp{mesh\_post.i}, the Python iterator
+protocol (\emp{\_\_iter\_\_} and \emp{next}) is implemented for the
+\emp{MeshEnitityIterator} class as
+follows:
 \begin{c++}
 %extend dolfin::MeshEntityIterator {
 %pythoncode
@@ -817,21 +805,33 @@ for cell in cells(mesh):
     ...
 \end{python}
 
-\paragraph{The \emp{la} module}
-The vector and matrix classes that comes in the \emp{la} module is heavily specialized in PyDOLFIN. This is because we want the linear algebra interface to be intuitive and integrate nicely with \numpy.
-
-We start the specializations by ignoring all of the implemented C++ operators, just like we did for the \emp{operator+=()} in the \emp{Array} example above. This is done in the \emp{la\_pre.i} file:
+\paragraph{The \emp{la} module.}
+The Python interface of the vector and matrix classes  in the \emp{la}
+module is heavily specialized, because we want the interface to be intuitive and integrate nicely with \numpy.
+First, all of the implemented C++ operators, just like we did for the \emp{operator+=()} in the \emp{Array} example above. This is done in the \emp{la\_pre.i} file:
 \begin{c++}
-%rename(_assign) dolfin::GenericVector::operator=;
 %ignore dolfin::GenericVector::operator[];
 %ignore dolfin::GenericVector::operator*=;
 %ignore dolfin::GenericVector::operator/=;
 %ignore dolfin::GenericVector::operator+=;
 %ignore dolfin::GenericVector::operator-=;
-\end{c++}
-Here we first rename the assignment operator to \emp{\_assign}, and then we ignore the other operators. The \emp{\_assign} operator is meant to be used by the \emp{slice} operator implemented in \emp{la\_post.i}. Note that we only have to ignore the virtual operators in the base class \emp{GenericVector}. This is connected to how SWIG handles polymorphism. SWIG do not implement a Python version of a virtual method in a derived class. It is only implemented in the base class. When a virtual method is called in a derived class the call is directed to the Python method of the base class. The call ends up in the SWIG generated C++ code for the base class method, which just calls the method on the handed object. So this is a good example of how polymorphism in Python and C++ can work together. Hence, when we ignore all the above mentioned operators we also ignore the same operators in the derived classes. This means that when we re-implement them in \emp{la\_post.i} we only have to implement the corresponding special methods in the \emp{GenericVector} class.
 
-The following code snippet from \emp{la\_post.i}, shows how two special methods in the Python interface of \emp{GenericVector} are implemented:
+%rename(_assign) dolfin::GenericVector::operator=;
+\end{c++}
+Here, we only ignore the virtual operators in the base class
+\emp{GenericVector}, because SWIG only 
+implements a  Python version of a virtual method in the base class. 
+Only the base class implementation is needed since 
+a method call in a derived Python class ends up in the 
+corrresponding Python base class. The base class in Python hands the call
+over to the corresponding base class call in C++, which ends up in the corresponding
+derived C++ class. 
+Hence, when we ignore the above mentioned
+operators in the base class,  we also ignore the same operators in the derived classes. 
+Finally, we first rename the assignment operator to \emp{\_assign}. The \emp{\_assign} operator will be used by
+the \emp{slice} operator implemented in \emp{la\_post.i} below.
+
+The following code snippet from \emp{la\_post.i} shows how two special methods in the Python interface of \emp{GenericVector} are implemented:
 \begin{c++}
 %extend dolfin::GenericVector {
   void _scale(double a)
@@ -854,20 +854,21 @@ The following code snippet from \emp{la\_post.i}, shows how two special methods 
             return ret
         return NotImplemented
     ...
-    def __add__(self,other):
-        """x.__add__(y) <==> x+y"""
-        if self.__is_compatible(other):
-            ret = self.copy()
-            ret.axpy(1.0, other)
-            return ret
-        return NotImplemented
-   ...
 %} }
 \end{c++}
-Here we first expose \emp{operator*=} to Python by implementing the \emp{\_scale} method for scalars and the \emp{\_vec\_mul} method for other vectors. These methods are then used in the \emp{\_\_mul\_\_} special method in the Python interface. We also see how the \emp{\_\_add\_\_} special method is implemented. We use the \emp{axpy} method that adds a scaled version of another vector to it self. The \emp{axpy} method requires that we call it with a vector from the same linear algebra backend. This is checked by the private method \emp{\_\_is\_compatibable}.
+We first expose \emp{operator*=} to Python by implementing corresponding
+hidden methods, the \emp{\_scale} method for scalars and the
+\emp{\_vec\_mul} method for other vectors. These methods are then used in
+the \emp{\_\_mul\_\_} special method in the Python interface. 
 
-Vectors and matrices in PyDOLFIN support access and assignment using: slices, \numpy arrays of booleans or integers, and list of integers. This is achieved by only using the \emp{get} and \emp{set} methods in the \emp{GenericVector} and \emp{GenericMatrix} interface. To help converting the Python structures used for indexing to indices that can be used in the \emp{get} and \emp{set} methods, we define a C++ class \emp{Indices}. This class together with subclasses for different index types is defined in the file \emp{Indices.i}. This file is included directly into the C++ wrapper file using a \emp{\%\{$\ldots$\}\%} block in \emp{la\_post.i}. The actual call to the \emp{get} and \emp{set} methods is performed in dedicated helper functions, which are defined in the file \emp{la\_get}\emp{\_set\_items.i}. The methods are wrapped to Python and used directly in the Python layer of the \emp{GenericVector} and \emp{GenericMatrix} classes.
-\begin{c++}
+Vectors in PyDOLFIN support access and assignment using slices and \numpy
+arrays of booleans or integers, and lists of integers. This is achieved
+using the \emp{get} and \emp{set} methods in the \emp{GenericVector}, 
+but is quite technical. In short,  a helper class \emp{Indices} 
+is implemented in \emp{Indices.i}. This class is used   
+in the \emp{\_get\_vector} and \emp{\_set\_vector} helper functions defined
+in the \emp{la\_get\_set\_items.i} file.
+\begin{python}
 %extend dolfin::GenericVector {
   %pythoncode %{
    ...
@@ -887,24 +888,44 @@ Vectors and matrices in PyDOLFIN support access and assignment using: slices, \n
             raise TypeError, "expected an int, slice, list or numpy array of integers"
   ...
 %} }
-\end{c++}
-Here we see an example on how the slice and index access is implemented in the Python layer of \emp{GenericVector}. When accessing a vector using a full slice, \emp{v[:]}, \emp{\_\_getslice\_\_} is called with \emp{i} = 0 and \emp{j} = a-large-number (default in Python).  If this happens we return a copy of the vector, and otherwise we create a slice and pass it to \emp{\_\_getitem\_\_}. In this method we check if the \emp{indices} argument is a Python \emp{int} or \numpy \emp{integer} if so we assume the user wants a single item. We then call the helper function \emp{\_get\_vector}\emp{\_single\_item} that makes the actual call to the \emp{get} method in the \emp{GenericVector}. If the indices is a slice, a \numpy array or list we expect the user wants a sub-vector of the vector, and the helper function \emp{\_get\_vector}\emp{\_sub\_vector} is called.
+\end{python}
+The above code demonstrates the implementation of the slice and index
+access in the Python layer of \emp{GenericVector}. When accessing a vector
+using a full slice, \emp{v[:]}, \emp{\_\_getslice\_\_} is called with
+\emp{i} = 0 and \emp{j} = a-large-number (default in Python).  In this
+case, we return a copy of the vector. Otherwise, we create a slice and pass
+it to \emp{\_\_getitem\_\_}. In the latter method, we check whether the
+\emp{indices} argument is a single item or not and calls upon the 
+correct helper functions. 
 
 \section{JIT Compiling of \ufl forms, \emp{Expressions} and \emp{SubDomains}}
-In PyDOLFIN we make use of just in time (JIT) generated \ufc code that is compiled, linked and imported into Python using Instant~\cite{WestlieMardalAlnaes2009}. This process is facilitated by employing the Unified Form Language (\ufl) together with a \ufl and \ufc compatible form compiler (\ffc or \sfc), into PyDOLFIN. When a \ufl form is assembled in PyDOLFIN, we JIT compile it and import the generated \ufc object in Python. The \ufc form is then used to create a \dolfin form that can be assembled using the SWIG wrapped assemble routines in \dolfin. If the handed \ufl form includes a coefficient function, it will generate \ufc code that includes routines to evaluate this function in the correct finite element function space. These routines consist of callback functions to \ufc functions. When a \ufc form is assembled a user need to pass these callback functions. \dolfin provides two classes that can be used for these callback functions: \textit{i)} \emp{Expression}, which can be sub classed by implementing an \emp{eval} method, and \textit{ii)} \emp{Function} which is a discrete finite element function (defined by a vector of expansion coefficients together with a \emp{FunctionSpace}). Both the \emp{Expression} and \emp{Function} classes are extended with the \emp{Function} class from \ufl in PyDOLFIN. In this way we can use the extended classes both to define variational forms, using the \ufl \emp{Function}, and they can be automatically passed to the assemble routines in \dolfin. 
+PyDOLFIN makes extensive use of just in time (JIT) compilation; that is code that is
+compiled, linked and imported into Python using Instant, see
+Chapter~\ref{chap:wilbers}. This process is facilitated by employing the
+the form compilers \ffc or \sfc that translates \ufl code into \ufc code. 
+In a similar fashion in PyDOLFIN enables JIT compiling of \emp{Expression}s
+and \emp{SubDomain}s.  
 
-We provide two ways of defining an \emp{Expression} in PyDOLFIN: \textit{i)} sub classing \emp{Expression} directly in Python, and \textit{ii)} through the compile function interface. The first is done by implementing the \emp{eval} method in a sub class of Expression:
+We provide two ways of defining an \emp{Expression} in PyDOLFIN: sub
+classing \emp{Expression} directly in Python, and through the compile
+function interface. In the first alternative, the \emp{eval} method is defined in a sub class of Expression:
 \begin{python}
 class MyExpression(Expression):
     def eval(self, values, x):
-        values[0] = 10*exp(-((x[0] - 0.5)**2 + (x[1] - 0.5)** 2) / 0.02)"
+        values[0] = 10*exp(-((x[0] - 0.5)**2 + (x[1] - 0.5)** 2) / 0.02)
 f = MyExpression()
 \end{python}
-Here will \emp{f} be a sub class of both \emp{ufl.Function} and \emp{cpp.Expression}, so it can be used both to define \ufl forms and be assembled. The second alternative is done by instantiating the \emp{Expression} class directly:
+Here, \emp{f} will be a sub class of both \emp{ufl.Function} and
+\emp{cpp.Expression}.  The second alternative is to instantiate the \emp{Expression} class directly:
 \begin{c++}
 f = Expression("10*exp(-(pow(x[0] - 0.5, 2) + pow(x[1] - 0.5, 2)) / 0.02)")
 \end{c++}
-This example will create a scalar \emp{Expression}. Vector valued and matrix valued expressions can also be created. See the docstring of Expression for these cases. As with the first example will \emp{f} also here be a sub class of \emp{ufl.Function}, but it will not inherit \emp{cpp.Expression} directly. Instead we create C++ code that inherit \emp{Expression} and implements the \emp{eval} method. The code that is created looks like:
+This example creates a scalar \emp{Expression}. Vector valued and matrix
+valued expressions can also be created. As in the first example, 
+\emp{f} will be a sub class of \emp{ufl.Function}. But it will not
+inherit from \emp{cpp.Expression}. 
+Instead, we create C++ code that inherit from \emp{Expression} and implements the \emp{eval} method. 
+The generated code looks like:
 \begin{c++}
 class Expression_700475d2d88a4982f3042522e5960bc2: public Expression{
 public:
@@ -915,43 +936,16 @@ public:
   }
 };
 \end{c++}
-The name of the sub class is generated from a hash of the passed expression string. The code is inserted into \emp{namespace dolfin} and the appropriate \emp{\#include} is also inserted in the code. Instant is used to compile and link a Python module from the generated code. The class is imported into Python and used to dynamically construct a class that inherits the generated class together with \emp{ufl.Function} and \emp{Expression}. Dynamic creation of classes in Python is done using so called meta-classes. One can look at a meta-class as an object that instantiate classes. In \emp{site-packages/dolfin/expression.py} we define \emp{ExpressionMetaClass}, the meta-class we use for \emp{Expression}.
+The name of the sub class is generated from a hash of the passed expression
+string. The code is inserted into \emp{namespace dolfin} and the
+appropriate \emp{\#include} is also inserted in the code. Instant is used
+to compile and link a Python module from the generated code. The class made
+by Instant is imported into Python and used to dynamically construct a class 
+that inherits the generated class together with \emp{ufl.Function} and \emp{Expression}. 
+Dynamic creation of classes in Python is done using so called meta-classes. 
+In a similar fashion,  PyDOLFIN provides functionality to construct C++
+code and JIT compile sub classes of \emp{SubDomain}.
 
-The strength with the first example is that a user can define more complex \emp{eval} methods. However, because Python callbacks are quite expensive, this will dominate the time it takes to assemble a form in PyDOLFIN. It is therefore useful to use the compiled expression, as no Python callback is needed.
-
-PyDOLFIN also provides functionality to construct C++ code and JIT compile sub classes of \emp{SubDomain}. Of course one can sub class the \emp{SubDomain} directly in Python. However, if a user wants to avoid Python callbacks he or she can just do:
-\begin{python}
-sd = compile_subdomains(['(fabs(x[0]) < DOLFIN_EPS) && on_boundary'])
-\end{python}
-This call generates the following C++ code:
-\begin{c++}
-class SubDomain_ffbd822b3f232cb20fe8fa356234fd09: public SubDomain
-{
-public:
-  SubDomain_ffbd822b3f232cb20fe8fa356234fd09(){}
-
-  bool inside(const double* x, bool on_boundary) const{
-      return (fabs(x[0]) < DOLFIN_EPS) && on_boundary;
-  }
-};
-\end{c++}
-The class name is also here generated from a hash of the passed string. The code is included into \emp{namespace dolfin} and passed to Instant, where it is JIT compiled. \emp{compile}\emp{\_subdomains} instantiates the class and returns a \emp{SubDomain} object.
-
-%\section{Memory Management}
-%
-%Common problem:
-%\begin{c++}
-%def create_Dirichlet_bc():
-%    # Define boundary condition in terms of a local variable u0
-%    # that goes out of scope when the execution of this function is done
-%    u0 = Constant(mesh, 0.0)
-%    bc = DirichletBC(V, u0, DirichletBoundary())
-%    return bc
-%\end{c++}
-%Include typical output code .
-%
-%
-%Shared Pointers.
 
 \section{Debugging Mixed Language Applications}
 
