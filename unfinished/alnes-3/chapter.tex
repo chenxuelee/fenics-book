@@ -48,15 +48,15 @@ The following example shows basic usage of the library,
 
   // evaluate f
   ex fvalue = f.subs(x == 0.5);
-  std::cout <<" f(0.5) = "<<fvalue <<std::endl;
+  std::cout << " f(0.5) = " << fvalue << std::endl;
 
   // differentiation
   ex dfdx  = diff(f,x);
-  std::cout <<" df/dx = "<<dfdx <<std::endl;
+  std::cout << " df/dx = " << dfdx << std::endl;
 
   // integration
   ex intf  = integral(x,0,1,f).eval_integ();
-  std::cout <<" integral of f from 0 to 1 is: "<<intf<<std::endl;
+  std::cout << " integral of f from 0 to 1 is: " << intf << std::endl;
 \end{c++}
 We will not go deeply into GiNaC here, but refer the reader to the 
 GiNaC tutorial and reference which can be found on its webpage. There are, however, a few
@@ -112,7 +112,7 @@ With these utilities it is easy to define finite elements.
 Some elements that have been implemented include:
 continuous and discontinuous Lagrangian elements, 
 the Crouzeix-Raviart element, the Raviart-Thomas element, various H(div) and H(curl) Nedelec 
-elements, and the Hermite elements, see Chapter~\ref{chap:kirby-6} for
+elements, and the Hermite elements. See Chapter~\ref{chap:kirby-6} for
 a description of the above mentioned elements. 
 A complete list of elements can be found
 in the user manual. The mentioned elements are defined for arbitrary order, except for
@@ -138,10 +138,10 @@ fe = Lagrange(t,2)
 
 for i in range(0, fe.nbf()):
     for j in range(0, fe.nbf()):
-	integrand = inner(grad(fe.N(i)), grad(fe.N(j)))
-	print "integrand[%d, %d]  =%s;" % (i,j,integrand.printc())
-	integral = t.integrate(integrand) 
-	print "A[%d, %d]          =%s;" % (i,j,integral.printc())
+        integrand = inner(grad(fe.N(i)), grad(fe.N(j)))
+        print "integrand[%d, %d]  =%s;" % (i, j, integrand.printc())
+        integral = t.integrate(integrand) 
+        print "A[%d, %d]          =%s;" % (i, j, integral.printc())
 \end{python}
 The output from executing the above code is: 
 \begin{c++}
@@ -167,43 +167,43 @@ from swiginac import *
 from SyFi import *
 
 class CrouzeixRaviart(object): 
-  """Python implementation of the Crouzeix-Raviart element.""" 
+    """Python implementation of the Crouzeix-Raviart element.""" 
 
-  def __init__(self, polygon):  
-    """ Constructor """
-    self.Ns = []
-    self.dofs = []
-    self.polygon = polygon 
-    self.compute_basis_functions()
+    def __init__(self, polygon):  
+        """Constructor"""
+        self.Ns = []
+        self.dofs = []
+        self.polygon = polygon 
+        self.compute_basis_functions()
 
-  def compute_basis_functions(self): 
-    """ Compute the basis functions and degrees of freedom  
-    and put them in Ns and dofs, respectively.  """
+    def compute_basis_functions(self): 
+        """Compute the basis functions and degrees of freedom  
+        and put them in Ns and dofs, respectively."""
 
-    # create the polynomial space
-    N, variables, basis = bernstein(1,self.polygon,"a")
+        # create the polynomial space
+        N, variables, basis = bernstein(1,self.polygon,"a")
 
-    # define the degrees of freedom 
-    for i in range(0,3): 
-      edge = self.polygon.line(i)
-      dofi = edge.integrate(N) 
-      self.dofs.append(dofi)
+        # define the degrees of freedom 
+        for i in range(0,3): 
+            edge = self.polygon.line(i)
+            dofi = edge.integrate(N) 
+            self.dofs.append(dofi)
 
-    # compute and solve the system of linear equations
-    for i in range(0,3): 
-      equations = []
-      for j in range(0,3): 
-        equations.append(self.dofs[j] == dirac(i,j))
-      sub = lsolve(equations, variables) 
-      Ni = N.subs(sub) 
-      self.Ns.append(Ni); 
+        # compute and solve the system of linear equations
+        for i in range(0,3): 
+            equations = []
+                for j in range(0,3): 
+                    equations.append(self.dofs[j] == dirac(i,j))
+                    sub = lsolve(equations, variables) 
+                    Ni = N.subs(sub) 
+                    self.Ns.append(Ni); 
 
-  def N(self,i): return self.Ns[i]
-  def dof(self,i): return self.dofs[i]
-  def nbf(self): return len(self.Ns)
+    def N(self,i): return self.Ns[i]
+    def dof(self,i): return self.dofs[i]
+    def nbf(self): return len(self.Ns)
 \end{python}
-The process of defining a finite element in SyFi is similar for all elements and,
-as the above code shows,  it resembles the Ciarlet definition closely, see
+The process of defining a finite element in SyFi is similar for all
+elements.  As the above code shows,  it resembles the Ciarlet definition closely, see
 also the Chapters~\ref{chap:kirby-1} and \ref{chap:kirby-6}. 
 First, we construct a polynomial space. In the code above, this is performed by calling the \emp{bernstein}
 function. The \emp{bernstein} functions takes as input a simplex and the order of the bernstein polynomial, 
@@ -249,7 +249,7 @@ grad(N(1)) =  [[-2],[0],[-1/3]]
 \section{SFC -- SyFi Form Compiler}
 
 As mentioned earlier, SFC translates UFL code to UFC code. Consider the 
-following UFL code for defining the a variational problem for solving
+following UFL code for defining the  variational problem for solving
 the Poisson problem, implemented in a file \emp{Poisson.ufl}:
 \begin{python}
 cell = triangle
@@ -283,7 +283,6 @@ In PyDolfin, the form compiler may be chosen at run time by setting:
 \end{python}
 The form compiler can be tuned with a range of options. A complete list of options is obtained as follows:  
 \begin{python}
-import sfc 
 from sfc.common.options import default_options
 sfc_options = default_options()
 \end{python}
@@ -296,24 +295,25 @@ sfc_options.code.integral.integration_method = "symbolic" # default is "quadratu
 A = assemble(a, form_compiler_parameters=sfc_options)
 \end{python}
 
-Earlier versions of SFC were produced slow code for complicated nonlinear
+Earlier versions of SFC produced slow code for complicated nonlinear
 equations as shown in \citep{AlnaesMardal2009b}. Furthermore, 
 the code generation was expensive both in terms of memory and the number
-of operations required in the computations. 
+of operations required in the computations, because the SFC implementation
+did not scale linearly with the complexity of the equations. 
 However, a significant speed-up came with the introduction of UFL 
-with its expression three traversal algorithms.  
+with its expression tree traversal algorithms.  
 Now, quite complicated 
 equations can be handled without losing computational efficiency. Consider for example an elasticity problem 
 where the constitutive law is a quite complicated variant of
 Fung~\citep{Fung1993}, described by 
 the following equations: 
 \begin{eqnarray}
-\mathbf{F} &=& \mathbf{I} + (\nabla \mathbf{u})^T, \\  
+\mathbf{F} &=& \mathbf{I} + (\nabla \mathbf{u}), \\  
 \mathbf{CC} &=& \mathbf{F}^T: \mathbf{F}, \\
 \mathbf{E} &=& (\mathbf{C}-\mathbf{I})/2, \\ 
 \psi &=& \frac{\lambda}{2} \, \mbox{tr}(\mathbf{E})^2 + K\exp((\mathbf{E}\mathbf{A},\mathbf{E})), \\  
 \mathbf{P} &=& \frac{\partial \psi}{\partial \mathbf{E}}, \\
-\LL &=& \int_\Omega \mathbf{P}: (\nabla \mathbf{v})^T \, dx, \\  
+\LL &=& \int_\Omega \mathbf{P}: (\nabla \mathbf{v}) \, dx, \\  
 \JJ_F &=& \frac{\partial \LL}{\partial \mathbf{u}} . 
 \end{eqnarray}
 Here, $\mathbf{u}$ is the unknown displacement, $\mathbf{v}$ is a test function, $\mathbf{I}$ is the identity matrix, $\mathbf{A}$ 
@@ -341,7 +341,7 @@ This variational form is implemented in PyDolfin as follows:
   n = U.cell().n
   
   I = Identity(U.cell().d)
-  F = I + grad(U).T
+  F = I + grad(U)
   Finv = inv(F)
   J = det(F)
   
@@ -352,7 +352,7 @@ This variational form is implemented in PyDolfin as follows:
   psi = lamda/2 * tr(E)**2  +  K*exp(inner(A*E,E))
   P = F*diff(psi, E)
   a_f = psi*dx
-  L = inner(P, grad(v).T)*dx 
+  L = inner(P, grad(v))*dx 
   J = derivative(F, U, u)
   
   A = assemble(J)
