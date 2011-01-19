@@ -13,7 +13,7 @@ of PyDOLFIN.
 Python has over the last decade become an established platform
 for scientific computing. Widely used scientific software such as, e.g.,
 \citet{www:petsc}, \citet{www:hypre},
-\citet{www:trilinos}, \cite{www:vtk}, \cite{www:vmtk},
+\citet{www:trilinos}, \citet{www:vtk}, \citet{www:vmtk},
 \ginac~\citep{BauerFrinkKreckel2000} have all been equipped with Python
 interfaces. The \fenics
 packages \ferari, \fiat , \ffc,
@@ -25,9 +25,9 @@ makes application building on top of \dolfin more user friendly, but
 the Python interface also introduces additional complexity and new
 problems.  We assume that the reader has basic knowledge of both C++
 and Python. A suitable textbook on Python for scientific computing is
-\cite{Langtangen2008}, which cover both Python and its C interface.
+\citet{Langtangen2008}, which cover both Python and its C interface.
 SWIG, which is the software we use to wrap \dolfin, is well documented and we refer to the user manual that can be
-found on its web page~\cite{www:swig}. Finally, we refer to
+found on its web page~\citet{www:swig}. Finally, we refer to
 \citet{Langtangen2003b} and \citet{SalaSpotzHeroux2008} for a
 description of how SWIG can be used to generate Python interfaces for
 other packages such as Diffpack and Trilinos.
@@ -94,10 +94,10 @@ each of the above issues. The example code with the solutions proposed in
 the following can be found in \emp{Array\_2.i}. 
 
 \subsection{The \emp{operator[]}}
-In C++ the sub scripting \emp{operator[]} is used to implement both set and get
+In C++ the subscripting \emp{operator[]} is used to implement both set and get
 operators. It is possible to distinguish the set operator from the get
 operator using \emp{const}, but this is not required.  
-In Python sub scripting is performed with the two special methods: \emp{\_\_setitem\_\_} and \emp{\_\_getitem\_\_}. 
+In Python subscripting is performed with the two special methods: \emp{\_\_setitem\_\_} and \emp{\_\_getitem\_\_}. 
 Since, the mapping between the Python operators 
 (\emp{\_\_setitem\_\_} and \emp{\_\_getitem\_\_}) and the C++ operators \emp{operator[]} 
 may be ambiguous, SWIG currently ignores these operators. 
@@ -153,7 +153,7 @@ performed the underlying C++ object is already destroyed. This happens
 because the SWIG generated \emp{\_\_iadd\_\_} method returns a new Python
 object. This is illustrated by the different values obtained from the
 \emp{id()} function\footnote{The \emp{id} function returns a
-unique integer idenifying the object.}. The last two calls to \emp{id(b)}
+unique integer identifying the object.}. The last two calls to \emp{id(b)}
 return different numbers, which means that a new Python object is
 returned by the SWIG generated \emp{\_\_iadd\_\_} method. The second
 \emp{b} object is local in the \emp{add} function and 
@@ -282,7 +282,7 @@ This statement tells SWIG to create a module called \emp{cpp} that resides
 in the package of \emp{dolfin}. We have also enabled the use of directors.
 The latter is required to be able to subclass \dolfin classes in Python,
 an issue that will be discussed below.  By naming the generated extension module
-\emp{cpp}, and including it in the \emp{dolfin} Python package, we hide the generated interface into a sub module of dolfin; the \emp{dolfin.cpp} module. 
+\emp{cpp}, and including it in the \emp{dolfin} Python package, we hide the generated interface into a submodule of dolfin; the \emp{dolfin.cpp} module. 
 The \emp{dolfin} module then imports the needed classes and functions 
 from \emp{dolfin.cpp} in the \emp{\_\_init\_\_.py} file along with additional pure Python classes and functions.
 
@@ -780,7 +780,7 @@ the \emp{inside} and \emp{map} methods.
  }
 \end{swigcode}%$ To fool emacs
 Even if it by concept and name is an \textit{in}-typemap, one can look at it as an out-typemap
-(since it is a typemap for a callback function). SWIG needs to wrap the arguments that the implemented \emp{inside} or \emp{map} method in Python are called with. The above typemaps are inserted in the \emp{inside} and \emp{map} methods of the SWIG created C++ director class, which is a sub class of \emp{dolfin::SubDomain}.
+(since it is a typemap for a callback function). SWIG needs to wrap the arguments that the implemented \emp{inside} or \emp{map} method in Python are called with. The above typemaps are inserted in the \emp{inside} and \emp{map} methods of the SWIG created C++ director class, which is a subclass of \emp{dolfin::SubDomain}.
 
 \dolfin comes with a \emp{Mesh}\-\emp{Enitity}\-\emp{Iterator} class. This
 class lets a user iterate over a given \emp{MeshEntity}: a \emp{cell},
@@ -913,7 +913,7 @@ it to \emp{\_\_getitem\_\_}. In the latter method, we check whether the
 \emp{indices} argument is a single item or not and calls upon the 
 correct helper functions. 
 
-\section{JIT Compiling of \ufl forms, \emp{Expressions} and \emp{SubDomains}}
+\section{JIT compiling of \ufl forms, \emp{Expressions} and \emp{SubDomains}}
 PyDOLFIN makes extensive use of just in time (JIT) compilation; that is code that is
 compiled, linked and imported into Python using Instant, see
 Chapter~\ref{chap:wilbers}. This process is facilitated by employing
@@ -921,25 +921,24 @@ the form compilers \ffc or \sfc that translates \ufl code into \ufc code.
 In a similar fashion in PyDOLFIN enables JIT compiling of \emp{Expression}s
 and \emp{SubDomain}s.  
 
-We provide two ways of defining an \emp{Expression} in PyDOLFIN: sub
-classing \emp{Expression} directly in Python, and through the compile
-function interface. In the first alternative, the \emp{eval} method is defined in a sub class of Expression:
+We provide two ways of defining an \emp{Expression} in PyDOLFIN: subclassing \emp{Expression} directly in Python, and through the compile
+function interface. In the first alternative, the \emp{eval} method is defined in a subclass of Expression:
 \begin{python}
 class MyExpression(Expression):
     def eval(self, values, x):
         values[0] = 10*exp(-((x[0] - 0.5)**2 + (x[1] - 0.5)** 2) / 0.02)
 f = MyExpression()
 \end{python}
-Here, \emp{f} will be a sub class of both \emp{ufl.Function} and
+Here, \emp{f} will be a subclass of both \emp{ufl.Function} and
 \emp{cpp.Expression}.  The second alternative is to instantiate the \emp{Expression} class directly:
 \begin{python}
 f = Expression("10*exp(-(pow(x[0] - 0.5, 2) + pow(x[1] - 0.5, 2)) / 0.02)")
 \end{python}
 This example creates a scalar \emp{Expression}. Vector valued and matrix
 valued expressions can also be created. As in the first example, 
-\emp{f} will be a sub class of \emp{ufl.Function}. But it will not
+\emp{f} will be a subclass of \emp{ufl.Function}. But it will not
 inherit from \emp{cpp.Expression}. 
-Instead, we create a sub class in C++ that inherit from \emp{dolfin::Expression} and implements the \emp{eval} method.
+Instead, we create a subclass in C++ that inherit from \emp{dolfin::Expression} and implements the \emp{eval} method.
 The generated code looks like:
 \begin{c++}
 class Expression_700475d2d88a4982f3042522e5960bc2: public Expression{
@@ -951,7 +950,7 @@ public:
   }
 };
 \end{c++}
-The name of the sub class is generated from a hash of the passed expression
+The name of the subclass is generated from a hash of the passed expression
 string. The code is inserted into \emp{namespace dolfin} and the
 appropriate \emp{\#include} is also inserted in the code. Instant is used
 to compile and link a Python module from the generated code. The class made
@@ -959,10 +958,10 @@ by Instant is imported into Python and used to dynamically construct a class
 that inherits the generated class together with \emp{ufl.Function} and \emp{Expression}. 
 Dynamic creation of classes in Python is done using so called meta-classes. 
 In a similar fashion, PyDOLFIN provides functionality to construct C++
-code and JIT compile sub classes of \emp{SubDomain}.
+code and JIT compile subclasses of \emp{SubDomain}.
 
 
-\section{Debugging Mixed Language Applications}
+\section{Debugging mixed language applications}
 
 Debugging mixed language applications may be more challenging than debugging
 single language applications.  The main reason is that debuggers are written
