@@ -6,8 +6,8 @@
 \newcommand{\kentc}[1]{\marginpar{\tiny KAM: #1}}
 \newcommand{\rckc}[1]{\marginpar{\tiny RCK: #1}}
 
-\fenicschapter{Constructing General Reference Finite Elements}
-              {Constructing General Reference Finite Elements}
+\fenicschapter{Constructing general reference finite elements}
+              {Constructing general reference finite elements}
               {Robert C. Kirby and Kent-Andre Mardal}
               {kirby-1}
 
@@ -20,18 +20,21 @@
 
 \editornote{Reuse color figures from chapter [kirby-7] for RT elements etc.}
 
-\section{Introduction}
+This chapter describes the mathematical framework for constructing general finite elements on 
+the reference domain. It describes the common abstractions used by the FIAT and SyFi projects.  
+
+\section{Background}
 The finite element literature contains a huge collection of
 approximating spaces and degrees of freedom, many of which are
-surveyed in Chapter~\ref{??},
+surveyed in Chapter~\ref{chap:kirby-6},
 Some applications, such as Cahn-Hilliard and
 other fourth-order problems, can benefit from very smooth finite
 element bases.  While porous media flow requires
 vector fields discretized by piecewise polynomial functions with
 normal components continuous across cell boundaries.  Many problems in
 electromagnetism call for the tangentially continuous vector fields obtained
-by using Nedelec elements~\cite{Nedelec80,Nedelec86}.  Many elements are carefully designed
-to satisfy the \emph{inf-sup} condition~\cite{BrezziFortin1991,GiraultRaviart86},
+by using \nedelec\ elements~\citep{Nedelec1980,Nedelec1986}.  Many elements are carefully designed
+to satisfy the \emph{inf-sup} condition~\citep{BrezziFortin1991,GiraultRaviart1986},
 originally developed to explain stability of discretizations of
 incompressible flow problems.  Additionally, some problems call for low-order
 discretizations, while others are effectively solved with high-order
@@ -40,7 +43,7 @@ polynomials.
 While the automatic generation of computer programs for finite element
 methods requires one to confront the panoply of  finite
 element families found in the literature, it also provides a pathway
-for wider employment of Raviart-Thomas, Nedelec, and other
+for wider employment of Raviart-Thomas, \nedelec, and other
 difficult-to-program elements.
 Ideally, one would like to
 describe the diverse finite element spaces at an abstract level,
@@ -63,9 +66,9 @@ to order of approximation.
 It is entirely possible to satisfy many users by \emph{a priori}
 enumerating a list of finite elements and implement only those.  At certain times, this
 would even seem ideal.  For example, after the rash of research
-that led to elements such as the Raviart-Thomas-Nedelec and
+that led to elements such as the Raviart-Thomas-\nedelec\ and
 Brezzi-Douglas-Marini families, development of new families slowed
-considerably.  Then, more recent work of lead forth by  Arnold, Falk, and Winther in the context of exterior
+considerably.  Then, more recent work lead forth by  Arnold, Falk, and Winther in the context of exterior
 calculus has not only led to
 improved understanding of existing element families, but has also
 brought a new wave of elements with improved proprerties.  A
@@ -77,10 +80,10 @@ and test its numerical properties before analyzing it mathematically.
 
 
 In the present chapter, we describe the mathematical formulation
-underlying such projects as FIAT~\cite{Kirby04,Kirby06},
-SyFi~\cite{AlnaesMardal09,AlnaesMardal2009a} and Exterior~\cite{LoggMardal09}.
+underlying such projects as FIAT~\citep{Kirby2004,Kirby2006},
+SyFi~\citep{AlnaesMardal2009,AlnaesMardal2009a} and Exterior~\citep{LoggMardal2009}.
 This formulation starts from definitions of finite elements as
-given classically by Ciarlet~\cite{Ciarlet02}.  It then uses basic linear
+given classically by Ciarlet~\citep{Ciarlet2002}.  It then uses basic linear
 algebra to construct the appropriate nodal basis for an abstract
 finite element in terms of polynomials that are easy to implement and
 well-behaved in floating point arithmetic.  We focus on
@@ -93,7 +96,7 @@ in terms of this single reference element.
 Other approaches exist in the literature, such as the hierarchical
 bases studied by Szabo and Babuska~\cite{SzaboBabuska91} and extended to \(
 H(\mathrm{curl}) \) and \( H(\mathrm{div}) \) spaces in work such
-as~\cite{AinCoy02}.  These can provide greater flexibility for
+as~\cite{AinCoy02}.  These approaches can provide greater flexibility for
 refining the mesh and polynomial degree in finite element methods, but
 they also require more care during assembly and are typically constructed
 on a case-by-case basis for each element family.  When they are
@@ -105,23 +108,13 @@ automatic software.
 
 \section{Preliminaries}
 Both FIAT and SyFi work a slightly modified version of the  abstract definition of a finite element introduced by
-Ciarlet~\cite{Ciarlet02}.
-\begin{definition}[A Finite Element]
-\label{def:finite:element}
-A finite element is a triple \( (K,P,N) \) with
-\begin{enumerate}
-\item \( K \subset \mathbb{R}^d \) a bounded domain with piecewise
-  smooth boundary.
-\item A finite-dimensional space \( P \) of \( BC^m(K,V) \), where \(
-  V \) is some normed vector space and \( BC^m \) is the space of
-  \( m \)-times bounded and continuosly differentiable functions from
-  \( K \) into \( V \).
-\item A dual basis for \( P \), written \( N = \left\{ L_i
-    \right\}_{i=1}^{\dim P} \).  These are bounded linear functionals in
-    \( ( BC^m(K,V) )^\prime \) and frequently called the \emph{nodes}
-    or \emph{degrees of freedom}.
-\end{enumerate}
+Ciarlet~\citep{Ciarlet2002}.
+\begin{definition}[Finite element~{\citep{Ciarlet2002}}]
+  A finite element is defined by a triple
+  $(T, \CiarletSpace,\mathcal{L})$, where
+  \femdefinition{}
 \end{definition}
+
 
 In this definition, the term ``finite element'' refers not only to
 a particular cell in a  mesh, but also to the associated function
@@ -142,11 +135,11 @@ for this element can be computed by using the following defintion.
 
 
 \begin{definition}
-The \emph{nodal basis} for a finite element \( (K,P,N) \) be a finite
-element is the set of functions \( \{ \psi_i \}_{i=1}^{\dim P} \) such
-that for all \( 1 \leq i,j \leq \dim P \),
+The \emph{nodal basis} for a finite element \( (K,P,N) \) 
+is the set of functions \( \{ \phi_i \}_{i=1}^{n} \) such
+that for all \( 1 \leq i,j \leq n \),
 \begin{equation}
-L_i(\psi_j) = \delta_{i,j}.
+L_i(\phi_j) = \delta_{i,j}.
 \end{equation}
 \end{definition}
 
@@ -202,32 +195,32 @@ Between the coordinates
 $\mathbf{x}\in T$ and $\mathbf{x}i\in\hat T$ we use the mapping
 \begin{equation}
 \label{eq:geometry}
-\mathbf{x} = \GG(\mathbf{x}i) + \mathbf{x}_0,
+\mathbf{x} = \GG(\xi) + \mathbf{x}_0,
 \end{equation}
 and define the Jacobian determinant of this mapping as
 \begin{equation}
 \label{eq:geometry2}
-J(\mathbf{x}) = \left| \frac{\partial\GG(\mathbf{x}i) }{\partial \mathbf{x}i} \right| .
+J(\mathbf{x}) = \left| \frac{\partial\GG(\xi) }{\partial \xi} \right| .
 \end{equation}
 The basis functions are defined in terms of the basis function
 on the reference element as
 \begin{equation}
 \label{eq:subs}
-N_j(\mathbf{x}) = \hat{N_j}(\mathbf{x}i),
+\phi_j(\mathbf{x}) = \hat{\phi_j}(\xi),
 \end{equation}
-where $\hat{N_j}$ is basis function number $j$ on the reference element.
+where $\hat{\phi_j}$ is basis function number $j$ on the reference element.
 The integral can then be performed on the reference polygon,
 \begin{equation}
 \label{eq:integration2}
-\int_T \, f(\mathbf{x}) \, d\mathbf{x} = \int_{\hat{T}} \, f(\mathbf{x}i) \, J d\mathbf{x}i ,
+\int_T \, f(\mathbf{x}) \, d\mathbf{x} = \int_{\hat{T}} \, f(\xi) \, J d\xi ,
 \end{equation}
 and the spatial derivatives are defined by the derivatives on the
 reference element and the geometry mapping simply by using the
 chain rule,
 \begin{equation}
 \label{eq:chain}
-\frac{\partial N}{\partial x_i} =
-\frac{\partial N}{\partial \xi_j} \frac{\partial \xi_j }{\partial x_i }  .
+\frac{\partial \phi}{\partial x_i} =
+\frac{\partial \phi}{\partial \xi_j} \frac{\partial \xi_j }{\partial x_i }  .
 \end{equation}
 
 The above definition of a global element is commonly called \emph{isoparametric}
@@ -248,22 +241,22 @@ Perhaps we could use $\mathcal{V}$? Also use $\ell$ for the functionals and $\al
 The fundamental idea in constructing nodal basis is from elementary
 linear algebra: one constructs the desired (nodal) basis as a linear
 combination of a basis one has ``in hand''.  We will start with some
-basis \( \left\{ \phi \right\}_{i=1}^{\dim P} \subset P \).  From
+basis \( \left\{ \psi \right\}_{i=1}^{\dim P} \subset P \).  From
 this, we construct each nodal basis function
 \begin{equation}
- \psi_j = A_{jk} \phi_k,
+ \phi_j = A_{jk} \psi_k,
 \end{equation}
 where summation is implied over the repeated index \( k \).  The
-task is to compute the matrix \( A \).  Each fixed \( \psi_j \) must
+task is to compute the matrix \( A \).  Each fixed \( \phi_j \) must
 satisfy
 \begin{equation}
-L_i( \psi_j ) = \delta_{i,j},
+L_i( \phi_j ) = \delta_{i,j},
 \end{equation}
-and using the above expansion for \( \psi_j \), we obtain
+and using the above expansion for \( \phi_j \), we obtain
 \begin{equation}
-\delta_{i,j} = L_i( A_{jk} \phi_{k} ) = A_{jk} L_i (\phi_k).
+\delta_{i,j} = L_i( A_{jk} \psi_{k} ) = A_{jk} L_i (\psi_k).
 \end{equation}
-So, for a fixed \( j \), we have a system of \( \dim P \) equations
+So, for a fixed \( j \), we have a system of \( n \) equations
 \begin{equation}
 \label{eq:singlebfA}
 V_{ik} A_{jk} = e^j,
@@ -310,7 +303,7 @@ elements need $\H^d_n$, the space of homogenous polynomials of degree
 Typically, the developed techniques here
 are used on simplices, where polynomials do not have a nice
 tensor-product structure.  Some rectangular elements like the
-Brezzi-Douglas-Marini family~\cite{missing}, however, are not based on
+Brezzi-Douglas-Marini family~\citep{BrezziDouglasMarini1985a}, however, are not based on
 tensor-product polynomial spaces, and the techniques described
 in this chapther apply in that
 case as well.  SyFi has explicit support for rectangular domains, but
@@ -631,8 +624,8 @@ functionals, then we may apply this technique.  In this case,
 \( V_1 \in \mathbb{R}^{\dim{P},\dim{\bar{P}}} \) and
 \( V_2 \in \mathbb{R}^{\dim{\bar{P}}-\dim P,\dim{\bar{P}}} \).  This
 scenario, though somewhat abstract, is applicable not only to BDFM,
-but also to the N\'ed\'elec~\cite{Nedelec80}, Arnold-Winther~\cite{ArnoldWinther2002},
-Mardal-Tai-Winther~\cite{MardalTaiEtAl02}, Tai-Winther~\cite{TaiWinther06}, and Bell~\cite{missing} element families.
+but also to the \nedelec~\citep{Nedelec1980}, Arnold-Winther~\citep{ArnoldWinther2002},
+Mardal-Tai-Winther~\citep{MardalTaiWinther2002}, Tai-Winther~\citep{TaiWinther2006}, and Bell~\citep{missing} element families.
 
 Again, we summarize the discussion as a proposition.
 \begin{proposition}
