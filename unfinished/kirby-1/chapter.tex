@@ -108,11 +108,12 @@ automatic software.
 
 \section{Preliminaries}
 Both FIAT and SyFi work a slightly modified version of the  abstract definition of a finite element introduced by
-Ciarlet~\citep{Ciarlet2002}.
+Ciarlet.
 \begin{definition}[Finite element~{\citep{Ciarlet2002}}]
   A finite element is defined by a triple
   $(T, \CiarletSpace,\mathcal{L})$, where
   \femdefinition{}
+  \label{chap:kirby-1:fedef} 
 \end{definition}
 
 
@@ -141,6 +142,7 @@ that for all \( 1 \leq i,j \leq n \),
 \begin{equation}
 L_i(\phi_j) = \delta_{i,j}.
 \end{equation}
+\label{chap:kirby-1:nodaldef}
 \end{definition}
 
 The main issue at hand in this chapter is the \emph{construction} of
@@ -285,7 +287,7 @@ V = A^{-t}.
 \end{proposition}
 
 \subsection{Polynomial spaces}
-In Definition \ref{def:finite:element} we defined the finite element in terms
+In Definition \ref{chap:kirby-1:fedef} we defined the finite element in terms
 of a finite dimensional function space $P$. Although it is not strictly
 neccessary,
 the functions used in finite elements are typically polynomials.
@@ -295,7 +297,9 @@ A common space is
 $\P_n^d$, the space of polynomials of degree $n$ in $\R^d$. There
 are many different ways to represent $\P^d_n$. We will discuss the power
 basis, orthogonal bases, and the Bernstein basis.  Each of these bases
-has explicit representations and well-known evaluation algorithms.
+has explicit representations and well-known evaluation algorithms, 
+unlike most finite element bases that are determined by solving 
+the linear system in Definition \ref{chap:kirby-1:nodaldef}.
 In addition to $\P^d_n$ we will also for some
 elements need $\H^d_n$, the space of homogenous polynomials of degree
 \( n \) in \( d \) variables.
@@ -311,10 +315,10 @@ FIAT does not.
 
 \paragraph{Power basis}
 On a line segment, $\P_n^1=\P_n$ the monomial, or power basis is
-\( \{ x^i \}_{i=0}^{n} \), so that any \( v \in P_n \) is written as
+\( \{ x^i \}_{i=0}^{n} \), so that any \( \psi \in P_n \) is written as
 \begin{equation}
 \label{pn1d}
-v = a_0 + a_1 x + \ldots a_n x^n = \sum^n_{i=0} a_i x^i.
+\psi = a_0 + a_1 x + \ldots a_n x^n = \sum^n_{i=0} a_i x^i.
 \end{equation}
 In 2D on triangles, $\P_n$ is spanned by functions on the form
 \( \{ x^i y^j \}_{i,j=0}^{i+j\leq n} \), with a similar definition in
@@ -322,6 +326,10 @@ three dimensions.
 
 This basis is quite easy to evaluate, differentiate, and
 integrate but is very ill-conditioned in numerical calculations.
+For instance, the condition number of the mass matrix using
+the power basis in $\P_{10}$ gives a condition number of $5\cdot10^{14}$, 
+while corresponding condition numbers are $4\cdot 10^6$ and $2\cdot 10^3$ 
+for the Bernstein and Lagrange polynomials, respectively.    
 
 \paragraph{Legendre basis}
 
@@ -329,12 +337,12 @@ A popular polynomial basis for polygons that are either intervals, rectangles or
 This polynomial basis is also usable to represent polynomials of high degree.
 The basis is defined on the interval $[-1,1]$, as
 \[
-L_k(x) = \frac{1}{2^k k!} \frac{d^k}{dx^k} (x^2 -1), \quad k=0,1,\ldots,
+\psi_k(x) = \frac{1}{2^k k!} \frac{d^k}{dx^k} (x^2 -1), \quad k=0,1,\ldots,
 \]
 A nice feature with these polynomials is that they are orthogonal
 with respect to the $L_2$ inner product, i.e.,
 \[
-\int_{-1}^1 L_k (x) L_l(x) \, dx  =
+\int_{-1}^1 \psi_k (x) \psi_l(x) \, dx  =
 \left\{
 \begin{array}{c}
 \frac{2}{2k+1}, \ k=l, \\
@@ -345,11 +353,11 @@ with respect to the $L_2$ inner product, i.e.,
 The Legendre polynomials are extended to rectangular domains in 2D and
 3D simply by taking the tensor product,
 \[
-L_{k,l,m}(x,y,z) = L_k(x) L_l(y) L_m(z) .
+\psi_{k,l,m}(x,y,z) = \psi_k(x) \psi_l(y) \psi_m(z) .
 \]
 and $\P^n$ is defined by functions on the form (in 3D),
 \[
-v = \sum_{k,l,m=0}^{k,l,m <= n}   a_{k,l,m} L_{k,l,m} .
+v = \sum_{k,l,m=0}^{k,l,m <= n}   a_{k,l,m} \psi_{k,l,m} .
 \]
 
 \paragraph{Dubiner basis}
@@ -379,19 +387,19 @@ vertices
 \( (0,0) , (0,1) , (1,0) \) by an affine mapping.
 Then, one defines
 \begin{equation}
-\phi^{p,q}(x,y) = P_p^{0,0}(\eta_1) \left( \frac{1-\eta_2}{2}
+\psi^{p,q}(x,y) = P_p^{0,0}(\eta_1) \left( \frac{1-\eta_2}{2}
 \right)^p P_q^{2p+1,0}(\eta_2).
 \end{equation}
-Though it is not obvious from the definition, \( \phi^{p,q}(x,y) \) is
+Though it is not obvious from the definition, \( \psi^{p,q}(x,y) \) is
 a polynomial in \( x \) and \( y \) of degree \( p + q \).  Moreover,
-for \( (p,q) \neq (i,j) \), \( \phi^{p,q} \) is \( L^2 \)-orthogonal to \(
-\phi^{i,j} \).
+for \( (p,q) \neq (i,j) \), \( \psi^{p,q} \) is \( L^2 \)-orthogonal to \(
+\psi^{i,j} \).
 
 While this basis is more complicated than the power basis, it is very
 well-conditioned for numerical calculations even with high degree
 polynomials.  The polynomials can also be ordered hierarchically so
 that
-\( \{ \phi_i \}_{i=1}^{\dim P_k} \) forms a basis for  polynomials of
+\( \{ \psi_i \}_{i=1}^{\dim n} \) forms a basis for  polynomials of
 degree \( k \) for each \( k > 0 \).  As a possible disadvantage, the
 basis lacks rotational symmetry that can be found in  other bases.
 
@@ -400,12 +408,12 @@ The Bernstein basis  is another well-conditioned basis that can be
 used in generating finite element bases.
 In 1D, the  basis functions take the  form,
 \[
-B_{i,n} = \binom{i}{n} x^i (1-x)^{n-i}, \quad i=0,\ldots,n,
+\psi_{i,n} = \binom{i}{n} x^i (1-x)^{n-i}, \quad i=0,\ldots,n,
 \]
-and then \( P_n \) is spanned by \( \{ B_{i,n} \}_{i=0}^n \)
+and then \( P_n \) is spanned by \( \{ \psi_{i,n} \}_{i=0}^n \)
 And with this basis, $\P_n$ can be spanned by functions on the form,
 
-The terms \( x \) and \( 1-x \) appearing in \( B_{i,n} \) are the
+The terms \( x \) and \( 1-x \) appearing in \( \psi_{i,n} \) are the
 barycentric coordinates for \( [0,1] \), an observation that makes it
 easy to extend the basis to simplices in higher dimensions.
 
@@ -414,11 +422,11 @@ the triangle shown in Figure \ref{fig:triangle}, i.e.,
 $b_1=x$, $b_2=y$, and $b_3=1-x-y$. Then the basis is
 of the form,
 \[
-B_{i,j,k,n} = \frac{n!}{i!j!k!} b_1^i b_2^j b_3^k, \quad  for \ i+j+k=n .
+\psi_{i,j,k,n} = \frac{n!}{i!j!k!} b_1^i b_2^j b_3^k, \quad  for \ i+j+k=n .
 \]
 and a basis for $\P_n$ is simply.
 \[
-\{ B_{i,j,k,n} \}_{i,j,k\geq 0}^{i+j+k = n} .
+\{ \psi_{i,j,k,n} \}_{i,j,k\geq 0}^{i+j+k = n} .
 \]
 The Bernstein polynomials on the tetrahedron are completely
 analogous~\cite{Schumaker}.
@@ -436,7 +444,7 @@ of homogeneous polynomials $\H^n$. These are polynomials where all terms
 have the same degree. $\H^n$ is in 2D spanned by polynomials on the
 form:
 \[
-v = \sum_{i,j, \ i+j=n}
+\psi = \sum_{i+j=n}
 a_{i,j,k} x^i y^j
 \]
 with a similar definition in $n$D.
