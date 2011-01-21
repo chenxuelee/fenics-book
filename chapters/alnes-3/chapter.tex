@@ -19,7 +19,7 @@ and SFC comes with an extensive manual \citep{AlnaesMardal2009a}
 and can be found on the \fenics\ webpage.  SFC can be used in
 \fenics\ as a form compiler. Similar to \ffc\ it translates
 \ufl\ code (see Chapter~\ref{chap:alnes-1}) into UFC code (see
-Chapter~\ref{chap:alnes-2}), which can be used by the \dolfin\ assembler
+Chapter~\ref{chap:alnes-2}), which can be used by the \dolfin assembler
 described in Chapter~\ref{chap:logg-3}. The UFC code is JIT compiled
 using Instant, see Chapter~\ref{chap:wilbers}.
 
@@ -28,7 +28,7 @@ the capabilities of SyFi and SFC.  However, most features are covered by
 the more comprehensive manual.  This chapter is organized as follows:
 We begin with a short description of GiNaC and Swiginac, before we
 present how finite elements are used and defined using SyFi.  Then, we
-present how to use SFC in the \dolfin\ environment, and end with a short
+present how to use SFC in the \dolfin environment, and end with a short
 description of the basic structure of SFC. SyFi is implemented in C++,
 but has a Python interface. SFC is implemented in Python because code
 generation is much more convenient in this language.
@@ -42,21 +42,21 @@ for symbolic calculations.  It contains the tools for doing basic
 manipulations of polynomials, like algebraic operations, differentiation,
 and integration.  The following example shows basic usage of the library,
 \begin{c++}
-  // create a polynomial function
-  symbol x("x");
-  ex f = x*(1-x);
+// create a polynomial function
+symbol x("x");
+ex f = x*(1-x);
 
-  // evaluate f
-  ex fvalue = f.subs(x == 0.5);
-  std::cout << " f(0.5) = " << fvalue << std::endl;
+// evaluate f
+ex fvalue = f.subs(x == 0.5);
+std::cout << " f(0.5) = " << fvalue << std::endl;
 
-  // differentiation
-  ex dfdx  = diff(f,x);
-  std::cout << " df/dx = " << dfdx << std::endl;
+// differentiation
+ex dfdx  = diff(f,x);
+std::cout << " df/dx = " << dfdx << std::endl;
 
-  // integration
-  ex intf  = integral(x,0,1,f).eval_integ();
-  std::cout << " integral of f from 0 to 1 is: " << intf << std::endl;
+// integration
+ex intf  = integral(x,0,1,f).eval_integ();
+std::cout << " integral of f from 0 to 1 is: " << intf << std::endl;
 \end{c++}
 We will not go deeply into GiNaC here, but refer the reader to the
 GiNaC tutorial and reference which can be found on its webpage. There
@@ -277,17 +277,17 @@ SFC translates this UFL form to UFC code as follows:
 \begin{bash}
 sfc -w1  -ogenerated_code Poisson.ufl
 \end{bash}
-Here, \emp{-w1} means that \dolfin\ wrappers are generated, while
+Here, \emp{-w1} means that \dolfin wrappers are generated, while
 \emp{-ogenerate\_code} means that the generated code should be
 located in the directory \emp{generate\_code}. Notice that the flags
 and corresponding options are not separated by whitespaces. A complete
 list of options is obtained with \emp{sfc -h}.  The generated code can be
-utilized in Dolfin in a standard fashion.  For a complete example consider
+utilized in DOLFIN in a standard fashion.  For a complete example consider
 the demo \emp{demo/Poisson2D/cpp} that comes with the SyFi package.
 
-In PyDolfin, the form compiler may be chosen at run time by setting:
+In DOLFIN, the form compiler may be chosen at run time by setting:
 \begin{python}
-  parameters["form_compiler"]["name"]="sfc"
+parameters["form_compiler"]["name"] = "sfc"
 \end{python}
 The form compiler can be tuned with a range of options. A complete list
 of options is obtained as follows:
@@ -306,7 +306,7 @@ A = assemble(a, form_compiler_parameters=sfc_options)
 \end{python}
 
 Earlier versions of SFC produced slow code for complicated nonlinear
-equations as shown in \citep{AlnaesMardal2009b}. Furthermore, the code
+equations as shown in \citet{AlnaesMardal2009b}. Furthermore, the code
 generation was expensive both in terms of memory and the number of
 operations required in the computations, because the SFC implementation
 did not scale linearly with the complexity of the equations.  However, a
@@ -314,65 +314,66 @@ significant speed-up came with the introduction of UFL with its expression
 tree traversal algorithms.  Now, quite complicated equations can be
 handled without losing computational efficiency. Consider for example
 an elasticity problem where the constitutive law is a quite complicated
-variant of Fung~\citep{Fung1993}, described by the following equations:
-\begin{eqnarray}
-\mathbf{F} &=& \mathbf{I} + (\nabla \mathbf{u}), \\
-\mathbf{CC} &=& \mathbf{F}^T: \mathbf{F}, \\
-\mathbf{E} &=& (\mathbf{C}-\mathbf{I})/2, \\
-\psi &=& \frac{\lambda}{2} \, \mbox{tr}(\mathbf{E})^2 + K\exp((\mathbf{E}\mathbf{A},\mathbf{E})), \\
-\mathbf{P} &=& \frac{\partial \psi}{\partial \mathbf{E}}, \\
-\LL &=& \int_\Omega \mathbf{P}: (\nabla \mathbf{v}) \, dx, \\
-\JJ_F &=& \frac{\partial \LL}{\partial \mathbf{u}} .
-\end{eqnarray}
+variant of \citet{Fung1993}, described by the following equations:
+%
+\begin{align}
+\mathbf{F} &= \mathbf{I} + (\nabla \mathbf{u}), \\
+\mathbf{CC} &= \mathbf{F}^T: \mathbf{F}, \\
+\mathbf{E} &= (\mathbf{C}-\mathbf{I})/2, \\
+\psi &= \frac{\lambda}{2} \, \mbox{tr}(\mathbf{E})^2 + K\exp((\mathbf{E}\mathbf{A},\mathbf{E})), \\
+\mathbf{P} &= \frac{\partial \psi}{\partial \mathbf{E}}, \\
+\LL &= \int_\Omega \mathbf{P}: (\nabla \mathbf{v}) \, dx, \\
+\JJ_F &= \frac{\partial \LL}{\partial \mathbf{u}}.
+\end{align}
 Here, $\mathbf{u}$ is the unknown displacement, $\mathbf{v}$ is a
 test function, $\mathbf{I}$ is the identity matrix, $\mathbf{A}$ is a
 matrix, $\lambda$ and $K$ are material parameters, $\LL$ is the system
 of nonlinear equations to be solved, and $\JJ_F$ is the corresponding
-Jacobian.  This variational form is implemented in PyDolfin as follows:
+Jacobian.  This variational form is implemented in DOLFIN as follows:
 \begin{python}
-  mesh = UnitSquare(N, N)
-  V = VectorFunctionSpace(mesh, "CG", order)
-  Q = FunctionSpace(mesh, "CG", order)
+mesh = UnitSquare(N, N)
+V = VectorFunctionSpace(mesh, "CG", order)
+Q = FunctionSpace(mesh, "CG", order)
 
-  U = Function(V)
+U = Function(V)
 
-  v = TestFunction(V)
-  u = TrialFunction(V)
+v = TestFunction(V)
+u = TrialFunction(V)
 
-  lamda = Constant(1.0)
-  mu = Constant(1.0)
+lamda = Constant(1.0)
+mu = Constant(1.0)
 
-  g       = Function(V)
-  sigma_0 = Function(Q)
+g       = Function(V)
+sigma_0 = Function(Q)
 
-  A = Expression ((('1.0', '0.3'), ('0.3', '2.3')))
-  K = Constant(1.0)
-  n = U.cell().n
+A = Expression ((('1.0', '0.3'), ('0.3', '2.3')))
+K = Constant(1.0)
+n = U.cell().n
 
-  I = Identity(U.cell().d)
-  F = I + grad(U)
-  Finv = inv(F)
-  J = det(F)
+I = Identity(U.cell().d)
+F = I + grad(U)
+Finv = inv(F)
+J = det(F)
 
-  C = F.T*F
-  E = (C-I)/2
-  E = variable(E)
+C = F.T*F
+E = (C-I)/2
+E = variable(E)
 
-  psi = lamda/2 * tr(E)**2  +  K*exp(inner(A*E,E))
-  P = F*diff(psi, E)
-  a_f = psi*dx
-  L = inner(P, grad(v))*dx
-  J = derivative(F, U, u)
+psi = lamda/2 * tr(E)**2  +  K*exp(inner(A*E,E))
+P = F*diff(psi, E)
+a_f = psi*dx
+L = inner(P, grad(v))*dx
+J = derivative(F, U, u)
 
-  A = assemble(J)
+A = assemble(J)
 \end{python}
 
 To test the computational efficiency of the generated code for this
 problem, we compare the assembly of $\JJ_F$ with the assembly a
 corresponding linear elasticity problem with the following matrix $\JJ_L$:
-\[
+\begin{equation}
 \JJ_L = \int_\Omega \lambda \nabla \cdot \mathbf{u} \nabla \cdot \mathbf{v} + (\lambda + \mu)\nabla \mathbf{u}:\nabla \mathbf{v} \, dx .
-\]
+\end{equation}
 In Table \ref{SFCtest} we see a comparison of the efficiency for the
 above examples.  Clearly, the nonlinear example is no more then 4 times
 as slow as the linear problem when using linear elements, and only a
@@ -394,7 +395,7 @@ for linear ($p=1$) and quadratic elements ($p=2$).}
 \end{table}
 
 We refer to
-\citep{AlnaesMardal2009b,OelgaardLoggWells2008,KirbyLogg2008,OelgaardWells2010}
+\citet{AlnaesMardal2009b,OelgaardLoggWells2008,KirbyLogg2008,OelgaardWells2010}
 for more discussions on the topic of efficient compilation of linear
 and nonlinear variational formulations.
 
