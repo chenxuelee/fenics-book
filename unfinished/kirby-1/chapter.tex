@@ -88,15 +88,15 @@ algebra to construct the appropriate nodal basis for an abstract
 finite element in terms of polynomials that are easy to implement and
 well-behaved in floating point arithmetic.  We focus on
 constructing nodal bases for a single, fixed reference element.  As we
-will see in Chapter~\ref{}, form compilers such as
+will see in the Chapters~\ref{chap:alnes-3,chap:logg-1}, form compilers such as
 \texttt{ffc}~\cite{Logg2007b} and \texttt{sfc}~\cite{Alnaes2009} will work
 in terms of this single reference element.
 
 
 Other approaches exist in the literature, such as the hierarchical
-bases studied by Szabo and Babuska~\cite{SzaboBabuska91} and extended to \(
+bases studied by Szabo and Babuska~\citep{SzaboBabuska1991} and extended to \(
 H(\mathrm{curl}) \) and \( H(\mathrm{div}) \) spaces in work such
-as~\cite{AinCoy02}.  These approaches can provide greater flexibility for
+as~\citep{AinCoy2002}.  These approaches can provide greater flexibility for
 refining the mesh and polynomial degree in finite element methods, but
 they also require more care during assembly and are typically constructed
 on a case-by-case basis for each element family.  When they are
@@ -140,7 +140,7 @@ The \emph{nodal basis} for a finite element \( (K,P,N) \)
 is the set of functions \( \{ \phi_i \}_{i=1}^{n} \) such
 that for all \( 1 \leq i,j \leq n \),
 \begin{equation}
-L_i(\phi_j) = \delta_{i,j}.
+l_i(\phi_j) = \delta_{ij}.
 \end{equation}
 \label{chap:kirby-1:nodaldef}
 \end{definition}
@@ -164,13 +164,13 @@ Hence, in addition to computing the nodal basis, the mathematical structure deve
 simplifies software for the following tasks:
 
 \begin{enumerate}
-\item Evaluate the basis function and their derivatives at points.
-\item Associtate the basis function (or degree of freedom) with
+\item Evaluate the basis functions and their derivatives at points.
+\item Associtate the basis functions (or degree of freedom) with
       topological facets of \( K \) such as its vertices, edges and its
       placement on the edges.
-\item Associtate the basis function with additional metadata such
-      as a sign or a mapping that should be used together with
-      the evaluation of the basis functions or its derivatives.
+\item Associtate each basis function with additional metadata such
+      as  what mapping that should be used together with
+      the evaluation of the basis functions and its derivatives.
 \item Provide rules for the degrees of freedom applied to arbitrary input
       functions determined at run-time.
 \end{enumerate}
@@ -180,7 +180,7 @@ The first of these is relatively simple in the framework
 of symbolic computation (SyFi), but they require more care if an
 implementation uses numerical arithmetic (FIAT).  The middle two
 encode the necessary information for a client code to transform the
-reference element and assemble global degrees of freedom when the
+reference basis and assemble global degrees of freedom when the
 finite element is either less or more than $C^0$ continuous. The final
 task may take the form of a point at which data is evaluated or
 differentiated or more generally as the form of a sum over points and
@@ -194,27 +194,28 @@ other cases it is more complicated.
 For completeness, we briefly describe the basics of creating the global finite elements in terms of a mapped
 reference element. Let therefore $T$ be a polygon and $\hat{T}$ the corresponding reference polygon.
 Between the coordinates
-$\mathbf{x}\in T$ and $\mathbf{x}i\in\hat T$ we use the mapping
+$x\in T$ and $\hat x\in\hat T$ we use the mapping
 \begin{equation}
 \label{eq:geometry}
-\mathbf{x} = \GG(\xi) + \mathbf{x}_0,
+x = F_T(\hat x) = A_T(\hat x)  + x_0,
 \end{equation}
 and define the Jacobian determinant of this mapping as
 \begin{equation}
 \label{eq:geometry2}
-J(\mathbf{x}) = \left| \frac{\partial\GG(\xi) }{\partial \xi} \right| .
+J(x) = \left| \frac{\partial A_T(\hat x) }{\partial \hat x} \right| .
+fixme what is the argument for J and the use in 2.5 
 \end{equation}
-The basis functions are defined in terms of the basis function
+For isoparametric elements, the basis functions are defined in terms of the basis function
 on the reference element as
 \begin{equation}
 \label{eq:subs}
-\phi_j(\mathbf{x}) = \hat{\phi_j}(\xi),
+\phi(x) = \hat{\phi}(\hat x),
 \end{equation}
 where $\hat{\phi_j}$ is basis function number $j$ on the reference element.
 The integral can then be performed on the reference polygon,
 \begin{equation}
 \label{eq:integration2}
-\int_T \, f(\mathbf{x}) \, d\mathbf{x} = \int_{\hat{T}} \, f(\xi) \, J d\xi ,
+\int_T \, \phi (x) \, dx = \int_{\hat{T}} \, \hat \phi (\hat x) \, J d\hat x ,
 \end{equation}
 and the spatial derivatives are defined by the derivatives on the
 reference element and the geometry mapping simply by using the
@@ -222,13 +223,13 @@ chain rule,
 \begin{equation}
 \label{eq:chain}
 \frac{\partial \phi}{\partial x_i} =
-\frac{\partial \phi}{\partial \xi_j} \frac{\partial \xi_j }{\partial x_i }  .
+\frac{\partial \phi}{\partial \hat x_j} \frac{\partial \hat x_j }{\partial x_i }  .
+fixme: check this also  
 \end{equation}
-
-The above definition of a global element is commonly called \emph{isoparametric}
-and is common for approximations in $H^1$. For approximations in $H(div)$ or
-$H(curl)$ it is neccessary to modify \eqref{eq:subs} with the Piola mapping.
-Furthermore, some elements like the Rannacher-Turek element~\cite{Turek99,RannacherTurek92} has far better
+The above mapping of basisfunctions is common for approximations in $H^1$. For approximations in $H(div)$ or
+$H(curl)$ it is neccessary to use the Piola mapping, where the mapping for the basis functions
+is no longer the same as the geometry mapping, see for instance ~\citep{RognesKirbyLogg2009}.   
+Furthermore, some elements like the Rannacher-Turek element~\cite{Turek1999,RannacherTurek1992} has far better
 properties when defined globally compared its analogous definition in terms
 of a reference element.
 
@@ -237,54 +238,49 @@ of a reference element.
 \section{Mathematical Framework}
 \subsection{Change of basis}
 
-\editornote{Coordinate with notation in Chapter~\ref{chap:kirby-7} where $B$ is used for the Vandermonde matrix.
-Perhaps we could use $\mathcal{V}$? Also use $\ell$ for the functionals and $\alpha$ for the expansion coefficients.}
+%\editornote{Coordinate with notation in Chapter~\ref{chap:kirby-7} where $B$ is used for the Vandermonde matrix.
+%Perhaps we could use $\mathcal{V}$? Also use $\ell$ for the functionals and $\alpha$ for the expansion coefficients.}
 
 The fundamental idea in constructing nodal basis is from elementary
 linear algebra: one constructs the desired (nodal) basis as a linear
 combination of a basis one has ``in hand''.  We will start with some
-basis \( \left\{ \psi \right\}_{i=1}^{\dim P} \subset P \).  From
+basis \( \left\{ \psi_i \right\}_{i=1}^{n} \mbox{that spans} \  \mathcal{V}  \).  From
 this, we construct each nodal basis function
 \begin{equation}
- \phi_j = A_{jk} \psi_k,
+ \phi_j = \sum_{k=1}^n \alpha_{jk} \psi_k,
 \end{equation}
-where summation is implied over the repeated index \( k \).  The
-task is to compute the matrix \( A \).  Each fixed \( \phi_j \) must
+The task is to compute the matrix \( \alpha \).  Each fixed \( \phi_j \) must
 satisfy
 \begin{equation}
-L_i( \phi_j ) = \delta_{i,j},
+\ell_i( \phi_j ) = \delta_{ij},
 \end{equation}
 and using the above expansion for \( \phi_j \), we obtain
 \begin{equation}
-\delta_{i,j} = L_i( A_{jk} \psi_{k} ) = A_{jk} L_i (\psi_k).
+\delta_{ij} = \sum_{k=1}^n \ell_i( \alpha_{jk} \psi_{k} ) = \sum_{k=1}^n \alpha_{jk} \ell_i (\psi_k).
 \end{equation}
 So, for a fixed \( j \), we have a system of \( n \) equations
 \begin{equation}
 \label{eq:singlebfA}
-V_{ik} A_{jk} = e^j,
+B_{ik} \alpha_{jk} = \delta_{ij},
 \end{equation}
 where
 \begin{equation}
-V_{ik} = L_i(\phi_k)
+B_{ik} = \ell_i(\psi_k)
 \end{equation}
-is a kind of generalized Vandermonde matrix and \( e^j \) is the
-canonical basis vector.  Of course, (\ref{eq:singlebfA}) can be used
+is a kind of generalized Vandermonde matrix.   Of course, (\ref{eq:singlebfA}) can be used
 to write a matrix equation for \( A \) as a linear system with \( \dim
-P \) right hand sides and obtain
+n \) right hand sides and obtain
 \begin{equation}
-V A^t = I.
+B \alpha^T = I.
+\end{equation}
+Hence, 
+\begin{equation}
+\alpha = B^{-T}.
 \end{equation}
 In practice, this, supposes that one has an implementation of
 the original basis for which the actions of the nodes (evaluation,
 differentiation, and integration) may be readily computed.
 
-This discussion may be summarized as a proposition.
-\begin{proposition}
-Define \( V \) and \( A \) as above.  Then
-\begin{equation}
-V = A^{-t}.
-\end{equation}
-\end{proposition}
 
 \subsection{Polynomial spaces}
 In Definition \ref{chap:kirby-1:fedef} we defined the finite element in terms
@@ -294,17 +290,17 @@ the functions used in finite elements are typically polynomials.
 While our general strategy will in principle accomodate non-polynomial bases, we
 only deal with polynomials in this chapter.
 A common space is
-$\P_n^d$, the space of polynomials of degree $n$ in $\R^d$. There
-are many different ways to represent $\P^d_n$. We will discuss the power
+$\P_k^d$, the space of polynomials of degree $k$ in $\R^d$. There
+are many different ways to represent $\P^d_k$. We will discuss the power
 basis, orthogonal bases, and the Bernstein basis.  Each of these bases
 has explicit representations and well-known evaluation algorithms, 
 unlike most finite element bases that are determined by solving 
 the linear system in Definition \ref{chap:kirby-1:nodaldef}.
-In addition to $\P^d_n$ we will also for some
-elements need $\H^d_n$, the space of homogenous polynomials of degree
-\( n \) in \( d \) variables.
+In addition to $\P^d_k$ we will also for some
+elements need $\H^d_k$, the space of homogenous polynomials of degree
+\( k \) in \( d \) variables.
 
-Typically, the developed techniques here
+Typically, the techniques developed  here
 are used on simplices, where polynomials do not have a nice
 tensor-product structure.  Some rectangular elements like the
 Brezzi-Douglas-Marini family~\citep{BrezziDouglasMarini1985a}, however, are not based on
@@ -314,14 +310,14 @@ case as well.  SyFi has explicit support for rectangular domains, but
 FIAT does not.
 
 \paragraph{Power basis}
-On a line segment, $\P_n^1=\P_n$ the monomial, or power basis is
-\( \{ x^i \}_{i=0}^{n} \), so that any \( \psi \in P_n \) is written as
+On a line segment, $\P_k^1=\P_k$ the monomial, or power basis is
+\( \{ x^i \}_{i=0}^{k} \), so that any \( \psi \in P_k \) is written as
 \begin{equation}
 \label{pn1d}
-\psi = a_0 + a_1 x + \ldots a_n x^n = \sum^n_{i=0} a_i x^i.
+\psi = a_0 + a_1 x + \ldots a_k x^k = \sum^k_{i=0} a_i x^i.
 \end{equation}
-In 2D on triangles, $\P_n$ is spanned by functions on the form
-\( \{ x^i y^j \}_{i,j=0}^{i+j\leq n} \), with a similar definition in
+In 2D on triangles, $\P_k$ is spanned by functions on the form
+\( \{ x^i y^j \}_{i,j=0}^{i+j\leq k} \), with a similar definition in
 three dimensions.
 
 This basis is quite easy to evaluate, differentiate, and
@@ -337,28 +333,31 @@ A popular polynomial basis for polygons that are either intervals, rectangles or
 This polynomial basis is also usable to represent polynomials of high degree.
 The basis is defined on the interval $[-1,1]$, as
 \[
-\psi_k(x) = \frac{1}{2^k k!} \frac{d^k}{dx^k} (x^2 -1), \quad k=0,1,\ldots,
+\psi_i(x) = \frac{1}{2^i i!} \frac{d^i}{dx^i} (x^2 -1)^k, \quad i=0,1,\ldots,
 \]
 A nice feature with these polynomials is that they are orthogonal
 with respect to the $L_2$ inner product, i.e.,
 \[
-\int_{-1}^1 \psi_k (x) \psi_l(x) \, dx  =
+\int_{-1}^1 \psi_i (x) \psi_j(x) \, dx  =
 \left\{
 \begin{array}{c}
-\frac{2}{2k+1}, \ k=l, \\
-0 , \ \ k\not= l, \\
+\frac{2}{2i+1}, \ i=j, \\
+0 , \ \ i\not= j, \\
 \end{array}
 \right.
 \]
-The Legendre polynomials are extended to rectangular domains in 2D and
-3D simply by taking the tensor product,
+The Legendre polynomials are extended to rectangular domains in any dimensions. 
+For instance, in 2D the basis reads, 
 \[
-\psi_{k,l,m}(x,y,z) = \psi_k(x) \psi_l(y) \psi_m(z) .
+\psi_{i,j}(x,y) = \psi_i(x) \psi_j(y) ,   \quad i,j \leq k, 
 \]
-and $\P^n$ is defined by functions on the form (in 3D),
+and $\P^k$ is defined by functions on the form,
 \[
-v = \sum_{k,l,m=0}^{k,l,m <= n}   a_{k,l,m} \psi_{k,l,m} .
+v = \sum_{i,j=0}^{i,j <= n}   a_{i,j} \psi_{i,j} .
 \]
+
+\paragraph{Jacobi basis}
+Kirby fill in. 
 
 \paragraph{Dubiner basis}
 
@@ -382,7 +381,7 @@ new coordinates
 which map the square \( [-1,1]^2 \) to the triangle with
 vertices \( (-1,-1),(-1,1),(1,-1) \) as shown in Figure~\ref{}.  This
 is the natural domain for defining the Dubiner polynomials, but they
-may easily be mapped to other domains like the the triangle with
+may easily be mapped to other domains like the triangle with
 vertices
 \( (0,0) , (0,1) , (1,0) \) by an affine mapping.
 Then, one defines
@@ -399,7 +398,7 @@ While this basis is more complicated than the power basis, it is very
 well-conditioned for numerical calculations even with high degree
 polynomials.  The polynomials can also be ordered hierarchically so
 that
-\( \{ \psi_i \}_{i=1}^{\dim n} \) forms a basis for  polynomials of
+\( \{ \psi_i \}_{i=1}^{n} \) forms a basis for  polynomials of
 degree \( k \) for each \( k > 0 \).  As a possible disadvantage, the
 basis lacks rotational symmetry that can be found in  other bases.
 
@@ -408,9 +407,9 @@ The Bernstein basis  is another well-conditioned basis that can be
 used in generating finite element bases.
 In 1D, the  basis functions take the  form,
 \[
-\psi_{i,n} = \binom{i}{n} x^i (1-x)^{n-i}, \quad i=0,\ldots,n,
+\psi_{in} = \binom{i}{n} x^i (1-x)^{n-i}, \quad i=0,\ldots,n,
 \]
-and then \( P_n \) is spanned by \( \{ \psi_{i,n} \}_{i=0}^n \)
+and then \( P_n \) is spanned by \( \{ \psi_{in} \}_{i=0}^n \)
 And with this basis, $\P_n$ can be spanned by functions on the form,
 
 The terms \( x \) and \( 1-x \) appearing in \( \psi_{i,n} \) are the
@@ -418,7 +417,7 @@ barycentric coordinates for \( [0,1] \), an observation that makes it
 easy to extend the basis to simplices in higher dimensions.
 
 Let $b_1$, $b_2$, and $b_3$ be the barycentric coordinates for
-the triangle shown in Figure \ref{fig:triangle}, i.e.,
+the reference triangle; that is,
 $b_1=x$, $b_2=y$, and $b_3=1-x-y$. Then the basis is
 of the form,
 \[
@@ -429,11 +428,11 @@ and a basis for $\P_n$ is simply.
 \{ \psi_{i,j,k,n} \}_{i,j,k\geq 0}^{i+j+k = n} .
 \]
 The Bernstein polynomials on the tetrahedron are completely
-analogous~\cite{Schumaker}.
+analogous.
 
 These polynomials, though less common in the finite element community,
 are well-known in graphics and splines.  They have a great deal of
-rotational symmetry and are totally nonnegative and so give positive
+rotational symmetry and are nonnegative and so give positive
 mass matrices, though they are not hierarchical.
 
 \paragraph{Homogeneous Polynomials}
@@ -445,7 +444,7 @@ have the same degree. $\H^n$ is in 2D spanned by polynomials on the
 form:
 \[
 \psi = \sum_{i+j=n}
-a_{i,j,k} x^i y^j
+a_{i,j} x^i y^j
 \]
 with a similar definition in $n$D.
 
@@ -456,7 +455,7 @@ It is straightforward to generalize the scalar valued polynomials discussed
 earlier to vector or tensor valued polynomials. Let $\{e_i\}$ be canonical
 basis in $\R^d$. Then a basis for the vector valued polynomials is
 \[
-P_{ij} = P_j \mathbf{e}_i,
+\phi_{ij} = \phi_j \mathbf{e}_i,
 \]
 with a similar definition extending the basis to tensors.
 
@@ -655,26 +654,26 @@ where \( 1 \leq i \leq \dim P \) and \( 1 \leq j \leq \dim \bar{P} \).
 \section{Operations on the Polynomial spaces}
 Here, we show various important operations may be cast
 in terms of linear algebra, supposing that they may be done on
-original basis \( \{ \phi_i \}_{i=1}^{\dim P} \).
+original basis \( \{ \psi_i \}_{i=1}^{n} \).
 
 \subsection{Evaluation}
-In order to evaluate the nodal basis \( \{ \psi_i \}_{i=1}^{\dim P} \)
+In order to evaluate the nodal basis \( \{ \phi_i \}_{i=1}^{n} \)
 at a given point \( x \in K \), one simply computes the vector
 \[
-\Phi_i = \phi_i(x)
+\Psi_i = \psi_i(x)
 \]
 followed by the product
 \[
-\psi_i(x) \equiv \Psi_i = A_{ij} \Phi_j.
+\phi_i(x) \equiv \Phi_i = A_{ij} \Psi_j.
 \]
 Generally, the nodal basis functions are required at an array of
 points \( \{ x_j \}_{j=1}^{m} \subset K \).  For performance reasons,
 performing matrix-matrix products may be advantageous.  So, define
-\( \Phi_{ij} = \Phi_i(x_j) \)  and \( \Psi_{ij} = \Psi_i(x_j) \).
+\( \Psi_{ij} = \Psi_i(x_j) \)  and \( \Phi_{ij} = \Phi_i(x_j) \).
 Then all of the nodal basis functions may be evaluated by the
 product
 \[
-\Psi_{ij} = A_{ik} \Phi_{kj}.
+\Phi_{ij} = A_{ik} \Psi_{kj}.
 \]
 \subsection{Differentiation}
 Differentiation is more complicated, and also presents more options.
@@ -689,14 +688,14 @@ where \( |\alpha| = \sum_{i=1}^{d} \alpha_i \).
 
 We want to compute the array
 \[
-\Psi^\alpha_i = D^\alpha \psi_i(x)
+\Phi^\alpha_i = D^\alpha \psi_i(x)
 \]
 for some \( x \in K \).
 
 One may differentiate the
-original basis functions \( \{ \phi_i \} \) to produce an array
+original basis functions \( \{ \psi_i \} \) to produce an array
 \[
-\Phi^\alpha_i = D^\alpha \psi_i(x),
+\Psi^\alpha_i = D^\alpha \psi_i(x),
 \]
 whence
 \[
