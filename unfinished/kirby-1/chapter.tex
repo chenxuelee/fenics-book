@@ -43,7 +43,7 @@ polynomials.
 While the automatic generation of computer programs for finite element
 methods requires one to confront the panoply of  finite
 element families found in the literature, it also provides a pathway
-for wider employment of Raviart-Thomas, \nedelec, and other
+for wider employment of Raviart--Thomas, \nedelec, and other
 difficult-to-program elements.
 Ideally, one would like to
 describe the diverse finite element spaces at an abstract level,
@@ -66,7 +66,7 @@ to order of approximation.
 It is entirely possible to satisfy many users by \emph{a priori}
 enumerating a list of finite elements and implement only those.  At certain times, this
 would even seem ideal.  For example, after the rash of research
-that led to elements such as the Raviart-Thomas-\nedelec\ and
+that led to elements such as the Raviart--Thomas-\nedelec\ and
 Brezzi-Douglas-Marini families, development of new families slowed
 considerably.  Then, more recent work lead forth by  Arnold, Falk, and Winther in the context of exterior
 calculus has not only led to
@@ -186,53 +186,6 @@ task may take the form of a point at which data is evaluated or
 differentiated or more generally as the form of a sum over points and
 weights,  much like a quadrature rule.
 
-A common practice, employed throuought the FEniCS
-software and in many other finite element codes, is to map the nodal
-basis functions from this reference element to each cell in a mesh.
-Sometimes, this is as simple as an affine change of coordinates; in
-other cases it is more complicated.
-For completeness, we briefly describe the basics of creating the global finite elements in terms of a mapped
-reference element. Let therefore $T$ be a polygon and $\hat{T}$ the corresponding reference polygon.
-Between the coordinates
-$x\in T$ and $\hat x\in\hat T$ we use the mapping
-\begin{equation}
-\label{eq:geometry}
-x = F_T(\hat x) = A_T(\hat x)  + x_0,
-\end{equation}
-and define the Jacobian determinant of this mapping as
-\begin{equation}
-\label{eq:geometry2}
-J(x) = \left| \frac{\partial A_T(\hat x) }{\partial \hat x} \right| .
-fixme what is the argument for J and the use in 2.5 
-\end{equation}
-For isoparametric elements, the basis functions are defined in terms of the basis function
-on the reference element as
-\begin{equation}
-\label{eq:subs}
-\phi(x) = \hat{\phi}(\hat x),
-\end{equation}
-where $\hat{\phi_j}$ is basis function number $j$ on the reference element.
-The integral can then be performed on the reference polygon,
-\begin{equation}
-\label{eq:integration2}
-\int_T \, \phi (x) \, dx = \int_{\hat{T}} \, \hat \phi (\hat x) \, J d\hat x ,
-\end{equation}
-and the spatial derivatives are defined by the derivatives on the
-reference element and the geometry mapping simply by using the
-chain rule,
-\begin{equation}
-\label{eq:chain}
-\frac{\partial \phi}{\partial x_i} =
-\frac{\partial \phi}{\partial \hat x_j} \frac{\partial \hat x_j }{\partial x_i }  .
-fixme: check this also  
-\end{equation}
-The above mapping of basisfunctions is common for approximations in $H^1$. For approximations in $H(div)$ or
-$H(curl)$ it is neccessary to use the Piola mapping, where the mapping for the basis functions
-is no longer the same as the geometry mapping, see for instance ~\citep{RognesKirbyLogg2009}.   
-Furthermore, some elements like the Rannacher-Turek element~\cite{Turek1999,RannacherTurek1992} has far better
-properties when defined globally compared its analogous definition in terms
-of a reference element.
-
 %\kentc{Link this to the appropriate discussion in form/FFC/SFC chapters }
 
 \section{Mathematical Framework}
@@ -293,7 +246,8 @@ A common space is
 $\P_k^d$, the space of polynomials of degree $k$ in $\R^d$. There
 are many different ways to represent $\P^d_k$. We will discuss the power
 basis, orthogonal bases, and the Bernstein basis.  Each of these bases
-has explicit representations and well-known evaluation algorithms, 
+has explicit representations or reccurence relations making them easy to 
+evaluate and differentiate, 
 unlike most finite element bases that are determined by solving 
 the linear system in Definition \ref{chap:kirby-1:nodaldef}.
 In addition to $\P^d_k$ we will also for some
@@ -310,14 +264,14 @@ case as well.  SyFi has explicit support for rectangular domains, but
 FIAT does not.
 
 \paragraph{Power basis}
-On a line segment, $\P_k^1=\P_k$ the monomial, or power basis is
-\( \{ x^i \}_{i=0}^{k} \), so that any \( \psi \in P_k \) is written as
+On a line segment, $\P_k^1=\P_q$ the monomial, or power basis is
+\( \{ x^i \}_{i=0}^{q} \), so that any \( \psi \in P_q \) is written as
 \begin{equation}
 \label{pn1d}
-\psi = a_0 + a_1 x + \ldots a_k x^k = \sum^k_{i=0} a_i x^i.
+\psi = a_0 + a_1 x + \ldots a_q x^q = \sum^q_{i=0} a_i x^i.
 \end{equation}
-In 2D on triangles, $\P_k$ is spanned by functions on the form
-\( \{ x^i y^j \}_{i,j=0}^{i+j\leq k} \), with a similar definition in
+In 2D on triangles, $\P_q$ is spanned by functions on the form
+\( \{ x^i y^j \}_{i,j=0}^{i+j\leq q} \), with a similar definition in
 three dimensions.
 
 This basis is quite easy to evaluate, differentiate, and
@@ -333,7 +287,7 @@ A popular polynomial basis for polygons that are either intervals, rectangles or
 This polynomial basis is also usable to represent polynomials of high degree.
 The basis is defined on the interval $[-1,1]$, as
 \[
-\psi_i(x) = \frac{1}{2^i i!} \frac{d^i}{dx^i} (x^2 -1)^k, \quad i=0,1,\ldots,
+\psi_i(x) = \frac{1}{2^i i!} \frac{d^i}{dx^i} (x^2 -1)^i, \quad i=0,1,\ldots,
 \]
 A nice feature with these polynomials is that they are orthogonal
 with respect to the $L_2$ inner product, i.e.,
@@ -349,11 +303,11 @@ with respect to the $L_2$ inner product, i.e.,
 The Legendre polynomials are extended to rectangular domains in any dimensions. 
 For instance, in 2D the basis reads, 
 \[
-\psi_{i,j}(x,y) = \psi_i(x) \psi_j(y) ,   \quad i,j \leq k, 
+\psi_{ij}(x,y) = \psi_i(x) \psi_j(y) ,   \quad i,j \leq q, 
 \]
-and $\P^k$ is defined by functions on the form,
+and $\P^q$ is defined by functions on the form,
 \[
-v = \sum_{i,j=0}^{i,j <= n}   a_{i,j} \psi_{i,j} .
+v = \sum_{i,j=0}^{i,j <= q}   a_{ij} \psi_{ij} .
 \]
 
 \paragraph{Jacobi basis}
@@ -405,27 +359,25 @@ basis lacks rotational symmetry that can be found in  other bases.
 \paragraph{Bernstein basis}
 The Bernstein basis  is another well-conditioned basis that can be
 used in generating finite element bases.
-In 1D, the  basis functions take the  form,
+In 1D, the  basis functions in $\P_q$ take the form,
 \[
-\psi_{in} = \binom{i}{n} x^i (1-x)^{n-i}, \quad i=0,\ldots,n,
+\psi_i^q = \binom{i}{q} x^i (1-x)^{q-i}, \quad i=0,\ldots,q,
 \]
-and then \( P_n \) is spanned by \( \{ \psi_{in} \}_{i=0}^n \)
-And with this basis, $\P_n$ can be spanned by functions on the form,
+and then \( P_q \) is spanned by \( \{ \psi_i^q \}_{i=0}^q \).
 
-The terms \( x \) and \( 1-x \) appearing in \( \psi_{i,n} \) are the
+Notice that the berstein basis is consists of powers of \( x \) and \( 1-x \),  which are the
 barycentric coordinates for \( [0,1] \), an observation that makes it
 easy to extend the basis to simplices in higher dimensions.
-
 Let $b_1$, $b_2$, and $b_3$ be the barycentric coordinates for
 the reference triangle; that is,
 $b_1=x$, $b_2=y$, and $b_3=1-x-y$. Then the basis is
 of the form,
 \[
-\psi_{i,j,k,n} = \frac{n!}{i!j!k!} b_1^i b_2^j b_3^k, \quad  for \ i+j+k=n .
+\psi_{ijk}^q = \frac{q!}{i!j!k!} b_1^i b_2^j b_3^k, \quad  for \ i+j+k=q .
 \]
-and a basis for $\P_n$ is simply.
+and a basis for $\P_q$ is simply.
 \[
-\{ \psi_{i,j,k,n} \}_{i,j,k\geq 0}^{i+j+k = n} .
+\{ \psi_{ijk}^q \}_{i,j,k\geq 0}^{i+j+k = q} .
 \]
 The Bernstein polynomials on the tetrahedron are completely
 analogous.
@@ -439,14 +391,13 @@ mass matrices, though they are not hierarchical.
 \label{sec:homo:pol}
 
 Another set of polynomials which sometimes are useful are the set
-of homogeneous polynomials $\H^n$. These are polynomials where all terms
-have the same degree. $\H^n$ is in 2D spanned by polynomials on the
+of homogeneous polynomials $\H^q$. These are polynomials where all terms
+have the same degree. $\H^q$ is in 2D spanned by polynomials on the
 form:
 \[
-\psi = \sum_{i+j=n}
-a_{i,j} x^i y^j
+\psi = \sum_{i+j=n} a_{ij} x^i y^j
 \]
-with a similar definition in $n$D.
+with a similar definition in $d$D.
 
 
 
@@ -473,30 +424,29 @@ elements.
   \begin{center}
     \includegraphics[height=3cm]{chapters/kirby-6/pdf/P1.pdf} \hspace{1.0cm}
     \includegraphics[height=3cm]{chapters/kirby-6/pdf/P2.pdf} \hspace{1.0cm}
-    \includegraphics[height=3cm]{chapters/kirby-6/pdf/P3.pdf}
-    \caption{Lagrangian elements of order 1, 2, and 3.}
+%    \includegraphics[height=3cm]{chapters/kirby-6/pdf/P3.pdf}
+    \caption{Lagrange elements of order 1 and 2.}
     \label{Lagrange}
   \end{center}
 \end{figure}
 
 \begin{example}{\bf{The Lagrange Element}} \\
-
-The Lagrangian element shown in Figure \ref{Lagrange} is the most common element,
+The Lagrange element shown in Figure \ref{Lagrange} is the most common element,
 where the black dots mean point evaluation.
-The first order element is shown in the leftmost triangle, it consists of three
-degrees of freedom in each of the vertices. The cooresponding basis functions
-are $x$, $y$, and $1-x-y$.  The second order element is shown in middle
-triangle, it has six degrees of freedom, three at the vertices and three
-at the edges. Finally, we have the third order Lagrangian element in the rightmost
-triangle, with ten degrees of freedom.
-
-The Lagrangian element produce piecewise continuous polynomials and they are therefore
+The first order element is shown in the leftmost triangle, 
+its degrees of freedom consists of a point evaluation in each of the vertices. 
+That is, the degrees of freedom $\ell_i : \mathcal{V} \rightarrow \mathbb{R}$ are  
+\begin{equation}
+\ell_i ( v) = \int_{T} v \, \delta_{x_i} \, dx,   
+\end{equation}
+where $x_i$ are the vertices (0,0), (1,0), (0,1).
+The cooresponding basis functions
+are $x$, $y$, and $1-x-y$.  The second order element is shown in right 
+triangle. It has six degrees of freedom, three at the vertices and three
+at the edges. 
+The Lagrange element produce piecewise continuous polynomials and they are therefore
 well suited for approximation in $H^1$.
-In general the number of degress of freedom $\P_n$ in 2D
-is $(n+2)(n+1)/2$, which is the same as the number of degrees of freedom in the
-Lagrange element. In fact, on a simplex in any dimension $d$ the degrees of freedom
-of the Lagrange element of order $n$ is the same as $\P_n^d$.
-
+The Lagrange element of order $q$ spans $\P_q$ on simplices in any dimension.  
 \end{example}
 
 \begin{figure}
@@ -508,48 +458,55 @@ of the Lagrange element of order $n$ is the same as $\P_n^d$.
 \end{figure}
 
 \begin{example}{\bf{ The Hermite Element}} \\
-
 In Figure \ref{Hermite} we show the Hermite element. The black dots mean point
 evaluation, while the white circles mean evaluation of derivatives in both $x$ and
-$y$ direction. Hence, the degrees of freedom for this element is three point evaluations
-at the vertices +  six derivatives in the vertices + one internal point
-evaluation, which in total is ten degrees of freedom, which is the same number
-of degrees of freedom as in $\P^2_3$.  The advantage of the Hermite element
+$y$ direction. 
+That is, the degrees of freedom $\ell_{i_k} : \mathcal{V} \rightarrow \mathbb{R}$ 
+associated with the vertex $x_i$ are,  
+\begin{eqnarray}
+\ell_{i_1} ( v) = \int_{T} {v} \, \delta_{x_i} \, dx,   \\
+\ell_{i_2} ( v) = \int_{T} \frac{\partial{v}}{\partial x} \, \delta_{x_i} \, dx, \\  
+\ell_{i_3} ( v) = \int_{T} \frac{\partial{v}}{\partial y} \, \delta_{x_i} \, dx,   
+\end{eqnarray}
+In addition, there is one internal point evaluation, which in total gives ten degrees of freedom, which is the same number
+of degrees of freedom as in $\P^2_3$.  One feature of the Hermite element
 is that it has continuous derivatives at the vertices (it will however
 not neccessarily result in a $H^2$ conforming approximation).
 \end{example}
 
 \begin{figure}
   \begin{center}
-    \includegraphics[height=3.5cm]{chapters/kirby-6/pdf/RT0.pdf} \hspace{0.5cm}
-    \includegraphics[height=3.5cm]{chapters/kirby-6/pdf/RT1.pdf} \hspace{0.5cm}
-    \includegraphics[height=3.5cm]{chapters/kirby-6/pdf/RT2.pdf}
-    \caption{Triangular Raviart--Thomas elements of order 0, 1, and 2.}
+    \includegraphics[height=3.5cm]{chapters/kirby-6/pdf/RT0.pdf} 
+    \caption{Triangular Raviart--Thomas elements of order 0}
     \label{Raviart-Thomas}
   \end{center}
 \end{figure}
 
-\begin{example}{\bf{The Raviart-Thomas Element}} \\
-
-In Figure \ref{Raviart-Thomas} we illustrate the Raviart-Thomas element.
+\begin{example}{\bf{The Raviart--Thomas Element}} \\
+In Figure \ref{Raviart-Thomas} we illustrate the lowest order Raviart--Thomas element.
 In contrast to the previous elements, this element has a vector-valued
-function space.  The arrows represent normal vectors while the double
-dots indicate pointwise
-evaluation in both the $x-$ and $y-$ direction.  Starting at \( n = 0
-\), the dimension of \( RT_n \) is \( (n+1)(n+3) \). The Raviart-Thomas
-element is typically used for approximations in $H(\mathrm{div})$.
+function space.  The arrows represent normal vector; that is, the 
+degrees of freedom $\ell_i : \mathcal{V} \rightarrow \mathbb{R}$ are  
+\begin{equation}
+\ell_i ( v) = \int_{T} v \cdot n_i  \, \delta_{x_i} \, dx ,  
+\end{equation}
+where $n_i$ is the outward normal vector on edge $i$ and $x_i$ is the corresponding midpoint.
+The Raviart--Thomas element is a vector space with three degrees of freedom. Hence, 
+the standard basis $\P^d_q$ is not a suitable starting point and we use 
+$\mathcal{V} = \P_0^2 \oplus x \H_0$ instead.   
+The Raviart--Thomas element is typically used for approximations in $H(\mathrm{div})$.
 \end{example}
 
-\begin{remark}
-Earlier we saw common bases for $\P^n_d$, but
-elements like the Raviart-Thomas element described above use function
-spaces other than \( \P^n_d \) or vectors or tensors thereof.  To fix
-this, we must either construct a basis for the appropriate polynomial
-space or work with a different element that includes full vectors of
-$\P^n_d$.  In the case of \( H(\mathrm{div}) \) elements, this
-corresponds to using the Brezzi-Douglas-Fortin-Marini elements.
-\end{remark}
-
+%\begin{remark}
+%Earlier we saw common bases for $\P^n_d$, but
+%elements like the Raviart--Thomas element described above use function
+%spaces other than \( \P^n_d \) or vectors or tensors thereof.  To fix
+%this, we must either construct a basis for the appropriate polynomial
+%space or work with a different element that includes full vectors of
+%$\P^n_d$.  In the case of \( H(\mathrm{div}) \) elements, this
+%corresponds to using the Brezzi-Douglas-Fortin-Marini elements.
+%\end{remark}
+%
 
 \subsection{Bases for other polynomial spaces}
 The basis presented above are suitable for constructing many finite
@@ -688,7 +645,7 @@ where \( |\alpha| = \sum_{i=1}^{d} \alpha_i \).
 
 We want to compute the array
 \[
-\Phi^\alpha_i = D^\alpha \psi_i(x)
+\Phi^\alpha_i = D^\alpha \phi_i(x)
 \]
 for some \( x \in K \).
 
@@ -699,15 +656,17 @@ original basis functions \( \{ \psi_i \} \) to produce an array
 \]
 whence
 \[
-\Psi^\alpha_i = A_{ij} \Phi^\alpha_i.
+\Phi^\alpha_i = A_{ij} \Psi^\alpha_i.
 \]
 This presupposes that one may conveniently compute all derivatives of
-the \( \{ \phi_i \} \).  This is typically true in symbolic
-computation or when using the power basis.  Alternatively, automatic
-differentiation~\cite{missing} could be used in the power or Bernstein basis.
+the \( \{ \psi_i \} \).  This is typically true in symbolic
+computation or when using the either the power basis.  
+For the Bernstein, Jacobi, and Legendre
+ polynomials reccurence relations are
+available, see \cite{KarniadakisSherwin2005,Kirby2010}.  
 The Dubiner basis, as typically formulated, contains a coordinate
 singularity that prevents automatic differentiation from working at
-the top vertex.  Recent work~\cite{missing} has reformulated recurrence
+the top vertex.  Recent work~\cite{Kirby} has reformulated recurrence
 relations to allow for this possibility.
 
 If one prefers (or is required by the particular starting basis), one
@@ -738,8 +697,7 @@ are used, we may use the formula
 \int_K b_1^i b_2^j b_3^k \, dx = \frac{i!j!k!}{(i+j+k+2)!}\frac{|K|}{2}
 \]
 on triangles and a similar formula for lines and tetrahedra
-to calculate integrals of things expressed in terms of these
-polynomials exactly.  Alternately, if the Dubiner basis is used,
+to calculate integrals of expressions containing these terms exactly.  Alternately, if the Dubiner basis is used,
 orthogonality may be used.  In either case, when derivatives occur, it
 may be as efficient to use numerical quadrature.  On rectangular
 domains, tensor products of Gauss or Gauss-Lobatto quadrature can be
@@ -751,7 +709,73 @@ needs to go beyond these rules, it is possible to use the
 mapping~(\ref{eq:dubcoord}) to map tensor products of Gauss-Jacobi
 quadrature rules from the square to the triangle.
 
+\subsection{Association with facets}
+As we saw in the definition of for instance the  Brezzi-Douglas-Marini element,  
+it is necessary to have polynomials that can be associated with the facets of the polygonal 
+domain. Polynomials that may be expressed via barycentric coordinates, like Legendre and 
+Bernstein polynomial are naturally associated with facets, while other polynomials like
+the Jacobi, Dubiner, and power polynomials are not.         
+
 \subsection{Linear functionals}
 Integration, pointwise evaluation and differentiation all are examples
 of linear functionals.  In each case, the functionals are evaluated by
 their action on the \( \{ \phi_i \} \)
+
+\subsection{The mapping of the reference element}
+
+A common practice, employed throuought the FEniCS
+software and in many other finite element codes, is to map the nodal
+basis functions from this reference element to each cell in a mesh.
+Sometimes, this is as simple as an affine change of coordinates; in
+other cases it is more complicated.
+For completeness, we briefly describe the basics of creating the global finite elements in terms of a mapped
+reference element. Let therefore $T$ be a polygon and $\hat{T}$ the corresponding reference polygon.
+Between the coordinates
+$x\in T$ and $\hat x\in\hat T$ we use the mapping
+\begin{equation}
+\label{eq:geometry}
+x = F_T(\hat x) = A_T(\hat x)  + x_0,
+\end{equation}
+and define the Jacobian of this mapping as
+\begin{equation}
+\label{eq:geometry2}
+J(\hat x) =  \frac{\partial x }{\partial \hat x}  =    \frac{\partial A_T(\hat x) }{\partial \hat x} .
+\end{equation}
+For isoparametric elements, the basis functions are defined in terms of the basis function
+on the reference element as
+\begin{equation}
+\label{eq:subs}
+\phi(x) = \hat{\phi}(\hat x),
+\end{equation}
+where $\hat{\phi_j}$ is basis function number $j$ on the reference element.
+The integral can then be performed on the reference polygon,
+\begin{equation}
+\label{eq:integration2}
+\int_T \, \phi (x) \, dx = \int_{\hat{T}} \, \hat \phi (\hat x) \, detJ d\hat x ,
+\end{equation}
+and the spatial derivatives are defined by the derivatives on the
+reference element and the geometry mapping simply by using the
+chain rule,
+\begin{equation}
+\label{eq:chain}
+\frac{\partial \phi}{\partial x_i} =
+\frac{\partial \hat \phi}{\partial \hat x_j} \frac{\partial \hat x_j }{\partial x_i }  .
+\end{equation}
+The above mapping of basisfunctions is common for approximations in $H^1$. For approximations in $\Hdiv$ or
+$\Hcurl$ it is neccessary to use the Piola mapping, where the mapping for the basis functions
+is no longer the same as the geometry mapping. That is, for $\Hdiv$ elements, the mapping reads  
+\begin{equation}
+\label{eq:subs}
+\phi(x) = \frac{1}{detJ} J \hat{\phi}(\hat x),
+\end{equation}
+see for instance ~\citep{RognesKirbyLogg2009} for more details on the Piola mapping and its implementation in FFC.   
+Some elements like the Rannacher-Turek element~\cite{Turek1999,RannacherTurek1992} has far better
+properties when defined globally compared its analogous definition in terms
+of a reference element.
+
+Finally, the finite element needs to provide information about the nature of its degrees of freedom. 
+That is, the elements should provide unique identifiers determining their global degree of freedom. 
+Most common perhaps, is to relate each degree of freedom on the reference cell to a point in the
+reference cell. The geometry mapping then gives a global point in the mesh that identifies the degree of freedom. Alternatively, each degree of freedom may be related to a local mesh entity, like a vertex, edge or face, on the reference element. After mapping the element, the degree of freedom will then be related to the corresponding mesh entity in the global mesh.      
+
+
