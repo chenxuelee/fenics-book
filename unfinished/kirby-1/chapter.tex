@@ -20,8 +20,26 @@
 
 \editornote{Reuse color figures from chapter [kirby-7] for RT elements etc.}
 
-This chapter describes the mathematical framework for constructing general finite elements on 
-reference domains. This framework is used by both the FIAT and SyFi projects.  
+This chapter describes the mathematical framework for constructing a
+general class finite elements on 
+reference domains. This framework is used by both the FIAT and SyFi
+projects.  Our goal is to provide a framework by which simplicial finite elements
+with very complicated bases can be constructed automatically.  We work from the classic Ciarlet definition of the finite
+element and its ``nodal'' basis (an abstract notion far more general
+and powerful than standard node-oriented Lagrange polynomials).  
+
+To date, our methodology does not include spline-type spaces such as
+are becoming widely popular in isogeometric analysis~\cite{HughesCottrellBazilevs2005}, nor does
+it entirely address XFEM~\cite{ChessaSmolinksiBelytschko2002} or {\em hp}-type methods~\cite{Schwab1998}.  However, in isogeometric
+analysis, the basis functions are readily defined by simple recurrence
+relations from from the theory of splines, so a tool like FIAT or SyFi
+is not necessary.  XFEM typically works by enriching existing
+finite element spaces with special basis functions to capture singular
+behavior -- our approach can provide the regular basis but not the
+``extra'' functions.  Finally, handling the constraints imposed in
+$hp$ methods is possible, but unwieldy, with our methodology, but
+tetrahedral $hp$ bases are available~\cite{AinsworthCoyle2003}.  We
+return to some of these issues later.
 
 \section{Background}
 The finite element literature contains a huge collection of
@@ -84,7 +102,7 @@ underlying such projects as FIAT~\citep{Kirby2004,Kirby2006},
 SyFi~\citep{AlnaesMardal2009,AlnaesMardal2009a} and Exterior~\citep{LoggMardal2009}.
 This formulation starts from definitions of finite elements as
 given classically by Ciarlet~\citep{Ciarlet2002}.  It then uses basic linear
-algebra to construct the appropriate nodal basis for an abstract
+algebra to construct the appropriate basis for an abstract
 finite element in terms of polynomials that are easy to implement and
 well-behaved in floating point arithmetic.  We focus on
 constructing nodal bases for a single, fixed reference element.  As we
@@ -309,7 +327,31 @@ v = \sum_{i,j=0}^{i,j <= q}   a_{ij} \psi_{ij} .
 \]
 
 \paragraph{Jacobi basis.}
-Kirby fill in. 
+The Jacobi polynomials $P^{\alpha,\beta}_i(x)$ generalize the Legendre
+polynomials, giving orthogonality with respect to a weighted inner
+product.  In particular, $\int_{-1}^1 (1-x)^\alpha (1+x)^\beta
+P^{\alpha,\beta}_i P^{\alpha,\beta}_j \, dx = 0$ unless $i=j$.  The
+polynomials are given by
+\begin{equation}
+\label{eq:firsttwojacobi}
+\begin{split}
+P_0^{\alpha,\beta} & = 1 \\
+P_1^{\alpha,\beta} & 
+= \frac{1}{2}\left( \alpha - \beta + \left( \alpha + \beta + 2 \right)
+x \right),
+\end{split}
+\end{equation}
+with a three-term recurrence for $n\geq2$:
+\begin{equation}
+\label{eq:recur}
+P_{n+1}^{\alpha,\beta}(x) 
+= (a^{\alpha,\beta}_n x + b^{\alpha,\beta}_n) P_n^{\alpha,\beta}(x) - c^{\alpha,\beta}_n P_{n-1}^{\alpha,\beta}(x),
+\end{equation}
+General Jacobi polynomials are used in 1d and tensor-product domains
+far less frequently than Legendre polynomials, but they play an
+important role in constructing orthogonal bases on the simplex, to
+which we now turn.
+
 
 \paragraph{Dubiner basis.}
 
@@ -331,7 +373,7 @@ new coordinates
 \end{split}
 \end{equation}
 which map the square \( [-1,1]^2 \) to the triangle with
-vertices \( (-1,-1),(-1,1),(1,-1) \) as shown in Figure~\ref{}.  This
+vertices \( (-1,-1),(-1,1),(1,-1) \) as shown in Figure~\ref{fig:tricoord}.  This
 is the natural domain for defining the Dubiner polynomials, but they
 may easily be mapped to other domains like the triangle with
 vertices
@@ -346,6 +388,16 @@ a polynomial in \( x \) and \( y \) of degree \( p + q \).  Moreover,
 for \( (p,q) \neq (i,j) \), \( \psi^{p,q} \) is \( L^2 \)-orthogonal to \(
 \psi^{i,j} \).
 
+\begin{figure}
+\begin{center}
+\input{tricoord.pstex_t}
+\end{center}
+\caption{Reference triangular and square domains with collapsed
+  coordinate transformation.}
+\label{fig:tricoord}
+\end{figure}
+
+
 While this basis is more complicated than the power basis, it is very
 well-conditioned for numerical calculations even with high degree
 polynomials.  The polynomials can also be ordered hierarchically so
@@ -355,11 +407,11 @@ degree \( k \) for each \( k > 0 \).  As a possible disadvantage, the
 basis lacks rotational symmetry that can be found in  other bases.
 
 \paragraph{Bernstein basis.}
-The Bernstein basis  is another well-conditioned basis that can be
+The Bernstein basis is another well-conditioned basis that can be
 used in generating finite element bases.
 In 1D, the  basis functions in $\P_q$ take the form,
 \[
-\psi_i^q = \binom{i}{q} x^i (1-x)^{q-i}, \quad i=0,\ldots,q,
+\psi_i^q = \binom{q}{i} x^i (1-x)^{q-i}, \quad i=0,\ldots,q,
 \]
 and then \( \P_q \) is spanned by \( \{ \psi_i^q \}_{i=0}^q \).
 
@@ -377,13 +429,20 @@ and a basis for $\P_q$ is simply.
 \[
 \{ \psi_{ijk}^q \}_{i,j,k\geq 0}^{i+j+k = q} .
 \]
-The Bernstein polynomials on the tetrahedron and even higher dimensional simplices are completely
-analogous.
+The Bernstein polynomials on the tetrahedron and even higher
+dimensional simplices are completely analogous.
 
 These polynomials, though less common in the finite element community,
 are well-known in graphics and splines.  They have a great deal of
 rotational symmetry and are nonnegative and so give positive
 mass matrices, though they are not hierarchical.
+More recently, Kirby~\cite{Kirby2009,Kirby2010} has found special
+structure among finite element operators based on Bernstein
+polynomials.  In these papers, particular properties of the Bernstein
+polynomials are exploited to develop algorithms for matrix-free
+application of finite element operators with complexity comparable to
+spectral elements.
+
 
 \paragraph{Homogeneous Polynomials.}
 \label{sec:homo:pol}
@@ -518,7 +577,7 @@ requires a basis for vectors of polynomials to be supplemented with
 an extra \( \dim \H^2_n = \dim \P^2_n - \dim \P^2_{n-1} = n \) functions.  In fact,
 any \( n \) polynomials in \( \P^2_n \backslash \P^2_{n-1} \) will
 work, not just homogeneous polynomials, although the sum above will no
-longer be direct.
+longer be direct.  See~\cite{Kirby2004} for more details.
 
 While the Raviart-Thomas element requires supplementing a standard
 basis with extra functions, the Brezzi-Douglas-Fortin-Marini triangle
@@ -546,27 +605,28 @@ then the functional
 acting on \( \left( \P^2_n \right)^2 \)
 must vanish on the BDFM space, for the \( n^\mathrm{th} \) degree
 Legendre polynomial is orthogonal to all polynomials of lower degree.
+Let $\kappa = \dim P^2_n$
 
 Now, we define the matrix
 \begin{equation}
 V = \left( \begin{array}{c} V^1 \\ V^2 \end{array} \right).
 \end{equation}
-Here, \( V^1 \in \mathbb{R}^{2 \dim \P^2_n - 3, 2\dim \P^2_n} \) and
-\( V^2 \in \mathbb{R}^{3, 2 \dim \P^2_n} \) are defined
+Here, \( V^1 \in \mathbb{R}^{2 \kappa - 3, 2\kappa} \) and
+\( V^2 \in \mathbb{R}^{3, 2 \kappa} \) are defined
 by
 \[V^1_{ij} = L_i( \phi_j ),
 \]
 \[
 V^2_{ij} = \ell_i( \phi_j ),
 \]
-where \( \{ \phi_j \}_{j=1}^{2 \dim{\P^2_n}} \) is a basis for \( (\P^2_n)^2
+where \( \{ \phi_j \}_{j=1}^{2 \kappa} \) is a basis for \( (\P^2_n)^2
 \).
 
 Consider now the matrix
 equation
 \begin{equation}
 \label{eq:extendedvdmsystem}
-V A^t = I_{2 \dim P_n , 2 \dim P_n -3},
+V A^t = I_{2 \dim \P_n , 2 \dim \P_n -3},
 \end{equation}
 where \( I_{m,n} \) denotes the \( m \times n \) identity matrix with
 \( I_{i,j} = \delta_{i,j} \).  As before, the columns of \( A \) still
@@ -577,14 +637,17 @@ are in fact in the BDFM space.
 
 More generally, we can think of our finite element space \( P \) being
 embedded in some larger space \( \bar{P} \) for which there is
-a readily usable basis.  If we may characterize \( P \) by
+a readily usable basis.  
+If we may characterize \( P \) by
 \[
 P = \cap_{i=1}^{\dim{\bar{P}}-\dim P} \ell_i,
 \]
 where \( \ell_i : \bar{P} \rightarrow \mathbb{R} \) are linear
-functionals, then we may apply this technique.  In this case,
-\( V_1 \in \mathbb{R}^{\dim{P},\dim{\bar{P}}} \) and
-\( V_2 \in \mathbb{R}^{\dim{\bar{P}}-\dim P,\dim{\bar{P}}} \).  This
+functionals, then we may apply this technique.  
+In this case, let $\kappa = \dim P$ and $\bar{\kappa}
+= \dim{\bar{P}}$.  Now,
+\( V_1 \in \mathbb{R}^{\kappa,\bar{kappa}} \) and
+\( V_2 \in \mathbb{R}^{\bar{\kappa}-\kappa,\bar{kappa}} \).  This
 scenario, though somewhat abstract, is applicable not only to BDFM,
 but also to the \nedelec~\citep{Nedelec1980}, Arnold-Winther~\citep{ArnoldWinther2002},
 Mardal-Tai-Winther~\citep{MardalTaiWinther2002}, Tai-Winther~\citep{TaiWinther2006}, and Bell~\citep{missing} element families.
@@ -592,18 +655,18 @@ Mardal-Tai-Winther~\citep{MardalTaiWinther2002}, Tai-Winther~\citep{TaiWinther20
 Again, we summarize the discussion as a proposition.
 \begin{proposition}
 Let \( (K,P,N) \) be a finite element with \( P \subset \bar{P} \).
-Let \( \{ \phi_i \}_{i=1}^{\dim \bar{P}} \) be a basis for \( \bar{P}
-\).  Suppose that there exist functionals \( \{ \ell_i \}_{i=1}^{\dim \bar{P} -
-  \dim P} \) on \( \bar{P} \) such that
+Let \( \{ \phi_i \}_{i=1}^{\bar{\kappa}} \) be a basis for \( \bar{P}
+\).  Suppose that there exist functionals 
+\( \{ \ell_i \}_{i=1}^{\bar{\kappa} - \kappa} \) on \( \bar{P} \) such that
 \[
-P = \cap_{i=1}^{\dim \bar{P} - \dim P} \mathrm{null}(\ell_i).
+P = \cap_{i=1}^{\bar{\kappa} - \kappa} \mathrm{null}(\ell_i).
 \]
 Define the matrix \( A \) as in~(\ref{eq:extendedvdmsystem}).
 Then, the nodal basis for \( P \) may be expressed as
 \[
 \psi_i = A_{ij} \phi_j,
 \]
-where \( 1 \leq i \leq \dim P \) and \( 1 \leq j \leq \dim \bar{P} \).
+where \( 1 \leq i \leq \kappa \) and \( 1 \leq j \leq \bar{\kappa} \).
 \end{proposition}
 
 \section{Operations on the Polynomial spaces}
@@ -698,9 +761,10 @@ to calculate integrals of expressions containing these terms exactly.  Alternate
 orthogonality may be used.  In either case, when derivatives occur, it
 may be as efficient to use numerical quadrature.  On rectangular
 domains, tensor products of Gauss or Gauss-Lobatto quadrature can be
-used to give efficient quadrature families to any order accuracy.  On the
-simplex, however, optimal quadrature is more difficult to find.
-Rules based on barycentric symmetry~\citep{missing} may be used up to a
+used to give quadrature families to any order accuracy, although
+in some cases so-called sparse rules may win~\cite{KeeganRidzalBochev2008}
+On the simplex, efficient quadrature is more difficult to find.
+Rules based on barycentric symmetry~\citep{Dunavant1985} may be used up to a
 certain degree (which is frequently high enough in practice).  If one
 needs to go beyond these rules, it is possible to use the
 mapping~(\ref{eq:dubcoord}) to map tensor products of Gauss-Jacobi
@@ -787,7 +851,8 @@ Alternatively, each degree of freedom may be related to a local mesh entity, lik
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=\largefig]{chapters/kirby-1/pdf/patch.pdf}
+%    \includegraphics[width=\largefig]{chapters/kirby-1/pdf/patch.pdf}
+    \includegraphics[width=\largefig]{unfinished/kirby-1/pdf/patch.pdf}
     \caption{Patching together a pair of quadratic local function
       spaces on a pair of cells to form a global continuous
       piecewise quadratic function space.}
