@@ -1,4 +1,4 @@
-\newcommand{\vect}[1]{\boldsymbol{#1}}
+\newcommand{\vect}[1]{#1} % no bold fonts
 \newcommand{\dif}{\, d}
 \newcommand{\disc}[1]{\left\llbracket {#1} \right\rrbracket}
 \newcommand{\pd}{\partial}
@@ -75,7 +75,7 @@ at \url{https://launchpad.net/ffc-pum} and \url{https://launchpad.net/dolfin-pum
 %------------------------------------------------------------------------------
 \section{Partition-of-unity/extended finite element method}
 %
-Consider a domain $\Omega \subset \mathbb{R}^{d}$, where $1 \leq d \leq 3$,
+Consider a domain $\Omega \subset \mathbb{R}^{d}$, where $1 \leqslant d \leqslant 3$,
 that contains the surface~$\Gamma_{d}$ across which the function $u:
 \Omega\backslash \Gamma_{d} \rightarrow \mathbb{R}$ is discontinuous
 (see Figure~\ref{fig:nikbakht:domain}).
@@ -93,13 +93,13 @@ surface~$\Gamma_{d}$.}
 To denote functions that are evaluated at a surface, but by approaching
 the surface from opposite sides of the surface, the subscripts `$+$' and
 `$-$' will be used. The outward normal to $\pd \Omega$ and $\Gamma_{d}$
-will be denoted by $\vect{n}$.  The vector $\vect{n}$ is in the direction
+will be denoted by $\vect{n}$. The vector $\vect{n}$ is in the direction
 of the `$+$' side. If we wish to find a function $u$ that
 satisfies the Poisson equation:
 %
 \begin{align}
   - \Delta u &= f \quad {\rm in} \ \Omega \backslash \Gamma_{d}, \\
-           u &= 0 \quad {\rm on} \ \pd\Omega, \\
+           u &= 0 \quad {\rm on} \ \pd \Omega, \\
   \nabla u_{+} \cdot \vect{n} &= q \quad {\rm on} \ \Gamma_{d},\\
   \disc{\nabla u} \cdot \vect{n} &= 0 \quad {\rm on} \ \Gamma_{d},
 \end{align}
@@ -114,7 +114,7 @@ H_{0}^{1}\brac{\Omega\backslash\Gamma_{d}}$ such that
   \int_{\Omega\backslash\Gamma_{d}}  \nabla u \cdot \nabla v \dif x
       + \int_{\Gamma_d} q(\disc{u})\disc{v} \dif s
       = \int_{\Omega} f v \dif x
-\quad \forall \ v \in H_{0}^{1}\brac{\Omega\backslash\Gamma_{d}}.
+\quad \foralls \ v \in H_{0}^{1}\brac{\Omega\backslash\Gamma_{d}}.
 \label{eqn:nikbakht:poisson_discontinuous_variational}
 \end{equation}
 %
@@ -139,10 +139,10 @@ the finite element function spaces
 %
 \begin{align}
   \Bar{V}_{h} &= \bracc{\Bar{v}_{h} \in H^{1}_{0}(\Omega)
-                    : \Bar{v}_{h} \in P_{k}(K) \ \forall \ K \in \mathcal{T}},
+                    : \Bar{v}_{h} \in P_{k}(K) \ \foralls \ K \in \mathcal{T}},
 \\
   \Hat{V}_{h} &= \bracc{\Hat{v}_{h} \in H^{1}_{0}(\Hat{\Omega})
-                    : \Hat{v}_{h} \in P_{k}(K) \ \forall \ K \in \Hat{\mathcal{T}}},
+                    : \Hat{v}_{h} \in P_{k}(K) \ \foralls \ K \in \Hat{\mathcal{T}}},
 \end{align}
 %
 where $\Hat{\Omega}$ is the union of the supports of all finite element
@@ -172,7 +172,7 @@ $(\Bar{u}_{h}, \Hat{u}_{h}) \in \Bar{V}_{h} \times \Hat{V}_{h}$ such that
   =
    \int_{\Omega} f \Bar{v}_{h} \dif x
  + \int_{\Hat{\Omega}_{+}}  f \Hat{v}_{h} \dif x
-      \quad \forall \ (\Bar{v}_{h}, \Hat{v}_{h}) \in \Bar{V}_{h} \times \Hat{V}_{h},
+      \quad \foralls \ (\Bar{v}_{h}, \Hat{v}_{h}) \in \Bar{V}_{h} \times \Hat{V}_{h},
 \label{eqn:nikbakht:poisson_expanded_discontinuous_variational}
 \end{multline}
 %
@@ -184,7 +184,7 @@ notation of the form
 %
 \begin{equation}
   V = \bracc{v_{h} \in H_{0}^{1}\brac{\Omega \backslash \Gamma_{d}}, \,
-          v_{h}|_{K} \in P_{k}\brac{K \backslash \Gamma_{d}} \forall K}
+          v_{h}|_{K} \in P_{k}\brac{K \backslash \Gamma_{d}} \foralls K}
 \end{equation}
 %
 will be used. The implementation of the discontinuous spaces expressed
@@ -243,7 +243,7 @@ layer to transfer enriched degree of freedom data to the generated code,
 function spaces and surface abstractions, are constructed upon \dolfin{}
 (Chapter~\ref{chap:logg-2}).
 %------------------------------------------------------------------------------
-\subsection{Unified Form Language}
+\subsection{Form language}
 
 For the extended finite element method, it is necessary to define
 function spaces that are restricted to subdomains, to define
@@ -314,7 +314,7 @@ syntax, \emp{dc} can be used to indicate integration of terms on a
 discontinuity surface.  A number of complete examples of \ufl{} input
 are presented in Section~\ref{sec:nikbakht:examples}.
 %------------------------------------------------------------------------------
-\subsection{FEniCS Form Compiler extensions}
+\subsection{FFC extensions}
 
 To generate low-level code for an assembly library, extensions to \ffc{}
 have been developed for performing tasks that are specific to the extended
@@ -453,7 +453,7 @@ Examples are presented in this section to demonstrate usage
 of framework.  These examples aim to illustrate the generality
 in terms modeling discontinuities in different equations using different
 basis functions. Low-level code is generated from the compiler input by
-running from the command line:
+running from the command-line:
 %
 \begin{bash}
 ffcpum -l dolfin foo.ufl
@@ -464,7 +464,7 @@ and a function space $V$ are defined. The complete finite element problem
 then involves: find $u_{h} \in V$ such that
 %
 \begin{equation}
-  a(u_{h}, v_{h}) = L(v_{h}) \quad \forall v_{h} \in V.
+  a(u_{h}, v_{h}) = L(v_{h}) \quad \foralls v_{h} \in V.
 \end{equation}
 %
 For a nonlinear equation, the above is interpreted as the linearized problem
@@ -480,7 +480,7 @@ For a conforming approach, the relevant function space is
 %
 \begin{equation}
   V = \bracc{v_{h} \in H_{0}^{1}\brac{\Omega \backslash \Gamma_{d}}, \,
-          v_{h}|_{K} \in P_{k}\brac{K \backslash \Gamma_{d}} \forall K}
+          v_{h}|_{K} \in P_{k}\brac{K \backslash \Gamma_{d}} \foralls K}
 \label{eqn:nikbakht:compact_discontinuous_space}
 \end{equation}
 %
@@ -526,26 +526,26 @@ L = f*v*dx
 method with a discontinuous solution across a surface.}
 \label{code:nikbakht:Poisson}
 \end{figure}
-%
-The code generated by the form compiler is used as input
-for a C++ solver. Discontinuity surfaces are defined in the
-solver environment.  An extract of the C++ solver is shown in
-Figure~\ref{fig:nikbakht:poisson_c++}.  The C++ code is designed
-to following the {\dolfin} style of mirroring mathematical
-abstractions and keeping the code compact.  The code for the
-objects \emp{Poisson::FunctionSpace}, \emp{Poisson::BilinearForm}
-and \emp{Poisson::LinearForm} is problem specific and has been
-generated by the form compiler, whereas the other elements appearing in
+% The code generated by the form compiler is used as input for a C++
+solver. Discontinuity surfaces are defined in the solver environment.
+An extract of the C++ solver is shown in
+Figure~\ref{fig:nikbakht:poisson_c++}.  The C++ code is designed to
+following the {\dolfin} style of mirroring mathematical abstractions
+and keeping the code compact.  The code for the objects
+\emp{Poisson::FunctionSpace}, \emp{Poisson::BilinearForm} and
+\emp{Poisson::LinearForm} is problem specific and has been generated
+by the form compiler, whereas the other elements appearing in
 Figure~\ref{fig:nikbakht:poisson_c++} are standard {\dolfin} objects,
 unless prefaced with the \emp{pum} namespace. Note that the function
-space in the code extract is intialized with \emp{surfaces}, which
-is a container of \emp{GenericSurface} objects. This is a convenience
-wrapper for a \ufc{} function space, with \emp{GenericPUM} being created
-internally from the surfaces, and then used to initialize the
+space in the code extract is initialized with \emp{surfaces}, which is
+a container of \emp{GenericSurface} objects. This is a convenience
+wrapper for a \ufc{} function space, with \emp{GenericPUM} being
+created internally from the surfaces, and then used to initialize the
 \ufc{} objects.  Note also the use of \emp{pum::Function}, which is a
-subclass of \emp{dolfin::Function} and implements primarily restrictions
-of discontinuous coefficient functions for use in forms, and interpolation
-of functions to cell vertices for use in post-processing.
+subclass of \emp{dolfin::Function} and implements primarily
+restrictions of discontinuous coefficient functions for use in forms,
+and interpolation of functions to cell vertices for use in
+post-processing.
 %
 \begin{figure}
 \begin{c++}
@@ -643,11 +643,11 @@ spaces for this problem read
 %
 \begin{align}
   V_{h} &= \bracc{\vect{\tau}_{h} \in H\brac{{\rm div}, \Omega\backslash\Gamma_{d}}, \,
-         \vect{\tau}_{h}|_{K} \in \brac{P_{k}\brac{K \backslash \Gamma_{d}}}^{d} \forall K},
+         \vect{\tau}_{h}|_{K} \in \brac{P_{k}\brac{K \backslash \Gamma_{d}}}^{d} \foralls K},
 \label{eqn:nikbakht:BDM_space}
 \\
   W_{h} &= \bracc{\omega_{h} \in L^{2}\brac{\Omega}, \,
-         \omega_{h}|_{K} \in P_{k-1}\brac{K \backslash \Gamma_{d}}\forall K}.
+         \omega_{h}|_{K} \in P_{k-1}\brac{K \backslash \Gamma_{d}}\foralls K}.
 \label{eqn:nikbakht:DG_space}
 \end{align}
 %
@@ -710,17 +710,17 @@ discontinuous~$u$ and~$\vect{\sigma}$.}
 
 %------------------------------------------------------------------------------
 \subsection{$L^{2}$-conforming discontinuous Galerkin approach to
-linearised elasticity}
+linearized elasticity}
 
 \ffc{} supports integration on interior facets, which makes
 it possible to generate code for discontinuous Galerkin methods
 \citep{OelgaardLoggWells2008}.  For a discontinuous Galerkin interior
-penalty formulation of linearised elasticity with a discontinuity in
+penalty formulation of linearized elasticity with a discontinuity in
 the solution across $\Gamma_{d}$, the relevant function space reads
 %
 \begin{equation}
  V = \bracc{\vect{v}_{h} \in \brac{L^{2}\brac{\Omega}}^{d}, \,
-            \vect{v}_{h}|_K \in (P_{k}(K\backslash\Gamma_{d}))^{d} \ \forall K}.
+            \vect{v}_{h}|_K \in (P_{k}(K\backslash\Gamma_{d}))^{d} \ \foralls K}.
 \end{equation}
 %
 For homogeneous Dirichlet boundary conditions and traction-free
@@ -786,14 +786,15 @@ alpha = 4.0
 # Stress
 def sigma(v):
    return 2.0*mu*sym(grad(v) \
-        + lmbda*tr(sym(grad(v)))*Identity(v.cell().d)
+  + lmbda*tr(sym(grad(v)))*Identity(v.cell().d)
 
 # Bilinear form and linear forms
 a = inner(sigma(u), grad(v))*dx \
   - inner(jump(u), avg(sigma(v))*n('+'))*dS \
   - inner(avg(sigma(u))*n('+'), jump(v))*dS \
   + (E*alpha/avg(h))*inner(jump(u), jump(v))*dS \
-  - inner(u, sigma(v)*n)*ds - inner(sigma(u)*n, v)*ds \
+  - inner(u, sigma(v)*n)*ds \
+  -inner(sigma(u)*n, v)*ds \
   + (E*alpha/h)*inner(u, v)*ds
 L = inner(f, v)*dx
 \end{python}
@@ -821,7 +822,7 @@ such that
 \begin{equation}
   F\brac{u_{h}; v_{h}}
     \equiv \int_{\Omega} \brac{1 + u_{h}^{2}} \nabla u_{h} \cdot \nabla v_{h} - f v_{h}  \dif x
-    = 0 \quad \forall \ v_{h} \in V,
+    = 0 \quad \foralls \ v_{h} \in V,
 \label{eqn:nikbakht:nonlinear_poisson}
 \end{equation}
 %
