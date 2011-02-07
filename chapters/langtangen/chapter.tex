@@ -120,8 +120,8 @@ with coordinates $x$ and $y$, we can write out the Poisson equation
 \eqref{langtangen:poisson1}
 in detail:
 \begin{equation}
-- {\partial^2 u\over\partial x^2} -
-{\partial^2 u\over\partial y^2} = f(x,y)\langtangenep
+- \frac{\partial^2 u}{\partial x^2}
+- \frac{\partial^2 u}{\partial y^2} = f(x,y)\langtangenep
 \end{equation}
 The unknown $u$ is now a function of two variables, $u(x,y)$, defined
 over a two-dimensional domain $\Omega$.
@@ -193,9 +193,11 @@ Then we apply integration by parts to the integrand with
 second-order derivatives:
 \begin{equation}
 \label{langtangen:poisson1:eqbyparts}
- -\int_\Omega (\Delta u)v \dx = \int_\Omega\nabla u\cdot\nabla v\dx -
- \int_{\partial\Omega}{\partial u\over\partial n}v\ds
- ,\end{equation} where ${\partial u\over \partial n}$ is the
+ -\int_\Omega (\Delta u) v \dx
+   = \int_\Omega \nabla u\cdot\nabla v\dx -
+     \int_{\partial\Omega} \frac{\partial u}{\partial n} v\ds,
+\end{equation}
+where $\partial u / \partial n$ is the
 derivative of $u$ in the outward normal direction on the boundary.
 The test function $v$ is required to vanish on the parts of the
 boundary where $u$ is known, which in the present problem implies that
@@ -203,7 +205,8 @@ $v=0$ on the whole boundary $\partial\Omega$.  The second term on the
 right-hand side of \eqref{langtangen:poisson1:eqbyparts} therefore
 vanishes.  From \eqref{langtangen:poisson1:multbyv} and
 \eqref{langtangen:poisson1:eqbyparts} it follows that
-\begin{equation} \int_\Omega\nabla u\cdot\nabla v\dx = \int_\Omega fv\dx\langtangenep
+\begin{equation}
+  \int_\Omega\nabla u\cdot\nabla v\dx = \int_\Omega fv\dx\langtangenep
 \label{langtangen:poisson1:weak1}
 \end{equation}
 This equation is supposed to hold for all $v$ in some function space
@@ -842,9 +845,9 @@ The appropriate PDE model is
 \end{equation}
 with
 \begin{equation}
-p(x,y) = {A\over 2\pi\sigma}\exp{\left(
-- {1\over2}\left( {x-x_0\over\sigma}\right)^2
-- {1\over2}\left( {y-y_0\over\sigma}\right)^2
+p(x,y) = \frac{A}{2\pi\sigma}\exp{\left(
+- \frac{1}{2}\left( \frac{x-x_0}{\sigma}\right)^2
+- \frac{1}{2}\left( \frac{y-y_0}{\sigma}\right)^2
 \right)}\, .
 \end{equation}
 Here, $T$ is the tension in the membrane (constant), $p$ is the external
@@ -868,8 +871,8 @@ scaled problem on the unit circle,
 \label{langtangen:poisson1:membrane:scaled:eq}
 -\Delta w =
 4\exp{\left(
-- {1\over2}\left( {Rx-x_0\over\sigma}\right)^2
-- {1\over2}\left( {Ry-y_0\over\sigma}\right)^2
+- \frac{1}{2}\left( \frac{Rx-x_0}{\sigma}\right)^2
+- \frac{1}{2}\left( \frac{Ry-y_0}{\sigma}\right)^2
 \right)},
 \end{equation}
 with $w=0$ on the boundary. We have that $D = AR^2w/(8\pi\sigma T)$.
@@ -1134,7 +1137,7 @@ packages.
 After the solution $u$ of a PDE is computed, we often want to compute
 functionals of $u$, for example,
 \begin{equation}
-{1\over2}||\nabla u||^2 \equiv {1\over2}\int_\Omega \nabla u\cdot \nabla u\dx,
+  \frac{1}{2} ||\nabla u||^2 \equiv \frac{1}{2}\int_\Omega \nabla u\cdot \nabla u\dx,
 \label{langtangen:poisson1:functionals:energy}
 \end{equation}
 which often reflects the some energy quantity.
@@ -1172,7 +1175,7 @@ the subdomains as explained in
 Section~\ref{langtangen:poisson:mat:neumann}.  The program
 \emp{membrane2.py} carries out the
 computation of the elastic energy
-\[ {1\over2}||T\nabla D||^2 = {1\over2}\left({AR\over 8\pi\sigma}\right)^2
+\[ \frac{1}{2}||T\nabla D||^2 = \frac{1}{2}\left(\frac{AR}{8\pi\sigma}\right)^2
 ||\nabla w||^2\]
 in the membrane problem from
 Section~\ref{langtangen:poisson:membrane}.
@@ -1294,7 +1297,9 @@ corresponding errors $E_0, E_1, E_3$ and so forth.  Assuming
 $E_i=Ch_i^r$ for unknown constants $C$ and $r$, we can compare two
 consecutive experiments, $E_i=Ch_i^r$ and $E_{i-1}=Ch_{i-1}^r$, and
 solve for $r$:
-\[ r = {\ln(E_i/E_{i-1})\over\ln (h_i/h_{i-1})}\langtangenep\]
+\begin{equation*}
+  r = \frac{\ln(E_i/E_{i-1})}{\ln (h_i/h_{i-1})}.
+\end{equation*}
 The $r$ values should approach the expected convergence
 rate \emp{degree+1} as $i$ increases.
 
@@ -1491,7 +1496,11 @@ from Section~\ref{langtangen:poisson1:bvp} and add a Neumann boundary
 condition. The domain is still the unit square, but now we set the
 Dirichlet condition $u=u_0$ at the left and right sides, $x=0$ and
 $x=1$, while the Neumann condition
-\[ -{\partial u\over\partial n}=g \]
+%
+\begin{equation*}
+ - \frac{\partial u}{\partial n} = g
+\end{equation*}
+%
 is applied to the remaining
 sides $y=0$ and $y=1$.
 The Neumann condition is also known as a \emph{natural boundary condition}
@@ -1504,7 +1513,7 @@ complete boundary-value problem can be written as
 \begin{eqnarray}
     - \Delta u &=& f \mbox{ in } \Omega,  \\ %\label{langtangen:poisson:2D:DN}\\
     u &=& u_0 \mbox{ on } \Gamma_D,       \\ %\label{langtangen:poisson:2D:DN}bcD\\
-    - {\partial u\over\partial n} &=& g \mbox{ on } \Gamma_N  %\label{langtangen:poisson:2D:DNbcN}\langtangenep
+    - \frac{\partial u}{\partial n} &=& g \mbox{ on } \Gamma_N  %\label{langtangen:poisson:2D:DNbcN}\langtangenep
 \end{eqnarray}
 Again we choose $u=1+x^2 + 2y^2$ as the exact solution and adjust $f$, $g$, and
 $u_0$ accordingly:
@@ -1526,16 +1535,14 @@ cannot omit the boundary term arising from the integration by parts,
 because $v$ is only zero at the $\Gamma_D$. We have
 \[
  -\int_\Omega (\Delta u)v \dx
-= \int_\Omega\nabla u\cdot\nabla v\dx - \int_{\partial\Omega}{\partial u\over
-\partial n}v\ds,
+= \int_\Omega\nabla u\cdot\nabla v\dx
+  - \int_{\partial\Omega} \frac{\partial u}{\partial n}v\ds,
 \]
 and since $v=0$ on $\Gamma_D$,
 \[
-- \int_{\partial\Omega}{\partial u\over
-\partial n}v\ds
+- \int_{\partial\Omega} \frac{\partial u}{\partial n}v\ds
 =
-- \int_{\Gamma_N}{\partial u\over
-\partial n}v\ds
+- \int_{\Gamma_N} \frac{\partial u}{\partial n}v\ds
 = \int_{\Gamma_N}gv\ds,
 \]
 by applying the boundary condition at $\Gamma_N$.
@@ -1635,7 +1642,7 @@ and define two separate functions for the two Dirichlet conditions:
     - \Delta u &=& -6 \mbox{ in } \Omega, \\
     u &=& u_L \mbox{ on } \Gamma_0, \\
     u &=& u_R \mbox{ on } \Gamma_1, \\
-    - {\partial u\over\partial n} &=& g \mbox{ on } \Gamma_N \langtangenep
+    - \frac{\partial u}{\partial n} &=& g \mbox{ on } \Gamma_N \langtangenep
 \end{eqnarray}
 Here, $\Gamma_0$ is the boundary $x=0$, while $\Gamma_1$ corresponds
 to the boundary $x=1$.  We have that $u_L = 1 + 2y^2$, $u_R = 2 +
@@ -1865,16 +1872,19 @@ Section~\ref{langtangen:poisson1:verify1}?
 First we address the modified variational problem. Multiplying the PDE
 in \eqref{langtangen:poisson:2D:varcoeff} and integrating by parts now
 results in
+%
 \[ \int_\Omega p\nabla u\cdot\nabla v\dx -
-\int_{\partial\Omega} p{\partial u\over \partial n}v\ds = \int_\Omega
-fv\dx\langtangenep\] The function spaces for $u$ and $v$ are the same
+\int_{\partial\Omega} p \frac{\partial u}{\partial n}v\ds = \int_\Omega
+fv\dx\langtangenep\]
+%
+The function spaces for $u$ and $v$ are the same
 as in Section~\ref{langtangen:poisson1:varform}, implying that the
 boundary integral vanishes since $v=0$ on $\partial\Omega$ where we
 have Dirichlet conditions.  The weak form $a(u,v)=L(v)$ then has
-\begin{eqnarray}
+\begin{align}
 a(u,v) &=& \int_\Omega p\nabla u\cdot\nabla v\dx,\\
 L(v) &=& \int_\Omega fv\dx\langtangenep
-\end{eqnarray}
+\end{align}
 In the code from Section~\ref{langtangen:poisson1:impl} we must replace
 \begin{python}
 a = inner(grad(u), grad(v))*dx
@@ -2221,7 +2231,7 @@ then reads
     \Delta u &=& 2 &\mbox{in } \Omega, \\
     u &=& 0 &\mbox{on } \Gamma_0,\\
     u &=& 1 &\mbox{on } \Gamma_1,\\
-{\partial u\over\partial n} &=& 0 &\mbox{on } \partial\Omega\backslash\left(
+\frac{\partial u}{\partial n} &=& 0 &\mbox{on } \partial\Omega\backslash\left(
 \Gamma_0\cup\Gamma_1\right),
   \end{array}
 \end{equation}
@@ -2520,7 +2530,7 @@ Newton's method for the system $F_i(U_1,\ldots,U_j)=0$, $i=1,\ldots,N$
 can be formulated as
 \begin{eqnarray}
 \sum_{j=1}^N
-{\partial \over\partial U_j} F_i(U_1^k,\ldots,U_N^k)\delta U_j
+\frac{\partial}{\partial U_j} F_i(U_1^k,\ldots,U_N^k)\delta U_j
 &=& -F_i(U_1^k,\ldots,U_N^k),\quad i=1,\ldots,N,\\
 U_j^{k+1} &=& U_j^k + \omega\delta U_j,\quad j=1,\ldots,N,
 \end{eqnarray}
@@ -2548,14 +2558,15 @@ q\left(\sum_{\ell=1}^NU_\ell^k\phi_\ell\right)
 \end{equation}
 The following results were used to obtain \eqref{langtangen:poisson:nonlinear:dFdU}:
 \begin{equation}
-{\partial u\over\partial U_j} = {\partial\over\partial U_j}
-\sum_{j=1}^NU_j\phi_j = \phi_j,\quad {\partial\over\partial U_j}\nabla u = \nabla\phi_j,\quad {\partial\over\partial U_j}q(u) = q'(u)\phi_j\langtangenep
+\frac{\partial u}{\partial U_j} = \frac{\partial}{\partial U_j}
+\sum_{j=1}^NU_j\phi_j = \phi_j,\quad \frac{\partial}{\partial U_j}\nabla u
+      = \nabla\phi_j,\quad \frac{\partial}{\partial U_j}q(u) = q'(u)\phi_j\langtangenep
 \end{equation}
 We can reformulate the Jacobian matrix
 in \eqref{langtangen:poisson:nonlinear:dFdU} by introducing the short
 notation $u^k = \sum_{j=1}^NU_j^k\phi_j$:
 \begin{equation}
-{\partial F_i\over\partial U_j} =
+\frac{\partial F_i}{\partial U_j} =
 \int_\Omega \left\lbrack
 q'(u^k)\phi_j
 \nabla u^k \cdot \nabla \hat\phi_i
@@ -2568,7 +2579,7 @@ q(u^k)
 In order to make \fenics{} compute this matrix, we need to formulate a
 corresponding variational problem. Looking at the
 linear system of equations in Newton's method,
-\[ \sum_{j=1}^N {\partial F_i\over\partial U_j}\delta U_j = -F_i,\quad
+\[ \sum_{j=1}^N \frac{\partial F_i}{\partial U_j}\delta U_j = -F_i,\quad
 i=1,\ldots,N,\]
 we can introduce $v$ as a general test function replacing $\hat\phi_i$,
 and we can identify the unknown
@@ -2847,14 +2858,14 @@ of $F(u;v)$ at $u=u^k$ in the direction of $\delta u$.
 Technically, this Gateaux derivative is derived by computing
 \index{Gateaux derivative}
 \begin{equation}
-\lim_{\epsilon\rightarrow 0}{d\over d\epsilon} F_i(u^k + \epsilon\delta u; v)
+  \lim_{\epsilon\rightarrow 0} \frac{d}{d\epsilon} F_i(u^k + \epsilon\delta u; v)
 \label{langtangen:poisson:nonlinear:Gateaux1}
 \end{equation}
 The $\delta u$ is now the trial function and $u^k$ is as usual the previous
 approximation to the solution $u$.
 We start with
 \[
-{d\over d\epsilon}\int_\Omega \nabla v\cdot\left( q(u^k + \epsilon\delta u)
+\frac{d}{d\epsilon}\int_\Omega \nabla v\cdot\left( q(u^k + \epsilon\delta u)
 \nabla (u^k + \epsilon\delta u)\right)\dx
 \]
 and obtain
@@ -2950,7 +2961,7 @@ model problem for teaching purposes is naturally the simplest
 extension of the Poisson problem into the time domain; that is,
 the diffusion problem
 \begin{eqnarray}
-{\partial u\over\partial t} &=& \Delta u + f \mbox{ in } \Omega, \hbox{ for } t>0,
+\frac{\partial u}{\partial t} &=& \Delta u + f \mbox{ in } \Omega, \hbox{ for } t>0,
 \label{langtangen:diffusion:pde1}\\
     u &=& u_0 \mbox{ on } \partial \Omega,\hbox{ for } t>0,
 \label{langtangen:diffusion:pde1:bc}\\
@@ -2974,21 +2985,23 @@ where $k$ is an integer counting time levels. For example, $u^k$ means
 $u$ at time level $k$.
 A finite difference discretization in time first consists in
 sampling the PDE at some time level, say $k$:
-\begin{equation} {\partial \over\partial t}u^k = \Delta u^k + f^k\langtangenep
+\begin{equation}
+  \frac{\partial}{\partial t}u^k = \Delta u^k + f^k\langtangenep
 \label{langtangen:diffusion:pde1:tk}
 \end{equation}
 The time-derivative can be approximated by a finite difference.
 \index{finite difference time discretization}
 For simplicity and stability reasons we choose a
 simple backward difference:
-\begin{equation} {\partial \over\partial t} u^k\approx {u^k - u^{k-1}\over{\dt}},
+\begin{equation}
+  \frac{\partial}{\partial t} u^k\approx \frac{u^k - u^{k-1}}{\dt},
 \label{langtangen:diffusion:BE}
 \end{equation}
 where ${\dt}$ is the time discretization parameter.
 Inserting \eqref{langtangen:diffusion:BE} in \eqref{langtangen:diffusion:pde1:tk}
 yields
 \begin{equation}
-{u^k - u^{k-1}\over\dt} = \Delta u^k + f^k\langtangenep
+  \frac{u^k - u^{k-1}}{\dt} = \Delta u^k + f^k\langtangenep
 \label{langtangen:diffusion:pde1:BE}
 \end{equation}
 This is our time-discrete version of the diffusion PDE \eqref{langtangen:diffusion:pde1}.
@@ -3379,9 +3392,9 @@ problem, with a small region where the heat conductivity is much lower.
 
 The initial-boundary value problem for this problem reads
 \begin{eqnarray}
-\varrho c{\partial T\over\partial t} &=& \nabla\cdot\left( \kappa\nabla T\right)\hbox{ in }\Omega\times (0,t_{\hbox{stop}}],\\
+\varrho c \frac{\partial T}{\partial t} &=& \nabla\cdot\left( \kappa\nabla T\right)\hbox{ in }\Omega\times (0,t_{\hbox{stop}}],\\
 T &=& T_0(t)\hbox{ on }\Gamma_0,\\
-{\partial T\over\partial n} &=& 0\hbox{ on }\partial\Omega\backslash\Gamma_0,\\
+\frac{\partial T}{\partial n} &=& 0\hbox{ on }\partial\Omega\backslash\Gamma_0,\\
 T &=& T_R\hbox{ at }t =0\langtangenep
 \end{eqnarray}
 Here, $\varrho$ is the density of the soil, $c$ is the
@@ -3391,13 +3404,13 @@ in the soil, and $\Gamma_0$ is the surface boundary $x_{d-1}=0$.
 
 We use a $\theta$-scheme in time; that is, the evolution equation
 $\partial P/\partial t=Q(t)$ is discretized as
-\[ {P^k - P^{k-1}\over\dt} = \theta Q^k + (1-\theta )Q^{k-1},\]
+\[ \frac{P^k - P^{k-1}}{\dt} = \theta Q^k + (1-\theta )Q^{k-1},\]
 where $\theta\in[0,1]$ is a weighting factor: $\theta =1$ corresponds
 to the backward difference scheme, $\theta =1/2$ to the Crank-Nicolson
 scheme, and $\theta =0$ to a forward difference scheme.
 The $\theta$-scheme applied to our PDE results in
 \[
-\varrho c{T^k-T^{k-1}\over\dt} =
+\varrho c \frac{T^k-T^{k-1}}{\dt} =
 \theta \nabla\cdot\left( \kappa\nabla T^k\right)
 + (1-\theta) \nabla\cdot\left( k\nabla T^{k-1}\right)\langtangenep
 \]
@@ -3573,7 +3586,7 @@ statements related to visualization of the solution, both as a
 finite element field (\emp{plot} calls) and as a curve in the
 vertical direction. The code also plots the exact analytical solution,
 \[
-T(x,t) = T_R + T_Ae^{ax}\sin (\omega t + ax),\quad a =\sqrt{\omega\varrho c\over 2\kappa},
+T(x,t) = T_R + T_Ae^{ax}\sin (\omega t + ax),\quad a =\sqrt \frac{\omega\varrho c}{2\kappa},
 \]
 which is valid when $\kappa$ is constant throughout $\Omega$.
 The reader is encouraged
@@ -3914,11 +3927,11 @@ while $\eta = \xi^{1/s}$ makes a stretching toward $\xi=1$ ($x=b$).
 Mapping the $\eta\in[0,1]$ coordinates back to $[a,b]$ gives new,
 stretched $x$ coordinates,
 \begin{equation}
-\bar x = a + (b-a)\left({x-a\over b-a}\right)^s
+\bar x = a + (b-a)\left( \brac{x-a}{b-a}\right)^s
 \end{equation}
 toward $x=a$, or
 \begin{equation}
-\bar x = a + (b-a)\left({x-a\over b-a}\right)^{1/s}
+\bar x = a + (b-a)\left(\frac{x-a}{b-a}\right)^{1/s}
 \end{equation}
 toward $x=b$
 
@@ -4021,8 +4034,8 @@ and $\partial u/\partial n=0$ at $x=0$ and $x=1$.
 One can show that the exact solution is now given by
 \begin{equation}
 u(x, y) = \left\lbrace\begin{array}{ll}
-{2yk_1\over k_0+k_1}, & y \leqslant 1/2\\
-{(2y-1)k_0 + k_1 \over k_0+k_1}, & y \geqslant 1/2
+\frac{2yk_1}{k_0+k_1}, & y \leqslant 1/2\\
+\frac{(2y-1)k_0 + k_1}{k_0+k_1}, & y \geqslant 1/2
 \end{array}\right.
 \end{equation}
 As long as the element boundaries coincide with the internal boundary
@@ -4062,8 +4075,8 @@ the implementation.
 \put(2700,-3211){$\Omega_1$}
 \put(2700,-5050){$\Omega_0$}
 %\put(181,-4156){$u=0$}
-\put(-40,-4111){${\partial u\over\partial n}=0$}
-\put(4861,-4111){${\partial u\over\partial n}=0$}
+\put(-40,-4111){$\frac{\partial u}{\partial n}=0$}
+\put(4861,-4111){$\frac{\partial u}{\partial n}=0$}
 \end{picture}%
   }
  \caption{Sketch of a Poisson problem with a variable coefficient that is constant
@@ -4263,7 +4276,7 @@ Section~\ref{langtangen:poisson:multiple:Dirichlet}, but replace the
 Neumann condition at $y=0$ by a \emph{Robin condition}\footnote{The Robin condition is
 most often used to model heat transfer to the surroundings and arise
 naturally from Newton's cooling law.}:
-\[ -{\partial u\over\partial n} = p(u-q),\]
+\[ - \frac{\partial u}{\partial n} = p(u-q),\]
 where $p$ and $q$ are specified functions.
 Since we have prescribed a simple solution in our model problem,
 $u=1+x^2+2y^2$, we adjust $p$ and $q$ such that the condition holds
@@ -4279,9 +4292,9 @@ complete boundary-value problem reads
     - \Delta u &=& -6 \mbox{ in } \Omega, \label{langtangen:poisson:2D:DN3}\\
     u &=& u_L \mbox{ on } \Gamma_0, \label{langtangen:poisson:2D:DN3:bc1}\\
     u &=& u_R \mbox{ on } \Gamma_1, \label{langtangen:poisson:2D:DN3:bc2}\\
-    - {\partial u\over\partial n} &=& p(u-q) \mbox{ on } \Gamma_R,
+    - \frac{\partial u}{\partial n} &=& p(u-q) \mbox{ on } \Gamma_R,
     \label{langtangen:poisson:2D:DN3:bc3}\\
-    - {\partial u\over\partial n} &=& g \mbox{ on } \Gamma_N\langtangenep
+    - \frac{\partial u}{\partial n} &=& g \mbox{ on } \Gamma_N\langtangenep
     \label{langtangen:poisson:2D:DN3:bc4}
 \end{eqnarray}
 The involved prescribed functions are $u_L= 1 + 2y^2$,
@@ -4291,27 +4304,24 @@ Integration by parts of $-\int_\Omega v\Delta u\dx$ becomes
 as usual
 \[
  -\int_\Omega v\Delta u \dx
-= \int_\Omega\nabla u\cdot \nabla v\dx - \int_{\partial\Omega}{\partial u\over
-\partial n}v\ds\langtangenep
+= \int_\Omega\nabla u\cdot \nabla v\dx
+  - \int_{\partial\Omega} \frac{\partial u}{\partial n}v\ds\langtangenep
 \]
 The boundary integral vanishes on $\Gamma_0\cup\Gamma_1$, and
 we split the parts over $\Gamma_N$ and $\Gamma_R$ since we have
 different conditions at those parts:
 \[
-- \int_{\partial\Omega}v{\partial u\over
-\partial n}\ds
+- \int_{\partial\Omega}v \frac{\partial u}{\partial n}\ds
 =
--\int_{\Gamma_N}v{\partial u\over
-\partial n}\ds -
-\int_{\Gamma_R}v{\partial u\over
-\partial n}\ds
-= \int_{\Gamma_N}vg\ds +
-\int_{\Gamma_R}vp(u-q)\ds\langtangenep
+-\int_{\Gamma_N}v \frac{\partial u}{\partial n}\ds
+ - \int_{\Gamma_R}v \frac{\partial u}{\partial n}\ds
+= \int_{\Gamma_N}vg\ds
++ \int_{\Gamma_R}vp(u-q)\ds\langtangenep
 \]
 The weak form then becomes
 \[
-\int_{\Omega} \nabla u\cdot \nabla v \dx +
-\int_{\Gamma_N} gv\ds + \int_{\Gamma_R}p(u-q)v\ds
+\int_{\Omega} \nabla u\cdot \nabla v \dx
++ \int_{\Gamma_N} gv\ds + \int_{\Gamma_R}p(u-q)v\ds
 = \int_{\Omega} fv \dx,
 \]
 We want to write this weak form in the standard
