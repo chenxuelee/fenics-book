@@ -60,7 +60,7 @@ level of specifying a strain energy function. The discourse will then
 turn to the primary equation of interest: the balance of linear
 momentum of a body posed in the reference configuration. A finite
 element scheme for this equation will then be presented, pointing out
-how \twist{} leverages the automatic linearizations capabilities of UFL
+how \twist{} leverages the automatic linearization capabilities of UFL
 to implement this scheme in a manner that is independent of the
 specific material model. The time-stepping schemes that \twist{}
 implements will also be discussed. With this in place, we turn to
@@ -128,11 +128,11 @@ when it is subjected to prescribed:
 
 \noindent It is assumed that $\partial\Omega_{\mathrm{N}}
 \cap \partial\Omega_{\mathrm{D}} = \emptyset$ and
-$\partial\Omega_{\mathrm{N}} \cup \partial\Omega_{\mathrm{D}}
-= \partial\Omega$. These details are depicted in
-Figure~\ref{fig:narayanan:continuumpotato}.
+$\overline{\partial\Omega_{\mathrm{N}}
+\cup \partial\Omega_{\mathrm{D}}} = \partial\Omega$. These details are
+depicted in Figure~\ref{fig:narayanan:continuumpotato}.
 
-\begin{figure}[ht]
+\begin{figure}
   \begin{center}
     \includegraphics[width=0.8\textwidth]{chapters/narayanan/images%
       /pdf/continuumpotato}
@@ -232,7 +232,7 @@ Principal stretches and directions &  $\bC = \sum_{A=1}^{3}
 \end{table}
 
 
-\begin{figure}[ht]
+\begin{figure}
 \begin{python}
 # Deformation gradient
 def DeformationGradient(u):
@@ -303,10 +303,10 @@ first Piola--Kirchhoff stress tensor introduced earlier through the
 relation, $\bP = \bF \bS$.
 
 As already mentioned, the strain energy function can be posed in
-equivalent forms in terms of other strain measures. (Again, the reader
-is directed to classical texts to motivate this.) In order to then
-arrive at the second Piola--Kirchhoff stress tensor, we turn to the
-chain rule of differentiation. For example,
+equivalent forms in terms of different strain measures. (Again, the
+reader is directed to classical texts to motivate this.) In order to
+then arrive at the second Piola--Kirchhoff stress tensor, we turn to
+the chain rule of differentiation. For example,
 
 \begin{equation}
 \begin{split}
@@ -337,7 +337,7 @@ relevant method of this class is provided in
 Figure~\ref{code:narayanan:material_model_base.py}. The implementation
 relies heavily on the UFL \emp{diff} operator.
 
-\begin{figure}[ht]
+\begin{figure}
 \begin{python}
 def SecondPiolaKirchhoffStress(self, u):
 
@@ -386,7 +386,7 @@ $\psi_{\mathrm{MR}} = c_{1} (I_{1} - 3) + c_{2} (I_{2} -
 code are shown in Figures~\ref{code:narayanan:svk} and
 \ref{code:narayanan:mr}.
 
-\begin{figure}[ht]
+\begin{figure}[!htp]
 \begin{python}
 class StVenantKirchhoff(MaterialModel)
 
@@ -404,7 +404,7 @@ class StVenantKirchhoff(MaterialModel)
 \label{code:narayanan:svk}
 \end{figure}
 
-\begin{figure}[!ht]
+\begin{figure}[!htp]
 \begin{python}
 class MooneyRivlin(MaterialModel)
 
@@ -546,7 +546,7 @@ the user can specify problem details are covered in the following
 section containing examples of \twist{} usage.} and solves the
 nonlinear momentum balance equation using a Newton solver.
 
-\begin{figure}[ht]
+\begin{figure}
 \begin{python}
 # Get the problem mesh
 mesh = problem.mesh()
@@ -643,7 +643,7 @@ closely mirrors the scheme defined in
 \eqref{eq:narayanan:cg1weakformapprox}, and results in a mixed system
 that is solved for using a Newton scheme.
 
-\begin{figure}[ht]
+\begin{figure}
 \begin{python}
 class CG1MomentumBalanceSolver(CBCSolver):
 
@@ -803,7 +803,7 @@ actually solve the problem.
 
 \subsection{The static twisting of a hyperelastic cube}
 
-\begin{figure}[ht]
+\begin{figure}
   \begin{center}
     \includegraphics{chapters/narayanan/images/png/twistedcube.png}
   \end{center}
@@ -827,7 +827,7 @@ Figure~\ref{code:narayanan:statictwist}.
 Before getting to the actual specification of the problem in code, we
 need to import \twist's functionality.
 
-\begin{figure}[ht]
+\begin{figure}[h]
 \begin{python}
 from cbc.twist import *
 \end{python}
@@ -847,7 +847,7 @@ material parameters. Secondly, Dirichlet boundary conditions are posed
 in two parts: the conditions themselves, and the corresponding
 boundaries along which they act.
 
-\begin{figure}[ht]
+\begin{figure}
 \begin{python}
 class Twist(StaticHyperelasticity):
 
@@ -891,7 +891,7 @@ Table~\ref{tab:narayanan:residualnorms}) and results in the
 displacement field shown in
 Figure~\ref{fig:narayanan:twistedcube}.
 
-\begin{figure}[ht]
+\begin{figure}
 \begin{python}
 twist = Twist()
 u = twist.solve()
@@ -946,7 +946,7 @@ problem. For example, one can load initial conditions directly from
 files, and it allows for the specification of boundaries purely as
 conditional strings.
 
-\begin{figure}[ht]
+\begin{figure}
 \begin{python}
 class Release(Hyperelasticity):
 
@@ -1003,7 +1003,7 @@ calculation. \twist{} provides this information through the methods
 \emp{kinetic\_energy(v)} and \emp{potential\_energy(u)}, where \emp{v}
 and \emp{u} are velocity and displacement fields respectively.
 
-\begin{figure}[ht]
+\begin{figure}
   \begin{center}
     \subfloat[$t = 0.0$ s]{
       \includegraphics[width=0.3\textwidth]{chapters/narayanan/images/png/release_000.png}
@@ -1029,7 +1029,7 @@ and \emp{u} are velocity and displacement fields respectively.
   \label{fig:narayanan:releasedcube}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}
   \begin{center}
     \includegraphics[scale=10]{chapters/narayanan/images/pdf/energies.pdf}
   \end{center}
@@ -1062,7 +1062,7 @@ conditions. The specification listing is not very long because
 \twist{} assumes meaningful default values for unspecified
 information.
 
-\begin{figure}[ht]
+\begin{figure}
 \begin{python}
 class FishyFlow(Hyperelasticity):
 
@@ -1102,7 +1102,7 @@ call its \emp{solve} method. Instead, we set up our own time loop
 and manually step through time using the \emp{step} method. This is
 shown in Figure~\ref{code:narayanan:manualstep}.
 
-\begin{figure}[ht]
+\begin{figure}
 \begin{python}
 problem = FishyFlow()
 
@@ -1142,7 +1142,7 @@ Figure~\ref{fig:narayanan:tumblingdolphin} shows time snapshots of the
 motion of the dolphin over the course of the computation. Notice that
 the fish deforms elastically as it tumbles toward the right.
 
-\begin{figure*}[ht]
+\begin{figure}
   \begin{center}
     \subfloat[$t = 0.0$ s]{
       \includegraphics[width=0.3\textwidth]{chapters/narayanan/images/png/dolphin_000.png}
@@ -1177,7 +1177,7 @@ the fish deforms elastically as it tumbles toward the right.
       the dolphin in addition to its overall motion toward the right.}
   \end{center}
   \label{fig:narayanan:tumblingdolphin}
-\end{figure*}
+\end{figure}
 
 \section{Conclusion}
 
