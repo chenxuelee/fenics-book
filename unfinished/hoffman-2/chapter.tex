@@ -1,15 +1,15 @@
 \fenicschapter{Unicorn: A Unified Continuum Mechanics Solver}
               {Unicorn: A Unified Continuum Mechanics Solver}
-              {Johan Hoffman, Johan Jansson, Niclas Jansson and Murtazo Nazarov}
+              {Cem Degirmenci, Johan Hoffman, Johan Jansson, Niclas Jansson and Murtazo Nazarov}
               {hoffman-2}
 
 \section{Introduction}
 
 Unicorn is solver technology (models, methods, algorithms and software
 implementations) with the goal of automated simulation of realistic
-continuum mechanics applications, such as drag/lift computation for
+continuum mechanics applications, such as drag or lift computation for
 fixed or flexible objects (fluid-structure interaction) in turbulent
-incompressible or compressible flow (airplane/bird flight, car
+incompressible or compressible flow (airplane or bird flight, car
 aerodynamics). The basis for Unicorn is Unified Continuum (UC)
 modeling formulated in Euler (laboratory) coordinates, together with a
 G2 (General Galerkin) adaptive stabilized FEM discretization with a
@@ -42,12 +42,16 @@ in fluid-structure interaction and adaptivity.
 
 For a more detailed discussion on turbulence and adaptive error
 control in continuum mechanics we refer to
-chapter \ref{chapter:applications:fsi}.
+chapter \ref{chap:hoffman-1}.
+
+A live CD with snapshots of Unicorn corresponding to the Unicorn
+chapters in this book is available
+at: \url{ftp://ftp.nada.kth.se/local/jjan/unicorn_fenics-book.iso}.
 
 \begin{figure}[!h]
 \center{
 \boxed{
-\includegraphics[width=12cm]{chapters/hoffman-2/pdf/cube556.pdf}
+\includegraphics[width=10cm]{unfinished/hoffman-2/pdf/cube556.pdf}
 }}
 %\includegraphics[width=10cm]{media/unicorn_fsi_flag3D_01.pdf}
 \caption{
@@ -61,19 +65,19 @@ The Unicorn software is organized into three parts:
 \item[Library]
 The Unicorn library publishes interfaces to and implements common
 solver technology such as automated time-stepping, error
-estimation/adaptivity, mesh smoothing/adaptation interface and
+estimation and adaptivity, mesh smoothing and adaptation interface and
 slip/friction boundary condition.
 \item[Solver]
 The Unicorn solver implements the G2 adaptive discretization method
 for the UC model by formulating the relevant weak forms and using the
 solver technology in the library and from other components of
 FEniCS. Currently there are two primary solvers: incompressible
-fluid/solid (including fluids-structure interaction) and compressible
+fluid and solid (including fluids-structure interaction) and compressible
 Euler (only fluid), where the long term goal is a unification of the
-incompressible/compressible formulations as well.
+incompressible and compressible formulations as well.
 \item[Applications]
 Associated to the solver(s) are applications such as computational
-experiments/benchmarks with certain geometries, coefficients and
+experiments and benchmarks with certain geometries, coefficients and
 parameters. These are represented as stand-alone programs built on top
 of the Unicorn solver/library, running in either serial or parallel
 (restricted to adaptive incompressible flow currently).
@@ -82,7 +86,7 @@ of the Unicorn solver/library, running in either serial or parallel
 \begin{figure}[!h]
 \center{
 \boxed{
-\includegraphics[width=12cm]{chapters/hoffman-2/pdf/compressible3D.pdf}
+\includegraphics[width=10cm]{unfinished/hoffman-2/pdf/compressible3D.pdf}
 }}
 %\includegraphics[width=10cm]{media/unicorn_fsi_flag3D_01.pdf}
 \caption{
@@ -94,7 +98,7 @@ around a sphere.  }
 \begin{figure}[!h]
 \center{
 \boxed{
-\includegraphics[width=12cm]{chapters/hoffman-2/pdf/Hoffman_fig3d.pdf}
+\includegraphics[width=10cm]{unfinished/hoffman-2/pdf/Hoffman_fig3d.pdf}
 }}
 %\includegraphics[width=10cm]{media/unicorn_fsi_flag3D_01.pdf}
 \caption{
@@ -118,15 +122,6 @@ cylinder with parallel adaptive computation. }
 
 %\index{important term}
 
-\section{Acknowledgement}
-
-We acknowledge contributions to Unicorn, both software development as
-well as ideas and scientific support from: Mattias Aechtner, Peter
-Brune, Zilan Ciftci, G\"aetan Compere, Niyazi Cem Degirmenci, Vida
-Heidarpour Dehkordi, Claes Johnson, Ashraful Kadir, Mohammad Reza
-Mokhtari, Jeannette Sp\"uhler, Michael St\"ockli and Rodrigo Vilela de
-Abreu.
-
 \section{Notation}
 
 We occasionally use an indexed Einstein notation with the derivative of a
@@ -140,8 +135,9 @@ we can express derivatives with respect to any variable: $D_u u = 1$.
 
 % Intro (explain mesh motion)
 
-We define a unified continuum model in a fixed Euler
-coordinate system consisting of:
+We define, following classical continuum mechanics \cite{Gurtin1981}, a
+unified continuum model in a fixed Euler coordinate system consisting
+of:
 \begin{itemize}
 \item
 conservation of mass
@@ -154,16 +150,21 @@ phase convection equation
 \item
 constitutive equations for stress as data
 \end{itemize}
-where the stress is the Cauchy (laboratory) stress and the phase
-variable is used to define material data such as constitutive equation
-for the stress and material parameters. Note that in this continuum
-description the coordinate system is fixed (Euler), and a phase
-function (marker) is convected according to the phase convection
-equation.
+where the stress is the Cauchy (laboratory) stress and the phase is an
+indicator function used to determine which constitutive equation and
+material parameters to use. Note that in this continuum description
+the coordinate system is fixed (Euler), and a phase function
+(indicator) is convected according to the phase convection
+equation. However, since we typically choose to move the mesh with the
+continuum velocity in the case of a solid phase, one can think of
+this as an ALE method.
 
 We define two variants of this model: incompressible and compressible,
 where a future aim is to construct a unified
-incompressible/compressible model and solver.
+incompressible/compressible model and solver. We focus the
+presentation on the incompressible model, and therefore the discussion
+of the energy $e$ is kept to a minimum (since it decouples and is not
+considered).
 
 We start with a model for conservation of mass, momentum and energy,
 together with a convection equation for a phase function $\theta$ over
@@ -184,11 +185,13 @@ domain in $R^3$ with boundary $\Gamma$:
     \end{split}
   }
 \end{equation}
-together with initial and boundary conditions. We can then pose
-constitutive relations between the constitutive (Cauchy) stress
-component $\sigma$ and other variables such as the velocity $u$.
+together with initial and boundary conditions, where $\rho$ is
+density, $m_i$ is momentum, $u_i$ is velocity and $e$ is energy. We
+can then pose constitutive relations between the constitutive (Cauchy)
+stress component $\sigma$ and other variables such as the velocity
+$u$. 
 
-We define incompressibility as:
+We define incompressibility in the usual way as:
 \begin{align*}
 D_t \rho + u_j D_{x_j} \rho &= 0
 \end{align*}
@@ -198,7 +201,7 @@ which together with mass and momentum conservation gives:
 \rho(D_t u_i + u_j D_j u_i) &= D_{x_j} \sigma_{ij}\\
 D_{x_j} u_j &= 0
 \end{align*}
-where now the energy equation is decoupled and we can omit it.
+where now the energy equation is decoupled and we omit it for simplicity.
 
 We decompose the total stress into constitutive and forcing stresses:
 \begin{align*}
@@ -223,7 +226,8 @@ between coordinate systems. This allows simple manipulation and
 processing for error estimation and implementation. It is also
 general, we can choose the constitutive equations to model simple or
 complex solids and fluids, possibly both in interaction, with
-individual parameters.
+individual parameters. For examples how to use common constitutive
+laws, see below.
 
 \subsection{Automated computational modeling and software design}
 
@@ -231,12 +235,12 @@ One key design choice of UC modeling is to define the Cauchy stress
 $\sigma$ as data, which means the conservation equations are fixed
 regardless of the choice of constitutive equation. This gives a
 generality in method and software design, where a modification of
-constitutive equation impacts the formulation/implementation of the
-constitutive equation, but not the formulation/implementation of the
+constitutive equation impacts the formulation and implementation of the
+constitutive equation, but not the formulation and implementation of the
 conservation equations.
 
 In Unicorn we choose an Euler coordinate system and moving mesh,
-allowing a unified/canonical formulation of conservation
+allowing a unified and canonical formulation of conservation
 equations. This enables automated computational modeling (with
 discretization and error control) for full fluid-structure (or
 multi-phase) problems, rather than to one component at a time, with
@@ -245,17 +249,7 @@ method/software system in this respect.
 
 \section{Space-time General Galerkin discretization}
 
-The General Galerkin (G2) method has been developed as an adaptive
-stabilized finite element method for turbulent
-incompressible/compressible flow
-\cite{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,Hoffman2009,Hoffman2006b,Nazarov2009}
-G2 has been shown to be cheap, since the adaptive mesh refinement is
-minimizing the number of degrees of freedom, general, since there are
-no model parameters to fit, and reliable, since the method is based on
-quantitative error control in a chosen output. The G2 method has been
-shown to accurately compute quantities of interest in both laminar and
-turbulent
-flow \cite{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,Hoffman2009,Hoffman2006b,HoffmanJanssonEtAl2009}.
+Adaptive G2 methods (also referred to as Adaptive DNS/LES) have been used in a number of turbulent flow computations to a very low computational cost \cite{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,Hoffman2009,HoffmanJansson2009,VilelaJanssonEtAl2010}, where convergence is obtained in output quantities such as drag, lift and pressure coefficients and Strouhal numbers, using orders of magnitude fewer numbers of mesh points than with LES methods based on ad hoc refined computational meshes in the literature. 
 
 We begin by describing the standard FEM applied to the model to
 establish basic notation, and proceed to describe streamline diffusion
@@ -272,13 +266,13 @@ test function $v = [v^u, v^p, v^\theta]$ and the residual $R(W) =
 [R_u(W), R_p(W), R_\theta(W)]$:
 
 \begin{align*}
-  R_u(W) &= \rho(D_t U_i + U_j D_{x_j} U_i) - D_{x_j} \Sigma_{ij} - f_i\\
+  R_u(W) &= \rho(D_t U_i + U_j D_{x_j} U_i) - D_{x_j} S_{ij} - f_i\\
   R_p(W) &= D_{x_j} U_j\\
-  R_\theta(W) &= D_t \Theta + u_j D_{x_j} \Theta
+  R_\theta(W) &= D_t \Theta + U_j D_{x_j} \Theta
 \end{align*}
 
-where $R(w) = 0$ and $\Sigma$ denotes a discrete piecewise constant
-stress.
+where $R(w) = 0$ and $S$ denotes a discrete piecewise constant
+stress. 
 
 To determine the degrees of freedom $\xi$ we enforce the Galerkin
 orthogonality $(R(W), v) = 0, \forall v \in V_h$ where $v$ are test
@@ -288,14 +282,14 @@ $(\cdot,\cdot)$ denotes the space-time $L_2$ inner product over Q. We
 thus have the weak formulation:
 
 \begin{align*}
-  (R^u(W), v^u) &= (\rho(D_t U_i + U_j D_j U_i) - f_i, v^u_i) + (\Sigma_{ij}, D_{x_j} v^u_i) - \int_{t_{n-1}}^{t_n}\int_\Gamma \Sigma_{ij} v^u_i n_j ds dt = 0\\
+  (R^u(W), v^u) &= (\rho(D_t U_i + U_j D_j U_i) - f_i, v^u_i) + (S_{ij}, D_{x_j} v^u_i) - \int_{t_{n-1}}^{t_n}\int_\Gamma S_{ij} v^u_i n_j ds dt = 0\\
   (R^p(W), v^p) &= (D_{x_j} U_j, v^p) = 0\\
   (R^\theta(W), v^\theta) &= (D_t \Theta + u_j D_{x_j} \Theta, v^\theta) = 0
 \end{align*}
 
 for all $v \in V_h$, where the boundary term on $\Gamma$ arising from
 integration by parts vanishes if we assume a homogenous Neumann
-boundary condition for the stress $\Sigma$.
+boundary condition for the stress $S$.
 
 This standard finite element formulation is unstable for
 convection-dominated problems and due to choosing equal order for the
@@ -303,6 +297,13 @@ pressure and velocity. Thus we cannot use the standard finite element
 formulation by itself but proceed to a streamline diffusion
 stabilization formulation. We also describe a local ALE discretization
 for handling the phase interface.
+
+The cG(1)cG(1) formulation with trapezoid quadrature in time is
+equivalent to Crank-Nicolson time-stepping with piecewise linear
+elements in space. This has the advantage of being a very simple,
+standard, and familiar discrete formulation. For the turbulent flow
+mathematical model we use, the solutions are typically not smooth and
+low order basis functions are thus sufficient.
 
 \subsection{Local ALE}
 
@@ -314,15 +315,17 @@ material velocity of one of the phases) we can define the phase
 interface at cell facets, allowing the interface to stay
 discontinuous. We describe the details of the coordinate map and its
 influence on the FEM discretization
-in \cite{HoffmanJanssonLoggEtAl2009}. The resulting discrete phase
-equation is:
+in \cite{HoffmanJanssonLoggEtAl2009}. The resulting discrete UC equations are:
 \begin{equation}
 \begin{split}\label{eq:ALE}
-D_t \Theta(x) +
-(U(x) - \beta_h(x)) \cdot \nabla \Theta(x) = 0
+R_u(W) &= \rho(D_t U_i + (U_j - \beta^h_j) D_{x_j} U_i) - D_{x_j} S_{ij} - f_i\\
+R_p(W) &= D_{x_j} U_j\\
+R_\theta(W) &= D_t \Theta + (U_j - \beta^h_j) D_{x_j} \Theta
+%D_t \Theta(x) +
+%(U(x) - \beta_h(x)) \cdot \nabla \Theta(x) = 0
 \end{split}
 \end{equation}
-with $\beta_h(x)$ the mesh velocity.
+with $\beta^h_j$ the mesh velocity.
 
 We thus choose the mesh velocity $\beta_h$ to be the discrete material
 velocity U in the structure part of the mesh (vertices touching
@@ -344,12 +347,12 @@ diffusion method of the form $(R(W), v + \delta R(v)) = 0, \forall v
 parameter. We here also make a simplification where we only introduce
 necessary stabilization terms and drop terms not contributing to
 stabilization. Although not fully consistent, the streamline diffusion
-stabilization avoid unnecessary smearing of shear layers as the
+stabilization avoids unnecessary smearing of shear layers as the
 stabilization is not based on large ($\approx h^{-\frac{1}{2}}$) cross flow
 derivatives). For the UC model the stabilized method thus looks like:
 
 \begin{align*}
-  (R^u(W), v^u) &= (\rho(D_t U_i + U_j D_j U_i) - f_i, v^u_i) + (\Sigma_{ij}, D_{x_j} v^u_i) + SD^u(W, v^u) = 0\\
+  (R^u(W), v^u) &= (\rho(D_t U_i + U_j D_j U_i) - f_i, v^u_i) + (S_{ij}, D_{x_j} v^u_i) + SD^u(W, v^u) = 0\\
   (R^p(W), v^p) &= (D_{x_j} U_j, v^p) + SD^p(W, v^p) = 0
 \end{align*}
 for all $v \in V_h$, and:
@@ -361,61 +364,6 @@ for all $v \in V_h$, and:
 
 where we only include the dominating stabilization terms to reduce
 complexity in the formulation.
-
-\subsection{Duality-based adaptive error control}
-
-We give a summary for illustrative purposes of the mathematical
-framework for duality based error estimation in the context of the UC
-formulation.
-
-We consider an equation (such as the UC) in residual form $R(u) =
-0$. We define a linearized operator satisfying: $A(\bar{U})e =
-R(U)$. We can then construct an error estimate as follows, where
-$\psi$ is the quantity of interest.
-
-It is of critical importance in science and engineering to be able to
-bound the computational error $e = u - U$, we can phrase this as
-requiring that $e$ satisfies:
-\begin{align}
-|(e, \psi)| &< TOL
-\end{align}
-We define:
-\begin{displaymath}
-  \begin{split}
-    (Aw, v) &= (w, A^* v) \quad \text{(adjoint definition)}\\
-    A^* \phi &= \psi \quad \text{(dual equation)}
-  \end{split}
-\end{displaymath}
-We can then express the error in terms of the residual and dual solution:
-\begin{displaymath}
-  \begin{split}
-    (e, \psi) &= (e, A^*\phi) = (Ae, \phi) = (-R(U), \phi)  \quad \text{(error representation)}\\
-  \end{split}
-\end{displaymath}
-We note we could alternatively start from the weak formulation:
-\begin{displaymath}
-  \begin{split}
-(e, \psi) = a^*(\phi, e) = a(e, \phi) = (-R(U), \phi)\\
-  \end{split}
-\end{displaymath}
-% Space-time interpolation with h ``space-time'' mesh size?
-We thus have a canonical formula for the error estimate:
-\begin{displaymath}
-  \begin{split} |(e, \psi)| &\leq \sum_K \|h R(U)\|_K \|D \phi\|_K
-  = \sum_K {\cal E}_K \quad \text{(error bound)} \end{split}
-\end{displaymath}
-where ${\cal E}_K$ is an error indicator on each cell $K$.
-
-We can thus define an adaptive algorithm for controlling
-$|(e, \psi)|$ by making sure that $U$ satisfies:
-\begin{align*}
-\sum_K {\cal E}_K &< TOL\\
-&\Rightarrow\\
-|(e, \psi)| &< TOL
-\end{align*}
-
-by iteratively reducing $h$ in cells with large ${\cal E}_K$ until the
-tolerance condition is satisfied.
 
 \subsection{Unicorn/FEniCS software implementation}
 
@@ -442,7 +390,7 @@ structures and algorithms are presented below.
  stringstyle=\ttfamily,
  showstringspaces=ture}
 
-\begin{lstlisting}
+\begin{python}
 
 ...
 
@@ -480,7 +428,7 @@ def dFdu(u, u0, k, v):
 a = (dFdu(U1, U0, k, v)) * dx
 L = -F(UP, U0, k, v) * dx
 
-\end{lstlisting}
+\end{python}
 }
 \caption{
 Source code for bilinear and linear forms for incompressible UC one
@@ -506,13 +454,25 @@ dual solve and mesh refinement), where the adaptive loop is
 implemented by iteratively running the solver for a sequence of
 meshes.
 
-The {\tt UCSolver} implementation is parallel, where we can show
-scaling on hundreds of processes on a BlueGene L (see
-\cite{Jansson2008}). The entire adaptive algorithm is parallel (including
-Rivara mesh refinement) and Unicorn can simulate massively parallel
-applications for turbulent incompressible flow. Mesh smoothing and
-adaptivity are not yet enabled in parallel (and thus no
-fluid-structure interaction is possible) but this is work in progress.
+The {\tt UCSolver} implementation is parallelized for distributed
+memory architectures using MPI, and we can show strong scaling for
+hundreds of cores on several platforms (see
+Fig. \ref{fig:hoffman-2:sp}). The entire adaptive algorithm is
+parallel (including Rivara mesh refinement and a priori predictive
+load balancing) and Unicorn can efficiently simulate massively
+parallel applications for turbulent incompressible
+flow \cite{JanssonHoffmanJansson2010, Jansson2011}. Fluid-structure
+interaction is not yet enabled in parallel but this is work in
+progress.
+
+
+\begin{figure}
+\centering
+\includegraphics[height=5.5cm]{unfinished/hoffman-2/pdf/speedup_solve.pdf}
+\includegraphics[height=5.5cm]{unfinished/hoffman-2/pdf/speedup_unrivara.pdf}
+\caption{\label{fig:hoffman-2:sp} Strong scaling results for mesh refinement and entire solver on several different architectures, \textit{Lindgren} a Cray XT6m, \textit{Hebb} a BlueGene/L and \textit{Neolith} a regular Linux cluster with InfiniBand. The dashed line refers to ideal speedup}
+\end{figure}
+
 
 A compressible variant of the {\tt UCSolver} exists as the {\tt
   CNSSolver} for adaptive G2 for compressible Euler flow. The general
@@ -535,24 +495,24 @@ implementation errors.
  stringstyle=\ttfamily,
  showstringspaces=true}
 
-\begin{figure}[!h]
-\begin{lstlisting}
-/// Unicorn G2 method implementation for the incompressible UC model
+\begin{figure}[!p]
+\begin{c++}
+/// Unicorn implementation for the inc. UC model
 class UCSolver : public TimeDependentPDE, public MeshAdaptInterface
 {
 public:
-  /// Constructor: give boundary conditions, coefficients, parameters
-  UCSolver(Function& U, Function& U0, Function** bisect, Mesh& mesh,
-	   Array <BoundaryCondition*>& bc_mom,
+  /// Constructor: give boundary conditions, coefficients
+  UCSolver(Function& U, Function& U0, Function** bisect,
+           Mesh& mesh, Array <BoundaryCondition*>& bc_mom,
            Array <BoundaryCondition*>& bc_con,
-	   Function** f,
-	   real T, real nu, real mu, real rho_f, real rho_s,
-	   real u_bar, TimeDependent& t, PDEData* pdedata);
+           Function** f, real T, real nu,
+           real mu, real rho_f, real rho_s,
+           real u_bar, TimeDependent& t, PDEData* pdedata);
 
   /// Prescribe mesh size for MeshAdaptInterface
   virtual void updateSizeField();
 
-  /// Allocate/deallocate PDE data for dynamic mesh adaptivity (MeshAdaptInterface)
+  /// Allocate/deallocate PDE data for dynamic mesh adaptivity
   virtual void allocateAndComputeData();
   virtual void deallocateData();
 
@@ -565,25 +525,23 @@ public:
   void computeP();
   void computeStress();
 
-  // Compute initial theta by either a given xml file or a bisect function
+  // Compute initial theta
   void computeTheta0();
 
   /// From TimeDependentPDE: time-stepping control
   void shift();
-  void preparestep();
   bool update(real t, bool end);
-
-  /// From TimeDependentPDE: computeW, Um, Wm, Stabilization, computeP, computeB
+  void preparestep();
   void prepareiteration();
 
   /// Assemble time step residual (L)/ right hand side of Newton
   void rhs(const Vector& x, Vector& dotx, real T);
 
   /// Compute initial value
-  void u0(Vector& x);
+  void u0(Vector& x); 
 
   /// Save solution/output quantities
-  void save(Function& U, real t);
+  void save(Function& U, real t); 
 
   /// Compute least-squares stabilization parameter (delta)
   void computeStabilization(Mesh& mesh, Function& w,
@@ -597,7 +555,7 @@ public:
   void smoothMesh(bool bAdaptive);
 }
 
-\end{lstlisting}
+\end{c++}
 \caption{
 C++ class interface for the Unicorn solver: UCSolver.
 }
@@ -612,8 +570,8 @@ C++ class interface for the Unicorn solver: UCSolver.
  commentstyle=\color{Brown},
  stringstyle=\ttfamily,
  showstringspaces=ture}
-\begin{figure}[!h]
-\begin{lstlisting}
+\begin{figure}[!p]
+\begin{python}
 (v1, v2, v3) = TestFunctions(TH)  # test basis function
 (rho, m, e) = TrialFunctions(TH)  # trial basis function
 (rho0, m0, e0) = Functions(TH)    # solution from previous time step
@@ -622,46 +580,46 @@ C++ class interface for the Unicorn solver: UCSolver.
 
 # Bilinear form for density
 a1_a = v1*rho*dx - k*0.5*dot(grad(v1),u)*rho*dx + \
-     k*0.5*v1*rho*udotnormal*ds
+ k*0.5*v1*rho*udotnormal*ds
 S1_a = k*0.5*delta*dot(grad(v1),U)*dot(U, grad(rho))*dx + \
-    k*0.5*nu_rho*dot(grad(v1),grad(rho))*dx
+ k*0.5*nu_rho*dot(grad(v1),grad(rho))*dx
 
 # Linear form for the density
 a1_L = v1*rho0*dx + k*0.5*dot(grad(v1),u)*rho0*dx - \
-    k*0.5*v1*rho0*udotnormal*ds
+ k*0.5*v1*rho0*udotnormal*ds
 S1_L = - k*0.5*delta*dot(grad(v1),U)*dot(U, grad(rho0))*dx - \
-    k*0.5*nu_rho*dot(grad(v1),grad(rho0))*dx
+ k*0.5*nu_rho*dot(grad(v1),grad(rho0))*dx
 
 a2_a, S2_a, a2_L, S2_L = 0, 0, 0, 0
 
 for i in range(0, d):
-    # Bilinear form for momentum m_i
-    a2_a += v2[i]*m[i]*dx - k*0.5*dot(grad(v2[i]),u)*m[i]*dx + \
-        k*0.5*v2[i]*m[i]*udotnormal*ds
-    S2_a += k*0.5*delta*dot(grad(v2[i]),U)*dot(U, grad(m[i]))*dx + \
-        k*0.5*nu_m[i]*dot(grad(v2[i]),grad(m[i]))*dx
+ # Bilinear form for momentum m_i
+ a2_a += v2[i]*m[i]*dx - k*0.5*dot(grad(v2[i]),u)*m[i]*dx + \
+  k*0.5*v2[i]*m[i]*udotnormal*ds
+ S2_a += k*0.5*delta*dot(grad(v2[i]),U)*dot(U, grad(m[i]))*dx + \
+  k*0.5*nu_m[i]*dot(grad(v2[i]),grad(m[i]))*dx
 
-    # Linear form for the momentum
-    a2_L += v2[i]*m0[i]*dx + k*0.5*dot(grad(v2[i]),u)*m0[i]*dx + \
-        k*v2[i].dx(i)*P*dx - k*0.5*v2[i]*m0[i]*udotnormal*ds
-    S2_L += -k*0.5*delta*dot(grad(v2[i]),U)*dot(U, grad(m0[i]))*dx - \
-        k*0.5*nu_m[i]*dot(grad(v2[i]),grad(m0[i]))*dx
+ # Linear form for the momentum
+ a2_L += v2[i]*m0[i]*dx + k*0.5*dot(grad(v2[i]),u)*m0[i]*dx + \
+  k*v2[i].dx(i)*P*dx - k*0.5*v2[i]*m0[i]*udotnormal*ds
+ S2_L += -k*0.5*delta*dot(grad(v2[i]),U)*dot(U, grad(m0[i]))*dx - \
+  k*0.5*nu_m[i]*dot(grad(v2[i]),grad(m0[i]))*dx
 
 # Bilinear form for energy
 a3_a = v3*e*dx - k*0.5*dot(grad(v3),u)*e*dx + k*0.5*v3*e*udotnormal*ds
 S3_a = k*0.5*delta*dot(grad(v3),U)*dot(U, grad(e))*dx + \
-    k*0.5*nu_e*dot(grad(v3),grad(e))*dx
+ k*0.5*nu_e*dot(grad(v3),grad(e))*dx
 
 # Linear form for energy
-a3_L = v3*e0*dx + k*0.5*dot(grad(v3),u)*e0*dx + k*dot(grad(v3),u)*P*dx - \
-    k*0.5*v3*e0*udotnormal*ds
+a3_L = v3*e0*dx + k*0.5*dot(grad(v3),u)*e0*dx + \
+ k*dot(grad(v3),u)*P*dx - k*0.5*v3*e0*udotnormal*ds
 S3_L = - k*0.5*delta*dot(grad(v3),U)*dot(U,grad(e0))*dx - \
-    k*0.5*nu_e*dot(grad(v3),grad(e0))*dx
+ k*0.5*nu_e*dot(grad(v3),grad(e0))*dx
 
 # Weak form of G2 for the Euler equations:
 a = a1_a + S1_a + a2_a + S2_a + a3_a + S3_a
 L = a1_L + S1_L + a2_L + S2_L + a3_L + S3_L
-\end{lstlisting}
+\end{python}
 \caption{
 Source code for bilinear and linear forms for G2 for compressible Euler one
 time step with a Picard fixed-point iteration.  }
@@ -765,12 +723,12 @@ $F(U)$ (in Python notation):
  stringstyle=\ttfamily,
  showstringspaces=ture}
 
-\begin{lstlisting}
+\begin{python}
 # cG(1)
 def F(u, u0, k, v):
     uc = 0.5 * (u + u0)
     return (-dot(u, v) + dot(u0, v) + mult(k, g(uc, v)))
-\end{lstlisting}
+\end{python}
 
 With v: $\forall v \in V_h$ generating the equation system.
 
@@ -798,14 +756,14 @@ notation):
  showstringspaces=ture}
 
 {\small
-\begin{lstlisting}
+\begin{python}
 def dFdu(u, u0, k, v):
     uc = 0.5 * u
     return (-dot(u, v) + mult(k, dgdu(uc, k, v)))
 
 a = (dFdu(U, U0, k, v)) * dx
 L = (dFdu(UP, U0, k, v) - F(UP, U0, k, v)) * dx
-\end{lstlisting}
+\end{python}
 }
 
 Thus, in each time step we need to solve the system given in
@@ -813,9 +771,9 @@ eq. \ref{discrete_cg1} by fixed-point iteration by repeatedly
 computing $a$ and $L$, solving a linear system and updating $U$.
 
 We now encapsulate this in a C++ class interface in
-fig. \ref{code:TimeDependentPDE} which we call {\tt TimeDependentPDE} where
-we give $a$ and $L$, an end time $T$, a mesh (defining $V_h$) and
-boundary conditions.
+fig. \ref{code:TimeDependentPDE} called {\tt TimeDependentPDE} where
+$a$ and $L$, an end time $T$, a mesh (defining $V_h$) and
+boundary conditions are given.
 
 
 \lstset{language=C++,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
@@ -826,7 +784,7 @@ boundary conditions.
  showstringspaces=true}
 
 \begin{figure}[!h]
-\begin{lstlisting}
+\begin{c++}
     /// Represent and solve time dependent PDE.
     class TimeDependentPDE
     {
@@ -860,7 +818,7 @@ boundary conditions.
       /// Return the mesh
       Mesh& mesh();
     };
-\end{lstlisting}
+\end{c++}
 \caption{
 C++ class interface for TimeDependentPDE.
 }
@@ -880,7 +838,7 @@ implemented in listing \ref{code:time-stepping}.
 
 \begin{figure}[!h]
 {\small
-\begin{lstlisting}
+\begin{c++}
 
 void TimeDependentPDE::solve()
 {
@@ -924,7 +882,7 @@ void TimeDependentPDE::iter()
 
   return residual.norm(linf);
 }
-\end{lstlisting}
+\end{c++}
 }
 \label{code:time-stepping}
 \caption{
@@ -940,12 +898,14 @@ discretization. For many cases this would be equivalent formulations,
 since $D_U (F(U), v) = (D_U F(U), v)$, but for a stabilized method
 these formulations may not be the same.
 
-We use a block-diagonal Newton method, where we start by formulating
-the full Newton method and then drop terms. We also use the
-constitutive law as an identity to remove instability caused by
-iterating between $\sigma$ and $U$. We formulate Newton's method for
-the system $F(X) = (F_u(X), F_\sigma(X), F_p(X))^\top = 0$, with $X =
-(U, \sigma, P)^\top$, where the three components are decoupled.
+We use a block-diagonal quasi-Newton method, where we start by
+formulating the full Newton method and then drop terms off the
+diagonal blocks. We also use the constitutive law as an identity to
+express $\sigma$ in terms of $U$, allowing larger time steps than
+would be possibly otherwise by iterating between $\sigma$ and $U$. We
+formulate Newton's method for the system $F(X) = (F_u(X), F_\sigma(X),
+F_p(X))^\top = 0$, with $X = (U, \sigma, P)^\top$, where the three
+components are decoupled.
 
 See \cite{Jansson2009} for a dicussion about
 the efficiency of the fixed-point iteration and its implementation.
@@ -992,7 +952,7 @@ fig. \ref{code:ErrorEstimate} which we call {\tt ErrorEstimate}.
 
 \begin{figure}[!h]
 {\small
-\begin{lstlisting}
+\begin{c++}
     /// Estimate error as local error indicators based on duality
     class ErrorEstimate
     {
@@ -1016,7 +976,7 @@ fig. \ref{code:ErrorEstimate} which we call {\tt ErrorEstimate}.
       // Refine based on indicators
       void AdaptiveRefinement(real percentage);
     }
-\end{lstlisting}
+\end{c++}
 }
 \caption{
 C++ class interface for {\tt ErrorEstimate}.
@@ -1040,7 +1000,7 @@ linear interpolation in time of the values in the dofs.
 
 \begin{figure}[!h]
 {\small
-\begin{lstlisting}
+\begin{c++}
   /// Representation of space-time function (storage and evaluation)
   class SpaceTimeFunction
   {
@@ -1060,7 +1020,7 @@ linear interpolation in time of the values in the dofs.
 
     /// Return interpolant function
     Function& evaluant();
-\end{lstlisting}
+\end{c++}
 }
 \caption{
 C++ class interface for {\tt SpaceTimeFunction}.
@@ -1126,7 +1086,7 @@ we refer to \cite{Nazarov2009}.
 
 \begin{figure}[!h]
 {\small
-\begin{lstlisting}
+\begin{python}
 def tomatrix(q):
     return [ [q[d * i + j] for i in range(d)] for j in range(d) ]
 
@@ -1143,7 +1103,7 @@ def f(U, F, v):
 
 a = (dot(dotF, v)) * dx
 L = (mult(icv, dot(F0m, vm) + mult(k, f(U, F, vm)))) * dx
-\end{lstlisting}
+\end{python}
 }
 \caption{Source code for forms representing one time step for the deformation gradient (F) evolution in the elastic smoother variant of the UC model. }
 \label{code:FFC_ElasticSmoother}
@@ -1153,12 +1113,12 @@ L = (mult(icv, dot(F0m, vm) + mult(k, f(U, F, vm)))) * dx
 \begin{figure}[!h]
 \begin{center}
 \begin{tabular}{cc}
-\includegraphics[height=0.24\linewidth]{chapters/hoffman-2/pdf/force_smooth01.pdf} &
-\includegraphics[height=0.24\linewidth]{chapters/hoffman-2/pdf/force_hybrid01.pdf}\\
-\includegraphics[height=0.24\linewidth]{chapters/hoffman-2/pdf/force_smooth02.pdf} &
-\includegraphics[height=0.24\linewidth]{chapters/hoffman-2/pdf/force_hybrid02.pdf}\\
-\includegraphics[height=0.24\linewidth]{chapters/hoffman-2/pdf/force_smooth03.pdf} &
-\includegraphics[height=0.24\linewidth]{chapters/hoffman-2/pdf/force_hybrid03.pdf}\\
+\includegraphics[height=0.24\linewidth]{unfinished/hoffman-2/pdf/force_smooth01.pdf} &
+\includegraphics[height=0.24\linewidth]{unfinished/hoffman-2/pdf/force_hybrid01.pdf}\\
+\includegraphics[height=0.24\linewidth]{unfinished/hoffman-2/pdf/force_smooth02.pdf} &
+\includegraphics[height=0.24\linewidth]{unfinished/hoffman-2/pdf/force_hybrid02.pdf}\\
+\includegraphics[height=0.24\linewidth]{unfinished/hoffman-2/pdf/force_smooth03.pdf} &
+\includegraphics[height=0.24\linewidth]{unfinished/hoffman-2/pdf/force_hybrid03.pdf}\\
 (a) & (b)
 \end{tabular}
 \end{center}
@@ -1167,7 +1127,7 @@ L = (mult(icv, dot(F0m, vm) + mult(k, f(U, F, vm)))) * dx
 \end{figure}
 
 \begin{figure}[!h]
-\begin{lstlisting}
+\begin{c++}
   /// Optimize cell quality according to elastic variant of UC model
   class ElasticSmoother
   {
@@ -1189,7 +1149,7 @@ L = (mult(icv, dot(F0m, vm) + mult(k, f(U, F, vm)))) * dx
 			MeshFunction<int>& old2new_cell);
 
   }
-\end{lstlisting}
+\end{c++}
 \caption{
 C++ class interface for {\tt ElasticSmoother}.
 }
@@ -1213,8 +1173,8 @@ $\beta_h = U$ in the solid phase part of the mesh.
 Bounded mesh quality $Q$ in the fluid part of the mesh. Preferably the
 mesh smoothing should improve $Q$ if possible.
 \item
-Maintain mesh size $h(x)$ close to $\hat{h}(x)$ given by a posteriori
-error estimation in an adaptive algorithm.
+Maintain mesh size $h(x)$ close to a desired $\hat{h}(x)$ given by a
+posteriori error estimation in an adaptive algorithm.
 %\item
 %$\nabla \beta_h$ and $D_t \beta_h$ must be bounded.
 \end{enumerate}
@@ -1242,7 +1202,7 @@ through {\tt MeshAdaptInterface}.
 
 Unicorn provides the {\tt ElasticSmoother} class (see
 listing \ref{code:ElasticSmoother}, which can be used to
-smooth/optimize for quality all or part of the mesh.
+smooth/optimize for quality in all or part of the mesh.
 
 We perform a robustness test of the elastic smoothing and the mesh
 adaptivity shown in \ref{fig:flag_robustness} where we use the same
@@ -1302,9 +1262,9 @@ the algorithm produces excellent quality refined meshes both in 2D and
  \begin{center}
  \begin{tabular}{cc}
  \centering
- \includegraphics[height=3cm,width=6cm]{chapters/hoffman-2/pdf/swap.pdf} &
+ \includegraphics[height=3cm,width=6cm]{unfinished/hoffman-2/pdf/swap.pdf} &
  \hspace{0.3cm}
- \includegraphics[height=3cm,width=6cm]{chapters/hoffman-2/pdf/swap_config1.pdf}
+ \includegraphics[height=3cm,width=6cm]{unfinished/hoffman-2/pdf/swap_config1.pdf}
  \end{tabular}
  \end{center}
  \caption{Edge swap operation: (a) initial cavity with swap edge highlighted (b) possible configuration after the swap.}
@@ -1343,9 +1303,8 @@ We perform a robustness test of the elastic smoothing and the mesh
 adaptivity shown in \ref{fig:flag_robustness}, see a more detailed
 description in the elastic smoothing section.
 
-
 \begin{figure}[!h]
-\begin{lstlisting}
+\begin{c++}
   /// Interface to MAdLib for mesh adaptation using local operations
   /// Subclass and implement the virtual functions
   class MeshAdaptInterface
@@ -1372,8 +1331,7 @@ description in the elastic smoothing section.
     void addFunction(string name, Function** f);
     void clearFunctions();
   };
-}
-\end{lstlisting}
+\end{c++}
 \caption{
 C++ class interface for {\tt MeshAdaptInterface}.
 }
@@ -1403,20 +1361,6 @@ boundary layers.
  showstringspaces=ture}
 
 \subsection{Fluid-structure}
-
-\begin{figure}[!ht]
-\begin{center}
-\begin{tabular}{cc}
-\includegraphics[width=0.5\linewidth]{chapters/hoffman-2/pdf/flag_smooth05.pdf} &
-\includegraphics[width=0.5\linewidth]{chapters/hoffman-2/pdf/flag_hybrid05.pdf}\\
-(a) & (b)
-\end{tabular}
-\end{center}
-\caption{Snapshot of flag simulation FSI use case with (a) elastic smoothing and
-  (b) dynamic mesh adaptation. A cut of the mesh is shown together with an
-  isosurface of the pressure to visualize the flow.}
-\label{fig:flag_snapshot}
-\end{figure}
 
 We here give a use case of solving a fluid-structure continuum
 mechanics problem, where the user specifies data for modeling the
@@ -1461,7 +1405,7 @@ the primal problem, we implement both as variants of the same solver.
 In this case we are interested in computing drag, which gives $\psi$
 as a boundary condition for the dual problem:
 
-\begin{lstlisting}
+\begin{c++}
 CylinderBoundary cb;
 SubSystem xcomp(0);
 Function minus_one(mesh, -1.0);
@@ -1470,7 +1414,7 @@ DirichletBC dual_bc0(minus_one, mesh, cb, xcomp);
 
 Array <BoundaryCondition*> dual_bc_mom;
 dual_bc_mom.push_back(&dual_bc0);
-\end{lstlisting}
+\end{c++}
 
 
 \item[Adaptive loop]
@@ -1488,7 +1432,7 @@ Python which we also use to move data according to iteration number):
  stringstyle=\ttfamily,
  showstringspaces=ture}
 
-\begin{lstlisting}
+\begin{python}
 offset = 0
 N = 20
 
@@ -1501,7 +1445,7 @@ for i in range(offset, N):
     move(file, dirname)
     for file in glob(``./*.pvd''):
     move(file, dirname)
-\end{lstlisting}
+\end{python}
 
 \lstset{language=C++,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
  keywordstyle=\ttfamily\color{OliveGreen},
@@ -1519,7 +1463,7 @@ condition used just as a regular Dirichlet boundary condition. The
 component in a system (for compressible Euler the system is [density,
 velocity, energy], and we would thus give component 2 as offset).
 
-\begin{lstlisting}
+\begin{c++}
 SlipBoundary sb;
 SubSystem xcomp(0);
 
@@ -1527,14 +1471,14 @@ SlipBC slip_bc(mesh, sb, xcomp);
 
 Array <BoundaryCondition*> primal_bc_mom;
 primal_bc_mom.push_back(&slip_bc);
-\end{lstlisting}
+\end{c++}
 
 
 \end{description}
 
 
 \begin{figure}[!h]
-\begin{lstlisting}
+\begin{c++}
 #include <dolfin.h>
 #include <unicorn/FSIPDE.h>
 
@@ -1574,12 +1518,12 @@ public:
     return on_boundary && (p[0] > Geo::xmax - bmarg);
   }
 };
-\end{lstlisting}
+\end{c++}
 \caption{Part 1 of Unicorn solver FSI use case: geometry and subdomains.}
 \end{figure}
 
 \begin{figure}[!h]
-\begin{lstlisting}
+\begin{c++}
 // Force term
 class ForceFunction : public Function
 {
@@ -1638,72 +1582,12 @@ public:
       values[0] = 1.0;
   }
 };
-\end{lstlisting}
+\end{c++}
 \caption{Part 2 of Unicorn solver FSI use case: coefficients.}
 \end{figure}
 
 \begin{figure}[!h]
-\begin{lstlisting}
-class FlagData : public PDEData
-{
-public:
-  void create(Mesh& mesh)
-  {
-    bcf_mom = new BC_Momentum_3D(mesh, td);
-    bcf_con = new BC_Continuity_3D(mesh);
-    f = new ForceFunction(mesh, td);
-
-    bisect = new BisectionFunction(mesh);
-    zero = new Function(mesh, 0.0);
-
-    bc_mom0 = new DirichletBC(*bcf_mom, mesh,
-			      iboundary);
-    bc_con0 = new DirichletBC(*bcf_con, mesh,
-			      oboundary);
-
-    bc_mom.clear();
-    bc_con.clear();
-
-    bc_mom.push_back(bc_mom0);
-    bc_con.push_back(bc_con0);
-  }
-
-  void destroy()
-  {
-    delete bcf_mom;
-    delete bcf_con;
-    delete f;
-    delete bisect;
-    delete zero;
-
-    delete bc_mom0;
-    delete bc_con0;
-  }
-
-  Function* bcf_mom;
-  Function* bcf_con;
-  Function* f;
-  Function* bisect;
-  Function* zero;
-
-  DirichletBC* bc_mom0;
-  DirichletBC* bc_con0;
-
-  Array <BoundaryCondition*> bc_mom;
-  Array <BoundaryCondition*> bc_con;
-
-  InflowBoundary3D iboundary;
-  OutflowBoundary3D oboundary;
-
-  TimeDependent td;
-};
-\end{lstlisting}
-\caption{Part 3 of Unicorn solver FSI use case: problem data.}
-\end{figure}
-
-
-\begin{figure}[!h]
-\begin{lstlisting}
+\begin{c++}
 int main()
 {
   Mesh mesh("flag.xml");
@@ -1735,8 +1619,16 @@ int main()
 
   return 0;
 }
-\end{lstlisting}
+\end{c++}
 \caption{Part 4 of FSI use case: main program, passing data to solver.}
 \end{figure}
+
+\section{Acknowledgement}
+
+We acknowledge contributions to Unicorn, both software development as
+well as ideas and scientific support from: Mattias Aechtner, Peter
+Brune, Zilan Ciftci, G\"aetan Compere, Niyazi Cem Degirmenci, Claes
+Johnson, Ashraful Kadir, Jeannette Sp\"uhler, Michael St\"ockli and
+Rodrigo Vilela de Abreu.
 
 
