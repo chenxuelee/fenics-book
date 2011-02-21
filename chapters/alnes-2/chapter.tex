@@ -148,7 +148,7 @@ is passed as plain C arrays for efficiency and minimal dependencies.
 Most functions are declared \emp{const}, reflecting that the
 operations they represent should not change the outcome of future
 operations.\footnote{The exceptions are the functions to initialize a
-  \emp{dof\_map}.}
+  \emp{dofmap}.}
 
 \subsection{Class relations}
 
@@ -193,27 +193,27 @@ public:
 \end{c++}
 
 The \emp{form} class also specifies functions for creating
-\emp{finite\_element} and \emp{dof\_map} objects for the finite
+\emp{finite\_element} and \emp{dofmap} objects for the finite
 element function spaces $\{V_{j,h}\}_{j=1}^{\rho}$ and
 $\{W_{j,h}\}_{j=1}^n$ of the variational form. The
 \emp{finite\_element} object provides functionality such as evaluation
 of degrees of freedom and evaluation of basis functions and their
-derivatives. The \emp{dof\_map} object provides functionality such as
+derivatives. The \emp{dofmap} object provides functionality such as
 tabulating the local-to-global map of degrees of freedom on a single
 element, as well as tabulation of subsets associated with particular
 mesh entities, which is used to apply Dirichlet boundary conditions
 and build connectivity information.
 
-Both the \emp{finite\_element} and \emp{dof\_map} classes can
+Both the \emp{finite\_element} and \emp{dofmap} classes can
 represent mixed elements, in which case it is possible to obtain
-\emp{finite\_element} and \emp{dof\_map} objects for each subelement
+\emp{finite\_element} and \emp{dofmap} objects for each subelement
 in a hierarchical manner. Vector elements composed of scalar elements
 are in this context seen as special cases of mixed elements where all
-subelements are equal. As an example, consider the \emp{dof\_map} for
+subelements are equal. As an example, consider the \emp{dofmap} for
 a $\mathcal{P}_2$--$\mathcal{P}_1$ Taylor--Hood element. From this
-\emp{dof\_map} it is possible to extract one \emp{dof\_map} for the
-quadratic vector element and one \emp{dof\_map} for the linear scalar
-element. From the vector element, a \emp{dof\_map} for the quadratic
+\emp{dofmap} it is possible to extract one \emp{dofmap} for the
+quadratic vector element and one \emp{dofmap} for the linear scalar
+element. From the vector element, a \emp{dofmap} for the quadratic
 scalar element of each vector component can be obtained. This can be
 used to access subcomponents from the solution of a mixed system.
 
@@ -262,6 +262,15 @@ public:
   /// Array of coordinates for the vertices of the cell
   double** coordinates;
 
+  /// Cell index (short-cut for entity_indices[topological_dimension][0])
+  unsigned int index;
+
+  /// Local facet index
+  int local_facet;
+
+  /// Unique mesh identifier
+  int mesh_identifier;
+
 };
 \end{c++}
 \caption{Data structure for communicating cell data.}
@@ -296,9 +305,9 @@ corresponding global degrees of freedom.
 
 \begin{c++}
 /// Tabulate the local-to-global mapping of dofs on a cell
-void dof_map::tabulate_dofs(unsigned int* dofs,
-                            const mesh& m,
-                            const cell& c) const
+void dofmap::tabulate_dofs(unsigned int* dofs,
+                           const mesh& m,
+                           const cell& c) const
 \end{c++}
 Here, \emp{unsigned int* dofs} is a pointer to the first element of an
 array of unsigned integers that will be filled with the
@@ -352,9 +361,9 @@ implementation["destructor"] = "// Do nothing"
 implementation["signature"] = "return \"my form\""
 implementation["rank"] = "return 2;"
 implementation["num_coefficients"] = "return 0;"
-implementation["num_cell_integrals"] = "return 3;"
-implementation["num_interior_facet_integrals"] = "return 1;"
-implementation["num_exterior_facet_integrals"] = "return 0;"
+implementation["num_cell_domains"] = "return 3;"
+implementation["num_interior_facet_domains"] = "return 1;"
+implementation["num_exterior_facet_domains"] = "return 0;"
 implementation["create_finite_element"] = "\
 switch (i)
 {
@@ -365,13 +374,13 @@ case 1:
 default:
   return 0;
 }"
-implementation["create_dof_map"] = "\
+implementation["create_dofmap"] = "\
 switch (i)
 {
 case 0:
-  return new my_dof_map_0();
+  return new my_dofmap_0();
 case 1:
-  return new my_dof_map_1();
+  return new my_dofmap_1();
 default:
   return 0;
 }"
@@ -485,22 +494,22 @@ void assemble(Matrix& A, ufc::form& form, dolfin::Mesh& mesh)
   // Create cell integrals, assuming there is only one
   ufc::cell_integral* cell_integral = form.create_cell_integral(0);
 
-  // Create dof maps for rows and columns
-  ufc::dof_map* dof_map_0 = form.create_dof_map(0);
-  ufc::dof_map* dof_map_1 = form.create_dof_map(1);
+  // Create dofmaps for rows and columns
+  ufc::dofmap* dofmap_0 = form.create_dofmap(0);
+  ufc::dofmap* dofmap_1 = form.create_dofmap(1);
 
-  // Initialize dof maps
-  dof_map_0->init_mesh(ufc_mesh);
-  dof_map_1->init_mesh(ufc_mesh);
+  // Initialize dofmaps
+  dofmap_0->init_mesh(ufc_mesh);
+  dofmap_1->init_mesh(ufc_mesh);
 
-  // Omitting code for dof map initialization on cells, which is not
+  // Omitting code for dofmap initialization on cells, which is not
   // needed for code generated by FFC but which is generally required
 
   // Get local and global dimensions
-  uint m = dof_map_0->max_local_dimension();
-  uint n = dof_map_1->max_local_dimension();
-  uint M = dof_map_0->global_dimension();
-  uint N = dof_map_1->global_dimension();
+  uint m = dofmap_0->max_local_dimension();
+  uint n = dofmap_1->max_local_dimension();
+  uint M = dofmap_0->global_dimension();
+  uint N = dofmap_1->global_dimension();
 
   // Initialize array of local-to-global maps
   uint* dofs_0 = new uint[m];
@@ -525,8 +534,8 @@ void assemble(Matrix& A, ufc::form& form, dolfin::Mesh& mesh)
     }
 
     // Compute local-to-global map for degrees of freedom
-    dof_map_0->tabulate_dofs(dofs_0, ufc_mesh, ufc_cell);
-    dof_map_1->tabulate_dofs(dofs_1, ufc_mesh, ufc_cell);
+    dofmap_0->tabulate_dofs(dofs_0, ufc_mesh, ufc_cell);
+    dofmap_1->tabulate_dofs(dofs_1, ufc_mesh, ufc_cell);
 
     // Compute the cell matrix A_T
     cell_integral->tabulate_tensor(A_T, 0, ufc_cell);
@@ -619,7 +628,7 @@ Having computed the element tensor, one needs to compute the
 local-to-global map in order to know where to insert the local
 contributions in the global tensor. This map may be obtained by
 calling the member function \emp{tabulate\_dofs} of the class
-\emp{dof\_map}. FFC uses an implicit ordering scheme, based on the
+\emp{dofmap}. FFC uses an implicit ordering scheme, based on the
 indices of the topological entities in the mesh. This information may
 be extracted from the \emp{cell} attribute \emp{entity\_indices}.  For
 linear Lagrange elements on triangles, each degree of freedom is
