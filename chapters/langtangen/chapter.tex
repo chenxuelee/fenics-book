@@ -11,10 +11,6 @@
 \chapter{Tutorial}
 \label{langtangen:main}
 
-\editornote{We might need to add some better visualizations, in
-  particular plots made with Viper that demonstrate the \emp{plot}
-  command, or plots made with ParaView.}
-
 This chapter presents a \fenics{} tutorial to get new users quickly up
 and running with solving differential equations. \fenics{} can be
 programmed both in C++ and Python, but this tutorial focuses
@@ -323,7 +319,7 @@ should exactly reproduce a second-order polynomial
 at the vertices of the cells, regardless of the size
 of the elements. This property allows us to verify the code by
 using very few elements and
-checking that the computed and the exact solution equal to the
+checking that the computed and the exact solution are equal to the
 machine precision.
 Test problems with this property will be frequently constructed throughout
 the present
@@ -621,6 +617,9 @@ screen. With the left, middle, and right
 mouse buttons you can rotate, translate, and zoom
 (respectively) the plotted surface to better examine what the solution looks
 like.
+Figures~\ref{tut:poisson:2D:fig:ex1:u} and
+\ref{tut:poisson:2D:fig:ex1:mesh} display the resulting $u$
+function and the finite element mesh, respectively.
 
 It is also possible to dump the computed solution to file, e.g., in the
 VTK format:
@@ -636,6 +635,26 @@ for quick examination of the solution during program development.
 More in-depth visual investigations of finite element solution will
 normally benefit from using highly professional tools such as ParaView
 and VisIt.
+
+\begin{figure}
+  \begin{center}
+    \label{tut:poisson:2D:fig:ex1:u}
+    \includegraphics[width=\largefig]{chapters/langtangen/pdf/ex1_u.pdf}
+    \caption{Plot of the solution in the first \fenics{} example.
+      (A bounding box around the mesh is added by pressing \emp{o} in the plot
+      window, and the mouse buttons are then used to rotate and move the
+      plot, see Section~\ref{langtangen:quickviz}.)}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \label{tut:poisson:2D:fig:ex1:mesh}
+    \includegraphics[width=\smallfig]{chapters/langtangen/png/ex1_mesh.png}
+    \caption{Plot of the mesh in the first \fenics{} example.}
+  \end{center}
+\end{figure}
+
 
 \subsection{Examining the discrete solution}
 \label{langtangen:poisson1:verify1}
@@ -1062,6 +1081,17 @@ The new thing is basically that we work with a
 is now a vector field, instead of the
 \emp{FunctionSpace} object for scalar
 fields.
+Figure~\ref{tut:poisson:2D:fig:ex1:gradu} shows
+an example of how Viper can visualize such a vector field.
+
+\begin{figure}
+  \begin{center}
+    \label{tut:poisson:2D:fig:ex1:gradu}
+    \includegraphics[width=\largefig]{chapters/langtangen/pdf/ex1_gradu.pdf}
+    \caption{Example on visualizing the vector field
+      $\nabla u$ by arrows at the nodes.}
+  \end{center}
+\end{figure}
 
 The scalar component fields of the gradient
 can be extracted as separated fields and, e.g., visualized:
@@ -1448,7 +1478,7 @@ file names are automatically generated as
 a new plot file in that format is generated (the extension of PNG
 files is \emp{.png} instead of
 \emp{.eps}).  Pressing
-\emp{'o'} adds a red outline of a bounding
+\emp{o} adds a red outline of a bounding
 box around the domain.
 
 One can alternatively control the visualization from the program code
@@ -1762,6 +1792,17 @@ Alternatively, we can make the call
 \begin{python}
 A, b = assemble_system(a, L, bc)
 \end{python}
+The \emp{assemble\_system} function incorporates the boundary conditions in
+a symmetric way in the coefficient matrix. (For each degree of freedom
+that is known, the corresponding row and column is zero'ed out and 1
+is placed on the main diagonal, and the right-hand side \emp{b} is
+modified by subtracting the column in \emp{A} times the value of the
+degree of freedom, and then the corresponding entry in \emp{b} is replaced by the
+known value of the degree of freedom.) With \emp{condition.apply(A, b)}, the
+matrix \emp{A} is modified in an unsymmetric way. (The row is zero'ed out
+and 1 is placed on the main diagonal, and the degree of freedom value
+is inserted in \emp{b}.)
+
 
 Note that the solution \emp{u} is, as before,
 a \emp{Function} object.  The degrees of
@@ -1791,14 +1832,6 @@ if mesh.num_cells() < 16:
     print A.array()
     print b.array()
 \end{python}
-You will see that \emp{A} is modified in a
-symmetric way: for each degree of freedom that is known, the
-corresponding row and column is zero'ed out and 1 is placed on the
-main diagonal.  The right-hand side \emp{b}
-is modified accordingly (the column times the value of the degree of
-freedom is subtracted from \emp{b}, and then
-the corresponding entry in \emp{b} is
-replaced by the known value of the degree of freedom).
 
 Sometimes it can be handy to transfer the linear system to MATLAB or
 Octave for further analysis, e.g., computation of eigenvalues of $A$.
@@ -4513,7 +4546,7 @@ various turbulence models.
 Below we explain some key terms used in this tutorial.\gln
 
 \fenics: name of a software suite composed of many individual software
-components (see \emp{fenics.org}). Some components are DOLFIN and
+components (see \emp{fenicsproject.org}). Some components are DOLFIN and
 Viper, explicitly referred to in this tutorial. Others are
 FFC and FIAT, heavily used by the programs appearing in this tutorial,
 but never explicitly used from the programs.\gln
@@ -4658,15 +4691,13 @@ onto the function space \emp{V}.\gln
 \emp{project(func, V)}: project a formula or finite element function \emp{func}
 onto the function space \emp{V}.\gln
 
-
-
 \subsection{Installing \fenics}
 \label{langtangen:app:install}
 \label{installing FEniCS}
 
 The \fenics{} software components are available for Linux, Windows and Mac OS
 X platforms. Detailed information on how to get \fenics{} running on such
-machines are available at the \emp{fenics.org} website.
+machines are available at the \emp{fenicsproject.org} website.
 Here are just some quick descriptions and recommendations by the author.
 
 To make the installation of \fenics{} as painless and reliable as
@@ -4705,7 +4736,7 @@ sudo apt-get install fenics
 \end{bash}
 Sometimes the \fenics{} software in a standard Ubuntu installation
 lacks some recent features and bug fixes. Visiting
-\emp{fenics.org} and copying just five Unix
+\emp{fenicsproject.org} and copying just five Unix
 commands is all you have to do to install a newer version of the
 software.
 
