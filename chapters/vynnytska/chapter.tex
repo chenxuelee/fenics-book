@@ -140,10 +140,10 @@ $\phi$. This transport is governed by the equation
   \label{vynnytska:eq:trans}
   \frac{\partial \phi}{\partial t} +  u \cdot \Grad \phi = 0.
 \end{equation}
-However, some chemical diffusivity $k_{ch}$ is also present in the physical
-system~\citep{KekenEtAl1997, HansenYuen1988}. Therefore, we substitute
-the pure advection equation~\eqref{vynnytska:eq:trans} by an
-advection-diffusion equation of the form
+However, some chemical diffusivity $k_{ch}$ is also present in the
+physical system~\citep{KekenEtAl1997, HansenYuen1988}. Therefore, we
+substitute the pure advection equation~\eqref{vynnytska:eq:trans} by
+an advection-diffusion equation of the form
 \begin{equation}
   \label{vynnytska:eq:transdif}
   \frac{\partial \phi}{\partial t}
@@ -213,11 +213,11 @@ $T_r$ and left $T_s$ parts of the domain:
 In order to keep the initial temperature distribution in the range
 between $0$ and $1$ we performed additional correction. According to
 eqs.~\eqref{vynnytska:eq:ic1} there are two peaks: positive in the top
-right and negative in the bottom left corners.  We mapped all values
+right and negative in the bottom left corners. We mapped all values
 below $0$ to $0$ and above $1$ to $1$.
 
-The initial composition $\phi$ is a step function equal to one
-on the bottom layer and to zero on the top layer.
+The initial composition $\phi$ is a step function equal to one on the
+bottom layer and to zero on the top layer.
 
 %%------------------------------------------------------------------------------
 
@@ -227,8 +227,8 @@ thermochemical convection model established in the previous. Instead
 of solving the fully coupled system of nonlinear time-dependent
 partial differential equations, we consider a predictor-corrector
 based splitting scheme~\citep{BergKekenYuen1993,
-  HansenEbel1988}. Therefore, we first present the numerical methods
-for the solution of each separate equation before formulating the full
+HansenEbel1988}. Therefore, we first present the numerical methods for
+the solution of each separate equation before formulating the full
 algorithm. Special attention must be paid to the discretization of the
 energy~\eqref{vynnytska:eq:energy} and transport
 equations~\eqref{vynnytska:eq:trans} due to the interface between the
@@ -296,8 +296,7 @@ Using full upwind numerical flux and taking into consideration that
 the normal component of velocity is equal to zero on the boundary, the
 spatial discontinuous finite element discretization
 of~\eqref{vynnytska:eq:trans} with a given $u_h$ reads
-as~\citep{PietroLoForteParolini2006}: find $\phi_h \in P_h$
-such that
+as~\citep{PietroLoForteParolini2006}: find $\phi_h \in P_h$ such that
 \begin{equation}
   \sum_{T \in \Omega_h} \int_T \frac{\partial \phi_h}{\partial t} \psi_h
   \dx + a_{A} (u_h; \phi_h, \psi_h) = 0,
@@ -312,11 +311,11 @@ for all $\psi_h \in P_h$. Here
    u_h \cdot \jump{\psi_h} \avg{\phi_h} + \frac{1}{2}
    | u_h \cdot n | \jump{\psi_h} \jump{\phi_h} \right ) \ds,
 \end{equation}
-wherein $\Gamma_i$ denotes the interior edges of $\mathcal{T}_h$. The jump
-$\jump{\cdot}$ and average $\avg{\cdot}$ operators on an internal edge
-shared by elements $T^{+}$ and $T^{-}$ with outward normals $n^+$ and
-$n^-$ respectively, are defined for generic scalar fields $\alpha$ and
-vector fields $\beta$ as
+wherein $\Gamma_i$ denotes the interior edges of $\mathcal{T}_h$. The
+jump $\jump{\cdot}$ and average $\avg{\cdot}$ operators on an internal
+edge shared by elements $T^{+}$ and $T^{-}$ with outward normals $n^+$
+and $n^-$ respectively, are defined for generic scalar fields $\alpha$
+and vector fields $\beta$ as
 \begin{align}
   \jump{\alpha}&= \alpha^{+} n^{+} + \alpha^{-} n^{-}, \quad
   \jump{\beta}  = \beta^{+} \cdot n^{+} + \beta^{-} \cdot n^{-}, \\
@@ -330,7 +329,7 @@ We now turn to consider the diffusive term
 of~\eqref{vynnytska:eq:transdif} separately. Its standard variational
 form for a symmetric discontinuous Galerkin discretization with a
 stabilization penalty term is given by~\citep{Arnold1982,
-  KulkarniRovasTortorelli2007}
+KulkarniRovasTortorelli2007}
 \begin{equation}
   \label{vynnytska:eq:dgdiff}
   \begin{split}
@@ -349,11 +348,12 @@ where $\alpha$ is a sufficiently large constant, and $h_T$ is the size
 of element $T$. Here $\Gamma_e$ denotes the facets on the (exterior)
 boundary of the domain. These exterior terms drop when applying the
 boundary conditions for the compositional field and are included here
-merely for the sake of completeness.
-Combining~\eqref{vynnytska:eq:dgadv} and~\eqref{vynnytska:eq:dgdiff},
-we obtain the following spatially discrete variational formulation of
-the transport equation~\eqref{vynnytska:eq:transdif}: find
-$\phi_h \in P_h$ such that
+merely for the sake of
+completeness. Combining~\eqref{vynnytska:eq:dgadv}
+and~\eqref{vynnytska:eq:dgdiff}, we obtain the following spatially
+discrete variational formulation of the transport
+equation~\eqref{vynnytska:eq:transdif}: find $\phi_h \in P_h$ such
+that
 \begin{equation}
   \label{vynnytska:eq:semi_composition}
   \sum_{T \in \mathcal{T}_h} \int_T \frac{\partial \phi_h}{\partial t}\psi_h\dx
@@ -407,10 +407,10 @@ P_h$:
   \int_T \frac{T_h^{pr} - T_h^{k-1}}{\Delta t_k} \psi_h \dx
   + a_{A} (u^{k-1}; T_h^{pr}, \psi_h) + a_D (T_h^{pr}, \psi_h) = 0
 \end{equation}
- where $a_A$ and $a_D$ are defined
-by~\eqref{vynnytska:eq:dgadv} and~\eqref{vynnytska:eq:dgdiff}
-respectively. Later, the corrector step computes the corrected
-temperature $T_h^k$ by a Crank-Nicholson scheme
+where $a_A$ and $a_D$ are defined by~\eqref{vynnytska:eq:dgadv}
+and~\eqref{vynnytska:eq:dgdiff} respectively. Later, the corrector
+step computes the corrected temperature $T_h^k$ by a Crank-Nicholson
+scheme
 \begin{equation}
   \label{vynnytska:eq:corrector}
   \begin{split}
@@ -674,11 +674,11 @@ comments.
   the temporal loop using the
   formula~\eqref{vynnytska:eq:timestep}. The minimal mesh size is
   easily extracted using \code{mesh.hmin()} and the maximal value for
-  the velocity is extracted as the maximal degree of freedom from the
-  \code{numpy} array of degrees of freedom. Since the time step hence
-  varies in each iteration and with the mesh size, it is convenient to
-  use a \code{Constant} for its representation in order to avoid
-  recompilation of the variational forms at each iteration.
+  the velocity is extracted as the maximal degree of freedom from
+  the \code{numpy} array of degrees of freedom. Since the time step
+  hence varies in each iteration and with the mesh size, it is
+  convenient to use a \code{Constant} for its representation in order
+  to avoid recompilation of the variational forms at each iteration.
 \item
   The solutions for the composition, the temperature and the velocity
   are stored at each time using the \code{TimeSeries} class. This
@@ -951,7 +951,6 @@ $A$ to $M$, of the root-mean square velocity and refer to the driving
 forces in the model to explain these turning points. See the captions
 to Figures \ref{vynnytska:fig:BG} and \ref{vynnytska:fig:HM} for
 details.
-
 
 \begin{figure}[htbp]
   \begin{center}
