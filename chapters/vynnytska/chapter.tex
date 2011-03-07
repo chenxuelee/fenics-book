@@ -1,0 +1,1090 @@
+\fenicschapter{Dynamic simulations of convection in the Earth's mantle}
+              {Thermochemical convection}
+              {Lyudmyla Vynnytska,  Stuart R.~Clark and Marie E.~Rognes}
+              {vynnytska}
+
+\newcommand{\erf}{\mathrm{erf}}
+\newcommand{\expc}{\mathrm{erf}}
+\newcommand{\composition}{\phi}
+\newcommand{\test}{\psi}
+\newcommand{\triang}{\mathcal{T}}
+\newcommand{\jump}[1]{[[#1]]}
+\newcommand{\avg}[1]{\{#1\}}
+\newcommand{\code}[1]{$\texttt{#1}$}
+
+In this chapter, we model dynamic convection processes in the Earth's
+mantle: linking the geodynamical equations, numerical implementation
+and Python code tightly together. We start by giving a physical
+motivation and description of this challenging problem and continue by
+deriving its mathematical formulation. The time-dependent nonlinear
+partial differential equations to be solved are the quasi-static
+Navier--Stokes equations with depth- and temperature-dependent
+viscosities in combination with advection-diffusion equations for the
+compositional density variations and the temperature. Next, we present
+a numerical algorithm for the simulation of this scenario and an
+implementation of this algorithm using the DOLFIN Python
+interface. Finally, we discuss the results yielded by a simulation of
+this scenario and make some concluding remarks.
+
+%%------------------------------------------------------------------------------
+
+\section{Introduction}
+
+In contrast to the hydrosphere and atmosphere, the Earth's crust and
+mantle are primarily solid in nature, allowing the rapid progression
+of earthquakes through the elastic media.  However, one of the most
+important discoveries of geodynamics is that materials can behave
+elastically on certain timescales and viscously on other
+timescales. Glaciers work on this principle: solid ice slowly deforms
+and flows under the effect of gravity.  While glaciers move on the
+order of meters per day, the mantle moves at the speed of a few
+centimeters a year~\citep{vanderMeer2010}.  At this rate, a piece of
+the Earth's lithosphere, or slab, would take at least a hundred
+million years to sink from the Earth's surface to the outer
+core~\citep{Jarvis2007}.
+
+Blanketing the outer core, seismologists detect a layer through which
+seismic waves are anomalous slow: the D'' (\emph{dee} double prime)
+layer.  In some regions, this layer is very thin, overlain by fast
+zones that may indicate slabs buried deep within the
+mantle~\citep{McNamaraZhong2005}.  Underneath southern Africa and the
+Pacific, two prominent seismically anomalous slow regions exist,
+seemingly pointing to a hotter or compositionally denser
+material~\citep{McNutt1998}. Such heterogeneities have led
+geoscientists to speculate on the existence of large chemically
+isolated reservoirs in the mantle, perhaps a remnant from the early
+Earth's mantle~\citep{Burke2008}.  But how can these chemically
+isolated reservoirs survive in a vigorously convecting mantle?
+Geodynamicists have tried to answer this question with computer
+simulations of thermomechanical convection of a compositionally
+heterogeneous mantle, also known as thermochemical
+models~\citep{McNamara2010}. The challenge for geodynamicists is: can
+the assumptions made in matching the longevity of these reservoirs be
+consistent with seismic observations and the physics we know of the
+Earth's interior and plate tectonics?
+
+At a primary level, the observations we need to match are simply the
+transfer of matter between the Earth's interior and surface. At the
+surface of the Earth, tectonic plates are bent and pushed into the
+interior. In other places, we see large volcanic terranes created by
+material sourced from the Earth's mantle. To model the motion of the
+mantle over long timescales, the Navier-Stokes equations are well
+established in their ability to replicate this behavior, given the
+right assumptions, coupled with a conservation equation for the
+thermal energy in the mantle.
+
+%%------------------------------------------------------------------------------
+
+\section{Mathematical statement of the problem}
+\label{vynnytska:sec:maths}
+
+We model the problem in a rectangular box $\Omega$, neglecting the
+sphericity of the Earth, representing the mantle from the surface to
+the core-mantle boundary. The base of the box is covered by a
+relatively thin layer of denser material, while the initial
+temperature field is set to represent the colder lithosphere along the
+top and slab descending on the right hand-side; a hotter layer is
+imposed along the bottom and left to represent the hotter D'' layer
+and a plume ascending respectively following the boundary layer
+arguments of~\citet{KekenEtAl1997}. The idea is simply to create an
+initial configuration that drives the convection of the problem.
+\begin{figure}[htbp]
+  \begin{center}
+   \includegraphics[width=0.95\columnwidth]{chapters/vynnytska/figures/layout.png}
+    \caption{Initial configuration of the model in the $h$ by
+      $\lambda$ rectangular box $\Omega$. Color shows dimensionless
+      temperature (for dimensional values, see
+      Section \ref{vynnytska:sec:results}. The shaded layer on the
+      bottom with height $d$ is the denser layer corresponding to the
+      D'' layer.}
+  \end{center}
+\end{figure}
+
+The viscosity of the mantle, on the order of $10^{22}Pa~s$, is so high
+that the inertial forces and compressibility are
+negligible~\citep{Ricard2009}. If the assumption of compressibility is
+relaxed, the lower mantle can support piles of geochemically isolated
+material with sharp edges~\citep{TanGurnis2005}. However, for our
+purposes, we assume an incompressible thermal flow driven by
+temperature and compositional density variations modeled by the
+following nondimensional system of equations:
+\begin{align}
+  \label{vynnytska:eq:momentum}
+  - \Div \sigma^{\prime} - \Grad p
+  &=  \left( Rb \, \composition - Ra \, T \right) e,\\
+  \label{vynnytska:eq:incompress}
+  \Div u & =  0,\\
+  \label{vynnytska:eq:energy}
+  \frac{\partial T}{\partial t} + u \cdot \Grad T & =  \Delta T.
+\end{align}
+Here, $\sigma^{\prime}$ is the deviatoric stress tensor, $p$ is the
+pressure, $Ra$ and $Rb$ are the thermal and compositional Rayleigh
+numbers respectively, $T$ is the temperature, $\composition$ is a
+composition field, $u$ is the velocity, and $e$ is a unit vector in
+the direction of gravity. The Rayleigh numbers
+$Ra$ and $Rb$ are defined in terms of the thermal expansivity
+$\alpha$, the acceleration of gravity $g$, the reference density and
+viscosity $\rho_0$ and $\eta_0$, the temperature and density contrast
+between the two layers $\Delta T$ and $\Delta \rho$, the coefficient
+of thermal diffusion $k$, and the depth $h$ as
+\begin{equation}
+  Ra = \frac{\alpha g \rho_0 \Delta T h^3}{k \eta_0},  \quad
+  Rb = \frac{\Delta \rho g h^3}{k \eta_0}.
+\end{equation}
+
+The values of the parameters defining the Rayleigh numbers and
+dimensionalising the problem are given in
+Section \ref{vynnytska:sec:results}. The Rayleigh numbers, $Ra$ and
+$Rb$, are defined as equal and as $10^{-6}$ within the ranges for the
+Earth \citep{MontagueKelloggManga1998} and such that fluid convection
+dominates.
+
+The fluid flow induces transport of the composition
+$\composition$. This transport is governed by the equation
+\begin{equation}
+  \label{vynnytska:eq:trans}
+  \frac{\partial \composition}{\partial t} +  u \cdot \Grad \composition = 0.
+\end{equation}
+However, some chemical diffusivity $k_{ch}$ is also present in the physical
+system~\citep{KekenEtAl1997, HansenYuen1988}. Therefore, we substitute
+the pure advection equation~\eqref{vynnytska:eq:trans} by an
+advection-diffusion equation of the form
+\begin{equation}
+  \label{vynnytska:eq:transdif}
+  \frac{\partial \composition}{\partial t}
+  + u  \cdot \Grad \composition =  k_c \Delta \composition .
+\end{equation}
+This allows us to take chemical diffusivity into account. Here, $k_c =
+k_{ch}/k_{th}$.
+
+It remains to specify the constitutive relationship relating the
+deviatoric stress tensor $\sigma^{\prime}$ to the other
+variables. Here, we consider the case of a Newtonian rheology with a
+depth- and temperature-dependent viscosity
+$\eta$~\citep{BlankenbachBusse1989}. The stress-strain relationship is
+then described by the equations
+\begin{align}
+  \sigma^{\prime} &= 2 \eta \dot{\varepsilon} (u), \\
+  \dot{\varepsilon}(u) &= \frac{1}{2} \left (\Grad u + \Grad u^T \right),  \\
+  \eta &= \eta(T, x_2)
+  = \eta_0 \exp \left( -b T/\Delta T + c (1 - x_2)/ h \right) .
+\end{align}
+Here, $\dot {\varepsilon}$ is the strain rate tensor, $\eta_0$ is a
+base viscosity, $x_2$ is the second spatial coordinate, and $b$ and
+$c$ are given additional parameters.
+
+For the current scenario, we will consider the following boundary
+conditions. For the velocity $u$ and the deviatoric stress tensor
+$\sigma^{\prime}$, we apply no slip conditions on the bottom boundary
+($x_2 = 0$), and free slip and reflective symmetry on the remaining
+boundary $\Gamma = \partial \Omega \backslash \{x: x_2 = 0 \}$:
+\begin{align}
+  \label{vynnytska:eq:bcs}
+  u |_{x_2 = 0} = 0, \quad
+  u_n|_{\Gamma}  =  \sigma^{\prime}_{n \tau} |_{\Gamma} = 0,
+\end{align}
+where $n$ is the outward normal and $\tau$ is the tangent vector on
+the boundary $\partial \Omega$. For the temperature, we fix its value
+on the top and bottom boundary and apply symmetry conditions (or no
+heat exchange) on the left and right boundaries:
+\begin{align}
+  T |_{x_2 = 0} = \Delta T, \quad T |_{x_2 = h}  = 0, \quad
+  \partial_{x_1} T |_{x_1 = 0}  = \partial_{x_1} T |_{x_1 = \lambda} = 0.
+\end{align}
+For the composition $\composition$, we set
+\begin{align}
+  \composition |_{x_2 = 0} = 1, \quad \partial_{n} \composition|_{\Gamma} = 0,
+\end{align}
+i.e. we fix composition on the bottom of the box $\Omega$ and no flux
+conditions on the remainder of the boundary. This condition can be
+viewed as a consequence of the no outflow conditions for the velocity.
+
+The initial temperature field is given by $T_0$.
+Below~\eqref{vynnytska:eq:ic1} is an analytical expression based on
+the boundary layer theory~\citep{KekenEtAl1997} that take into account
+value for $Ra$ with the input from upper $T_u$, lower $T_l$, right
+$T_r$ and left $T_s$ parts of the domain:
+\begin{subequations}
+  \label{vynnytska:eq:ic1}
+  \begin{align}
+    T_0 &= T_u + T_l + T_r + T_s - 1.5, \\
+    q &= \frac{\lambda^{7/3}}{\left(1 + \lambda^4 \right)^{2/3}} \left( \frac{Ra}{2 \sqrt{\pi}}\right)^{2/3}, \quad Q  = 2\sqrt{\frac{\lambda}{\pi q}},   \\
+    T_u &= 0.5 \erf \left( \frac{1-x_2}{2} \sqrt{\frac{q}{x_1}  } \right), \\
+    T_l &= 1 - 0.5 \erf \left( \frac{x_2}{2} \sqrt{\frac{q}{\lambda - x_1}  } \right), \\
+    T_r &= 0.5 + \frac{Q}{2\sqrt{\pi}} \sqrt{\frac{q}{x_{2} + 1} } \expc \left( - \frac{x_1^2 q}{4 x_2 + 4} \right), \\
+    T_s &= 0.5 - \frac{Q}{2\sqrt{\pi}} \sqrt{\frac{q}{2 - x_{2}} } \expc \left( - \frac{ \left(\lambda - x_1 \right)^2  q}{8 - 4 x_2} \right).
+  \end{align}
+\end{subequations}
+In order to keep the initial tepmerature distribution in the range
+between $0$ and $1$ we performed additional correction. According to
+eqs.~\eqref{vynnytska:eq:ic1} there are two peaks: positive in the top
+right and negative in the bottom left corners.  We mapped all values
+below $0$ to $0$ and above $1$ to $1$.
+
+The initial composition $\composition$ is a step function equal to one
+on the bottom layer and to zero on the top layer.
+
+%%------------------------------------------------------------------------------
+
+\section{Numerical method}
+In this section, we present a numerical solution method for the
+thermochemical convection model established in the previous. Instead
+of solving the fully coupled system of nonlinear time-dependent
+partial differential equations, we consider a predictor-corrector
+based splitting scheme~\citep{BergKekenYuen1993,
+  HansenEbel1988}. Therefore, we first present the numerical methods
+for the solution of each separate equation before formulating the full
+algorithm. Special attention must be paid to the discretization of the
+energy~\eqref{vynnytska:eq:energy} and transport
+equations~\eqref{vynnytska:eq:trans} due to the interface between the
+compositionally distinct layers. For the Stokes
+equations~\eqref{vynnytska:eq:momentum}~--~\eqref{vynnytska:eq:incompress},
+we use a mixed finite element formulation, thus obtaining solutions
+for the velocity and pressure simultaneously.
+
+\subsection{Mixed finite element formulation of the Stokes equations}
+
+Let $\triang_h$ be a mesh partitioning of the domain $\Omega$. Let
+$V_h$ and $Q_h$ be finite dimensional spaces, defined relative to the
+partition $\triang_h$, for the velocity and pressure fields
+respectively. The standard discrete mixed finite element formulation
+with independent approximation of the (continuous) velocity field $u$
+and the pressure field $p$ for the incompressible Stokes
+equations~\eqref{vynnytska:eq:momentum}~--~\eqref{vynnytska:eq:incompress}
+with the boundary conditions given by~\eqref{vynnytska:eq:bcs} reads
+as follows~\citep{ZienkiewiczTaylor2000}. For a given temperature
+$T_h$ and composition $\composition_h$, find $u_h \in V_h$ and $p_h
+\in Q_h$ such that
+\begin{equation}
+  \label{vynnytska:eq:mixed}
+  a_{IS} ( (u_h, p_h), (v_h, q_h) ) = L_{IS} ( (v_h, q_h) )
+\end{equation}
+for all $v_h \in V_h$ and all $q_h \in Q_h$ where
+\begin{align}
+  a_{IS} ( (u_h, p_h), (v_h, q_h) )
+  & =
+  \int_{\Omega} 2 \eta \dot {\varepsilon}(u_h)  \cdot \dot {\varepsilon}(v_h)
+  + p_h \Div v_h + q_h \Div u_h \dx, \\
+  L_{IS} ( (v_h, q_h) ) &=
+  \int_{\Omega} ( Ra T_h - Rb \composition_{h} ) e \cdot v_h  \dx.
+\end{align}
+In the subsequent simulations, we use the lowest order Taylor--Hood
+elements for the velocity and the pressure; that is, the combination
+of continuous piecewise quadratic vector fields for $V_h$ and
+continuous piecewise linears for $Q_h$~\citep{TaylorHood1973}.
+
+\subsection{Discontinuous Galerkin formulation of advection--diffusion equations}
+
+The energy and transport equations~\eqref{vynnytska:eq:energy}
+and~\eqref{vynnytska:eq:transdif} have the same structure from the
+mathematical point of view. The equations both model the time
+evolution of advection-diffusion processes. The numerical analysis of
+these can therefore be performed by the same numerical
+scheme. However, the numerical treatment of advection dominated
+advection--diffusion equations is nontrivial. There exists a large
+body of research on the development of efficient computational schemes
+for such kinds of
+problems~\citep{Lin2006},~\citep{ZienkiewiczTaylor2000}.  Within the
+finite element setting, there are two main approaches: Petrov-Galerkin
+approximation and discontinuous Galerkin methods. Here, we prefer a
+discontinuous Galerkin method due to a straightforward and apparent
+reason, namely its potential for dealing effectively with
+discontinuous property fields. In the following, we describe an
+upwinded discontinuous Galerkin formulation for the
+equation~\eqref{vynnytska:eq:transdif} for the compositional field
+$\composition$. This formulation also applies for the energy
+equation~\eqref{vynnytska:eq:energy} with $k_c = 1$. For the sake of
+clarity, we consider the discretization of~\eqref{vynnytska:eq:trans}
+separately first.
+
+Using full upwind numerical flux and taking into consideration that
+the normal component of velocity is equal to zero on the boundary, the
+spatial discontinuous finite element discretization
+of~\eqref{vynnytska:eq:trans} with a given $u_h$ reads
+as~\citep{PietroLoForteParolini2006}: find $\composition_h \in P_h$
+such that
+\begin{equation}
+  \sum_{T \in \Omega_h} \int_T \frac{\partial \composition_h}{\partial t} \test_h
+  \dx + a_{A} (u_h; \composition_h, \test_h) = 0,
+\end{equation}
+for all $\test_h \in P_h$. Here
+\begin{equation}
+  \label{vynnytska:eq:dgadv}
+   a_{A} (u_h; \composition_h, \test_h )
+   =
+   - \sum_{T \in \triang_h} \int_T \composition_h u_h \cdot \Grad \test_h \dx
+   + \sum_{e \in \Gamma_i} \int_{e} \left (
+   u_h \cdot \jump{\test_h} \avg{\composition_h} + \frac{1}{2}
+   | u_h \cdot n | \jump{\test_h} \jump{\composition_h} \right ) \ds,
+\end{equation}
+wherein $\Gamma_i$ denotes the interior edges of $\triang_h$. The jump
+$\jump{\cdot}$ and average $\avg{\cdot}$ operators on an internal edge
+shared by elements $T^{+}$ and $T^{-}$ with outward normals $n^+$ and
+$n^-$ respectively, are defined for generic scalar fields $\alpha$ and
+vector fields $\beta$ as
+\begin{align*}
+  \jump{\alpha}&= \alpha^{+} n^{+} + \alpha^{-} n^{-}, \quad
+  \jump{\beta}  = \beta^{+} \cdot n^{+} + \beta^{-} \cdot n^{-}, \\
+  \avg{\alpha} &= \frac{1}{2} \left( \alpha^{+} + \alpha^{-} \right), \quad
+  \avg{\beta}   = \frac{1}{2} \left( \beta^{+} + \beta^{-} \right), \\
+  \alpha^{\pm}  &= \alpha |_{T^{\pm}}, \quad
+  \beta^{\pm}    = \beta |_{T^{\pm}}.
+\end{align*}
+
+We now turn to consider the diffusive term
+of~\eqref{vynnytska:eq:transdif} separately. Its standard variational
+form for a symmetric discontinuous Galerkin discretization with a
+stabilization penalty term is given by~\citep{Arnold1982,
+  KulkarniRovasTortorelli2007}
+\begin{equation}
+  \label{vynnytska:eq:dgdiff}
+  \begin{split}
+    a_D(\composition_h, \test_h)
+    =
+    \sum_{T \in \triang_h} \int_T k_c \Grad \composition_h \cdot \Grad \test_h \dx
+    + \sum_{e \in \Gamma_i \cup \Gamma_e}
+    \int_{e} - \avg{k_c \Grad \composition_h} \cdot \jump{\test_h} \ds \\
+    + \sum_{e \in \Gamma_i} \int_{e} \left(
+    - \{ k_c \Grad \test_h\} \cdot \jump{\composition_h}
+    + \frac{\alpha k_c}{h_T} \jump{\composition_h} \cdot \jump{\test_h}
+    \right) \ds
+  \end{split}
+\end{equation}
+where $\alpha$ is a sufficiently large constant, and $h_T$ is the size
+of element $T$. Here $\Gamma_e$ denotes the facets on the (exterior)
+boundary of the domain. These exterior terms drop when applying the
+boundary conditions for the compositional field and are included here
+merely for the sake of completeness.
+Combining~\eqref{vynnytska:eq:dgadv} and~\eqref{vynnytska:eq:dgdiff},
+we obtain the following spatially discrete variational formulation of
+the transport equation~\eqref{vynnytska:eq:transdif}: find
+$\composition_h \in P_h$ such that
+\begin{equation}
+  \label{vynnytska:eq:semi_composition}
+  \sum_{T \in \triang_h} \int_T \frac{\partial \composition_h}{\partial t}\test_h\dx
+  + a_{A} (u_h; \composition_h, \test_h) + a_D(\composition_h, \test_h) = 0.
+\end{equation}
+for all $\test_h \in P_h$ where $P_h$ is a finite element space of
+discontinuous piecewise polynomial fields, and correspondingly for the
+temperature $T_h$. In the subsequent simulations, we will let $P_h$ be
+the space of (discontinuous) piecewise linears defined relative to the
+partition $\triang_h$.
+
+\subsection{A decoupling predictor-corrector scheme}
+
+Instead of solving the fully coupled (nonlinear) system of equations
+defined
+by~\eqref{vynnytska:eq:momentum}~--~\eqref{vynnytska:eq:incompress},
+\eqref{vynnytska:eq:energy}, and \eqref{vynnytska:eq:transdif}, we
+turn to the use of a splitting scheme. In particular, we consider a
+predictor--corrector scheme~\citep{BergKekenYuen1993, HansenEbel1988}
+for the temperature $T$ in combination with a filtering algorithm for
+the composition $\composition$. The filtering algorithm is aimed at
+correcting property fields from numerical diffusion and dispersion
+errors, and is motivated and described in detail
+by~\citet{LenardicKaula1993}.
+
+Before outlining the algorithm, we make some comments on the temporal
+discretization of~\eqref{vynnytska:eq:semi_composition} and the
+corresponding equation for the
+temperature. Rewriting~\eqref{vynnytska:eq:semi_composition} as
+\begin{equation}
+  \frac{\partial r}{\partial t} = W,
+\end{equation}
+the common $\theta$-scheme for the simulation of $r$'s evolution from
+time $k-1$ to time $k$ with time step $\Delta t_k$ reads:
+\begin{align}
+  \label{vynnytska:eq:thetascheme}
+  \frac{r^k - r^{k-1}}{\Delta t_k} = \theta W^k + (1 - \theta) W^{k-1}.
+\end{align}
+The choice $\theta = 1$ corresponds to the implicit Euler scheme while
+$\theta = 0.5$ corresponds to the Crank-Nicholson scheme. The
+predictor--corrector scheme draws on the Crank-Nicholson scheme in
+using a two-step procedure. Taking the energy equation for the
+temperature as an example, assuming that the temperature at the
+previous time $T_h^{k-1}$ and the previous velocity $u_h^{k-1}$ are
+known, the predictor step computes a predicted temperature $T_h^{pr}
+\in P_h$ solving the implicit Euler equations for all $\test_h \in
+P_h$:
+\begin{equation}
+  \label{vynnytska:eq:predictor}
+  \sum_{T \in \triang_h}
+  \int_T \frac{T_h^{pr} - T_h^{k-1}}{\Delta t_k} \test_h \dx
+  + a_{A} (u^{k-1}; T_h^{pr}, \test_h) + a_D (T_h^{pr}, \test_h) = 0
+\end{equation}
+ where $a_A$ and $a_D$ are defined
+by~\eqref{vynnytska:eq:dgadv} and~\eqref{vynnytska:eq:dgdiff}
+respectively. Later, the corrector step computes the corrected
+temperature $T_h^k$ by a Crank-Nicholson scheme
+\begin{equation}
+  \label{vynnytska:eq:corrector}
+  \begin{split}
+    \sum_{T \in \triang_h}
+    \int_T \frac{T_h^k - T_h^{k-1}}{\Delta t_k} \test_h \dx
+    &+ 0.5 \left( a_{A} (u_h^{pr}; T_h^{k}, \test_h)
+    + a_D (T_h^{k}, \test_h) \right) \\
+    &+ 0.5 \left( a_{A} (u_h^{k-1}; T_h^{k-1}, \test_h)
+    + a_D (T_h^{k-1}, \test_h) \right) = 0
+  \end{split}
+\end{equation}
+but using a predicted velocity $u_h^{pr}$, which will be further
+specified in the detailed algorithm, see
+Algorithm~\ref{vynnytska:alg:algorithm}.
+\begin{algorithm}
+  \begin{tabbing}
+    Initialize temperature $T^0$ and composition $\phi^0$. \\
+    Compute initial velocity $v^0$ by
+    solving~\eqref{vynnytska:eq:mixed} with $T^0$ and $\phi^0$. \\
+    Compute time step $\Delta t_1$ from $v^0$ according
+    to~\eqref{vynnytska:eq:timestep}. \\
+    \textbf{for}  {$k = 1, \dots, n$}. \\
+    \tab (1) Solve~\eqref{vynnytska:eq:predictor} to obtain $T_h^{pr}$. \\
+    \tab (2) Solve (the composition equivalent
+    of)~\eqref{vynnytska:eq:predictor} to obtain $\composition_h^{pr}$. \\
+    \tab (3) Filter predicted composition $\composition_h^{pr}$ to
+    obtain $\composition_h^{k}$. \\
+    \tab (4) Solve~\eqref{vynnytska:eq:mixed} with $T_h^{pr}$ and
+    $\composition_h^{k}$ as input to obtain $u_h^{pr}$. \\
+    \tab (5) Solve~\eqref{vynnytska:eq:corrector} to obtain $T_h^{k}$. \\
+    \tab (4) Solve~\eqref{vynnytska:eq:mixed} with $T_h^{k}$ and
+    $\composition_h^{k}$ as input to obtain $u_h^{k}$. \\
+    \tab (6) Compute new time step $\Delta t_{k+1}$ according
+    to~\eqref{vynnytska:eq:timestep}. \\
+    \textbf{end for}
+  \end{tabbing}
+  \caption{A predictor--corrector algorithm}
+  \label{vynnytska:alg:algorithm}
+\end{algorithm}
+
+We shall here consider a variable time step in order to satisfy a
+CFL-type stability condition. In particular, we define each time step
+$\Delta t_k$ by the formula
+\begin{align}
+   \label{vynnytska:eq:timestep}
+   \Delta t =  C_{CFL} h_{min} / \max{|u^{k-1}|}
+\end{align}
+where $h_{\min}$ is the minimal cell size of the mesh and $C_{CFL}$ is
+a chosen positive number.
+
+We end this section by outlining the filtering algorithm used for the
+composition. The basic idea of this algorithm is to ensure that
+$\composition$ remains in its initial boundaries, i.e. $0 \leq
+\composition \leq 1$, and to minimize dispersion error.  We refer the
+reader to~\citet{LenardicKaula1993} for the detailed explanation and
+here give the outline of the algorithm for a discrete property field
+$\composition = \{\composition_i \}_{i}$
+\begin{algorithm}
+  \begin{tabbing}
+  (1) Compute initial sum $S_0$ of all values of $\composition$. \\
+  (2) Find minimal value $\composition_{\min}$ below 0. \\
+  (3) Find maximal value $\composition_{\max}$ above 1. \\
+  (4) Assign to $\composition_i \leq | \composition_{\min} |$ value 0. \\
+  (5) Assign to $\composition_i \geq 2 - \composition_{\max} $ value 1. \\
+  (6) Compute sum $S_1$ of all values of $\composition$. \\
+  (7) Compute the number $num$ of $0 < \composition_j < 1$. \\
+  (8) Add $dist = (S_1 - S_0)/num$ to all $ 0 < \composition_j < 1$.
+  \end{tabbing}
+  \caption{A property filtering algorithm}
+  \label{vynnytska:alg:filtering}
+\end{algorithm}
+
+%%------------------------------------------------------------------------------
+
+\section{Implementation}
+
+In this section, we discuss the main structure of the implementation
+of the numerical scheme described above and in particular in
+Algorithm~\ref{vynnytska:alg:algorithm}. We also focus on the
+structure of the code for the definition of the separate variational
+problems. The complete code is available from $\dots$.
+
+\subsection{Main algorithm}
+\begin{figure}
+  \begin{center}
+    \begin{python}
+# Functions at previous time step (and initial conditions)
+(phi_, T_, u_, P) = compute_initial_conditions()
+
+# Containers for storage
+velocity_series = TimeSeries("bin/velocity")
+temperature_series = TimeSeries("bin/temperature")
+composition_series = TimeSeries("bin/composition")
+
+# Solver for the Stokes systems
+solver = KrylovSolver("tfqmr", "amg_ml")
+...
+while (t <= finish):
+
+    # Solve for predicted temperature
+    (a, L) = energy(mesh, Constant(dt), u_, T_)
+    eq = VariationalProblem(a, L, T_bcs)
+    eq.parameters["solver"]["linear_solver"] = "gmres"
+    eq.solve(T_pr)
+
+    # Solve for predicted phi
+    (a, L) = transport(mesh, Constant(dt), u_, phi_)
+    eq = VariationalProblem(a, L, bc)
+    eq.parameters["solver"]["linear_solver"] = "gmres"
+    eq.solve(phi_pr)
+
+    # Filter predicted phi (in place)
+    filter_properties(phi_pr)
+    phi.assign(phi_pr)
+
+    # Solve for predicted velocity
+    H = Ra*T_pr - Rb*phi_pr
+    eta = viscosity(T_pr)
+    (a, L, precond) = stokes(mesh, eta, H*g)
+    (A, b) = assemble_system(a, L, bcs)
+    solver.set_operators(A, P)
+    solver.solve(velocity_pressure.vector(), b)
+    u_pr.assign(velocity_pressure.split()[0])
+
+    # Solve for corrected temperature T
+    (a, L) = energy_correction(mesh, Constant(dt), u_pr, u_, T_)
+    eq = VariationalProblem(a, L, T_bcs)
+    eq.parameters["solver"]["linear_solver"] = "gmres"
+    eq.solve(T)
+
+    # Solve for corrected velocity
+    H = Ra*T - Rb*phi
+    eta = viscosity(T)
+    (a, L, precond) = stokes(mesh, eta, H*g)
+    (A, b) = assemble_system(a, L, bcs)
+    solver.set_operators(A, P)
+    solver.solve(velocity_pressure.vector(), b)
+    u.assign(velocity_pressure.split()[0])
+
+    # Store stuff
+    composition_series.store(phi.vector(), t)
+    temperature_series.store(T.vector(), t)
+    velocity_series.store(u.vector(), t)
+
+    # Define dt based on CFL condition
+    dt = compute_timestep(u)
+
+    # Move to new timestep, including updating functions
+    phi_.assign(phi)
+    T_.assign(T)
+    u_.assign(u)
+    t += dt
+    \end{python}
+    \caption{Abridged code for the main predictor-corrector algorithm,
+      see Algorithm~\ref{vynnytska:alg:algorithm}. The initialization
+      of the mesh \code{mesh}, the viscous and chemical parameters and
+      the boundary conditions are omitted. The solution fields are
+      consistently named \code{T}, \code{u}, and \code{phi} for
+      solutions at the current time; \code{T\_}, \code{u\_}, and
+      \code{phi\_} for fields at the previous time; and \code{T\_pr},
+      \code{u\_pr}, and \code{phi\_pr} for predictor fields. These
+      \code{Functions} are all initialized (but not included here).
+
+      First, the initial conditions are constructed. This involves the
+      solution of a Stokes system for the initial velocity \code{u\_},
+      and in particular the construction of a preconditioner matrix
+      \code{P}. Since the matrix is to be reused, the initial
+      condition computation also return this matrix. Next,
+      \code{TimeSeries} objects are initialized for easy storage of
+      the solutions at each time. The \code{KrylovSolver} can also be
+      reused in each iteration and is therefore created outside the
+      loop.
+
+      The contents of the loop follow steps (1) -- (6) of
+      Algorithm~\ref{vynnytska:alg:algorithm}. First, the predicted
+      temperature \code{T\_pr} must be computed. This is done is 4
+      sub-steps: the forms for the variational problem are created;
+      the forms are passed together with the boundary conditions to a
+      \code{VariationalProblem}; the type of linear solver is set for
+      the problem; and the problem is solved. Next, the same steps are
+      performed for the predicted composition \code{phi\_pr}. The
+      predicted composition is then filtered (in place) and also
+      assigned to \code{phi}.
+
+      Using the predicted temperature and filtered composition, the
+      source term and viscosity for the Stokes equations are defined,
+      and then the variational Stokes form is created. In order to
+      retain the symmetry of the matrix under the application of
+      Dirichlet boundary conditions, the linear system is assembled
+      and solved explicitly. This consists of calling the method
+      \code{assemble\_system}, updating the \code{KrylovSolver} with
+      the current operators \code{A} and \code{P}, and applying the
+      solver to the right-hand side vector. The procedure is repeated
+      for the corrected temperature and again for the corrected Stokes
+      system.
+
+      Finally, the solution fields at the current time are stored, the
+      new time step \code{dt} is computed based on the current velocity
+      and the current solutions are assigned to the previous time as
+      we step forward in time.}
+    \label{vynnytska:fig:mainalgorithm}
+  \end{center}
+\end{figure}
+
+The main body of the implementation consists of the temporal loop
+defined in Algorithm~\ref{vynnytska:alg:algorithm}. An abridged
+version of this code is listed in
+Figure~\ref{vynnytska:fig:mainalgorithm}, and explained in detail in
+the corresponding caption.  As the filtering step is straightforward
+to implement based on the algorithm described in
+Algorithm~\ref{vynnytska:alg:filtering}, we will not comment any
+further on this aspect. Below, we make some general observations and
+comments.
+\begin{itemize}
+\item
+  In each iteration, five variational problems are solved. First, a
+  predicted temperature is computed based on the velocity and the
+  temperature from the previous time step. Next, a tentative
+  composition is computed based on the velocity and the composition
+  from the previous time step. This composition is then filtered using
+  the filtering algorithm as described in
+  Algorithm~\ref{vynnytska:alg:filtering}. With the filtered
+  composition and the predicted temperature, we solve for a predicted
+  velocity and pressure. We next solve for a corrected temperature by
+  solving the Crank-Nicholson system with the predicted velocity, and
+  the velocity and the temperature from the previous time step. The
+  Stokes system is then solved again, this time with the filtered
+  composition and the corrected temperature as input to yield the
+  corrected velocity and pressure at this time step.
+\item
+  The advection-diffusion problems for the predicted composition, and
+  the predicted and corrected temperature depend on the velocity at
+  the previous and current current time. Analogously, the Stokes
+  equations for the predicted and corrected velocity depend on the
+  predicted and corrected composition and temperatures through the
+  viscosity and the source terms. The linear systems of equations
+  therefore have to be assembled (in addition to solved) at each
+  time. For simplicity, we therefore generate the variational forms
+  describing the equations and define a new \code{VariationalProblem}
+  for each of these problems at each time. The compute time used for
+  this is insignificant in comparison with the time required for the
+  solution of the linear systems.
+\item
+  The linear systems resulting from the equations for the composition
+  and the temperature are positive definite but not symmetric. These
+  are therefore solved iteratively using a standard generalized
+  minimal residual solver ("gmres"). For the simulations considered in
+  the subsequent section, these solvers converge in $4 - 10$
+  iterations.  On the other hand, the linear systems resulting from
+  the Stokes equations are symmetric but
+  indefinite. Non-preconditioned iterative solvers typically fail to
+  converge for such systems, while direct solvers are prohibitively
+  (memory) expensive. These systems therefore require
+  preconditioning. Following Chapter~\ref{chap:mardal-4}, we here take
+  advantage of a standard Stokes preconditioner. Although the
+  viscosities vary, we use the same preconditioner at each
+  time. Hence, we can assemble the preconditioner matrix outside the
+  loop and reuse it and the Krylov solver in each iteration.
+\item
+  The time step \code{dt} is computed adaptively in each iteration of
+  the temporal loop using the
+  formula~\eqref{vynnytska:eq:timestep}. The minimal mesh size is
+  easily extracted using \code{mesh.hmin()} and the maximal value for
+  the velocity is extracted as the maximal degree of freedom from the
+  \code{numpy} array of degrees of freedom. Since the time step hence
+  varies in each iteration and with the mesh size, it is convenient to
+  use a \code{Constant} for its representation in order to avoid
+  recompilation of the variational forms at each iteration.
+\item
+  The solutions for the composition, the temperature and the velocity
+  are stored at each time using the \code{TimeSeries} class. This
+  class allows for easy storage and retrieval of meshes and solution
+  vectors. Moreover, it naturally encourages a decoupling of the
+  simulation and the post-processing of the simulation data. This can
+  be highly advantageous especially for computations with significant
+  run times.
+\end{itemize}
+In the subsections below, we discuss the definition of each of the
+variational forms and problems and an implementational structure for
+these.
+
+\subsection{Variational formulation of the Stokes equations}
+
+The mixed variational formulation for the Stokes equations is
+classical and listed in Figure~\ref{vynnytska:fig:stokes}. The
+definition of the bilinear and linear forms rely only on the mesh, the
+viscosity $\eta$ and a source vector field $f$, which in our case
+takes the form $f = (Ra T_h - Rb \composition_h) e$
+cf~\eqref{vynnytska:eq:mixed}. In particular, as the rheology
+considered is Newtonian and the viscosity thus does not depend on the
+velocity, the actual definition of the viscosity can be treated
+separately. Since the preconditioner for this system relies on the
+same function spaces and basis functions, we define the form for the
+preconditioner together with the variational forms describing the
+differential equation.
+\begin{figure}
+  \begin{python}
+def stokes(mesh, eta, f):
+
+    # Define spatial discretization (Taylor--Hood)
+    V = VectorFunctionSpace(mesh, "CG", 2)
+    Q = FunctionSpace(mesh, "CG", 1)
+    W = V * Q
+
+    # Define basis functions
+    (u, p) = TrialFunctions(W)
+    (v, q) = TestFunctions(W)
+
+    # Define equation F((u, p), (v, q)) = 0
+    F = (2.0*eta*inner(sym(grad(u)), sym(grad(v)))*dx
+         + div(v)*p*dx
+         + div(u)*q*dx
+         + inner(f, v)*dx)
+
+    # Define form for preconditioner
+    precond = inner(grad(u), grad(v))*dx + p*q*dx
+
+    # Return right and left hand side and preconditioner
+    return (lhs(F), rhs(F), precond)
+  \end{python}
+  \caption{Definition of variational forms for the Stokes equations
+    and the corresponding preconditioner. The Taylor--Hood mixed
+    finite element space is defined by combining Lagrange vector
+    elements of polynomial order 2 with Lagrange elements of order
+    1. The equation is phrased in the style $F(\cdot, \cdot) = 0$, and
+    the form for the preconditioner is defined using the same basis
+    functions. The left- and right-hand side forms are extracted using
+    the UFL functions \code{lhs} and \code{rhs}.}
+  \label{vynnytska:fig:stokes}
+\end{figure}
+
+\subsection{Variational formulation of advection-diffusion equations}
+
+In the implementation of the variational forms for the
+advection-diffusion problems, we emphasized the following
+points. First, the variational forms for the predictor step of both
+the temperature and the composition are the same (modulo a different
+value of the diffusivity and possibly penalty constant).  Second, the
+predictor and the corrector steps for the temperature involve the same
+mathematical building blocks. Third, discontinuous Galerkin methods
+often involve quite a number of terms and the combined forms may
+easily become intractable. In view of these aspects, a minimal (as in
+highly reused) code close to mathematical syntax seemed preferable.
+
+To this end, the implementation mimics the structure defined
+by~\eqref{vynnytska:eq:dgadv},~\eqref{vynnytska:eq:dgdiff}, and
+\eqref{vynnytska:eq:thetascheme}. The pure advection form $a_A$ and
+the pure diffusion form $a_D$ are defined through separate python
+functions. The code for these are listed in
+Figures~\ref{vynnytska:fig:advection}
+and~\ref{vynnytska:fig:diffusion} and explained in their captions. The
+implementation of the weak forms for the predictor equation for the
+composition and the predictor and corrector equations for the
+temperature then build on these basic functions. The code for the
+corrector equation is included and discussed
+in~Figure~\ref{vynnytska:fig:temperaturecorrection}. The code for the
+predictor equations is similar and simpler and therefore not discussed
+here.
+
+\begin{figure}
+  \begin{center}
+    \begin{python}
+def advection(phi, psi, u, n, theta=1.0):
+
+    # Define |u * n|
+    un = abs(dot(u('+'), n('+')))
+
+    # Contributions from cells
+    a_cell = - theta*dot(u*phi, grad(psi))*dx
+
+    # Contribution from interior facets
+    a_int = theta*(dot(u('+'), jump(psi, n))*avg(phi)
+                   + 0.5*un*dot(jump(phi, n), jump(psi, n)))*dS
+
+    return a_cell + a_int
+    \end{python}
+    \caption{Definition of an upwinded discontinuous Galerkin
+      formulation of the advection term. The input consists of
+      \code{phi} and \code{psi} (typically functions or basis
+      functions), a given velocity \code{u}, a facet normal \code{n}
+      and an optional scalar multiplier \code{theta}. The absolute
+      value of the normal component of \code{u} is defined and the
+      contributions from the cell integrals and facet integrals are
+      defined in accordance with~\eqref{vynnytska:eq:dgadv}. The sum
+      of the contributions is returned.}
+    \label{vynnytska:fig:advection}
+  \end{center}
+\end{figure}
+\begin{figure}
+  \begin{center}
+    \begin{python}
+def diffusion(phi, psi, k_c, alpha, n, h, theta=1.0):
+
+    # Contribution from the cells
+    a_cell = theta*k_c*dot(grad(phi), grad(psi))*dx
+
+    # Contribution from the interior facets
+    a_int = theta*(k_c('+')*alpha('+')/h('+')*dot(jump(phi, n), jump(psi, n))
+                   - k_c('+')*dot(avg(grad(psi)), jump(phi, n))
+                   - k_c('+')*dot(jump(psi, n), avg(grad(phi))))*dS
+
+    return a_cell + a_int
+    \end{python}
+    \caption{Definition of a discontinuous Galerkin formulation of the
+      diffusion term. The input consists of \code{phi} and \code{psi}
+      (typically functions or basis functions), the diffusivity
+      constant \code{k\_c}, a stabilization parameter \code{alpha}, a
+      facet normal \code{n}, the cell size \code{h}, and an optional
+      scalar multiplier \code{theta}. The contributions from the cell
+      integrals and facet integrals are defined
+      following~\eqref{vynnytska:eq:dgdiff}. The sum of the
+      contributions is returned.}
+    \label{vynnytska:fig:diffusion}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \begin{python}
+def energy_correction(mesh, dt, u, u_, T_):
+
+    # Define function space and test and trial functions
+    P = FunctionSpace(mesh, "DG", 1)
+    T = TrialFunction(P)
+    psi = TestFunction(P)
+
+    # Diffusivity constant
+    k_c = Constant(1.0)
+
+    # Constants associated with DG scheme
+    alpha = Constant(50.0)
+    h = CellSize(mesh)
+    n = FacetNormal(mesh)
+
+    # Define discrete time derivative operator
+    Dt =  lambda T: (T - T_)/dt
+
+    # Add syntactical sugar for advection and diffusion terms
+    a_A = lambda u, T, psi: advection(T, psi, u, n, theta=0.5)
+    a_D = lambda u, T, psi: diffusion(T, psi, k_c, alpha, n, h, theta=0.5)
+
+    # Define form
+    F = Dt(T)*psi*dx + a_A(u, T, psi) + a_A(u_, T_, psi) \
+        + a_D(u, T, psi) + a_D(u_, T_, psi)
+
+    return (lhs(F), rhs(F))
+    \end{python}
+    \caption{Definition of variational forms for one correction step
+      for the temperature, see~\eqref{vynnytska:eq:corrector}. The
+      input is the mesh, the time step \code{dt}, two given velocities
+      \code{u} and \code{u\_}, and (typically) a previous temperature
+      \code{T\_}. We define the function space of (discontinuous)
+      piecewise linears, the unknown temperature \code{T} and the test
+      function \code{psi}. The diffusivity constant \code{k\_c} is in
+      this case $1.0$. We define the penalty parameter \code{alpha}
+      and also the cell normal \code{n} and mesh size \code{h} to be
+      used in the advection and diffusion forms.
+
+      We use \code{lambda} functions to reduce the number of input
+      arguments to the advection and diffusion functions. This is in
+      part merely syntactical, but does also increase readability and
+      facilitates debugging. The input to the functions \code{a\_A}
+      and \code{a\_D} thus directly corresponds to the arguments of
+      $a_A$ and $a_D$.
+
+      The equation is again phrased in the style $F(\cdot, \cdot) =
+      0$. The reader is encouraged to compare the code with the
+      mathematical formulation of the equation,
+      cf.~\eqref{vynnytska:eq:corrector}. Finally, the left- and
+      right-hand side forms are extracted using the UFL functions
+      \code{lhs} and \code{rhs}.}
+    \label{vynnytska:fig:temperaturecorrection}
+  \end{center}
+\end{figure}
+
+%%------------------------------------------------------------------------------
+
+\section{Results}
+\label{vynnytska:sec:results}
+
+The equations presented in Section \ref{vynnytska:sec:maths} are
+dimensionalised using the physical parameters in
+Table \ref{vynnytska:table:variables}.
+\begin{table}[htbp]
+\caption{Specification of parameters and parameter values.}
+  \begin{tabular}{l c r r}
+    Parameter & & Dimensional  & Dimensionless  \\
+              &  & value & value\\
+    \toprule
+    Box height & $h$ & $3000km$ & $1.0$\\
+    Box length & $\lambda$ & $6000km$ & $2.0$ \\
+    Boundary layer thickness & $d$ & $150km$ & $0.15$ \\
+    Acceleration due to gravity & $g$ & $10m/s^2$ & $1.0$ \\
+    Thermal contrast & $\Delta T$ & $3000K$ & $1.0$ \\
+    Thermal expansivity & $\alpha$ & $2 \times 10^{-5}K^{-1}$ & \\
+    Thermal diffusivity & $k_{th}$ & $10^{-6}m^{2}/s$ & \\
+    Chemical diffusivity & $k_{ch}$ & $10^{-10}m^{2}/s$ & \\
+    Reference density & $\rho_{0}$ & $3100kg/m^{3}$ & $0.0$ \\
+    Density contrast & $\Delta \rho $ & $185kg/m^{3}$ & $1.0$ \\
+    Reference viscosity & $\eta_{0}$ & $5 \times 10^{22} Pa \cdot s$ & $1.0$ \\
+    Thermal Rayleigh number & $Ra$ & $1 \times 10^{6}$ & $ 1 \times 10^{6}$\\
+    Chemical Rayleigh number & $Rb$ & $1 \times 10^{6}$ & $1 \times 10^{6}$\\
+    Velocity & $u_s$ & $6 \times 10^{-13} m/s$& $1.0$ \\
+    Time & $t_s$ & $5 \times 10^{18} s$& $1.0$ \\
+    \bottomrule
+\end{tabular}
+\label{vynnytska:table:variables}
+\end{table}
+
+Scaling parameters for time, $t_s$, and velocity, $u_s$, are obtained
+as follows:
+\begin{align}
+ \label{vynnytska:eq:velsc}
+ t_s = \frac{\rho_0 \eta_0}{h g}, \quad t_s = \frac{h}{u_s}.
+\end{align}
+The vigour of convection in the model domain is determined by the
+kinematic energy of the fluid, given by:
+\begin{align}
+\label{vynnytska:eq:KE}
+E_{K} = \frac{1}{2}\int_{\Omega}\rho \Vert \bm{u} \Vert^{2}dx.
+\end{align}
+Since the variation in density is small, $\rho$ can be taken out of
+the integral, and by defining the root-mean square velocity, $u_{rms}$
+by:
+\begin{align}
+\label{vynnytska:eq:u_rms}
+u_{rms} =\left( \frac{1}{\lambda h} \int_{\Omega} \Vert \bm{u} \Vert^{2} d\bm{x}  \right)^{1/2},
+\end{align}
+we have the relationship:
+\begin{align}
+  \label{vynnytska:eq:KEu_rms}
+  E_{K} = \frac{1}{2} \rho \lambda h u_{rms}^{2}.
+\end{align}
+Thus, $u_{rms}$ is a scaled measure of the kinematic energy of
+convection. For the discussion of the results, we will use Figure
+\ref{vynnytska:fig:rms_velocity} to describe the local turning points,
+$A$ to $M$, of the root-mean square velocity and refer to the driving
+forces in the model to explain these turning points. See the captions
+to Figures \ref{vynnytska:fig:BG} and \ref{vynnytska:fig:HM} for
+details.
+
+
+\begin{figure}[htbp]
+  \begin{center}
+   \includegraphics[width=0.95\columnwidth]{chapters/vynnytska/figures/rms_velocity.png}
+    \caption{Dimensionless root mean square velocity over
+    dimensionless time. $A$ to $M$ are labels used to refer to stages
+    in the model.}
+  \end{center}
+\label{vynnytska:fig:rms_velocity}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\begin{tabular}{c c l}
+Temperature & Viscosity \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmB.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visB.png} & $B$ \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmC.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visC.png} & $C$ \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmD.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visD.png} & $D$ \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmE.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visE.png} & $E$ \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmF.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visF.png} & $F$ \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmG.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visG.png} & $G$ \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmleg.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visleg.png} &
+\end{tabular}
+\end{center}
+\label{vynnytska:fig:BG}
+\caption{Dimensionless temperature and viscosity for turning points
+  $A$ to $G$, with composition barrier shown in white. The initial
+  condition drives the system's high velocity from point $A$, but as
+  the cold surface material (slab) reaches the deeper mantle, there is
+  a retardation of the flow, towards $B$. The rising hot material
+  (plume) during the stage $A$ to $B$ drives lateral flow of the
+  surface causing cold material to build up until $B$. From $B$ to $C$
+  this cold material begins to rapidly sink, increasing $u_{rms}$
+  until it is slowed by the increasing viscosity at $C$. However, the
+  slab's downward motion has created a thermal instability at the base
+  of the model, which rises between $C$ and $D$ increasing $u_{rms}$
+  again. The pace of the material slows as the plume necks between $D$
+  and $E$ and the compositional density of the remaining material
+  prevents it from rising further. A small plume rises from the left
+  side of the base, increasing the $u_{rms}$ briefly. Between $E$ and
+  $G$ short-lived plumes and slabs are generated from the bottom and
+  top boundary layers, causing small instabilities in the root-mean
+  square velocity.}
+\end{figure}
+\begin{figure}[htbp]
+\begin{center}
+\begin{tabular}{c c l}
+Temperature & Viscosity \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmH.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visH.png} & $H$ \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmI.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visI.png} & $I$ \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmJ.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visJ.png} & $J$ \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmK.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visK.png} & $K$ \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmL.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visL.png} & $L$ \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmM.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visM.png} & $M$ \\
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/tmleg.png} &
+\includegraphics[width=0.45\columnwidth]{chapters/vynnytska/figures/visleg.png} &
+\end{tabular}
+\end{center}
+\label{vynnytska:fig:HM}
+\caption{Continued from \ref{vynnytska:fig:BG}, temperature and
+  viscosity for points $H$ to $M$. During the stage $G$-$H$, a second
+  slab forms and the two downwellings merge increasing the root-mean
+  square velocity rapidly. From $H$, the downwelling is impeded by the
+  higher viscosity at depth, reducing $u_{rms}$ until $I$. Then a
+  plume arising from the bottom left rises more rapidly through the
+  lower viscosities of the upper mantle until $J$. Between $J$ and
+  $K$, no new up- or downwellings occur, retarding the root-mean
+  square velocity. From $K$ to $L$ a new plume increases the kinetic
+  energy in the model, then pushes material laterally from underneath
+  the top boundary layer until a slab begins to sink at the edge from
+  $M$, increasing the velocity again.}
+\end{figure}
+
+%%------------------------------------------------------------------------------
+
+\section{Conclusion}
+
+The results presented above show the mantle convecting with two
+distinct chemicalayers: plumes arise from atop piles on the bottom
+denser layer, but are not compositionally distinct. The location of
+these piles is initially set by the thermally dense slabs. Slabs
+collapsing into the mantle drive the largest changes in the system
+energy, while plumes drive smaller increases because of the
+composition counteracting the thermal buoyancy. The upwellings and
+downwellings react: slabs rapidly sinking cause upwellings to form;
+the lateral motion of upwellings at the top pushes and thickens the
+top layer, causing it to become unstable and sink. As the system
+evolves, colder slab material builds up at the bottom, increasing the
+viscosity of the lower mantle, while the reverse happens in the upper
+mantle.
+
+The code required for this simulation has been included almost in its
+entirety. We can conclude that the amount of code required to
+implement such a problem within the FEniCS framework is quite
+small. Moreover, the code for the variational problems closely matches
+the mathematical formulation of the problems, and thus the complexity
+of the code scales with the complexity of the numerical algorithm.
+The numerical simulations presented here are spatially two-dimensional
+and serve as a simplified model. Realistic three-dimensional
+simulations would require taking advantage of the parallel, and
+possibly more sophisticated adaptive, features of the FEniCS
+project. However, such would not require significant additional
+problem-specific implementational effort.
+
+We would like to stress that compositional variation which is
+presented in the considered problem requires solving
+equation~\eqref{vynnytska:eq:transdif}.  Solving this equation is
+challanging for numerical schemes as requires tracking of sharp
+interfaces.  Field, markers and marker chain approaches are proposed
+in the literature to trace compositional
+discontinuities~\cite{IsmailZadehTackley2010}. We used field approach
+to represent compositional heterogenity which is easily implemented by
+the means of DG FEM. Additionally, filtering scheme is implemented in
+order to minimize numerical dispersion error which is the main
+disadvantage of the field approach.
+
+%%------------------------------------------------------------------------------
+
