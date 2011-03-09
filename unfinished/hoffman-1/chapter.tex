@@ -1,11 +1,9 @@
-\fenicschapter{Turbulent Flow and Fluid-Structure Interaction \\ with Unicorn}
-              {Turbulent Flow and Fluid-Structure Interaction with Unicorn}
+\fenicschapter{Turbulent Flow and Fluid-Structure Interaction}
+              {Turbulent Flow and Fluid-Structure Interaction}
               {Johan Hoffman, Johan Jansson, Niclas Jansson, Claes Johnson and Rodrigo Vilela De Abreu}
               {hoffman-1}
 
-\editornote{Remove ``with Unicorn'' from title for consistent naming with other chapters?}
-
-\section{Introduction}
+\section{Background}
 
 For many problems involving a fluid and a structure, decoupling the computation of the two is
 not feasible for accurate modeling of the phenomenon at hand, instead the full fluid-structure interaction (FSI) problem
@@ -45,9 +43,9 @@ The standard way to model the effect of turbulent boundary layers is to divide t
 The wall shear stress model in Unicorn takes a similar form as the simple Shumann model \cite{Schumann1975}, with the tangential velocity proportional to the local wall shear stress through a skin friction parameter (or function) $\beta$. That is, the following boundary conditions are used for the velocity $u$ and stress $\sigma$:
 \begin{eqnarray}
 &&u\cdot n=0, \label{slfra} \\
-&&u\cdot \tau _k + \beta ^{-1}n^T\sigma \tau _k=0,\quad k=1,2, \label{slfrb}
+&&\beta u\cdot \tau _k + n^T\sigma \tau _k=0,\quad k=1,2, \label{slfrb}
 \end{eqnarray}
-for  $(x,t)\in \Gamma_{solid}\times [0,T]$, with $n=n(x)$ an outward unit normal vector, and $\tau_k=\tau_k(x)$ orthogonal unit tangent vectors of $\Gamma_{solid}$. Matrix notation is used, with all vectors $v$ being column vectors and the corresponding row vector is denoted $v^T$. The non-penetration boundary condition is applied strongly, whereas a weak implementation is used for the wall shear stress boundary condition, see Fig.\ref{code:ICNS}.
+for  $(x,t)\in \Gamma_{solid}\times [0,T]$, with $n=n(x)$ an outward unit normal vector, and $\tau_k=\tau_k(x)$ orthogonal unit tangent vectors of $\Gamma_{solid}$. Matrix notation is used, with all vectors $v$ being column vectors and the corresponding row vector is denoted $v^T$. The non-penetration boundary condition is applied strongly, whereas a weak implementation is used for the wall shear stress boundary condition.
 
 \section{Adaptivity and a posteriori error estimation}
 
@@ -62,7 +60,7 @@ Using standard techniques of a posteriori error analysis, an a posteriori error 
 with $M(u)$ the target output to compute and $M(U)$ the approximation, with $U$ a G2 solution, and ${\cal E}_K$ a local error indicator for cell $K$.
 The error indicator ${\cal E}_K$ is constructed from the residual, measuring local errors,
 weighted by the solution to a dual (adjoint) problem measuring the effect of local errors
-on the output $M(\cdot)$. An implementation of the dual problem in Unicorn is shown in Fig.\ref{code:DUALICNS}, based on the cG(1)cG(1) method described in \cite{HoffmanJohnson2007}. The computational mesh is then modified according to $ {\cal E}_K$, by mesh refinement, coarsening or smoothing.
+on the output $M(\cdot)$. The implementation of the dual problem in Unicorn is based on the cG(1)cG(1) method described in \cite{HoffmanJohnson2007}. The computational mesh is then modified according to $ {\cal E}_K$, by mesh refinement, coarsening or smoothing.
 
 Adaptive G2 methods (also referred to as Adaptive DNS/LES) have been used in a number of turbulent flow computations to a very low computational cost \cite{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,Hoffman2009,HoffmanJansson2009,VilelaJanssonEtAl2010}, where convergence is obtained in output quantities such as drag, lift and pressure coefficients and Strouhal numbers, using orders of magnitude fewer numbers of mesh points than with LES methods based on ad hoc refined computational meshes in the literature.
 
@@ -74,203 +72,8 @@ Another approach is to formulate the fluid and the structure as one single conti
 
 The computational mesh is made to follow the deformation of the structure, and in the fluid part mesh smoothing is used to optimize the mesh quality, corresponding to an ALE method for the combined fluid-structure continuum.
 In Unicorn, UC-FSI is implemented based on a continuous piecewise linear approximation in space and time, and a simple streamline diffusion stabilization is used, similar to the method in \cite{Hansbo2000}.
-The code is shown in Fig.~\ref{code:UC}, see \cite{HoffmanJanssonEtAl2009} for details on the method.
+See \cite{HoffmanJanssonEtAl2009} for details on the method.
 
-
-\begin{figure}[!h]
-\center{
-{
-\footnotesize
-\begin{python}
-
-
-scalar = FiniteElement("Lagrange", tetrahedron, 1)
-vector = VectorElement("Lagrange", tetrahedron, 1)
-constant_scalar = FiniteElement("Discontinuous Lagrange", tetrahedron, 0)
-constant_vector = VectorElement("Discontinuous Lagrange", tetrahedron, 0)
-
-v      = TestFunction(vector)      # test basis function
-U      = TrialFunction(vector)     # trial basis function
-um     = Function(vector)          # cell mean linearized velocity
-u0     = Function(vector)          # velocity from previous time step
-f      = Function(vector)          # force term
-p      = Function(scalar)          # pressure
-delta1 = Function(constant_scalar) # stabilization parameter
-delta2 = Function(constant_scalar) # stabilization parameter
-tau_1  = Function(vector)          # force term
-tau_2  = Function(vector)          # force term
-beta  = Function(scalar)           # friction parameter
-
-k  = Constant(tetrahedron) # time step
-nu = Constant(tetrahedron) # viscosity
-
-i0 = Index()    # index for tensor notation
-i1 = Index()    # index for tensor notation
-i2 = Index()    # index for tensor notation
-
-# Galerkin discretization of bilinear form
-G_a  = (inner(v, U) + k*nu*0.5*inner(grad(v), grad(U)) \
-   	+ 0.5*k*v[i0]*um[i1]*U[i0].dx(i1))*dx \
-  	 + 0.5*k*beta*(inner(U,tau_1)*inner(v,tau_1) \
-  	 + inner(U,tau_2)*inner(v,tau_2))*ds
-
-# Least squares stabilization of bilinear form
-SD_a = (delta1*k*0.5*um[i1]*v[i0].dx(i1)*um[i2]*U[i0].dx(i2) \
-           + delta2*k*0.5*div(v)*div(U))*dx
-
-# Galerkin discretization of linear form
-G_L  = (inner(v, u0) + k*inner(v, f) + k*div(v)*p \
-          - k*nu*0.5*inner(grad(v), grad(u0)) \
-          - 0.5*k*v[i0]*um[i1]*u0[i0].dx(i1))*dx \
-          - 0.5*k*beta*(inner(u0,tau_1)*inner(v,tau_1) \
-          + inner(u0,tau_2)*inner(v,tau_2))*ds
-
-# Least squares stabilization of linear form
-SD_L = (- delta1*k*0.5*um[i1]*v[i0].dx(i1)*um[i2]*u0[i0].dx(i2) \
-           - delta2*k*0.5*div(v)*div(u0))*dx
-
-# Bilinear and linear forms
-a = G_a + SD_a
-L = G_L + SD_L
-
-
-\end{python}
-}}
-\caption{FIXME: UPDATE CODE
-Source code for bilinear and linear forms for solving the incompressible Navier-Stokes equations.
-}
-\label{code:ICNS}
-\end{figure}
-
-
-\begin{figure}[!h]
-\center{
-{
-\footnotesize
-\begin{python}
-
-
-
-scalar = FiniteElement("Lagrange", tetrahedron, 1)
-vector = VectorElement("Lagrange", tetrahedron, 1)
-constant_scalar = FiniteElement("Discontinuous Lagrange", tetrahedron, 0)
-constant_vector = VectorElement("Discontinuous Lagrange", tetrahedron, 0)
-
-v      = TestFunction(vector)      # test basis function
-U      = TrialFunction(vector)     # trial basis function
-um     = Function(vector)          # primal velocity
-u0     = Function(vector)          # velocity from previous time step
-f      = Function(vector)          # force term
-p      = Function(scalar)          # pressure
-delta1 = Function(constant_scalar) # stabilization parameter
-delta2 = Function(constant_scalar) # stabilization parameter
-
-k  = Constant(cell)	# time step
-nu = Constant(cell) # viscosity
-
-up     = Function(vector) # cell mean linearized primal velocity
-
-i0 = Index()    # index for tensor notation
-i1 = Index()    # index for tensor notation
-i2 = Index()    # index for tensor notation
-
-# Galerkin discretization of bilinear form
-G_a  = (inner(v, U) + k*nu*0.5*inner(grad(v), grad(U)) \
-          - 0.5*k*v[i0]*up[i1]*U[i0].dx(i1) \
-          + 0.5*k*v[i0]*up[i1].dx(i0)*U[i1])*dx
-# Least squares stabilization of bilinear form
-SD_a = (delta1*k*0.5*um[i1]*v[i0].dx(i1)*um[i2]*U[i0].dx(i2) \
-        + delta1*k*0.5*up[i1].dx(i0)*v[i1]*up[i2].dx(i0)*U[i2] \
-        + delta2*k*0.5*div(v)*div(U))*dx
-
-# Galerkin discretization of linear form
-G_L  = (inner(v, u0) + k*inner(v, f) + k*div(v)*p \
-          - k*nu*0.5*inner(grad(v), grad(u0)) \
-          + 0.5*k*v[i0]*up[i1]*u0[i0].dx(i1) \
-          - 0.5*k*v[i0]*up[i1].dx(i0)*u0[i1])*dx
-# Least squares stabilization of linear form
-SD_L = (- delta1*k*0.5*um[i1]*v[i0].dx(i1)*um[i2]*u0[i0].dx(i2) \
-        - delta1*k*0.5*up[i1].dx(i0)*v[i1]*up[i2].dx(i0)*u0[i2] \
-        - delta2*k*0.5*div(v)*div(u0))*dx
-
-# Bilinear and linear forms
-a = G_a + SD_a
-L = G_L + SD_L
-
-
-
-
-\end{python}
-}}
-\caption{FIXME: UPDATE CODE
-Source code for bilinear and linear forms for solving the dual incompressible Navier-Stokes equations.
-}
-\label{code:DUALICNS}
-\end{figure}
-
-\begin{figure}[!h]
-\center{
-{
-\footnotesize
-\begin{python}
-
-
-def tomatrix(q):
-    return [ [q[d * i + j] for i in range(d)] for j in range(d) ]
-
-def ugradu(u, v):
-    return [dot(u, grad(v[i])) for i in range(d)]
-
-def epsilon(u):
-    return 0.5 * (grad(u) + transp(grad(u)))
-
-def E(e, mu, lmbda):
-    Ee = mult(2.0 * mu, e) + mult(lmbda, mult(trace(e), Identity(d)))
-    return Ee
-
-UPale = UP - WP
-UPalem = UPm - WPm
-
-sigmaM = tomatrix(sigma)
-
-Sf = mult(P, Identity(d)) - mult(nu, grad(UP))
-Ss = mult(P, Identity(d)) - mult(1.0, sigmaM)
-S = mult(phi, Sf) + mult(1.0 - phi, Ss)
-
-def f(u, v):
-    return -(dot(ugradu(UPale, u), v) - dot(S, grad(v))) + \
-        -dot(mult(d2, div(u)), div(v)) + \
-        -mult(d1, dot(ugradu(UPalem, u), ugradu(UPalem, v))) + \
-        dot(mult(1.0 - phi, ff), v)
-
-def dfdu(u, k, v):
-    return -dot(ugradu(UPale, u), v) + \
-        -mult(1 - phi, mult(k, dot(E(epsilon(u), mu, lmbda), grad(v)))) + \
-        -mult(phi, mult(nu, dot(grad(u), grad(v)))) + \
-        -mult(d2, dot(div(u), div(v))) + \
-        -mult(d1, dot(ugradu(UPalem, u), ugradu(UPalem, v)))
-
-# cG(1)
-def F(u, u0, k, v):
-    uc = mult(0.5, u + u0)
-    return (-dot(u, v) + dot(u0, v) + mult(k, f(uc, v)))
-
-def dFdu(u, u0, k, v):
-    uc = mult(0.5, u)
-    return (-dot(u, v) + mult(k, dfdu(uc, k, v)))
-
-a = (dFdu(U1, U0, k, v)) * dx
-L = (dFdu(UP, U0, k, v) - F(UP, U0, k, v)) * dx
-
-
-
-\end{python}
-}}
-\caption{FIXME: UPDATE CODE
-Source code for bilinear and linear forms for a unified continuum model.
-}
-\label{code:UC}
-\end{figure}
 
 \section{Applications}
 

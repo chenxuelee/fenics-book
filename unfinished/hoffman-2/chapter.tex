@@ -3,7 +3,7 @@
               {Cem Degirmenci, Johan Hoffman, Johan Jansson, Niclas Jansson and Murtazo Nazarov}
               {hoffman-2}
 
-\section{Introduction}
+\section{Background}
 
 Unicorn is solver technology (models, methods, algorithms and software
 implementations) with the goal of automated simulation of realistic
@@ -131,7 +131,7 @@ denoted as $D_{x_i} f_j = \nabla f_j$. Repeated indices denote a sum:
 $D_{x_i} f_i = \sum_{i=1}^d D_{x_i} f_i = \nabla \cdot f$. Similarly
 we can express derivatives with respect to any variable: $D_u u = 1$.
 %------------------------------------------------------------------------------
-\section{Unified Continuum modeling}
+\section{Unified continuum modeling}
 
 % Intro (explain mesh motion)
 
@@ -155,9 +155,11 @@ indicator function used to determine which constitutive equation and
 material parameters to use. Note that in this continuum description
 the coordinate system is fixed (Euler), and a phase function
 (indicator) is convected according to the phase convection
-equation. However, since we typically choose to move the mesh with the
-continuum velocity in the case of a solid phase, one can think of
-this as an ALE method.
+equation. However, since we typically choose to also move the mesh
+(basis functions move in time) one can think of this as an ALE
+method. Specifically we move the mesh with the continuum velocity in
+the case of a solid phase to eliminate diffusion of the phase
+interface.
 
 We define two variants of this model: incompressible and compressible,
 where a future aim is to construct a unified
@@ -169,7 +171,7 @@ considered).
 We start with a model for conservation of mass, momentum and energy,
 together with a convection equation for a phase function $\theta$ over
 a space-time domain $Q = \Omega \times [0, T]$ with $\Omega$ an open
-domain in $R^3$ with boundary $\Gamma$:
+domain in $\mathbb{R}^3$ with boundary $\Gamma$:
 \begin{equation}
   \addtolength{\fboxsep}{5pt}
   \boxed{
@@ -192,22 +194,22 @@ stress component $\sigma$ and other variables such as the velocity
 $u$. 
 
 We define incompressibility in the usual way as:
-\begin{align*}
+\begin{align}
 D_t \rho + u_j D_{x_j} \rho &= 0
-\end{align*}
+\end{align}
 
 which together with mass and momentum conservation gives:
-\begin{align*}
+\begin{align}
 \rho(D_t u_i + u_j D_j u_i) &= D_{x_j} \sigma_{ij}\\
 D_{x_j} u_j &= 0
-\end{align*}
+\end{align}
 where now the energy equation is decoupled and we omit it for simplicity.
 
 We decompose the total stress into constitutive and forcing stresses:
-\begin{align*}
+\begin{align}
 D_{x_j} \sigma_{ij} = D_{x_j} \sigma_{ij} + D_{x_j} \sigma^f_{ij} =
 D_{x_j} \sigma_{ij} + f_i
-\end{align*}
+\end{align}
 
 Summarizing, we end up with the incompressible UC formulation:
 \begin{equation}
@@ -247,16 +249,16 @@ multi-phase) problems, rather than to one component at a time, with
 unclear strategy how to combine them. We believe this is a unique
 method/software system in this respect.
 
-\section{Space-time General Galerkin discretization}
+\section{Space-time general galerkin discretization}
 
 Adaptive G2 methods (also referred to as Adaptive DNS/LES) have been used in a number of turbulent flow computations to a very low computational cost \cite{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,Hoffman2009,HoffmanJansson2009,VilelaJanssonEtAl2010}, where convergence is obtained in output quantities such as drag, lift and pressure coefficients and Strouhal numbers, using orders of magnitude fewer numbers of mesh points than with LES methods based on ad hoc refined computational meshes in the literature. 
 
 We begin by describing the standard FEM applied to the model to
 establish basic notation, and proceed to describe streamline diffusion
-stabilization and local ALE map over a mesh $T^h$ with mesh size h
+stabilization and local ALE map over a mesh $T^h$ with mesh size $h$
 together with adaptive error control based on duality.
 
-\subsection{Standard Galerkin}
+\subsection{Standard galerkin}
 
 We begin by formulating the standard cG(1)cG(1) FEM
 \cite{ErikssonEstepHansboEtAl1996} with piecewise continuous linear solution in time
@@ -265,11 +267,11 @@ and space for \ref{eq:TotalModel} by defining the exact solution: $w =
 test function $v = [v^u, v^p, v^\theta]$ and the residual $R(W) =
 [R_u(W), R_p(W), R_\theta(W)]$:
 
-\begin{align*}
+\begin{align}
   R_u(W) &= \rho(D_t U_i + U_j D_{x_j} U_i) - D_{x_j} S_{ij} - f_i\\
   R_p(W) &= D_{x_j} U_j\\
   R_\theta(W) &= D_t \Theta + U_j D_{x_j} \Theta
-\end{align*}
+\end{align}
 
 where $R(w) = 0$ and $S$ denotes a discrete piecewise constant
 stress. 
@@ -281,11 +283,11 @@ space and piecewise constant discontinuous functions in time and
 $(\cdot,\cdot)$ denotes the space-time $L_2$ inner product over Q. We
 thus have the weak formulation:
 
-\begin{align*}
+\begin{align}
   (R^u(W), v^u) &= (\rho(D_t U_i + U_j D_j U_i) - f_i, v^u_i) + (S_{ij}, D_{x_j} v^u_i) - \int_{t_{n-1}}^{t_n}\int_\Gamma S_{ij} v^u_i n_j ds dt = 0\\
   (R^p(W), v^p) &= (D_{x_j} U_j, v^p) = 0\\
   (R^\theta(W), v^\theta) &= (D_t \Theta + u_j D_{x_j} \Theta, v^\theta) = 0
-\end{align*}
+\end{align}
 
 for all $v \in V_h$, where the boundary term on $\Gamma$ arising from
 integration by parts vanishes if we assume a homogenous Neumann
@@ -309,13 +311,16 @@ low order basis functions are thus sufficient.
 
 If the phase function $\Theta$ has different values on the same cell
 it would lead to an undesirable diffusion of the phase interface. By
-introducing a local ALE coordinate map \cite{ErikssonEstepHansboEtAl1996} on
-each discrete space-time slab based on a given mesh velocity (i.e. the
-material velocity of one of the phases) we can define the phase
-interface at cell facets, allowing the interface to stay
-discontinuous. We describe the details of the coordinate map and its
-influence on the FEM discretization
-in \cite{HoffmanJanssonLoggEtAl2009}. The resulting discrete UC equations are:
+introducing a local ALE coordinate
+map \cite{ErikssonEstepHansboEtAl1996} (see space-time meshes in
+section ``The characterictic Galerkin method'') to describe moving
+basis functions on each discrete space-time slab based on a given mesh
+velocity (i.e. the material velocity of one of the phases) we can
+define the phase interface at cell facets, allowing the interface to
+stay discontinuous. We describe the details of the coordinate map and
+its influence on the FEM discretization
+in \cite{HoffmanJanssonLoggEtAl2009}. The resulting discrete UC
+equations are:
 \begin{equation}
 \begin{split}\label{eq:ALE}
 R_u(W) &= \rho(D_t U_i + (U_j - \beta^h_j) D_{x_j} U_i) - D_{x_j} S_{ij} - f_i\\
@@ -328,7 +333,7 @@ R_\theta(W) &= D_t \Theta + (U_j - \beta^h_j) D_{x_j} \Theta
 with $\beta^h_j$ the mesh velocity.
 
 We thus choose the mesh velocity $\beta_h$ to be the discrete material
-velocity U in the structure part of the mesh (vertices touching
+velocity $U$ in the structure part of the mesh (vertices touching
 structure cells) and in the rest of the mesh we use mesh smoothing to
 determine $\beta_h$ to maximize the mesh quality according to a chosen
 objective, alternatively use local mesh modification operations
@@ -351,44 +356,38 @@ stabilization avoids unnecessary smearing of shear layers as the
 stabilization is not based on large ($\approx h^{-\frac{1}{2}}$) cross flow
 derivatives). For the UC model the stabilized method thus looks like:
 
-\begin{align*}
+\begin{align}
   (R^u(W), v^u) &= (\rho(D_t U_i + U_j D_j U_i) - f_i, v^u_i) + (S_{ij}, D_{x_j} v^u_i) + SD^u(W, v^u) = 0\\
   (R^p(W), v^p) &= (D_{x_j} U_j, v^p) + SD^p(W, v^p) = 0
-\end{align*}
+\end{align}
 for all $v \in V_h$, and:
-\begin{align*}
+\begin{align}
   SD^u(W, v^u) &= \delta_1 (U_j D_j U_i, U^u_j D_j v^u_i) +
   \delta_2 (D_{x_j} U_j, D_{x_j} v^u_j)\\
   SD^p(W, v^p) &= \delta_1 (D_{x_i} P, D_{x_i} v^p)
-\end{align*}
+\end{align}
 
 where we only include the dominating stabilization terms to reduce
 complexity in the formulation.
 
-\subsection{Unicorn/FEniCS software implementation}
+\subsection{Unicorn software implementation}
 
 We implement the G2 discretization of the UC (including adaptive error
 control) in a general interface for time-dependent PDE where we give
 the forms $a(U, v) = (D_U F_U, v)$ and $L(v) = (F_U, v)$ for
 assembling the linear system given by Newton's method for a time step
 for the incompressible UC with Newtonian fluid constitutive equation
-in figure \ref{code:FFC_UC}. The language used is the FEniCS Form
-Compiler (FFC) \cite{KirbyLogg2006} form notation. In the adaptive error
-control, we similarly represent residuals as forms in the form
-language, which then allows us to compute error indicators using basic
-programming constructs.
+in figure \ref{code:FFC_UC}. The language used is the
+UFL \cite{KirbyLogg2006} form notation. In the adaptive error control,
+we similarly represent residuals as forms in the form language, which
+then allows us to compute error indicators using basic programming
+constructs.
 
 An overview of the interfaces and implementations of the Unicorn data
 structures and algorithms are presented below.
 
 \begin{figure}[!h]
 \center{
-\lstset{language=Python,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
- keywordstyle=\ttfamily\color{OliveGreen},
- identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
- commentstyle=\color{Brown},
- stringstyle=\ttfamily,
- showstringspaces=ture}
 
 \begin{python}
 
@@ -488,31 +487,29 @@ incompressible fluid formulations. These are used to verify that the
 general {\tt UCSolver} does not introduce performance overhead or
 implementation errors.
 
-\lstset{language=C++,frame=ltrb,framesep=5pt,basicstyle=\scriptsize,
- keywordstyle=\ttfamily\color{OliveGreen},
- identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
- commentstyle=\color{Brown},
- stringstyle=\ttfamily,
- showstringspaces=true}
-
 \begin{figure}[!p]
 \begin{c++}
 /// Unicorn implementation for the inc. UC model
-class UCSolver : public TimeDependentPDE, public MeshAdaptInterface
+class UCSolver :
+  public TimeDependentPDE, public MeshAdaptInterface
 {
 public:
-  /// Constructor: give boundary conditions, coefficients
-  UCSolver(Function& U, Function& U0, Function** bisect,
-           Mesh& mesh, Array <BoundaryCondition*>& bc_mom,
+  /// Constructor: give boundary conditions,
+  /// coefficients
+  UCSolver(Function& U, Function& U0,
+           Function** bisect, Mesh& mesh,
+           Array <BoundaryCondition*>& bc_mom,
            Array <BoundaryCondition*>& bc_con,
            Function** f, real T, real nu,
            real mu, real rho_f, real rho_s,
-           real u_bar, TimeDependent& t, PDEData* pdedata);
+           real u_bar, TimeDependent& t,
+           PDEData* pdedata);
 
   /// Prescribe mesh size for MeshAdaptInterface
   virtual void updateSizeField();
 
-  /// Allocate/deallocate PDE data for dynamic mesh adaptivity
+  /// Allocate/deallocate PDE data for dynamic mesh
+  /// adaptivity
   virtual void allocateAndComputeData();
   virtual void deallocateData();
 
@@ -525,7 +522,7 @@ public:
   void computeP();
   void computeStress();
 
-  // Compute initial theta
+  /// Compute initial theta
   void computeTheta0();
 
   /// From TimeDependentPDE: time-stepping control
@@ -534,7 +531,8 @@ public:
   void preparestep();
   void prepareiteration();
 
-  /// Assemble time step residual (L)/ right hand side of Newton
+  /// Assemble time step residual (L)/ right hand side
+  /// of Newton
   void rhs(const Vector& x, Vector& dotx, real T);
 
   /// Compute initial value
@@ -543,18 +541,20 @@ public:
   /// Save solution/output quantities
   void save(Function& U, real t); 
 
-  /// Compute least-squares stabilization parameter (delta)
+  /// Compute least-squares stabilization parameters
+  /// (delta)
   void computeStabilization(Mesh& mesh, Function& w,
-			    real nu, real k, real t,
-			    Vector& d1vector, Vector& d2vector);
+                            real nu, real k, real t,
+                            Vector& d1vector,
+                            Vector& d2vector);
 
   /// Deform/move mesh
   void deform(Mesh& mesh, Function& W, Function& W0);
 
-  /// Smooth/optimize quality of all or part of the mesh
+  /// Smooth/optimize quality of all or part of the
+  /// mesh
   void smoothMesh(bool bAdaptive);
 }
-
 \end{c++}
 \caption{
 C++ class interface for the Unicorn solver: UCSolver.
@@ -564,56 +564,61 @@ C++ class interface for the Unicorn solver: UCSolver.
 
 
 
-\lstset{language=Python,frame=ltrb,framesep=5pt,basicstyle=\scriptsize,
- keywordstyle=\ttfamily\color{OliveGreen},
- identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
- commentstyle=\color{Brown},
- stringstyle=\ttfamily,
- showstringspaces=ture}
 \begin{figure}[!p]
 \begin{python}
-(v1, v2, v3) = TestFunctions(TH)  # test basis function
-(rho, m, e) = TrialFunctions(TH)  # trial basis function
-(rho0, m0, e0) = Functions(TH)    # solution from previous time step
+(v1, v2, v3) = TestFunctions(TH) 
+(rho, m, e) = TrialFunctions(TH)
+(rho0, m0, e0) = Functions(TH)
 ...
-# S prefix denotes stabilization: a1_a is Galerkin, S1_a is stabilization
+# S prefix denotes stabilization:
+# a1_a is Galerkin, S1_a is stabilization
 
 # Bilinear form for density
 a1_a = v1*rho*dx - k*0.5*dot(grad(v1),u)*rho*dx + \
  k*0.5*v1*rho*udotnormal*ds
-S1_a = k*0.5*delta*dot(grad(v1),U)*dot(U, grad(rho))*dx + \
+S1_a = k*0.5*delta*dot(grad(v1),U)* \
+ dot(U, grad(rho))*dx + \
  k*0.5*nu_rho*dot(grad(v1),grad(rho))*dx
 
 # Linear form for the density
 a1_L = v1*rho0*dx + k*0.5*dot(grad(v1),u)*rho0*dx - \
  k*0.5*v1*rho0*udotnormal*ds
-S1_L = - k*0.5*delta*dot(grad(v1),U)*dot(U, grad(rho0))*dx - \
+S1_L = - k*0.5*delta*dot(grad(v1),U)* \
+ dot(U, grad(rho0))*dx - \
  k*0.5*nu_rho*dot(grad(v1),grad(rho0))*dx
 
 a2_a, S2_a, a2_L, S2_L = 0, 0, 0, 0
 
 for i in range(0, d):
  # Bilinear form for momentum m_i
- a2_a += v2[i]*m[i]*dx - k*0.5*dot(grad(v2[i]),u)*m[i]*dx + \
+ a2_a += v2[i]*m[i]*dx - \
+  k*0.5*dot(grad(v2[i]),u)*m[i]*dx + \
   k*0.5*v2[i]*m[i]*udotnormal*ds
- S2_a += k*0.5*delta*dot(grad(v2[i]),U)*dot(U, grad(m[i]))*dx + \
+ S2_a += k*0.5*delta*dot(grad(v2[i]),U)* \
+  dot(U, grad(m[i]))*dx + \
   k*0.5*nu_m[i]*dot(grad(v2[i]),grad(m[i]))*dx
-
+    
  # Linear form for the momentum
- a2_L += v2[i]*m0[i]*dx + k*0.5*dot(grad(v2[i]),u)*m0[i]*dx + \
-  k*v2[i].dx(i)*P*dx - k*0.5*v2[i]*m0[i]*udotnormal*ds
- S2_L += -k*0.5*delta*dot(grad(v2[i]),U)*dot(U, grad(m0[i]))*dx - \
+ a2_L += v2[i]*m0[i]*dx + \
+  k*0.5*dot(grad(v2[i]),u)*m0[i]*dx + \
+  k*v2[i].dx(i)*P*dx - \
+  k*0.5*v2[i]*m0[i]*udotnormal*ds
+ S2_L += -k*0.5*delta* \
+  dot(grad(v2[i]),U)*dot(U, grad(m0[i]))*dx - \
   k*0.5*nu_m[i]*dot(grad(v2[i]),grad(m0[i]))*dx
 
 # Bilinear form for energy
-a3_a = v3*e*dx - k*0.5*dot(grad(v3),u)*e*dx + k*0.5*v3*e*udotnormal*ds
-S3_a = k*0.5*delta*dot(grad(v3),U)*dot(U, grad(e))*dx + \
+a3_a = v3*e*dx - k*0.5*dot(grad(v3),u)*e*dx + \
+ k*0.5*v3*e*udotnormal*ds
+S3_a = k*0.5*delta*dot(grad(v3),U)* \
+ dot(U, grad(e))*dx + \
  k*0.5*nu_e*dot(grad(v3),grad(e))*dx
 
 # Linear form for energy
 a3_L = v3*e0*dx + k*0.5*dot(grad(v3),u)*e0*dx + \
  k*dot(grad(v3),u)*P*dx - k*0.5*v3*e0*udotnormal*ds
-S3_L = - k*0.5*delta*dot(grad(v3),U)*dot(U,grad(e0))*dx - \
+S3_L = - k*0.5*delta*dot(grad(v3),U)* \
+ dot(U,grad(e0))*dx - \
  k*0.5*nu_e*dot(grad(v3),grad(e0))*dx
 
 # Weak form of G2 for the Euler equations:
@@ -631,24 +636,9 @@ time step with a Picard fixed-point iteration.  }
 
 \subsection{Unicorn software design}
 
-We can view an adaptive simulator of continuum mechanics as the root
-of a tree where each node is a technology
-(method/algorithm/implementation) with edges representing
-dependencies. Unicorn implements the levels of the tree closest to the
-root (application at the root, solver, library above), below Unicorn
-are other components of FEniCS and other libraries such as MAdLib. If
-the technology at the root is to produce a meaningful simulation,
-every technology at each node in the tree needs to fit into the
-theoretical framework, be free of critical bugs, be reasonably
-efficient and keep a stable interface for its parents for
-maintainability. If any of the nodes fail in any of these
-perspectives, the simulator at the root will likely not run at all or
-consist of garbage and be meaningless.
-
-Since software engineering is a discipline where more manpower may not
-increase productivity, but can actually decrease it \cite{Brooks1995},
-there is a critical need to control the complexity in the tree. To
-achieve this, Unicorn follows two basic design principles:
+In software engineering there is a critical need to control software
+complexity \cite{Brooks1995}. To achieve this, Unicorn follows two
+basic design principles:
 
 \begin{description}
 \item[Prioritize simplicity of interfaces and implementation]
@@ -666,7 +656,7 @@ sufficiently efficient (optimize bottlenecks) standard algorithms for
 solving problems. This leads to small, simple and maintainable
 implementations. High performance is achieved by reducing the
 computational load on the method level (adaptivity and fixed-point
-iteration).
+iteration). 
 
 \subsection{Unicorn classes/interfaces}
 
@@ -716,12 +706,6 @@ automatically. cG(1)cG(1) (Crank-Nicolson-type discretization in time)
 gives the equation for the (possibly non-linear) algebraic system
 $F(U)$ (in Python notation):
 
-\lstset{language=Python,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
- keywordstyle=\ttfamily\color{OliveGreen},
- identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
- commentstyle=\color{Brown},
- stringstyle=\ttfamily,
- showstringspaces=ture}
 
 \begin{python}
 # cG(1)
@@ -730,7 +714,7 @@ def F(u, u0, k, v):
     return (-dot(u, v) + dot(u0, v) + mult(k, g(uc, v)))
 \end{python}
 
-With v: $\forall v \in V_h$ generating the equation system.
+By enforcing the above $\forall v \in V_h$ we generate the equation system.
 
 We solve this system by Newton-type fixed-point iteration:
 
@@ -748,12 +732,6 @@ We define the bilinear form $a(U, v)$ and linear form $L(v)$
 corresponding to the left and right hand sides respectively (in Python
 notation):
 
-\lstset{language=Python,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
- keywordstyle=\ttfamily\color{OliveGreen},
- identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
- commentstyle=\color{Brown},
- stringstyle=\ttfamily,
- showstringspaces=ture}
 
 {\small
 \begin{python}
@@ -776,48 +754,43 @@ $a$ and $L$, an end time $T$, a mesh (defining $V_h$) and
 boundary conditions are given.
 
 
-\lstset{language=C++,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
- keywordstyle=\ttfamily\color{OliveGreen},
- identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
- commentstyle=\color{Brown},
- stringstyle=\ttfamily,
- showstringspaces=true}
 
 \begin{figure}[!h]
 \begin{c++}
-    /// Represent and solve time dependent PDE.
-    class TimeDependentPDE
-    {
-    /// Public interface
-    public:
-      TimeDependentPDE(
-        // Computational mesh
-        Mesh& mesh,
-        // Bilinear form for Jacobian approx.
-        Form& a,
-        // Linear form for time-step residual
-        Form& L,
-        // List of boundary conditions
-        Array <BoundaryCondition*>& bcs,
-        // End time
-        real T);
-      /// Solve PDE
-      virtual uint solve();
+/// Represent and solve time dependent PDE.
+class TimeDependentPDE
+{
+  /// Public interface
+public:
+  TimeDependentPDE(
+   // Computational mesh
+   Mesh& mesh,
+   // Bilinear form for Jacobian approx.
+   Form& a,
+   // Linear form for time-step residual
+   Form& L,
+   // List of boundary conditions
+   Array <BoundaryCondition*>& bcs,
+   // End time
+   real T);
 
-    protected:
-      /// Compute initial value
-      virtual void u0(Vector& u);
-      /// Called before each time step
-      virtual void preparestep();
-      /// Called before each fixed-point iteration
-      virtual void prepareiteration();
-      /// Return the bilinear form a
-      Form& a();
-      /// Return the linear form L
-      Form& L();
-      /// Return the mesh
-      Mesh& mesh();
-    };
+  /// Solve PDE
+  virtual uint solve();
+
+protected:
+  /// Compute initial value
+  virtual void u0(Vector& u);
+  /// Called before each time step
+  virtual void preparestep();
+  /// Called before each fixed-point iteration
+  virtual void prepareiteration();
+  /// Return the bilinear form a
+  Form& a();
+  /// Return the linear form L
+  Form& L();
+  /// Return the mesh
+  Mesh& mesh();
+};
 \end{c++}
 \caption{
 C++ class interface for TimeDependentPDE.
@@ -829,17 +802,10 @@ C++ class interface for TimeDependentPDE.
 The skeleton of the time-stepping with fixed-point iteration is
 implemented in listing \ref{code:time-stepping}.
 
-\lstset{language=C++,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
- keywordstyle=\ttfamily\color{OliveGreen},
- identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
- commentstyle=\color{Brown},
- stringstyle=\ttfamily,
- showstringspaces=true}
 
 \begin{figure}[!h]
 {\small
 \begin{c++}
-
 void TimeDependentPDE::solve()
 {
   // Time-stepping
@@ -876,7 +842,8 @@ void TimeDependentPDE::iter()
     bc()[i]->apply(J, b, a());
   solve(J, x, b);
 
-  // Compute residual for the time-step/fixed-point equation
+  // Compute residual for the time-step/fixed-point
+  // equation
   J.mult(x, residual);
   residual -= b;
 
@@ -953,29 +920,37 @@ fig. \ref{code:ErrorEstimate} which we call {\tt ErrorEstimate}.
 \begin{figure}[!h]
 {\small
 \begin{c++}
-    /// Estimate error as local error indicators based on duality
-    class ErrorEstimate
-    {
-    public:
+/// Estimate error as local error indicators based on
+/// duality
+class ErrorEstimate
+{
+public:
 
-      /// Constructor (give components of UC residual and dual solution)
-      ErrorEstimate(Mesh& mesh,
-                    Form* Lres_1, Form* Lres_2, Form* Lres_3,
-                    Form* LDphi_1, Form* LDphi_2, Form* LDphi_3);
+  /// Constructor (give components of UC residual and
+  /// dual solution)
+  ErrorEstimate(Mesh& mesh,
+		Form* Lres_1,
+		Form* Lres_2,
+		Form* Lres_3,
+		Form* LDphi_1,
+		Form* LDphi_2,
+		Form* LDphi_3);
 
-      // Compute error (norm estimate)
-      void ComputeError(real& error);
+  // Compute error (norm estimate)
+  void ComputeError(real& error);
 
-      // Compute error indicator
-      void ComputeErrorIndicator(real t, real k, real T;
+  // Compute error indicator
+  void ComputeErrorIndicator(real t, real k,
+                             real T);
 
-      // Compute largest indicators
-      void ComputeLargestIndicators(std::vector<int>& cells,
-                                    real percentage);
-
-      // Refine based on indicators
-      void AdaptiveRefinement(real percentage);
-    }
+  // Compute largest indicators
+  void ComputeLargestIndicators(
+    std::vector<int>& cells,
+    real percentage);
+  
+  // Refine based on indicators
+  void AdaptiveRefinement(real percentage);
+}
 \end{c++}
 }
 \caption{
@@ -1001,25 +976,27 @@ linear interpolation in time of the values in the dofs.
 \begin{figure}[!h]
 {\small
 \begin{c++}
-  /// Representation of space-time function (storage and evaluation)
-  class SpaceTimeFunction
-  {
-  public:
+/// Representation of space-time function (storage and
+/// evaluation)
+class SpaceTimeFunction
+{
+public:
 
-    /// Create space-time function
-    SpaceTimeFunction(Mesh& mesh, Function& Ut);
+  /// Create space-time function
+  SpaceTimeFunction(Mesh& mesh, Function& Ut);
 
-    /// Evaluate function at time t, giving result in Ut
-    void eval(real t);
+  /// Evaluate function at time t, giving result in Ut
+  void eval(real t);
 
-    // Add a space function at time t
-    void addPoint(std::string Uname, real t);
+  // Add a space function at time t
+  void addPoint(std::string Uname, real t);
 
-    /// Return mesh associated with function
-    Mesh& mesh();
+  /// Return mesh associated with function
+  Mesh& mesh();
 
-    /// Return interpolant function
-    Function& evaluant();
+  /// Return interpolant function
+  Function& evaluant();
+}
 \end{c++}
 }
 \caption{
@@ -1059,9 +1036,9 @@ normal, and $\tau_1 = (\tau_{11}, \tau_{12}, \tau_{13})$, $\tau_2 =
 (\tau_{21}, \tau_{22}, \tau_{23})$ are tangents to each node on the
 boundary. This allows us to let the normal direction to be constrained
 and the tangent directions be free:
-\begin{equation*}
+\begin{equation}
      v = (v \cdot n)n + (v \cdot \tau_1) \tau_1 + (v \cdot \tau_2) \tau_2.
-\end{equation*}
+\end{equation}
 For the matrix and vector this means that the rows corresponding to
 the boundary need to be multiplied with $n,\tau_1,\tau_2$,
 respectively, and then the normal component of the velocity should be
@@ -1077,12 +1054,6 @@ we refer to \cite{Nazarov2009}.
 
 \subsection{\tt ElasticSmoother}
 
-\lstset{language=Python,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
- keywordstyle=\ttfamily\color{OliveGreen},
- identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
- commentstyle=\color{Brown},
- stringstyle=\ttfamily,
- showstringspaces=ture}
 
 \begin{figure}[!h]
 {\small
@@ -1102,7 +1073,8 @@ def f(U, F, v):
      dot(mult(transp(grad(U)), Fm), vm)))
 
 a = (dot(dotF, v)) * dx
-L = (mult(icv, dot(F0m, vm) + mult(k, f(U, F, vm)))) * dx
+L = (mult(icv, dot(F0m, vm) + \
+  mult(k, f(U, F, vm)))) * dx
 \end{python}
 }
 \caption{Source code for forms representing one time step for the deformation gradient (F) evolution in the elastic smoother variant of the UC model. }
@@ -1127,29 +1099,34 @@ L = (mult(icv, dot(F0m, vm) + mult(k, f(U, F, vm)))) * dx
 \end{figure}
 
 \begin{figure}[!h]
+{\scriptsize
 \begin{c++}
-  /// Optimize cell quality according to elastic variant of UC model
-  class ElasticSmoother
-  {
-  public:
+/// Optimize cell quality according to elastic variant
+/// of UC model
+class ElasticSmoother
+{
+public:
 
-    ElasticSmoother(Mesh& mesh);
+  ElasticSmoother(Mesh& mesh);
 
-    /// Smooth smoothed_cells giving mesh velocity W over time step k
-    /// with h0 the prescribed cell size
-    void smooth(MeshFunction<bool>& smoothed_cells,
-		MeshFunction<bool>& masked_cells,
-		MeshFunction<real>& h0,
-		Function& W, real k);
+  /// Smooth smoothed_cells giving mesh velocity W
+  /// over time step k with h0 the prescribed cell
+  /// size
+  void smooth(MeshFunction<bool>& smoothed_cells,
+              MeshFunction<bool>& masked_cells,
+              MeshFunction<real>& h0,
+              Function& W, real k);
 
-    /// Extract submesh (for smoothing only marked cells)
-    static void submesh(Mesh& mesh, Mesh& sub,
-			MeshFunction<bool>& smoothed_cells,
-			MeshFunction<int>& old2new_vertex,
-			MeshFunction<int>& old2new_cell);
+  /// Extract submesh (for smoothing only marked cells)
+  static void
+  submesh(Mesh& mesh, Mesh& sub,
+	  MeshFunction<bool>& smoothed_cells,
+	  MeshFunction<int>& old2new_vertex,
+	  MeshFunction<int>& old2new_cell);
 
-  }
+}
 \end{c++}
+}
 \caption{
 C++ class interface for {\tt ElasticSmoother}.
 }
@@ -1170,8 +1147,9 @@ We define the following requirements for the mesh velocity $\beta_h$:
 \item
 $\beta_h = U$ in the solid phase part of the mesh.
 \item
-Bounded mesh quality $Q$ in the fluid part of the mesh. Preferably the
-mesh smoothing should improve $Q$ if possible.
+Bounded mesh quality $$Q = \frac{d \| F \|_F^2}{det(F)^{\frac{2}{d}}}$$  with $d$ the spatial dimension, in
+the fluid part of the mesh. Preferably the mesh smoothing should
+improve $Q$ if possible.
 \item
 Maintain mesh size $h(x)$ close to a desired $\hat{h}(x)$ given by a
 posteriori error estimation in an adaptive algorithm.
@@ -1305,32 +1283,33 @@ description in the elastic smoothing section.
 
 \begin{figure}[!h]
 \begin{c++}
-  /// Interface to MAdLib for mesh adaptation using local operations
-  /// Subclass and implement the virtual functions
-  class MeshAdaptInterface
-  {
-  public:
-    MeshAdaptInterface(Mesh *);
-
-  protected:
-    /// Start mesh adaptation algorithm
-    void adaptMesh();
-
-    /// Give cell size field
-    virtual void updateSizeField() = 0;
-
-    /// Allocate and deallocate solver data
-    virtual void deallocateData() = 0;
-    virtual void allocateAndComputeData() = 0;
-
-    /// Constrain entities not to be adapted
-    void constrainExternalBoundaries();
-    void constrainInternalBoundaries();
-
-    /// Add functions to be automatically interpolated
-    void addFunction(string name, Function** f);
-    void clearFunctions();
-  };
+/// Interface to MAdLib for mesh adaptation using
+/// local operations Subclass and implement the
+/// virtual functions
+class MeshAdaptInterface
+{
+public:
+  MeshAdaptInterface(Mesh *);
+  
+protected:
+  /// Start mesh adaptation algorithm
+  void adaptMesh();
+  
+  /// Give cell size field
+  virtual void updateSizeField() = 0;
+  
+  /// Allocate and deallocate solver data
+  virtual void deallocateData() = 0;
+  virtual void allocateAndComputeData() = 0;
+  
+  /// Constrain entities not to be adapted
+  void constrainExternalBoundaries();
+  void constrainInternalBoundaries();
+  
+  /// Add functions to be automatically interpolated
+  void addFunction(string name, Function** f);
+  void clearFunctions();
+};
 \end{c++}
 \caption{
 C++ class interface for {\tt MeshAdaptInterface}.
@@ -1353,12 +1332,6 @@ cover modeling of data for the dual problem, the adaptive loop, and
 specifying slip/friction boundary conditions for modeling turbulent
 boundary layers.
 
-\lstset{language=C++,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
- keywordstyle=\ttfamily\color{OliveGreen},
- identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
- commentstyle=\color{Brown},
- stringstyle=\ttfamily,
- showstringspaces=ture}
 
 \subsection{Fluid-structure}
 
@@ -1425,12 +1398,6 @@ and check if tolerance is satisfied, compute adapted mesh. We can then
 run the adaptive loop simply by a loop which runs the program (here in
 Python which we also use to move data according to iteration number):
 
-\lstset{language=Python,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
- keywordstyle=\ttfamily\color{OliveGreen},
- identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
- commentstyle=\color{Brown},
- stringstyle=\ttfamily,
- showstringspaces=ture}
 
 \begin{python}
 offset = 0
@@ -1447,12 +1414,6 @@ for i in range(offset, N):
     move(file, dirname)
 \end{python}
 
-\lstset{language=C++,frame=ltrb,framesep=5pt,basicstyle=\footnotesize,
- keywordstyle=\ttfamily\color{OliveGreen},
- identifierstyle=\ttfamily\color{CadetBlue}\bfseries,
- commentstyle=\color{Brown},
- stringstyle=\ttfamily,
- showstringspaces=ture}
 
 \item[Slip boundary condition]
 \ \\
@@ -1489,7 +1450,7 @@ real bmarg = 1.0e-3 + DOLFIN_EPS;
 
 namespace Geo
 {
-  // Geometry details /////////////////////////////////////////////////
+  // Geometry details
   real box_L = 3.0;
   real box_H = 2.0;
   real box_W = 2.0;
@@ -1571,8 +1532,8 @@ public:
   BisectionFunction(Mesh& mesh) : Function(mesh) {}
   void eval(real* values, const real* p) const
   {
-    // NB: We specify the phase variable as xml data so
-    // this function is not used
+    // NB: We specify the phase variable as
+    // xml data so this function is not used
 
     bool condition = true;
 

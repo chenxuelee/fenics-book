@@ -558,16 +558,14 @@ post-processing.
 int main()
 {
   // Create mesh
-  dolfin::UnitSquare mesh(32, 32);
-
+  dolfin::UnitSquare mesh("mesh.xml.gz");
   . . .
 
-  // Surface 0 (define by end points and a level set function)
+  // Surface 0: A straight line (define by end points)
   std::pair<Point, Point> end_points0(p0_0, p0_1);
-  const Shape0 shape0;
-  pum::Surface d0(mesh, end_points0, shape0);
+  pum::Surface d0(mesh, end_points0);
 
-  // Surface 1 (define by end points and a level set function)
+  // Surface 1: A curved line (define by end points and a level set function)
   std::pair<Point, Point> end_points1(p1_0, p1_1);
   const Shape1 shape1;
   pum::Surface d1(mesh, end_points1, shape1);
@@ -583,7 +581,7 @@ int main()
   Poisson::BilinearForm a(V, V);
   a.k = k;
   Poisson::LinearForm L(V);
-  L.f = f; L.h = h;
+  L.f = f;
 
   // Create a linear variational problem and solve
   dolfin::VariationalProblem pde(a, L, bcs);
@@ -611,8 +609,8 @@ A mesh with superimposed discontinuity surfaces and
 the computed solution contours for this problem on a unit square
 domain containing two disjoint discontinuity surfaces are shown in
 Figure~\ref{fig:nikbakht:poisson_contours}.  For this case, $f = 1$ and $k
-= 1$.  Homogeneous Dirichlet boundary conditions are applied along the top
-and bottom edges ($y = 0, y = 1$). The remaining boundaries are flux-free.
+= 1$.  Homogeneous Dirichlet boundary conditions are applied along the
+bottom edge ($y = 0$). The remaining boundaries are flux-free.
 The impact of the discontinuities on the  computed solution contours
 can be seen clearly in Figure~\ref{fig:nikbakht:poisson_contours}(b).
 %
@@ -777,7 +775,7 @@ E, nu     = 200000.0, 0.3
 mu, lmbda = E / (2*(1 + nu)), E*nu / ((1 + nu) * (1 - 2*nu))
 
 # Facet normal component, cell size and source term
-n, h = element.cell().n, element.cell().n.circumradius
+n, h = element.cell().n, element.cell().circumradius
 f = Coefficient(elem_cont)
 
 # Penalty parameters
@@ -785,7 +783,7 @@ alpha = 4.0
 
 # Stress
 def sigma(v):
-   return 2.0*mu*sym(grad(v) \
+   return 2.0*mu*sym(grad(v)) \
   + lmbda*tr(sym(grad(v)))*Identity(v.cell().d)
 
 # Bilinear form and linear forms
