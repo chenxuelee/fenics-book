@@ -3,25 +3,48 @@
               {Johan Hoffman, Johan Jansson, Niclas Jansson, Claes Johnson and Rodrigo Vilela De Abreu}
               {hoffman-1}
 
+The FEniCS project aims towards the goals of
+generality, efficiency, and simplicity, concerning
+mathematical methodology, implementation, and
+application, and the Unicorn project is an
+implementation aimed at FSI and high Re turbulent flow
+guided by these principles. Unicorn is based on the
+DOLFIN/FFC/FIAT suite and the linear algebra package
+PETSc, and we here present some key elements of
+Unicorn, and a set of computational results from
+applications. The details of the Unicorn
+implementation is described in
+Chapter~\ref{chap:hoffman-2}.
+
 \section{Background}
 
-For many problems involving a fluid and a structure, decoupling the computation of the two is
-not feasible for accurate modeling of the phenomenon at hand, instead the full fluid-structure interaction (FSI) problem
-has to be solved together as a coupled problem. This includes a multitude of important
-problems in biology, medicine and industry, such as the simulation of insect or bird flight, the
-human cardiovascular and respiratory systems, the human speech organ, the paper making process,
-acoustic noise generation in exhaust systems, airplane wing flutter, wind induced vibrations in
-bridges and wave loads on offshore structures. Common for many of these problems is that
-for various reasons they are very hard or impossible to investigate experimentally, and thus
-reliable computational simulation would open up for detailed study and new insights, as well
-as for new important design tools for construction.
+For many problems involving a fluid and a structure,
+decoupling the computation of the two is not feasible
+for accurate modeling of the phenomenon at hand,
+instead the full fluid-structure interaction (FSI)
+problem has to be solved together as a coupled
+problem. This includes a multitude of important
+problems in biology, medicine and industry, such as
+the simulation of insect or bird flight, the human
+cardiovascular and respiratory systems, the human
+speech organ, the paper making process, acoustic noise
+generation in exhaust systems, airplane wing flutter,
+wind induced vibrations in bridges and wave loads on
+offshore structures. Common for many of these problems
+is that for various reasons they are very hard or
+impossible to investigate experimentally, and thus
+reliable computational simulation would open up for
+detailed study and new insights, as well as for new
+important design tools for construction.
 
-Computational methods for FSI is a very active research field today. In particular, major open challenges of computational FSI include: (i) robustness of the fluid-structure coupling, (ii) for high Reynolds numbers (Re) the computation
-of turbulent fluid flow, and (iii) efficiency and reliability of the computations in the form of
+Computational methods for FSI is a very active
+research field today. In particular, major open
+challenges of computational FSI include: (i)
+robustness of the fluid-structure coupling, (ii) for
+high Reynolds numbers (Re) the computation of
+turbulent fluid flow, and (iii) efficiency and
+reliability of the computations in the form of
 adaptive methods and quantitative error estimation.
-
-The FEniCS project aims towards the goals of generality, efficiency, and simplicity, concerning mathematical methodology, implementation, and application, and the Unicorn project is an implementation aimed at FSI and high Re turbulent flow guided by these principles. Unicorn is based on the DOLFIN/FFC/FIAT suite and the linear algebra package PETSc, and
-we here present some key elements of Unicorn, and a set of computational results from applications. The details of the Unicorn implementation is described in Chapter~\ref{chap:hoffman-2}.
 
 \section{Simulation of high Re turbulent flow}
 
@@ -31,7 +54,7 @@ An alternative to DNS and RANS is Large eddy simulation (LES) \cite{Sagaut2005},
 
 Typically the numerical method used to approximate the LES equations also introduces dissipation, and thus there are two sources of kinetic energy dissipation; the subgrid model and the numerical method. One class of methods, Implicit LES (ILES), relies completely on the numerical method to act as subgrid model, without any additional explicit subgrid model \cite{Sagaut2005}. Turbulence simulation in Unicorn is based on ILES in the form a stabilized finite element method, referred to as a General Galerkin (G2) simulation \cite{HoffmanJohnson2007}, where a least squares stabilization based on the residual of the Navier-Stokes equations acts a an ILES subgrid model.
 
-More specific, in the current G2/ILES implementation of Unicorn continuous piecewise linear approximation is used in space and time, together with a least squares stabilization based on the residual, see Fig.\ref{code:ICNS} for an implementation of the cG(1)cG(1) method described e.g. in \cite{HoffmanJohnson2007}.
+More specific, in the current G2/ILES implementation of Unicorn continuous piecewise linear approximation is used in space and time, together with a least squares stabilization based on the residual \cite{HoffmanJohnson2007}.
 
 \section{Turbulent boundary layers}
 \label{section:blayer}
@@ -68,11 +91,11 @@ Adaptive G2 methods (also referred to as Adaptive DNS/LES) have been used in a n
 
 In a computational method based on so called weakly coupled FSI, separate solvers can be used for the fluid and the structure, with the benefit of being able to reuse existing dedicated fluid and structure solvers. To couple the fluid and the structure, boundary data such as displacements and stresses is exchanged over the fluid-structure interface, either as part of a fixed-point iteration or in a fully explicit fashion. To make the coupling more robust the equations for the fluid and the structure can be placed in the same algebraic system together with all coupling conditions, corresponding to a so called strong FSI coupling.
 
-Another approach is to formulate the fluid and the structure as one single continuum model, which is then said to be a monolithic FSI method. In Unicorn a monolithic method is used referred to as Unified Continuum FSI (UC-FSI) \cite{HoffmanJanssonEtAl2009}, where the fluid and the structure are discretized by the same finite element method over the combined fluid-structure continuum. A velocity formulation is used for the structure to make it consistent with the corresponding fluid equations, and the FSI problem thus takes the form of a multiphase flow problem, with the two phases, the fluid and the structure, described by different constitutive laws. In particular, coupling conditions for displacements and stresses are directly satisfied when using a continuous finite element discretization, which makes UC-FSI very robust.
+Another approach is to formulate the fluid and the structure as one single continuum model, which is then said to be a monolithic FSI method. In Unicorn a monolithic method is used referred to as Unified Continuum FSI (UC-FSI) \cite{HoffmanJanssonStockli2011}, where the fluid and the structure are discretized by the same finite element method over the combined fluid-structure continuum. A velocity formulation is used for the structure to make it consistent with the corresponding fluid equations, and the FSI problem thus takes the form of a multiphase flow problem, with the two phases, the fluid and the structure, described by different constitutive laws. In particular, coupling conditions for displacements and stresses are directly satisfied when using a continuous finite element discretization, which makes UC-FSI very robust.
 
 The computational mesh is made to follow the deformation of the structure, and in the fluid part mesh smoothing is used to optimize the mesh quality, corresponding to an ALE method for the combined fluid-structure continuum.
 In Unicorn, UC-FSI is implemented based on a continuous piecewise linear approximation in space and time, and a simple streamline diffusion stabilization is used, similar to the method in \cite{Hansbo2000}.
-See \cite{HoffmanJanssonEtAl2009} for details on the method.
+See \cite{HoffmanJanssonStockli2011} for details on the method.
 
 
 \section{Applications}
@@ -198,16 +221,16 @@ TUB  &   1.74  &   11M \\
 
 \subsection{Robust fluid-structure interaction}
 
-As a quantitative test of the Unicorn FSI solver we consider the benchmark problem FLUSTRUK-A, variant 3, which is defined in \cite{FIXME: ADD TUREK REF}. This is a 2D flow in a channel past a fixed cylinder with a thin flexible bar attached to the downstream side of the cylinder. The Unicorn results are compared to the reference results of 2 other groups: Hron/Turek \cite{FIXME: ADD TUREK/HRON} and Dunne/Rannacher \cite{FIXME: ADD DUNNE/RANNACHER}.
+As a quantitative test of the Unicorn FSI solver we consider the benchmark problem FLUSTRUK-A, variant 3, which is defined in \cite{HronTurek2005}. This is a 2D flow in a channel past a fixed cylinder with a thin flexible bar attached to the downstream side of the cylinder. The Unicorn results are compared to the reference results of 2 other groups: Hron/Turek \cite{HronTurek2005} and Dunne/Rannacher \cite{DunneRannacher2006}.
 
-The y-displacement in the oscillation regime varies between 0.0353m and -0.0332m (see Fig.\ref{fig:flustruk}), which is within 1-2\% of the Hron/Turek results, and within 11\% of the Dunne/Rannacher amplitude. The oscillation frequency is estimated to 5.3Hz from the graph, where the Hron/Turek frequency is estimated to 5.4Hz and the Dunne/Rannacher frequency is given as 5.48 Hz. The Unicorn results are thus within 1-2\% of both groups. See \cite{HoffmanJanssonEtAl2009} for a full discussion of the results, where also additional basic benchmark results are presented.
+The y-displacement in the oscillation regime varies between 0.0353m and -0.0332m (see Fig.\ref{fig:flustruk}), which is within 1-2\% of the Hron/Turek results, and within 11\% of the Dunne/Rannacher amplitude. The oscillation frequency is estimated to 5.3Hz from the graph, where the Hron/Turek frequency is estimated to 5.4Hz and the Dunne/Rannacher frequency is given as 5.48 Hz. The Unicorn results are thus within 1-2\% of both groups. See \cite{HoffmanJanssonStockli2011} for a full discussion of the results, where also additional basic benchmark results are presented.
 
 \begin{figure}[!h]
 \center{
 \includegraphics[width=10cm]{unfinished/hoffman-1/png/fsi_bench3D_displacement_aligned.pdf}
 }
 \caption{
-The figure shows the displacement along $y$-axis of the reference point in 2D FSI-benchmark problem FLUSTRUK-A  \cite{HoffmanJanssonEtAl2009}, phase aligned to avoid start-up effects, for a sequence of three uniformly refined meshes using Unicorn.
+The figure shows the displacement along $y$-axis of the reference point in 2D FSI-benchmark problem FLUSTRUK-A  \cite{HoffmanJanssonStockli2011}, phase aligned to avoid start-up effects, for a sequence of three uniformly refined meshes using Unicorn.
 }
 \label{fig:flustruk}
 \end{figure}
@@ -232,7 +255,7 @@ method is robust for these large structure deformations and highly fluctuating f
 \includegraphics[width=5cm]{unfinished/hoffman-1/png/cube649.png}\\
 }
 \caption{
-Simulation of turbulent flow past a square cylinder with an elastic flag attached downstream \cite{HoffmanJanssonEtAl2009}:
+Simulation of turbulent flow past a square cylinder with an elastic flag attached downstream \cite{HoffmanJanssonStockli2011}:
 plot of cut of the mesh, isosurface of pressure and fluid-structure phase interface. Going from
 initial state top left to illustrating violent bending and torsion
 motion along the long axis of the flag.

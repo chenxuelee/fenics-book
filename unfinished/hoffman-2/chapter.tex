@@ -3,6 +3,25 @@
               {Cem Degirmenci, Johan Hoffman, Johan Jansson, Niclas Jansson and Murtazo Nazarov}
               {hoffman-2}
 
+This chapter provides a description of the technology
+in Unicorn focusing on simple, efficient and general
+algorithms and software implementation of the Unified
+Continuum (UC) concept and the adaptive General
+Galerkin (G2) discretization as a unified approach to
+continuum mechanics. We describe how Unicorn fits into
+the FEniCS framework, how it interfaces to other
+FEniCS components and what interfaces and
+functionality Unicorn provides itself and how the
+implementation is designed. We also give use case
+application examples in fluid-structure interaction
+and adaptivity.
+
+For a more detailed discussion on turbulence and adaptive error
+control in continuum mechanics we refer to
+chapter \ref{chap:hoffman-1}.
+
+\index{unicorn}
+
 \section{Background}
 
 Unicorn is solver technology (models, methods, algorithms and software
@@ -30,19 +49,6 @@ duality-based adaptive error control, tensor assembly, time-stepping,
 adaptive fixed-point iteration for solving discrete systems, mesh
 adaptivity by local cell operations (split, collapse, swap) (through
 MAdLib) and cell quality optimization (smoothing).
-
-This chapter provides a description of the technology in Unicorn
-focusing on simple, efficient and general algorithms and software
-implementation of the UC concept and the adaptive G2
-discretization. We describe how Unicorn fits into the FEniCS
-framework, how it interfaces to other FEniCS components and what
-interfaces and functionality Unicorn provides itself and how the
-implementation is designed. We also give use case application examples
-in fluid-structure interaction and adaptivity.
-
-For a more detailed discussion on turbulence and adaptive error
-control in continuum mechanics we refer to
-chapter \ref{chap:hoffman-1}.
 
 A live CD with snapshots of Unicorn corresponding to the Unicorn
 chapters in this book is available
@@ -150,16 +156,20 @@ phase convection equation
 \item
 constitutive equations for stress as data
 \end{itemize}
-where the stress is the Cauchy (laboratory) stress and the phase is an
-indicator function used to determine which constitutive equation and
-material parameters to use. Note that in this continuum description
-the coordinate system is fixed (Euler), and a phase function
-(indicator) is convected according to the phase convection
-equation. However, since we typically choose to also move the mesh
-(basis functions move in time) one can think of this as an ALE
-method. Specifically we move the mesh with the continuum velocity in
-the case of a solid phase to eliminate diffusion of the phase
-interface.
+where the stress is the Cauchy (laboratory) stress and
+the phase is an indicator function used to determine
+which constitutive equation and material parameters to
+use. Note that in this continuum description the
+coordinate system is fixed (Euler), and a phase
+function (indicator) is convected according to the
+phase convection equation. However, since we typically
+choose to also move the mesh (basis functions move in
+time) one can think of this as an ALE method (see the
+section ``Local ALE'': we introduce a local mesh
+velocity, but we don't map back to a reference
+configuration). Specifically we move the mesh with the
+continuum velocity in the case of a solid phase to
+eliminate diffusion of the phase interface.
 
 We define two variants of this model: incompressible and compressible,
 where a future aim is to construct a unified
@@ -251,7 +261,15 @@ method/software system in this respect.
 
 \section{Space-time general galerkin discretization}
 
-Adaptive G2 methods (also referred to as Adaptive DNS/LES) have been used in a number of turbulent flow computations to a very low computational cost \cite{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,Hoffman2009,HoffmanJansson2009,VilelaJanssonEtAl2010}, where convergence is obtained in output quantities such as drag, lift and pressure coefficients and Strouhal numbers, using orders of magnitude fewer numbers of mesh points than with LES methods based on ad hoc refined computational meshes in the literature. 
+Adaptive G2 methods (also referred to as Adaptive
+DNS/LES) have been used in a number of turbulent flow
+computations to a very low computational
+cost \cite{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,Hoffman2009,HoffmanJansson2009,VilelaJanssonEtAl2010},
+where convergence is obtained in output quantities
+such as drag, lift and pressure coefficients and
+Strouhal numbers, using orders of magnitude fewer
+numbers of mesh points than with LES methods based on
+ad hoc refined computational meshes in the literature.
 
 We begin by describing the standard FEM applied to the model to
 establish basic notation, and proceed to describe streamline diffusion
@@ -309,17 +327,67 @@ low order basis functions are thus sufficient.
 
 \subsection{Local ALE}
 
-If the phase function $\Theta$ has different values on the same cell
-it would lead to an undesirable diffusion of the phase interface. By
-introducing a local ALE coordinate
-map \cite{ErikssonEstepHansboEtAl1996} (see space-time meshes in
-section ``The characterictic Galerkin method'') to describe moving
-basis functions on each discrete space-time slab based on a given mesh
-velocity (i.e. the material velocity of one of the phases) we can
-define the phase interface at cell facets, allowing the interface to
-stay discontinuous. We describe the details of the coordinate map and
-its influence on the FEM discretization
-in \cite{HoffmanJanssonLoggEtAl2009}. The resulting discrete UC
+If the phase function $\Theta$ has different values on
+the same cell it would lead to an undesirable
+diffusion of the phase interface. By introducing a
+moving space-time finite element space and mesh,
+oriented along the characteristics of the convection
+of the phase
+interface \cite{ErikssonEstepHansboEtAl1996} (see
+space-time meshes in section ``The characterictic
+Galerkin method'') we can define the phase interface
+at cell facets, allowing the interface to stay
+discontinuous.
+
+We thus define a local ALE coordinate
+map \cite{ErikssonEstepHansboEtAl1996} as part of the
+discretization on each space-time slab, where it's
+used to be able to introduce a mesh velocity. Note
+that we still compute with global Euler coordinates
+(we don't map back to a reference configuration), but
+with a moving mesh.
+
+The space-time FEM discretization gives a space-time
+``slab'' $T_n \times I_n$ with $I_n = (t_{n-1}, t_n)$
+and $T_n$ a triangulation of $\Omega$ for each time
+step composed of the mesh cells over one time step.
+
+To be able to define and compensate for an arbitrary
+mesh velocity $\beta_h$ we define a local coordinate
+map $\phi$ on each space-time slab:
+\begin{equation}
+\begin{split}\label{eq:ALEmap}
+D_t \phi(t, \bar{x}) &= \beta_h(t, \bar{x})\\
+(x, t) &= \phi(\bar{x}, t)\\
+\end{split}
+\end{equation}
+Application of the chain rule gives the relation:
+\begin{equation}
+\begin{split}\label{eq:ALE2}
+D_t U(x) + U(x) \cdot \nabla U(x) = D_t \bar{U}(\bar{x}) +
+(\bar{U}(\bar{x}) - \beta_h)) \cdot \nabla \bar{U}(\bar{x})
+\end{split}
+\end{equation}
+Space-time integration in a FEM gives (choosing simple
+quadrature for clarity):
+\begin{equation}
+\begin{split}\label{eq:ALEFEM}
+x_n &= F(\bar{x}) = \bar{x} + (t_n - t_{n - 1})\beta_h(\bar{x})\\
+J &= D_{\bar{x}} F\\
+\int_{K} u(t, x) dxdt &= \int_{\bar{K}} \bar{u}(t, \phi(t, \bar{x})) |det J| d\bar{x}dt
+\end{split}
+\end{equation}
+We approximate $F = I$ in the integration and plan to
+account for this in a posteriori error estimation,
+since. $F$ is readily computable and $\|F - I\|$ is
+likely small, given a reasonable size of $k$ and
+$D_{\bar{x}} F$.
+
+Choosing $\beta_h = U$ in the solid part of the mesh gives a trivial
+solution of the phase convection equation, and we can remove it from
+the system.
+
+The resulting discrete UC
 equations are:
 \begin{equation}
 \begin{split}\label{eq:ALE}
@@ -338,8 +406,7 @@ structure cells) and in the rest of the mesh we use mesh smoothing to
 determine $\beta_h$ to maximize the mesh quality according to a chosen
 objective, alternatively use local mesh modification operations
 (refinement, coarsening, swapping) on the mesh to maintain the quality
-\cite{Comp`ereRemacleJanssonEtAl2009}. Note that we still compute in Euler
-coordinates, but with a moving mesh.
+\cite{Comp`ereRemacleJanssonEtAl2009}.
 
 \subsection{Streamline diffusion stabilization}
 
@@ -531,8 +598,8 @@ public:
   void preparestep();
   void prepareiteration();
 
-  /// Assemble time step residual (L)/ right hand side
-  /// of Newton
+  /// Assemble time step residual (L)/ right hand
+  /// side of Newton
   void rhs(const Vector& x, Vector& dotx, real T);
 
   /// Compute initial value
@@ -920,14 +987,14 @@ fig. \ref{code:ErrorEstimate} which we call {\tt ErrorEstimate}.
 \begin{figure}[!h]
 {\small
 \begin{c++}
-/// Estimate error as local error indicators based on
-/// duality
+/// Estimate error as local error indicators based
+/// on duality
 class ErrorEstimate
 {
 public:
 
-  /// Constructor (give components of UC residual and
-  /// dual solution)
+  /// Constructor (give components of UC residual
+  /// and dual solution)
   ErrorEstimate(Mesh& mesh,
 		Form* Lres_1,
 		Form* Lres_2,
@@ -976,8 +1043,8 @@ linear interpolation in time of the values in the dofs.
 \begin{figure}[!h]
 {\small
 \begin{c++}
-/// Representation of space-time function (storage and
-/// evaluation)
+/// Representation of space-time function (storage
+/// and evaluation)
 class SpaceTimeFunction
 {
 public:
@@ -985,7 +1052,8 @@ public:
   /// Create space-time function
   SpaceTimeFunction(Mesh& mesh, Function& Ut);
 
-  /// Evaluate function at time t, giving result in Ut
+  /// Evaluate function at time t, giving result in
+  /// Ut
   void eval(real t);
 
   // Add a space function at time t
@@ -1016,7 +1084,7 @@ friction model:
 
 \begin{align}
 u \cdot n &= 0\\
-u \cdot \tau_k + \beta^{-1} n^\top \sigma \tau_k &= 0, k = 1, 2
+\beta u \cdot \tau_k + n^\top \sigma \tau_k &= 0, k = 1, 2
 \end{align}
 
 We implement the normal component condition (slip) boundary condition
@@ -1101,8 +1169,8 @@ L = (mult(icv, dot(F0m, vm) + \
 \begin{figure}[!h]
 {\scriptsize
 \begin{c++}
-/// Optimize cell quality according to elastic variant
-/// of UC model
+/// Optimize cell quality according to elastic
+/// variant of UC model
 class ElasticSmoother
 {
 public:
