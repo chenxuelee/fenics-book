@@ -13,38 +13,35 @@
 %------------------------------------------------------------------------------
 
 The purpose of this work is to validate Navier--Stokes (NS) solvers
-implemented in FEniCS for unstable, transitional flows. Solvers for
-the NS equations have already been discussed in
-Chapter~\ref{chap:kvs-1} for laminar flows. In this chapter, focus is
-put more directly on flow energy and energy conservation, features of
-primary importance in turbulence applications. We emphasize the
-treatment of the nonlinear convection term, where various forms
-(standard, divergence and skew-symmetric) are implemented and tested
-for both accuracy and stability. The algorithm chosen to advance the
-momentum and pressure in time is a fractional step approach that is
-memory efficient, but incurs a splitting error due to the uncoupling
-of velocity and pressure. The significance of this splitting error is
-validated through comparison with a more accurate fully coupled solver
-that, due to its higher memory cost, is less suited for large-scale
-turbulence applications. The performance of the solvers is validated
-with the one-dimensional Burger's equation, the Orr--Sommerfeld
-perturbation in two dimensions and finally the full-blown
-three-dimensional unstable and transitional Taylor--Green vortex.
+implemented in FEniCS for unstable, transitional flows. Solvers for the
+NS equations have already been discussed in Chapter~\ref{chap:kvs-1} for
+laminar flows. In this chapter, focus is put more directly on flow energy
+and energy conservation, features of primary importance in turbulence
+applications. We emphasize the treatment of the nonlinear convection
+term, where various forms (standard, divergence and skew-symmetric) are
+implemented and tested for both accuracy and stability. The algorithm
+chosen to advance the momentum and pressure in time is a fractional step
+approach that is memory efficient, but incurs a splitting error due to the
+uncoupling of velocity and pressure. The significance of this splitting
+error is validated through comparison with a more accurate fully coupled
+solver that, due to its higher memory cost, is less suited for large-scale
+turbulence applications. The performance of the solvers is validated with
+the one-dimensional Burger's equation, the Orr--Sommerfeld perturbation
+in two dimensions and finally the full-blown three-dimensional unstable
+and transitional Taylor--Green vortex.
 
-The solvers and problems are implemented to fit into the problem
-solving environment described in the benchmark
-Chapter~\ref{chap:kvs-1}.
+The solvers and problems are implemented to fit into the problem solving
+environment described in the benchmark Chapter~\ref{chap:kvs-1}.
 
 \section{Background}
 
 The Navier--Stokes (NS) equations (directly derivable from Newton's
-second law utilizing the continuum hypothesis) represent a
-differential form of the principle of conservation of mass and
-momentum. They govern both laminar and turbulent fluid motion in
-three-dimensional space and time for incompressible and compressible
-fluids. There are generally no closed form analytical solutions to the
-NS equations and the study of fluid dynamics thus relies heavily on
-numerical solutions.
+second law utilizing the continuum hypothesis) represent a differential
+form of the principle of conservation of mass and momentum. They govern
+both laminar and turbulent fluid motion in three-dimensional space and
+time for incompressible and compressible fluids. There are generally no
+closed form analytical solutions to the NS equations and the study of
+fluid dynamics thus relies heavily on numerical solutions.
 
 For incompressible Newtonian fluids the NS equations read
 \begin{align}
@@ -52,50 +49,48 @@ For incompressible Newtonian fluids the NS equations read
  \nabla \cdot \vec{u} &=0.
  \label{eq:mortensen:cont}
 \end{align}
-Here $\vec{u}(\text{x},t)$ is the velocity vector, $\vec{x}$ is the
-Cartesian coordinate vector, $\nu$ the kinematic viscosity
-($\mu/\rho$), $\rho$ density, $\mu$ molecular viscosity,
-$p(\vec{x},t)$ pressure, and the volumetric body forces is represented
-with $\vec{f}$ (the gravitational force or the Coriolis forces
-associated with the imposition of frame rotation). In the absence of
-viscosity the principle of conservation of energy can also (in
-addition to mass and momentum) be directly imposed on the NS
-equations. This particular property is especially important for
-turbulent flows, since a fundamental feature of turbulence is that
-kinetic energy is extracted from the flow system and eventually
-converted into internal energy (heat) by the action of viscosity (rate
-of dissipation). The largest and most energetic turbulence structures
-are primarily responsible for efficient mixing of momentum and other
-scalars. These structures are by a series of instability processes
-broken down to smaller and smaller spatial scales and eventually
-dissipated into heat. The conservation of kinetic energy (in the
-absence of viscosity) is thus an important feature of turbulent fluid
-flows which is formally consistent with the NS
-equations. Unfortunately, though, this feature is not necessarily
-retained by the numerical scheme used to solve the discretized NS
-equations numerically. A numerical method can be both dissipative and
-dispersive, recognized for example by the order of the derivative in
-the truncation error of Taylor expansions. A numerical scheme with
-even order derivatives in truncated terms is dissipative, whereas odd
-derivatives lead to dispersion.
+Here $\vec{u}(\text{x},t)$ is the velocity vector, $\vec{x}$
+is the Cartesian coordinate vector, $\nu$ the kinematic viscosity
+($\mu/\rho$), $\rho$ density, $\mu$ molecular viscosity, $p(\vec{x},t)$
+pressure, and the volumetric body forces is represented with $\vec{f}$
+(the gravitational force or the Coriolis forces associated with the
+imposition of frame rotation). In the absence of viscosity the principle
+of conservation of energy can also (in addition to mass and momentum)
+be directly imposed on the NS equations. This particular property is
+especially important for turbulent flows, since a fundamental feature
+of turbulence is that kinetic energy is extracted from the flow system
+and eventually converted into internal energy (heat) by the action of
+viscosity (rate of dissipation). The largest and most energetic turbulence
+structures are primarily responsible for efficient mixing of momentum
+and other scalars. These structures are by a series of instability
+processes broken down to smaller and smaller spatial scales and eventually
+dissipated into heat. The conservation of kinetic energy (in the absence
+of viscosity) is thus an important feature of turbulent fluid flows which
+is formally consistent with the NS equations. Unfortunately, though,
+this feature is not necessarily retained by the numerical scheme used to
+solve the discretized NS equations numerically. A numerical method can be
+both dissipative and dispersive, recognized for example by the order of
+the derivative in the truncation error of Taylor expansions. A numerical
+scheme with even order derivatives in truncated terms is dissipative,
+whereas odd derivatives lead to dispersion.
 
 The often used terminology Direct Numerical Simulations (DNS) should
 be understood as the three-dimensional and time dependent numerical
-simulations of the NS equations that resolve all information (all
-turbulence scales) and that have negligible numerical dissipation
-(artificial viscosity) and dispersion. For this reason DNS are often
-performed with highly accurate spectral (Fourier)
-methods~\citep{CanutoHussainiQuarteroniEtAl1988} in homogeneous flows
-or higher-order central finite differences or spectral element
+simulations of the NS equations that resolve all information
+(all turbulence scales) and that have negligible numerical
+dissipation (artificial viscosity) and dispersion. For this reason
+DNS are often performed with highly accurate spectral (Fourier)
+methods~\citep{CanutoHussainiQuarteroniEtAl1988} in homogeneous
+flows or higher-order central finite differences or spectral element
 methods~\citep{Blackburn2009} for more geometrical flexibility in
-inhomogeneous flows. The results of carefully executed DNS have in the
-fluid mechanics community the same status as carefully executed
+inhomogeneous flows. The results of carefully executed DNS have in
+the fluid mechanics community the same status as carefully executed
 experiments. Unfortunately, DNS are very demanding of computer
 resources. A good part of the expense is incurred in capturing the
-smallest scales of turbulence; that is, the scales that are
-responsible for dissipating energy. Yet another complication in
-non-periodic flows is to describe inflow and outflow boundary
-conditions that are consistent with the NS equations.
+smallest scales of turbulence; that is, the scales that are responsible
+for dissipating energy. Yet another complication in non-periodic flows
+is to describe inflow and outflow boundary conditions that are consistent
+with the NS equations.
 
 The computational cost of DNS can (at the expense of accuracy in
 computed statistics) be reduced by capturing only the largest scales
@@ -103,60 +98,57 @@ and using a dissipative model in place of the smaller eddies (to try
 and make up for the loss of accuracy). This method is referred to as
 Large Eddy Simulations (LES) and it too requires the three-dimensional
 and time dependent solution. The dissipative model introduces into the
-NS equations something that is no longer physically exact. However, to
-the extent that the dissipative model does not contaminate the large
-scales, LES can provide NS simulations from which statistics may be
-obtained with satisfactory accuracy for many purposes. However, the
-results depend inherently on the grid, because the grid independent
+NS equations something that is no longer physically exact. However,
+to the extent that the dissipative model does not contaminate the
+large scales, LES can provide NS simulations from which statistics
+may be obtained with satisfactory accuracy for many purposes. However,
+the results depend inherently on the grid, because the grid independent
 solution is nothing but the DNS solution that one in most cases cannot
 afford. The art of LES is simply to find the best possible compromise
 between efficiency and accuracy.
 
 It should be mentioned that some practitioners of LES use numerical
-dissipation to model the unresolved physical dissipation (see the
-review of implicit LES given by \citet{Iles}). In this paper, though,
-we will only consider central numerical schemes with little or no
-dissipation applicable for DNS and regular LES.
+dissipation to model the unresolved physical dissipation (see the review
+of implicit LES given by \citet{Iles}). In this paper, though, we will
+only consider central numerical schemes with little or no dissipation
+applicable for DNS and regular LES.
 
 Turbulent flows and the physical mechanisms responsible for transition
 to turbulence from a laminar flow are not very well understood and has
-been the source of extensive research for centuries. At the turn of
-the 19'th century Osbourne Reynolds discovered that for cylindrical
-pipes the transition to turbulence occurred at a Reynolds number of
-2300 ($Re=U\cdot h/\nu$, where $U$ is the average velocity and $h$
-half the pipe diameter). Later, with very carefully executed
-experiments in highly smooth pipes, scientists have been able to
-increase this number considerably, revealing that velocity is not
-really the triggering factor, even though there clearly is a strong
-correlation (follows since as the Reynolds number increases, the
-stabilizing viscous damping term becomes comparatively less than the
-unstable nonlinear convection term.) Another example of transition can
-be found in the wakes downstream bluff bodies placed in an incoming
-laminar flow. Here the transition is promoted by the strong shear
-layer formed by the recirculation region aft the body. In any case, in
-order for transition to occur, imposed disturbances triggered by
-obstacles, sudden pressure fluctuations, or even a sound waves, must
-grow and become unstable and finally chaotic. By introducing
-systematic perturbations of the NS equations one can study these
-phenomena and watch how they experience resonance and grow or
-gracefully die. Here, the numerical scheme will be of utmost
-importance to the experiment, because a dissipative scheme will damp
-(kill) the imposed perturbations.
+been the source of extensive research for centuries. At the turn of the
+19'th century Osbourne Reynolds discovered that for cylindrical pipes
+the transition to turbulence occurred at a Reynolds number of 2300
+($Re=U\cdot h/\nu$, where $U$ is the average velocity and $h$ half
+the pipe diameter). Later, with very carefully executed experiments in
+highly smooth pipes, scientists have been able to increase this number
+considerably, revealing that velocity is not really the triggering factor,
+even though there clearly is a strong correlation (follows since as the
+Reynolds number increases, the stabilizing viscous damping term becomes
+comparatively less than the unstable nonlinear convection term.) Another
+example of transition can be found in the wakes downstream bluff bodies
+placed in an incoming laminar flow. Here the transition is promoted by the
+strong shear layer formed by the recirculation region aft the body. In any
+case, in order for transition to occur, imposed disturbances triggered
+by obstacles, sudden pressure fluctuations, or even a sound waves, must
+grow and become unstable and finally chaotic. By introducing systematic
+perturbations of the NS equations one can study these phenomena and
+watch how they experience resonance and grow or gracefully die. Here,
+the numerical scheme will be of utmost importance to the experiment,
+because a dissipative scheme will damp (kill) the imposed perturbations.
 
 The most famous early work aimed to study perturbations of the NS
 equations was conducted more than 100 years ago by William McFadden
-Orr and Arnold Sommerfeld. The epitome of their analytical work is the
-celebrated Orr--Sommerfeld equation, which is an eigenvalue problem
-describing the linear two-dimensional modes of disturbance to a
-viscous parallel shear flow. Although the Orr--Sommerfeld equation
-only represents one simplified class of laminar-to-turbulence
-transition, it nevertheless constitutes a powerful method to assess
-numerical schemes since it provides an analytical transient solution
-to the NS equations that remains non-trivial for long integration
-times. The Orr--Sommerfeld test case will be further discussed in
-Sec. \ref{sec:mortensen:OS}, but first we need to turn our attention
-to the NS solvers, the numerical methods, and their implementation in
-FEniCS.
+Orr and Arnold Sommerfeld. The epitome of their analytical work
+is the celebrated Orr--Sommerfeld equation, which is an eigenvalue
+problem describing the linear two-dimensional modes of disturbance to a
+viscous parallel shear flow. Although the Orr--Sommerfeld equation only
+represents one simplified class of laminar-to-turbulence transition, it
+nevertheless constitutes a powerful method to assess numerical schemes
+since it provides an analytical transient solution to the NS equations
+that remains non-trivial for long integration times. The Orr--Sommerfeld
+test case will be further discussed in Sec. \ref{sec:mortensen:OS},
+but first we need to turn our attention to the NS solvers, the numerical
+methods, and their implementation in FEniCS.
 
 \section{Numerical method and energy conservation}
 \label{sec:mortensen:Numerical}
@@ -174,24 +166,24 @@ that can speed up the code significantly.
 \subsection{Convection}
 \label{sec:mortensen:Convection}
 
-Let $\Omega \subset \Rset^d$ be an open and bounded region in
-$\Rset^d$, where $d$ is the number of spatial dimensions, with smooth
-boundary $\Gamma$ and points denoted by $\vec{x}\in
-\overline{\Omega}=\Omega \cup \Gamma$. The $L_2(\Omega)$ inner product
-of vectors or matrix fields on $\Omega$ is then denoted as
+Let $\Omega \subset \Rset^d$ be an open and bounded region in $\Rset^d$,
+where $d$ is the number of spatial dimensions, with smooth boundary
+$\Gamma$ and points denoted by $\vec{x}\in \overline{\Omega}=\Omega \cup
+\Gamma$. The $L_2(\Omega)$ inner product of vectors or matrix fields on
+$\Omega$ is then denoted as
 \begin{equation}
  \inner{\vec{a}}{\vec{u}} = \int_{\Omega} \vec{a}\cdot \vec{u}\, \dx,
  \label{eq:mortensen:L2}
 \end{equation}
 where $\vec{a}$ and $\vec{u}$ are arbitrary vector fields on
 $\Omega$. Furthermore, let $L^2$ be the space of square integrable
-functions and denote by $\Hdivnull$ the subspace of
-divergence-free vector fields.
+functions and denote by $\Hdivnull$ the subspace of divergence-free
+vector fields.
 
 Let the convection of any vector field be written in general form as
 $B(\vec{u},\vec{a})$. Here, $\vec{u}$ is the \emph{convecting
-  velocity}, while $\vec{a}$ is the \emph{convected vector
-  field}. Then the standard convective term,
+  velocity}, while $\vec{a}$ is the \emph{convected vector field}. Then
+  the standard convective term,
 \begin{equation}
 B(\vec{u},\vec{a}) =  \nabla \vec{a} \, \vec{u},
 \end{equation}
@@ -205,7 +197,7 @@ the last term falls. Furthermore, if the velocity is divergence free
 ($\vec{u}\in \Hdivnull$), the following result can be obtained for the
 standard convection form
 \begin{equation}
-\inner{ B(\vec{u},\vec{a})}{\vec{b} } = -\inner{ \vec{a}}{ B(\vec{u},\vec{b}) }.
+  \inner{ B(\vec{u},\vec{a})}{\vec{b} } = -\inner{ \vec{a}}{ B(\vec{u},\vec{b}) }.
 \label{eq:mortensen:Bu2}
 \end{equation}
 This equation implies that if the standard convective form is adopted
@@ -226,8 +218,8 @@ represents transport of kinetic energy:
 = \int_\Omega \vec{u}\cdot\nabla K(\vec{u})\dx
 = B(\vec{u}, \vec{u}\cdot\vec{u}),
 \end{equation}
-where $K(\vec{u})$ is the (specific) kinetic energy of the fluid flow defined
-as
+where $K(\vec{u})$ is the (specific) kinetic energy of the fluid flow
+defined as
 \begin{equation}
  K(\vec{u})=\frac{1}{2}\, \vec{u}\cdot \vec{u}. \label{eq:mortensen:K}
 \end{equation}
@@ -252,61 +244,64 @@ $\vec{a}$ and integrating by parts, that the skew-symmetric form of
 \eqref{eq:mortensen:skew} ensures that \eqref{eq:mortensen:B0} holds
 for any velocity field $\vec{u} \in L^2$, and not just the divergence
 free $\vec{u} \in \Hdivnull$. This is an important result, because in
-fractional step (projection) methods for the NS equations the
-divergence constraint is not always fulfilled, at least not for
-intermediate velocity fields. With the skew-form it is ensured that
-this divergence flaw does not propagate and contaminate the (of
-primary importance) kinetic energy of the flow.
+fractional step (projection) methods for the NS equations the divergence
+constraint is not always fulfilled, at least not for intermediate velocity
+fields. With the skew-form it is ensured that this divergence flaw does
+not propagate and contaminate the (of primary importance) kinetic energy
+of the flow.
 
 \subsection{Kinetic energy}
 \label{sec:mortensen:kinetic}
 
 A dynamic equation for $K(\vec{u})$ can be derived from
-\eqref{eq:mortensen:NS} simply through taking the scalar product of
-the momentum equation and $\vec{u}$, and thereafter rearranging using
-the divergence constraint to arrive at
+\eqref{eq:mortensen:NS} simply through taking the scalar product of the
+momentum equation and $\vec{u}$, and thereafter rearranging using the
+divergence constraint to arrive at
 \begin{equation}
- \frac{\partial K(\vec{u})}{\partial t} + \nabla \cdot [\vec{u}K(\vec{u})] = \nu \nabla^2 K(\vec{u}) -\nu \nabla \vec{u} : \nabla \vec{u} - \frac{1}{\rho}\nabla \cdot \left(\vec{u}p \right) +\vec{f}\cdot \vec{u}.
+ \frac{\partial K(\vec{u})}{\partial t} + \nabla \cdot [\vec{u}K(\vec{u})]
+        = \nu \nabla^2 K(\vec{u}) -\nu \nabla \vec{u} : \nabla \vec{u}
+      - \frac{1}{\rho}\nabla \cdot \left(\vec{u}p \right) +\vec{f}\cdot \vec{u}.
  \label{eq:mortensen:K(u)}
 \end{equation}
-The second term on the right hand side represents dissipation of
-kinetic energy and the role of the remaining terms (neglecting body
-forces) is simply to transport $K(\vec{u})$ within the computational
-domain. This is made perfectly clear if \eqref{eq:mortensen:K(u)} is
-integrated over the domain, neglecting body forces and making use of
-boundary conditions (all terms that can be written as divergences will
-then fall, because of the divergence theorem). The well-known identity
-for the rate of change of total kinetic energy is obtained (see
-\citet{SimoArmero1994})
+The second term on the right hand side represents dissipation of kinetic
+energy and the role of the remaining terms (neglecting body forces) is
+simply to transport $K(\vec{u})$ within the computational domain. This
+is made perfectly clear if \eqref{eq:mortensen:K(u)} is integrated over
+the domain, neglecting body forces and making use of boundary conditions
+(all terms that can be written as divergences will then fall, because of
+the divergence theorem). The well-known identity for the rate of change
+of total kinetic energy is obtained (see \citet{SimoArmero1994})
 \begin{equation}
  \frac{\text{d} \overline{K} }{\text{d} t} = - \nu \int_\Omega \nabla
  \vec{u} : \nabla \vec{u} \dx,
 \quad \overline{K} = \int_{\Omega} K(\vec{u}) \dx .
 \end{equation}
 Evidently, since $\nu \ge 0$, energy should decay and not be created
-within the domain. For inviscid flows (Euler equations) $\nu=0$,
-transport is merely through the convective term and $\text{d}
-\overline{K}/\text{d} t = 0$. This means that as a consequence of NS
-equations, energy should be conserved through convective transport and
-dissipated only through the action of viscosity.
+within the domain. For inviscid flows (Euler equations) $\nu=0$, transport
+is merely through the convective term and $\text{d} \overline{K}/\text{d}
+t = 0$. This means that as a consequence of NS equations, energy should
+be conserved through convective transport and dissipated only through
+the action of viscosity.
+
+
 \subsection{Nature of discretization schemes}
 \label{sec:mortensen:dissipative:dispersive}
 
 There are numerous examples of numerical schemes that dissipates
-energy. The most familiar in fluid mechanics are probably the
-stabilizing upwinding-schemes (favored in many commercial software
-packages for their robustness) and streamline diffusion methods in
-finite element formulations. In general, numerical schemes that are
-asymmetric about the grid point (like upwind schemes) are known to be
-both dissipative and dispersive, whereas central (symmetric) schemes
-are non-dissipative, yet dispersive. Understanding the fundamental
-effects of dispersion and dissipation/diffusion and their relation to
-numerical discretizations is a key issue when performing the
-investigations of the present chapter. We shall therefore devote some
-space to illustrate the basic mechanisms, which can be conveniently
-done by studying a one-dimensional conservation equation
+energy. The most familiar in fluid mechanics are probably the stabilizing
+upwinding-schemes (favored in many commercial software packages for
+their robustness) and streamline diffusion methods in finite element
+formulations. In general, numerical schemes that are asymmetric about
+the grid point (like upwind schemes) are known to be both dissipative
+and dispersive, whereas central (symmetric) schemes are non-dissipative,
+yet dispersive. Understanding the fundamental effects of dispersion and
+dissipation/diffusion and their relation to numerical discretizations is
+a key issue when performing the investigations of the present chapter. We
+shall therefore devote some space to illustrate the basic mechanisms,
+which can be conveniently done by studying a one-dimensional conservation
+equation
 \begin{equation}
-{D\phi\over dt} = {\partial\phi\over\partial t} + v{\partial\phi\over\partial x}
+\frac{D\phi}{dt} = \frac{\partial\phi}{\partial t} + v\frac{\partial\phi}{\partial x}
 =0,
 \label{eq:mortensen:phi:pde}
 \end{equation}
@@ -1311,49 +1306,48 @@ dissipation rate.
 
 In this work we have validated FEniCS-based Navier--Stokes solvers
 aimed at applications involving turbulence and instabilities with
-transition to turbulence. Such solvers are of particular relevance to
-blood flow in the vicinity of aneurysms.  Our focus has been on flow
-energy and energy conservation, features of great importance for
+transition to turbulence. Such solvers are of particular relevance
+to blood flow in the vicinity of aneurysms.  Our focus has been on
+flow energy and energy conservation, features of great importance for
 turbulent flows. Discretizations of the nonlinear convection term have
-been considered both with standard, divergence and skew-symmetric
-forms - forms familiar from the vast literature on NS solvers. The
-numerical discretizations and solvers have been validated using the
-one-dimensional Burger's equation, the Orr--Sommerfeld perturbation to
-a plane channel flow in two dimensions and finally the
-three-dimensional unstable and transitional Taylor--Green vortex. We
-have briefly described the details of our NS solvers and outlined some
-optimization routines that in our experience have enhanced speed-up by
-more than an order of magnitude compared with a straightforward
-(naive) FEniCS implementation.
+been considered both with standard, divergence and skew-symmetric forms
+- forms familiar from the vast literature on NS solvers. The numerical
+discretizations and solvers have been validated using the one-dimensional
+Burger's equation, the Orr--Sommerfeld perturbation to a plane channel
+flow in two dimensions and finally the three-dimensional unstable and
+transitional Taylor--Green vortex. We have briefly described the details
+of our NS solvers and outlined some optimization routines that in our
+experience have enhanced speed-up by more than an order of magnitude
+compared with a straightforward (naive) FEniCS implementation.
 
 Two fundamentally different approaches to solving the NS equation have
 been tested: the fractional step method, which uncouples the velocity
 from the pressure, and a fully coupled solver. The fractional step
 method is generally favored by most CFD practitioners due to memory
-efficiency, even though it imposes a splitting error through
-uncoupling the velocity field from the pressure. The coupled solver
-naturally requires more memory, but on the other hand there is no
-splitting error as it simultaneously satisfies both the discretized
-momentum equation and divergence constraint, which make up the
-Navier--Stokes equations. The splitting error introduced by the
-fractional step solver has been found here with the Orr--Sommerfeld
-test case to be small when convection is treated explicitly and
-enhanced when the convection term is treated semi-implicitly. With
-semi-implicit convection the fractional step method requires the CFL
-number to be half that of the coupled solver to achieve the same
-accuracy. The problem met by implicit discretizations in correlation
-with the fractional step method is here attributed to the fact that
-implicit terms are computed from the (not necessarily divergence-free)
-intermediate velocity, as opposed to the divergence-free, end-of-step,
-velocity field. For the long integration times often associated with
-turbulence applications, though, we find that the implicit form
-remains stable and accurate where the explicit form cannot maintain
-sufficient stability.
+efficiency, even though it imposes a splitting error through uncoupling
+the velocity field from the pressure. The coupled solver naturally
+requires more memory, but on the other hand there is no splitting
+error as it simultaneously satisfies both the discretized momentum
+equation and divergence constraint, which make up the Navier--Stokes
+equations. The splitting error introduced by the fractional step solver
+has been found here with the Orr--Sommerfeld test case to be small
+when convection is treated explicitly and enhanced when the convection
+term is treated semi-implicitly. With semi-implicit convection the
+fractional step method requires the CFL number to be half that of the
+coupled solver to achieve the same accuracy. The problem met by implicit
+discretizations in correlation with the fractional step method is here
+attributed to the fact that implicit terms are computed from the (not
+necessarily divergence-free) intermediate velocity, as opposed to the
+divergence-free, end-of-step, velocity field. For the long integration
+times often associated with turbulence applications, though, we find
+that the implicit form remains stable and accurate where the explicit
+form cannot maintain sufficient stability.
 
 For the Orr--Sommerfeld test case the standard form of convection seems
-to be the only form that remains stable for long integration times,
-even though the other forms are more accurate initially. For the
-Taylor--Green test-case the standard form is found to be less accurate
-than both the divergence and skew forms. Further studies with higher
-Reynolds numbers are required, though, to more thoroughly validate
-stability of NS solvers in the fully turbulent regime.
+to be the only form that remains stable for long integration times, even
+though the other forms are more accurate initially. For the Taylor--Green
+test-case the standard form is found to be less accurate than both the
+divergence and skew forms. Further studies with higher Reynolds numbers
+are required, though, to more thoroughly validate stability of NS solvers
+in the fully turbulent regime.
+
