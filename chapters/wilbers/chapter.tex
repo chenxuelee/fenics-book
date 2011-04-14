@@ -47,12 +47,12 @@ sum = add_func(3, 4.5)
 print 'The sum of 3 and 4.5 is', sum
 \end{python}
 When run, this script produces the following output:
-\begin{python}
+\begin{progoutput}
  > python ex1.py
 --- Instant: compiling ---
 Hello world! C function add is being called...
 The sum of 3 and 4.5 is 7.5
-\end{python}
+\end{progoutput}
 Here Instant will wrap the C-function \emp{add} into a Python
 extension module by using SWIG and Distutils.  The inlined function is
 written in standard C. SWIG supports almost all of C and C++,
@@ -120,7 +120,7 @@ def time_loop_py(p, Q, A, B, dt, N, p0):
         p[i] = p[i-1] + dt*(B*Q[i] - A*p[i-1])
 \end{python}
 The corresponding C code is:
-\begin{python}
+\begin{c++}
 void time_loop_c(int n, double* p,
                  int m, double* Q,
                  double A, double B,
@@ -138,13 +138,13 @@ void time_loop_c(int n, double* p,
         p[i] = p[i-1] + dt*(B*Q[i] - A*p[i-1]);
     }
 }
-\end{python}
+\end{c++}
 In this example, \emp{(int n, double* p)} represents an array of
 doubles with length $n$. However, this can not be determined by the
 function signature:
-\begin{python}
+\begin{c++}
 void time_loop_c(int n, double* p, int m, double* Q, ...)
-\end{python}
+\end{c++}
 For example, \emp{double* p} may be an array of length $m$ or it may simply be
 output. In Instant you must therefore specify what the arrays are:
 \begin{python}
@@ -231,7 +231,7 @@ t_l &= l\Delta t,
 Also, $k_{i+\frac{1}{2},j}$ is short for $k(x_{i+\frac{1}{2}},y_j)$.
 
 The code for calculating the next time step using OpenMP looks like:
-\begin{python}
+\begin{c++}
 void stencil(double dt, double dx, double dy,
              int ux, int uy, double* u,
              int umx, int umy, double* um,
@@ -262,7 +262,7 @@ void stencil(double dt, double dx, double dy,
     }
   }
 }
-\end{python}
+\end{c++}
 We also need to add the OpenMP header \emp{omp.h} and compile
 with the flag \emp{-fopenmp} and link with the OpenMP shared
 library, e.g. \emp{libgomp.so} for Linux (specified with \emp{-lgomp}).
@@ -320,7 +320,7 @@ through these three different types of errors. Let us start by
 removing a ';' in the C++ code of
 \emp{ex2.py}, making the C++ compiler unable to compile the code. We will then get errors on the
 following form:
-\begin{python}
+\begin{progoutput}
 --- Instant: compiling ---
 In instant.recompile: The module did not compile,
    see '/tmp/tmpZ4M_ZO2010-11-9-08-24_instant/instant_module_dff94651124193a[...]
@@ -337,7 +337,7 @@ Traceback (most recent call last):
           raise RuntimeError(text)
       RuntimeError: In instant.recompile: The module did not compile,
       see '/tmp/tmpZ4M_ZO2010-11-9-08-24_instant/instant_module_dff946511241[...]
-\end{python}
+\end{progoutput}
 The error message from the compiler is located in the file \emp{compile.log} in the temporary directory
 \emp{/tmp/tmpZ4M\_ZO2010-11-9-08-24\_instant/instant\_module\_dff946511241aab327593a2d71105c5fc/}.
 The compile error message will here refer to line numbers in the
@@ -350,7 +350,7 @@ The second type of error occurs when SWIG is not able to parse the
 code. These errors are easily identified by the first line in the
 error message, namely
 \emp{Error: Syntax error in input(1).}
-\begin{python}
+\begin{progoutput}
 instant_module_815d9b7181988c1596a71b62f8a17936a77e5944.i:39: Error: Syntax error in input(1).
 running build_ext
 building '_instant_module_815d9b7181988c1596a71b62f8a17936a77e5944' extension
@@ -362,7 +362,7 @@ gcc -pthread -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototy
    -o build/temp.linux-i686-2.6/instant_module_815d9b7181988c1596a71b62f8a1[...].o -O2
 gcc: instant_module_815d9b7181988c1596a71b62f8a17936a77e5944_wrap.cxx: No such file or directory
 gcc: no input files
-\end{python}
+\end{progoutput}
 SWIG reports that it is unable to parse the Instant generated
 interface file (named \emp{*.i}) and that the problem arises at line
 39.  In this case, you should have a look in the generated interface
@@ -374,7 +374,7 @@ and incompatible with the current version of Python, the cache may be
 corrupted due to disk failure, some shared libraries might be missing
 from \emp{\$LD\_LIBRARY\_PATH} and so on.  Such error messages look
 like:
-\begin{python}
+\begin{progoutput}
 In instant.import_module_directly:
 Failed to import module 'instant_module_4b41549bc6282877d3f97d54ef664d4' from '/home/kent-and/.instant/cache'.
 Traceback (most recent call last):
@@ -390,7 +390,7 @@ Traceback (most recent call last):
     instant_assert(module is not None, "Failed to import module found in cache."
   File "/usr/local/lib/python2.6/dist-packages/instant/output.py", line 55, in instant_assert
     raise AssertionError(text)
-\end{python}
+\end{progoutput}
 In this case it is advantageous to make a local cache, using the  \emp{cache\_dir="test\_cache"}, and go
 to the local cache to find the error.
 
@@ -415,7 +415,7 @@ print 'The sum of 3 and 4.5 is', sum
 \end{python}
 After running this code there is a new directory \emp{ex4} in our directory.
 The contents is:
-\begin{python}
+\begin{progoutput}
 ~/instant_doc/code$ cd ex4/
 ~/instant_doc/code/ex4$ ls -g
 total 224
@@ -430,7 +430,7 @@ drwxr-xr-x 4 ilmarw  4096 2009-05-18 16:52 build
 -rw-r--r-- 1 ilmarw 94700 2009-05-18 16:52 ex4_wrap.cxx
 -rw-r--r-- 1 ilmarw    23 2009-05-18 16:53 __init__.py
 -rw-r--r-- 1 ilmarw   448 2009-05-18 16:53 setup.py
-\end{python}
+\end{progoutput}
 The file \emp{ex4.i} is the SWIG interface file.
 Another central file is the Distutils file \emp{setup.py}, which is generated
 and executed. During execution, \emp{setup.py} first runs SWIG on the interface file,
@@ -472,11 +472,11 @@ arrays = [['len', 'a'],                        # a 1D array / vector
 The variables names specified reflect the variable names in the C function
 signature. It is important that the order of the variables in the signature is
 retained for each array; that is, the signature should be:
-\begin{python}
+\begin{c++}
 double sum (int len_a, double*a,
 	          int len_bx, int len_by, double* b,
 	          int len_cx, int len_cy, int_cz, double* c)
-\end{python}
+\end{c++}
 The arrays are assumed to be of type \emp{double} by default, but
 several other types are supported. These types
 are \emp{float}, \emp{short}, \emp{int}, \emp{long}, \emp{long
@@ -551,10 +551,10 @@ arrays = [['m', 'mp', 'ar1', 'multi'],
           ['n', 'np', 'ar2', 'multi']]
 \end{python}
 In this case, the C function signature should look like:
-\begin{python}
+\begin{c++}
 void sum (int m, int* mp, double* ar1, int n,
           int* np, double* ar2)
-\end{python}
+\end{c++}
 
 \subsection{Module name, signature, and cache}\label{wilbers:sec:msc}
 
