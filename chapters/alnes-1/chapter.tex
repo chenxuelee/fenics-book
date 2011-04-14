@@ -248,11 +248,11 @@ of Equation~\eqref{ufl:eq:elasticitynewton} can be computed automatically
 by \ufl{}, such that
 \begin{align}
 a(\uu_h; \bpsi_k, \bphi) = \frac{\partial L(\uu_h; \bphi)}{\partial u_k}
-  \quad k = 1, \ldots, |V_h|. \label{ufl:eq:hypdefa}
+  \quad k = 1, \ldots, |V_h|. \label{alnes-1:eq:hypdefa}
 \end{align}
 
 Figure~\ref{ufl:fig:hypcode} shows an implementation of equations
-\eqref{ufl:eq:hypdef}, \eqref{ufl:eq:hypdefL} and \eqref{ufl:eq:hypdefa}
+\eqref{ufl:eq:hypdef}, \eqref{ufl:eq:hypdefL} and \eqref{alnes-1:eq:hypdefa}
 in \ufl{}.  Notice the close relation between the mathematical notation
 and the \ufl{} source code. In particular, note the automated
 differentiation of both the constitutive law and the residual
@@ -266,7 +266,7 @@ In the following sections, the notation, definitions and operators used
 in this implementation will be explained.
 
 \begin{figure}\label{ufl:fig:hypcode}
-\begin{python}
+\begin{uflcode}
 # Finite element spaces
 cell = tetrahedron
 element = VectorElement("CG", cell, 1)
@@ -296,7 +296,7 @@ S = 2*diff(W, C)
 # Weak forms
 L = inner(F*S, grad(phi0))*dx
 a = derivative(L, u, phi1)
-\end{python}
+\end{uflcode}
 \caption{\ufl{} implementation of hyperelasticity equations with a
 Mooney-Rivlin material law.}
 \end{figure}
@@ -312,16 +312,16 @@ Mooney-Rivlin material law.}
 \index{\emp{TensorElement}}
 \index{\emp{MixedElement}}
 A polygonal cell is defined in \ufl{} by a basic shape, and is declared by
-\begin{python}
+\begin{uflcode}
 cell = Cell(shapestring)
-\end{python}
+\end{uflcode}
 \ufl{} defines a set of valid polygonal cell shapes: ``interval'',
 ``triangle'', ``tetrahedron'', ``quadrilateral'', and ``hexahedron''.
 \emp{Cell} objects of all shapes are predefined and can be used
 instead by writing
-\begin{python}
+\begin{uflcode}
 cell = tetrahedron
-\end{python}
+\end{uflcode}
 In the rest of this chapter, a variable name \emp{cell} will be used
 where any cell is a valid argument, to make the examples dimension
 independent wherever possible.
@@ -352,7 +352,7 @@ convenience.  To print all valid families to screen from Python, call
 
 The syntax for declaring elements is best explained with some
 examples.
-\begin{python}
+\begin{uflcode}
 cell = tetrahedron
 
 P = FiniteElement("Lagrange", cell, 1)
@@ -361,7 +361,7 @@ T = TensorElement("DG", cell, 0, symmetry=True)
 
 TH = V * P
 ME = MixedElement(T, V, P)
-\end{python}
+\end{uflcode}
 In the first line a polygonal cell is selected from the set of
 predefined cells.  Then a scalar linear Lagrange element \emp{P} is
 declared, as well as a quadratic vector Lagrange element \emp{V}.
@@ -396,10 +396,10 @@ a(w; u, v) &= \int_\Omega w \Grad u \cdot \Grad v \dx, \\
 L(f, g, h; v) &= \int_\Omega f v \dx + \int_{\partial\Omega_0} g^2 v \ds + \int_{\partial\Omega_1} h v \ds.
 \end{align}
 These forms can be expressed in UFL as
-\begin{python}
+\begin{uflcode}
 a = w*dot(grad(u), grad(v))*dx
 L = f*v*dx + g**2*v*ds(0) + h*v*ds(1)
-\end{python}
+\end{uflcode}
 where multiplication by the measures \emp{dx}, \emp{ds(0)} and \emp{ds(1)}
 represent the integrals $\int_{\Omega_0} (\cdot) \dx$,
 $\int_{\partial\Omega_0} (\cdot) \ds$,
@@ -465,12 +465,12 @@ representations
 \end{itemize}
 Defining a different quadrature order for each term in a form can be
 achieved by attaching meta data to measure objects, e.g.,
-\begin{python}
+\begin{uflcode}
 dx02 = dx(0, { "integration_order": 2 })
 dx14 = dx(1, { "integration_order": 4 })
 dx12 = dx(1, { "integration_order": 2 })
 L = f*v*dx02 + g*v*dx14 + h*v*dx12
-\end{python}
+\end{uflcode}
 Meta data can also be used to override other form compiler specific
 options separately for each term. For more details on this feature see
 the manuals of \ufl{} and the form compilers.
@@ -548,41 +548,41 @@ The exception is coefficient functions that can only be evaluated
 point-wise, which are declared with a finite element with family
 ``Quadrature''.  Basis functions are declared for an arbitrary element
 as in the following manner:
-\begin{python}
+\begin{uflcode}
 phi = Argument(element)
 v = TestFunction(element)
 u = TrialFunction(element)
-\end{python}
+\end{uflcode}
 By using \emp{TestFunction} and \emp{TrialFunction} in declarations
 instead of \emp{Argument} you can ignore their relative ordering.
 The only time \emp{Argument} is needed is for forms of arity $r > 2$.
 
 Coefficient functions are declared similarly for an arbitrary element,
 and shorthand notation exists for declaring piecewise constant functions:
-\begin{python}
+\begin{uflcode}
 w = Coefficient(element)
 c = Constant(cell)
 v = VectorConstant(cell)
 M = TensorConstant(cell)
-\end{python}
+\end{uflcode}
 If a form argument $u$ in a mixed finite element space $V_h = V_h^0
 \times V_h^1$ is desired, but the form is more easily expressed using
 subfunctions $u_0 \in V_h^0$ and $u_1 \in V_h^1$, you can split the
 mixed function or basis function into its subfunctions in a generic way
 using \emp{split}:
-\begin{python}
+\begin{uflcode}
 V = V0 * V1
 u = Coefficient(V)
 u0, u1 = split(u)
-\end{python}
+\end{uflcode}
 The \emp{split} function can handle arbitrary mixed elements.
 Alternatively, a handy shorthand notation for argument declaration
 followed by \emp{split} is
-\begin{python}
+\begin{uflcode}
 v0, v1 = TestFunctions(V)
 u0, u1 = TrialFunctions(V)
 f0, f1 = Coefficients(V)
-\end{python}
+\end{uflcode}
 %------------------------------------------------------------------------------
 \subsection{Index notation}
 \label{ufl:sec:indexnotation}
@@ -640,17 +640,17 @@ and is accomplished using the function \emp{as\_tensor(Aij, (i,j))}.
 To illustrate, consider the outer product of two vectors $\AA =
 \uu\otimes\vv = u_i v_j \ee_i\otimes\ee_j$, and the corresponding scalar
 components $A_{ij}$.  One way to implement this is
-\begin{python}
+\begin{uflcode}
 A = outer(u, v)
 Aij = A[i, j]
-\end{python}
+\end{uflcode}
 Alternatively, the components of $\AA$ can be expressed directly using
 index notation, such as $A_{ij} = u_i v_j$.  $A_{ij}$ can then be mapped
 to $\AA$ in the following manner:
-\begin{python}
+\begin{uflcode}
 Aij = v[j]*u[i]
 A = as_tensor(Aij, (i, j))
-\end{python}
+\end{uflcode}
 These two pairs of lines are mathematically equivalent, and the result
 of either pair is that the variable \emp{A} represents the tensor $\AA$
 and the variable \emp{Aij} represents the tensor $A_{ij}$.  Note that free
@@ -667,10 +667,10 @@ In addition, slices can be used in place of an index.  An example of
 using slices is \emp{A[0,:]} which is is a vector expression that
 represents row 0 of \emp{A}.  To create new indices, you can either
 make a single one or make several at once:
-\begin{python}
+\begin{uflcode}
 i = Index()
 j, k, l = indices(3)
-\end{python}
+\end{uflcode}
 A set of indices \emp{i}, \emp{j}, \emp{k}, \emp{l} and
 \emp{p}, \emp{q}, \emp{r}, \emp{s} are predefined,
 and these should suffice for most applications.
@@ -680,12 +680,12 @@ indices, but as separate unrelated scalar expressions, you can build a
 tensor from them using \emp{as\_tensor} and its peers.  As an
 example, lets define a 2D rotation matrix and rotate a vector
 expression by $\frac \pi 2$:
-\begin{python}
+\begin{uflcode}
 th = pi/2
 A = as_matrix([[ cos(th), -sin(th)],
                [ sin(th),  cos(th)]])
 u = A*v
-\end{python}
+\end{uflcode}
 
 When indices are repeated in a term, summation over those indices is
 implied in accordance with the Einstein convention.  In particular,
@@ -820,10 +820,10 @@ Section~\ref{ufl:sec:ad}.
 
 Basic spatial derivatives $\frac{\partial f}{\partial x_i}$ can be
 expressed in two equivalent ways:
-\begin{python}
+\begin{uflcode}
 df = Dx(f, i)
 df = f.dx(i)
-\end{python}
+\end{uflcode}
 Here, \emp{df} represents the derivative of \emp{f} in the spatial
 direction $x_i$. The index \emp{i} can either be an integer, representing
 differentiation in one fixed spatial direction $x_i$, or an \emp{Index},
@@ -882,12 +882,12 @@ h(v) &= \frac{\partial f(v)}{\partial v}.
 \end{align}
 Setting $g = sin(x_0)$ and $f = e^{v^2}$, gives $h = 2 v e^{v^2} =
 2 \sin(x_0) e^{\sin^2(x_0)}$, which can be implemented as follows:
-\begin{python}
+\begin{uflcode}
 g = sin(cell.x[0])
 v = variable(g)
 f = exp(v**2)
 h = diff(f, v)
-\end{python}
+\end{uflcode}
 Try running this code in a Python session and print the expressions.
 The result is
 \begin{python}
@@ -926,9 +926,9 @@ These operators can only be used when integrating over the interior facets
 The only control flow construct included in \ufl{} is conditional
 expressions. A conditional expression takes on one of two values depending
 on the result of a boolean logic expression. The syntax for this is
-\begin{python}
+\begin{uflcode}
 f = conditional(condition, true_value, false_value)
-\end{python}
+\end{uflcode}
 which is interpreted as
 \begin{align}
 f = \begin{cases}
@@ -999,9 +999,9 @@ as well as sensitivity analysis.
 
 In its simplest form, the declaration of the derivative of a form \emp{L}
 w.r.t. the coefficients of a function \emp{w} reads
-\begin{python}
+\begin{uflcode}
 a = derivative(L, w, u)
-\end{python}
+\end{uflcode}
 The form \emp{a} depends on an additional basis function argument \emp{u},
 which must be in the same finite element space as the function \emp{w}.
 If the last argument is omitted, a new basis function argument is created.
@@ -1022,14 +1022,14 @@ J(w; \phi_j, \phi) &= \frac{\partial F(w; \phi)}{\partial w_j},
 \end{align}
 For a concrete functional $f(w) = \int_\Omega \frac 1 2 w^2 \dx$, we
 can implement this as
-\begin{python}
+\begin{uflcode}
 v = TestFunction(element)
 u = TrialFunction(element)
 w = Coefficient(element)
 f = 0.5 * w**2 * dx
 F = derivative(f, w, v)
 J = derivative(F, w, u)
-\end{python}
+\end{uflcode}
 This code declares two forms \emp{F} and \emp{J}.  The linear form \emp{F}
 represents the standard load vector \emp{w*v*dx} and the bilinear form
 \emp{J} represents the mass matrix \emp{u*v*dx}.
@@ -1046,7 +1046,7 @@ $V_h$.  The linear and bilinear forms derived from the functional in
 Equation~\ref{ufl:eq:harmonic} have basis function arguments in the mixed
 space $V_h^d + V_h$.  The implementation of these forms with automatic
 linearization reads
-\begin{python}
+\begin{uflcode}
 Vx = VectorElement("CG", triangle, 1)
 Vy = FiniteElement("CG", triangle, 1)
 u = Coefficient(Vx * Vy)
@@ -1054,7 +1054,7 @@ x, y = split(u)
 f = inner(grad(x), grad(x))*dx + y*dot(x,x)*dx
 F = derivative(f, u)
 J = derivative(F, u)
-\end{python}
+\end{uflcode}
 Note that the functional is expressed in terms of the subfunctions \emp{x}
 and \emp{y}, while the argument to \emp{derivative} must be the single
 mixed function \emp{u}.  In this example the basis function arguments
@@ -1081,7 +1081,7 @@ of the assembled sparse matrix.  In \ufl{} this is implemented simply
 by swapping the test and trial functions, and can be written using the
 \emp{adjoint} form operator.  An example of its use on an anisotropic
 diffusion term looks like
-\begin{python}
+\begin{uflcode}
 V = VectorElement("CG", cell, 1)
 T = TensorElement("CG", cell, 1)
 u = TrialFunction(V)
@@ -1089,7 +1089,7 @@ v = TestFunction(V)
 M = Coefficient(T)
 a = M[i,j] * u[k].dx(j) * v[k].dx(i) * dx
 astar = adjoint(a)
-\end{python}
+\end{uflcode}
 which corresponds to
 \begin{align}
 a(M; u, v) = \int_\Omega M_{ij} u_{k,j} v_{k,i} \dx, \\
@@ -1116,7 +1116,7 @@ L_2(f, g; v) = L(g, 3; v) = \int_\Omega (g^2 / 6) v \dx.
 \end{align}
 This feature is implemented with \emp{replace}, as illustrated in
 this case:
-\begin{python}
+\begin{uflcode}
 V = FiniteElement("CG", cell, 1)
 v = TestFunction(V)
 f = Coefficient(V)
@@ -1124,7 +1124,7 @@ g = Coefficient(V)
 L = f**2 / (2*g) * v * dx
 L2 = replace(L, { f: g, g: 3})
 L3 = g**2 / 6 * v * dx
-\end{python}
+\end{uflcode}
 Here \emp{L2} and \emp{L3} represent exactly the same form. Since they
 depend only on \emp{g}, the code generated for these forms can be more
 efficient.
@@ -1153,14 +1153,14 @@ a(u, v) - L(v) = 0,
 \end{align}
 you can declare forms with both linear and bilinear terms and split the
 equations into $a$ and $L$ afterwards.  A simple example is
-\begin{python}
+\begin{uflcode}
 V = FiniteElement("CG", cell, 1)
 u = TrialFunction(V)
 v = TestFunction(V)
 f = Coefficient(V)
 pde = u*v*dx - f*v*dx
 a, L = system(pde)
-\end{python}
+\end{uflcode}
 Here \emp{system} is used to split the PDE into its bilinear and
 linear parts. Alternatively, \emp{lhs} and \emp{rhs} can be used to
 obtain the two parts separately. Make note of the resulting sign of the
@@ -1186,14 +1186,14 @@ and thus $\frac{\partial x}{\partial c}$ can be found by solving the
 same algebraic linear system used to compute $x$, only with a different
 right hand side.  The linear form corresponding to the right hand side
 of Equation~\eqref{ufl:eq:sL} can be written
-\begin{python}
+\begin{uflcode}
 u = Coefficient(element)
 sL = diff(L, c) - action(diff(a, c), u)
-\end{python}
+\end{uflcode}
 or you can use the equivalent form transformation
-\begin{python}
+\begin{uflcode}
 sL = sensitivity_rhs(a, u, L, c)
-\end{python}
+\end{uflcode}
 Note that the solution \emp{u} must be represented by a \emp{Coefficient},
 while $u$ in $a(u, v)$ is represented by a \emp{Argument}.
 
@@ -1365,12 +1365,12 @@ coefficients.
 
 The following example illustrate the issue with \emp{Variable} and
 \emp{diff}.
-\begin{python}
+\begin{uflcode}
 e = 0
 v = variable(e)
 f = sin(v)
 g = diff(f, v)
-\end{python}
+\end{uflcode}
 Here \emp{v} is a variable that takes on the value 0, but \emp{sin(v)}
 cannot be simplified to 0 since the derivative of \emp{f} then would
 be 0.  The correct result here is \emp{g = cos(v)}. Printing \emp{f}
@@ -1902,10 +1902,10 @@ differentiation w.r.t. all coefficients $\{w_k\}$ of a function $w$.
 Consider an object \emp{element} which represents a finite element space
 $V_h$ with a basis $\{\phi_k\}$.  Next consider form arguments defined
 in this space:
-\begin{python}
+\begin{uflcode}
 v = Argument(element)
 w = Coefficient(element)
-\end{python}
+\end{uflcode}
 The Argument instance \emp{v} represents any $v\in\{\phi_k\}$,
 while the \emp{Coefficient} instance \emp{w} represents the sum
 \begin{align}
@@ -2211,7 +2211,7 @@ print "\nai:", str(ai), "\n", tree_format(ai)
 
 The print output showing \emp{a} is (with the details of the finite
 element object cut away for shorter lines):
-\begin{python}
+\begin{python} % FIXME: Not python, not ufl, just terminal output!
 a:  (grad(v_{-2} * w_0)) . (grad(v_{-1}))
 Dot
 (
@@ -2229,7 +2229,7 @@ The arguments labeled -1 and -2 refer to $v$ and $u$ respectively.
 
 In \emp{ac}, the \emp{Dot} product has been expanded to an \emp{IndexSum}
 of a \emp{Product} with two \emp{Indexed} operands:
-\begin{python}
+\begin{python} % FIXME: Not python, not ufl, just terminal output!
 IndexSum
 (
     Product
@@ -2256,7 +2256,7 @@ Zooming in to one of the \emp{...} lines above, the representation of
 $\Grad(fu)$ must still keep the vector shape after being transformed
 to more basic expressions, which is why the \emp{SpatialDerivative}
 object is wrapped in a \emp{ComponentTensor} object:
-\begin{python}
+\begin{python} % FIXME: Not python, not ufl, just terminal output!
 ComponentTensor
 (
     SpatialDerivative
@@ -2272,7 +2272,7 @@ ComponentTensor
 )
 \end{python}
 A common pattern occurs in the algorithmically expanded expressions:
-\begin{python}
+\begin{python} % FIXME: Not python, not ufl, just terminal output!
 Indexed
 (
     ComponentTensor
@@ -2287,7 +2287,7 @@ This pattern acts as a relabeling of the index objects, renaming $i_{8}$
 from inside $\ldots$ to $i_{10}$ on the outside.  When looking at the
 print of \emp{ad}, the result of the chain rule ($(fu)' = u f' + f u'$)
 can be seen as the \emp{Sum} of two \emp{Product} objects.
-\begin{python}
+\begin{python} % FIXME: Not python, not ufl, just terminal output!
 Sum
 (
     Product
