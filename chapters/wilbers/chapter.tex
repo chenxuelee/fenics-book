@@ -17,7 +17,11 @@ in DOLFIN to JIT-compile \emp{Expression}s and \emp{SubDomain}s.  See the
 Chapters~\ref{chap:alnes-3}, \ref{chap:logg-1} and~\ref{chap:mardal-2}
 for more information on these topics.
 
+<<<<<<< TREE
+Instant relies on \citet{www:swig,Beazley2006} for the generation of
+=======
 Instant relies on \citet{www:swig} for the generation of
+>>>>>>> MERGE-SOURCE
 wrapper code needed for making the C/C++ code usable from Python.  The
 code to be inlined, in addition to the wrapper code, is then compiled
 into a Python extension module (a shared library with functionality as
@@ -163,7 +167,7 @@ time_loop_c(p, Q, 1.0, 1.0, 1.0/(N-1), N, 1.0)
 
 In Table \ref{wilbers:fig:speed-up} we compare the above mentioned
 code with pure C code, pure Python, and NumPy.  We obtain a speed-up
-of about a factor 350 when compared with NumPy, using 100000 time
+of about a factor 350 when compared with NumPy, using $10^5$ time
 steps. The performance of the code using Instant is actually the same
 as a pure C program.  The comparison between NumPy and Instant may not
 be completely fair. NumPy is primarily intended for algorithms that
@@ -186,7 +190,7 @@ can be seen in Figure
 \begin{table}
 \begin{center}
 \begin{tabular}{|l|c|c|c|c|c|} \hline
-N                     & 100     & 1000   & 10000  & 100000 & 1000000 \\ \hline
+N                     & $10^2$     & $10^3$ & $10^4$ &  $10^5$ &  $10^6$ \\ \hline
 CPU time with NumPy   & 3.9e-4  & 3.9e-3 & 3.8e-2 & 3.8e-1 & 3.8     \\ \hline
 CPU time with Python  & 0.7e-4  & 0.7e-3 & 0.7e-2 & 0.7e-1 & 0.7     \\ \hline
 CPU time with Instant & 5.0e-6  & 1.4e-5 & 1.0e-4 & 1.0e-3 & 1.1e-2  \\ \hline
@@ -292,7 +296,7 @@ different numbers of CPUs. The timings in this table are performed on
 a quad-core machine with 32GB memory. We see a speed-up of factor two
 when doubling the number of CPUs, but further increasing the number of
 CPUs has a limited effect. We have not been able to investigate this
-further, but suspect that he physical layout of the machine with two
+further, but suspect that the physical layout of the machine with two
 dual cores causes this, as the two CPUs on the same core share some of
 the resources.
 \begin{table}
@@ -491,9 +495,9 @@ NumPy array and the type in the signature of the C function. For
 arrays that are changed in-place, the types have to match exactly. For
 arrays that are input or output (see next section), one has to make
 sure that the implicit casting is done to a type with higher
-accuracy. For input arrays, the C type must be of higher (or the same)
-accuracy than the NumPy array, while for output arrays the NumPy array
-type must be of higher (or the same) accuracy than the C array. The
+precision. For input arrays, the C type must be of the same or higher 
+precision as the NumPy array, while for output arrays the NumPy array
+type must be of the same or higher precision as the C array. The
 NumPy type \emp{float32} corresponds to the C type \emp{float},
 while \emp{float64} corresponds to \emp{double}. The NumPy
 type \emp{float} is the same as \emp{float64}. For integer arrays, the
@@ -506,7 +510,7 @@ input are NumPy arrays. Python lists and sequences are converted to
 NumPy arrays automatically.  The following code shows an example where
 we calculate the matrix-vector multiplication $x = Ab$. The integer
 matrix $A$ and double vector $b$ are marked as input, while the double
-vector $x$ is output. The code is found in file: \emp{ex5.py}.
+vector $x$ is output. The code can be found in: \emp{ex5.py}.
 \begin{python}
 from instant import inline_with_numpy
 from numpy import arange, dot
@@ -571,7 +575,7 @@ resulting code is copied to the Instant cache
 unless \emp{cache\_\-dir} is set to a specific directory. Note that
 changing the arguments, code or compile arguments will result in a new
 directory in the Instant cache.  Before compiling a module, Instant
-will always check if the module is cached in both the Instant cache or
+will always check if the module is cached in either in the Instant cache or
 in the current working directory.
 
 If \emp{modulename} is used, the directory with the resulting code is
@@ -582,9 +586,7 @@ argument \emp{cache\_\-dir} is ignored.
 
 When \emp{signature} is given as argument, Instant uses the signature
 instead of computing the checksum. The resulting directory has the
-same name as the signature, provided the signature does not contain
-more than 100 characters containing only letters, numbers, or a
-underscore. If this is not the case, the module name is generated
+same name if signature contains less or equal to 100 characters (letters, numbers, or underscores). If this is not the case, the module name is generated
 based on the checksum of this string, resulting in a module name
 starting with \emp{instant\_\-module\_\-} followed by the
 checksum. Because the user specifies the signature herself, changes in
@@ -698,7 +700,7 @@ SWIG programmers. The keywords arguments are as follows:
     \item Type: List of strings
     \item Comment: Source files to compile and link with the module. These
       files are compiled together with the SWIG-generated wrapper file into
-      the shared library file. Should reside in directory specified in
+      the shared library file. Should reside in the directory specified in
       \emp{source\_\-directory}.
   \end{itemize}
 \item \emp{wrap\_\-headers}
@@ -708,7 +710,7 @@ SWIG programmers. The keywords arguments are as follows:
     \item Comment: Local header files that should be wrapped by SWIG. The
       files specified will be included both in the initial block for C/C++ code
       (with a C directive) and in the main section of the interface file (with
-      a SWIG directive). Should reside in directory specified in
+      a SWIG directive). Should reside in the directory specified in
       \emp{source\_\-directory}.
   \end{itemize}
 \item \emp{local\_\-headers}
@@ -717,7 +719,7 @@ SWIG programmers. The keywords arguments are as follows:
     \item Type: List of strings
     \item Comment: Local header files required to compile the wrapped
       code. The files specified will be included in the initial block for C/C++ code
-      (with a C directive). Should reside in directory specified in
+      (with a C directive). Should reside in the directory specified in
       \emp{source\_\-directory}.
   \end{itemize}
 \item \emp{system\_\-headers}
@@ -767,8 +769,8 @@ SWIG programmers. The keywords arguments are as follows:
   \begin{itemize}
     \item Default: \emp{['-O2']}
     \item Type: List of strings
-    \item Comment: Arguments to the C++ compiler, other than include
-      directories, e.g. \emp{['-Wall', '-fopenmp']}.
+    \item Comment: Arguments to the C++ compiler (except include
+      directories) e.g. \emp{['-Wall', '-fopenmp']}.
   \end{itemize}
 \item \emp{lddargs}
   \begin{itemize}
@@ -907,7 +909,7 @@ want to run. Further, there are three keyword arguments. The first
 is \emp{input}, which should be a string containing input to the
 process once it is running. The other two are \emp{cwd}
 and \emp{env}. We refer to the documentation of \emp{subprocess} for a
-more details description of these, but in short the first is the
+more detailed description of these, but in short the first is the
 directory in which the process should be executed, while the second is
 used for setting the necessary environment variables.
 
@@ -919,10 +921,9 @@ The function returns the SWIG version number like  '1.3.36'.
 
 Takes a single argument, which should be a string on the same format
 as the output of \emp{get\_\-swig\_\-version}. Returns \emp{True} if
-the version of the installed SWIG is equal or greater than the version
-passed to the function. It also has one keyword
-argument, \emp{same}. If it is \emp{True}, the function
-returns \emp{True} if and only if the two versions are the same.
+the version of the installed SWIG is equal to or greater than the version
+passed to the function. It also has a keyword
+argument \emp{same} for testing whether the two versions are the same.
 
 \section{Related work}
 
