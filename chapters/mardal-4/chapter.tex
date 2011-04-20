@@ -105,20 +105,27 @@ constructed using multigrid techniques. These multigrid
 preconditioners will be spectrally equivalent with the Riesz mappings.
 
 \section{Overview of \emp{cbc.block}}
-\emp{cbc.block} makes it possible to write matrix operations in mathematical notation, such as $M = A B+C$, where $A$, $B$ and $C$ are matrices or operators. The algebraic operations are not performed explicitly; instead the operators are stored in a graph as shown in Fig. \ref{block:dag}. When $M$ is called upon to operate on a vector, as in $y=Mx$, the individual operations are performed in the right order on the vector: $u=Bx$, $v=Au$, $w=Cx$, $y=v+w$. Since the matrix product or sum is not created explicitly, the individual operators do not need to have an explicit matrix representation, but  may be a Dolfin matrix, a preconditioner such as ML, or even an inner iterative solver.
+\emp{cbc.block} makes it possible to write matrix operations in mathematical notation, such as $M = A B+C$, where $A$, $B$ and $C$ are matrices or operators. The algebraic operations are not performed explicitly; instead the operators are stored in a graph as shown in Fig. \ref{fig:mardal-4:block:dag}. When $M$ is called upon to operate on a vector, as in $y=Mx$, the individual operations are performed in the right order on the vector: $u=Bx$, $v=Au$, $w=Cx$, $y=v+w$. Since the matrix product or sum is not created explicitly, the individual operators do not need to have an explicit matrix representation, but  may be a Dolfin matrix, a preconditioner such as ML, or even an inner iterative solver.
 To enable the construction of this graph \emp{cbc.block} injects the methods \emp{\_\_mul\_\_}, \emp{\_\_add\_\_},
 and \emp{\_\_sub\_\_} into the \emp{Matrix} and \emp{Vector} classes in \dolfin.
 The module also implements block matrices and vectors in Python and instead of using the block matrix in \dolfin. 
 
 
+%\begin{figure}
+%%\centering
+%\def\svgwidth{\largefig}
+%%\includegraphics[width=\largefig]{chapters/mardal-4/pdf/block.pdf}
+%\import{chapters/mardal-4/pdf/}{block.pdf_tex}
+%\caption{Expression tree for the composed matrix $M = A B + C$.}
+%\label{block:dag}
+%\end{figure}
+%
 \begin{figure}
-%\centering
-\def\svgwidth{\largefig}
-%\includegraphics[width=\largefig]{chapters/mardal-4/pdf/block.pdf}
-\import{chapters/mardal-4/pdf/}{block.pdf_tex}
-\caption{Expression tree for the composed matrix $M = A B + C$.}
-\label{block:dag}
+  \center\fenicsfig{mardal-4}{block}{\largefig}
+  \caption{Expression tree for the composed matrix $M = A B + C$.}
+  \label{fig:mardal-4:block:dag}
 \end{figure}
+
 
 
 When the explicit matrix product is required, such as for input to the ML preconditioner, a method \emp{collapse} is provided that performs the calculations using PyTrilinos. This method requires that all components are actual matrices, not general operators.
