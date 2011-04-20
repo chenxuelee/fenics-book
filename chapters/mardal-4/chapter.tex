@@ -1,14 +1,37 @@
 \fenicschapter{Block preconditioning of systems of PDEs}
               {Block preconditioning of systems of PDEs}
-              {Kent-Andre Mardal}
+              {Joachim Berdal Haga and Kent-Andre Mardal}
               {mardal-4}
+
+\newcommand{\algorithmexample}[3]{%
+\begin{figure*}
+  \begin{center}
+    \small
+    \begin{tabular}{l}
+      \hline
+      \textbf{Algorithm example #1:} #2 \\
+      \hline
+      \begin{minipage}{0.9\textwidth}
+        \vspace{0.1cm}
+        \begin{enumerate}
+          #3
+        \end{enumerate}
+        \vspace{0.1cm}
+      \end{minipage} \\
+      \hline
+    \end{tabular}
+    \normalsize
+  \end{center}
+\end{figure*}}
+
 
 In this chapter we describe the implementation of block preconditioned
 Krylov solvers for systems of partial differential equations (PDEs)
-using the Python interfaces of DOLFIN and Trilinos\index{Trilinos}.
+using the \emp{cbc.blocks} and the Python interfaces of DOLFIN and Trilinos\index{Trilinos}.
 We start by reviewing the abstract theory of constructing
 preconditioners\index{preconditioner} by considering the differential
-operators as mappings in properly chosen Sobolev spaces. We then
+operators as mappings in properly chosen Sobolev spaces, before giving a short 
+overview of \emp{cbc.blocks}. We then
 present several examples, namely the Poisson problem, the Stokes
 problem, the time-dependent Stokes problem and finally a mixed
 formulation of the Hodge Laplacian.
@@ -81,6 +104,31 @@ problem.  Finally, we will see that $\mathcal{B}_h$ often can be
 constructed using multigrid techniques. These multigrid
 preconditioners will be spectrally equivalent with the Riesz mappings.
 
+\section{Overview of \emp{cbc.block}}
+\emp{cbc.block} makes it possible to write matrix operations in mathematical notation, such as $M = A B+C$, where $A$, $B$ and $C$ are matrices or operators. The algebraic operations are not performed explicitly; instead the operators are stored in a graph as shown in Fig. \ref{block:dag}. When $M$ is called upon to operate on a vector, as in $y=Mx$, the individual operations are performed in the right order on the vector: $u=Bx$, $v=Au$, $w=Cx$, $y=v+w$. Since the matrix product or sum is not created explicitly, the individual operators do not need to have an explicit matrix representation, but  may be a Dolfin matrix, a preconditioner such as ML, or even an inner iterative solver.
+To enable the construction of this graph \emp{cbc.block} injects the methods \emp{\_\_mul\_\_}, \emp{\_\_add\_\_},
+and \emp{\_\_sub\_\_} into the \emp{Matrix} and \emp{Vector} classes in \dolfin.
+The module also implements block matrices and vectors in Python and instead of using the block matrix in \dolfin. 
+
+
+\begin{figure}
+%\centering
+\def\svgwidth{\largefig}
+%\includegraphics[width=\largefig]{chapters/mardal-4/pdf/block.pdf}
+\import{chapters/mardal-4/pdf/}{block.pdf_tex}
+\caption{Expression tree for the composed matrix $M = A B + C$.}
+\label{block:dag}
+\end{figure}
+
+
+When the explicit matrix product is required, such as for input to the ML preconditioner, a method \emp{collapse} is provided that performs the calculations using PyTrilinos. This method requires that all components are actual matrices, not general operators.
+
+The module   
+also provides services to set Dirichlet boundary conditions and perform other transformations of the system, and a range of iterative solvers and preconditioners.
+
+
+
+
 \section{Numerical examples}
 
 In all examples the mesh will be refinements of the unit square or
@@ -124,28 +172,36 @@ for various refinements of the unit square.
 
 First of all, the ML preconditioner is constructed as follows,
 \begin{python}
-from PyTrilinos import Epetra, AztecOO, TriUtils, ML
-from dolfin import down_cast, Vector
-
-class MLPreconditioner:
-    def __init__(self, A):
+class ML(block_base):
+    def __init__(self, A, pdes=1):
+        from PyTrilinos.ML import MultiLevelPreconditioner
         # create the ML preconditioner
         MLList = {
-              "max levels"        : 30,
-              "output"            : 1,
-              "smoother: type"    : "ML symmetric Gauss-Seidel",
-              "aggregation: type" : "Uncoupled",
-              "ML validate parameter list" : False
-        }
-        ml_prec = ML.MultiLevelPreconditioner(down_cast(A).mat(), 0)
-        ml_prec.SetParameterList(MLList)
-        ml_prec.ComputePreconditioner()
+            "smoother: type"            : "ML symmetric Gauss-Seidel" ,
+            "aggregation: type"         : "Uncoupled" ,
+            "ML validate parameter list": True,
+            }
+        self.A = A # Prevent matrix being deleted
+        self.ml_prec = MultiLevelPreconditioner(A.down_cast().mat(), 0)
+        self.ml_prec.SetParameterList(MLList)
+        self.ml_agg = self.ml_prec.GetML_Aggregate()
+        err = self.ml_prec.ComputePreconditioner()
+        if err:
+            raise RuntimeError('ComputePreconditioner returned %d'%err)
 
-    def __mul__(self, b):
+    def matvec(self, b):
+        from dolfin import GenericVector
+        if not isinstance(b, GenericVector):
+            return NotImplemented
         # apply the ML preconditioner
-        x = Vector(b.size())
-        err = self.ml_prec.ApplyInverse(down_cast(b).vec(),
-                                        down_cast(x).vec())
+        x = self.A.create_vec()
+        if len(x) != len(b):
+            raise RuntimeError, \
+                'incompatible dimensions for AztecOO matvec, %d != %d'%(len(x),len(b))
+
+        err = self.ml_prec.ApplyInverse(b.down_cast().vec(), x.down_cast().vec())
+        if err:
+            raise RuntimeError('ApplyInverse returned %d'%err)
         return x
 \end{python}
 The linear algebra backends uBLAS, PETSc and Trilinos all have a wide
@@ -155,35 +211,42 @@ compute an estimate of the condition number.  The following code shows
 the implementation of the conjugate gradient method using the Python
 linear algebra interface in DOLFIN:
 \begin{python}
-def precondconjgrad_eigest(B, A, x, b, tolerance=1.0E-05,
-                           relativeconv=False, maxiter=500):
+def precondconjgrad(B, A, x, b, tolerance, maxiter, progress, relativeconv=False):
 
     r = b - A*x
     z = B*r
-    d = 1.0*z
-
+    d = z
     rz = inner(r,z)
+    if rz < 0:
+        raise ValueError('Matrix is not positive')
 
-    if relativeconv: tolerance *= sqrt(rz)
     iter = 0
     alphas = []
     betas = []
-    while sqrt(rz) > tolerance and iter <= maxiter:
+    residuals = [sqrt(rz)]
+
+    if relativeconv:
+        tolerance *= residuals[0]
+
+    while residuals[-1] > tolerance and iter <= maxiter:
         z = A*d
-        alpha = rz / inner(d,z)
+        dz = inner(d,z)
+        alpha = rz/dz
         x += alpha*d
         r -= alpha*z
         z = B*r
         rz_prev = rz
         rz = inner(r,z)
-        beta =  rz / rz_prev
+        beta = rz/rz_prev
         d = z + beta*d
+
         iter += 1
+        progress += 1
         alphas.append(alpha)
         betas.append(beta)
+        residuals.append(sqrt(rz))
 
-    e = eigenvalue_estimates(alphas, betas)
-    return x, e, iter
+    return x, residuals, alphas, betas
 \end{python}
 The intermediate variables called alphas and betas can then be used to
 estimate the condition number of the preconditioned matrix as follows;
@@ -193,21 +256,21 @@ multigrid (AMG)\index{AMG} as a preconditioner, there will be only a
 small number of alphas and betas. Therefore we use the dense linear
 algebra tools in NumPy to compute the eigenvalue estimates.
 \begin{python}
-def eigenvalue_estimates(alphas, betas):
-    # eigenvalues estimates in terms of alphas and betas
-    import numpy
-    from numpy import linalg
-    n = len(alphas)
-    A = numpy.zeros([n,n])
-    A[0,0] = 1/alphas[0]
-    for k in range(1, n):
-        A[k,k] = 1/alphas[k] + betas[k-1]/alphas[k-1]
-        A[k,k-1] = numpy.sqrt(betas[k-1])/alphas[k-1]
-        A[k-1,k] = A[k,k-1]
-    e,v = linalg.eig(A)
-    e.sort()
+    def eigenvalue_estimates(self):
+        # eigenvalues estimates in terms of alphas and betas
 
-    return x, e
+        import numpy
+
+        n = len(self.alphas)
+        M = numpy.zeros([n,n])
+        M[0,0] = 1/self.alphas[0]
+        for k in range(1, n):
+            M[k,k] = 1/self.alphas[k] + self.betas[k-1]/self.alphas[k-1]
+            M[k,k-1] = numpy.sqrt(self.betas[k-1])/self.alphas[k-1]
+            M[k-1,k] = M[k,k-1]
+        e,v = numpy.linalg.eig(M)
+        e.sort()
+        return e
 \end{python}
 The following code shows the implementation of a Poisson problem
 solver, using the above mentioned ML preconditioner and conjugate
@@ -217,43 +280,63 @@ right-hand side are both in $L^2_0$. For this reason we subtract the
 mean value from the right hand-side.  The start vector is zero and
 does therefore have mean value zero.
 \begin{python}
-import Krylov
-import MLPrec
+import PyTrilinos
+from dolfin import *
+from block.iterative import ConjGrad
+from block.algebraic.trilinos import ML
 
-# use the Epetra backend
-parameters["linear_algebra_backend"] = "Epetra"
+# Source term
+class Source(Expression):
+    def eval(self, values, x):
+        dx = x[0] - 0.5
+        dy = x[1] - 0.5
+        values[0] = 500.0*exp(-(dx*dx + dy*dy)/0.02)
+
+# Neumann boundary condition
+class Flux(Expression):
+    def eval(self, values, x):
+        if x[0] > DOLFIN_EPS:
+            values[0] = 25.0*sin(5.0*DOLFIN_PI*x[1])
+        else:
+            values[0] = 0.0
+
+N = 2
+
+# Parse command-line arguments like "N=6"
+import sys
+for s in sys.argv[1:]:
+    exec(s)
 
 # Create mesh and finite element
-mesh = UnitSquare(10, 10)
+mesh = UnitSquare(N,N)
 V = FunctionSpace(mesh, "CG", 1)
 
 # Define variational problem
 v = TestFunction(V)
 u = TrialFunction(V)
-f = Source(V)
-g = Flux(V)
+f = Source()
+g = Flux()
+
 a = dot(grad(v), grad(u))*dx
 L = v*f*dx + v*g*ds
 
-# Assemble symmetric matrix and vector
-A, b = assemble_system(a, L)
+# Assemble matrix and vector
+A, b = assemble_system(a,L)
 
-# create solution vector (also used as start vector)
-x = b.copy()
-x.zero()
-
-# subtract mean value from right hand-side
+# remove constant from right handside
 c = b.array()
-c -= sum(c) / len(c)
+c -= sum(c)/len(c)
 b[:] = c
 
 # create preconditioner
-B = MLPrec.MLPreconditioner(A)
-x, e, iter = Krylov.precondconjgrad_eigest(B, A, x, b, 10e-6, True, 100)
+B = ML(A)
+Ainv = ConjGrad(A, precond=B, tolerance=1e-8, show=0)
 
-print "Number of iterations ", iter
-print "Eigenvalues ", e
-print "kappa(BA) ", e[len(e)-1] / e[0]
+x = Ainv*b
+
+e = Ainv.eigenvalue_estimates()
+
+print "N=%d iter=%d K=%.3g" % (N, Ainv.iterations, e[-1]/e[0])
 \end{python}
 In Table~\ref{tabel:neumann} we list the number of iterations for
 convergence and the estimated condition number of the preconditioned
@@ -268,8 +351,8 @@ source code \emp{poisson\_neumann.py}.
 \begin{tabular}{|c||c|c|c|c|c|c|}
 \hline
 $h$ & $2^{-4}$ & $2^{-5}$ & $2^{-6}$ & $2^{-7}$ & $2^{-8}$ \\ \hline
-$\kappa$ & 1.56 & 1.26 & 2.09 & 1.49 & 1.20 \\ \hline
-$\#iterations$ & 8 & 8 & 9 & 9 & 8 \\ \hline
+$\kappa$ & 1.57 & 1.26 & 2.09 & 1.49 & 1.20 \\ \hline
+$\#iterations$ & 8 & 8 & 10 & 9 & 7 \\ \hline
 \end{tabular}
 \caption{The estimated condition number $\kappa$ and the number of iterations for
   convergence with respect to various mesh refinements for the Poisson
@@ -388,69 +471,77 @@ preconditioner consists of two preconditioners.  The following shows
 how to implement this block preconditioner\index{block preconditioner}
 based on the ML preconditioner defined in the previous example.
 \begin{python}
-class SaddlePrec:
-    def __init__(self, K, L):
-        self.K = K
-        self.L = L
-        self.K_prec = MLPreconditioner(K)
-        self.L_prec = MLPreconditioner(L)
-        self.n = K.size(0)
-        self.m = L.size(0)
-        self.x = Vector(self.n + self.m)
+import PyTrilinos
+from dolfin import *
+from block import *
+from block.iterative import *
+from block.algebraic.trilinos import ML
 
-    def __mul__(self, b):
+N = 2
+porder = 1
+vorder = 2
+alpha = 0
 
-        self.x = Vector(self.n + self.m)
-        x = self.x
-        n = self.n
-        m = self.m
+# Parse command-line arguments like "N=6", "alpha=0.1"
+import sys
+for s in sys.argv[1:]:
+    exec(s)
 
-        x[0:n]    = self.K_prec*b[0:n]
-        x[n:n+m]  = self.L_prec*b[n:n+m]
+class Boundary(SubDomain):
+    def inside(self, x, on_boundary):
+        return on_boundary
 
-        return x
-\end{python}
-The Stokes problem is then specified and solved as follows:
-\begin{python}
-mesh = UnitSquare(40,40)
-V = VectorFunctionSpace(mesh, "CG", 2)
-Q = FunctionSpace(mesh, "CG", 1)
-mixed = V + Q
+class BoundaryFunction(Expression):
+    def value_shape(self):
+        return (2,)
+    def eval(self, values, x):
+        values[0] = 1 if near(x[1],1) else 0
+        values[1] = 0
 
-f = Constant(mesh, (0, 0))
-g = Constant(mesh, 0)
+mesh = UnitSquare(N,N)
+def CG(n):
+    return ('DG',0) if n==0 else ('CG',n)
 
-u, p = TrialFunctions(mixed)
-v, q = TestFunctions(mixed)
+V = VectorFunctionSpace(mesh, *CG(vorder))
+Q = FunctionSpace(mesh, *CG(porder))
 
-a = inner(grad(u), grad(v))*dx + div(u)*q*dx + div(v)*p*dx
-L = dot(f, v)*dx
+f = Constant((0,0))
+g = Constant(0)
+alpha = Constant(alpha)
+h = CellSize(mesh)
 
-bc_func = BoundaryFunction(V)
-bc = DirichletBC(V, bc_func, Boundary())
+v,u = TestFunction(V), TrialFunction(V)
+q,p = TestFunction(Q), TrialFunction(Q)
 
-A, b = assemble_system(a, L, bc)
-\end{python}
-And finally, we create a block preconditioner and solve the problem with
-the MinRes method\index{minimal residual method}.
-\begin{python}
-u, p = TrialFunction(V), TrialFunction(Q)
-v, q = TestFunction(V), TestFunction(Q)
+A  = assemble(inner(grad(v), grad(u))*dx)
+B  = assemble(div(v)*p*dx)
+C  = assemble(div(u)*q*dx)
+D  = assemble(-alpha*h*h*dot(grad(p), grad(q))*dx)
+M1 = assemble(p*q*dx)
+b0 = assemble(inner(v, f)*dx)
+b1 = assemble(q*g*dx)
 
-k = inner(grad(u), grad(v))*dx
-l = p*q*dx
-L0 = dot(f, v)*dx
-L1 = q*g*dx
+AA = block_mat([[A, B],
+                [C, D]])
+bc = block_bc([DirichletBC(V, BoundaryFunction(), Boundary()), None])
+b = block_vec([b0, b1])
+bc.apply(AA, b)
 
-K, b0 = assemble_system(k, L0, bc)
-L, b1 = assemble_system(l, L1)
+BB = block_mat([[ML(A),  0],
+                [0, ML(M1)]])
 
-x = Vector(b.size())
-x.zero()
 
-B = SaddlePrec(K, L)
+AAinv = MinRes(AA, precond=BB, tolerance=1e-8, show=0)
+x = AAinv * b
 
-x, i, rho  = MinRes.precondMinRes(B, A, x, b, 10e-8, False, 200)
+x.randomize()
+
+AAi = CGN(AA, precond=BB, initial_guess=x, tolerance=1e-8, maxiter=1000, show=0)
+AAi * b
+
+e = AAi.eigenvalue_estimates()
+
+print "N=%d iter=%d K=%.3g" % (N, AAinv.iterations, sqrt(e[-1]/e[0]))
 \end{python}
 We refer to \emp{stokes.py} for the complete code.
 
@@ -527,10 +618,10 @@ example~\citet{CahouetChabard1988,ElmanSilvesterWathen2005,MardalWinther2004,Mar
 \begin{tabular}{|c|c||c|c|c|c|c|c|}
 \hline
 $k\backslash h$ & $2^{-4}$ & $2^{-5}$ & $2^{-6}$ & $2^{-7}$ & $2^{-8}$ \\ \hline\hline
-1.0 & 13.2 & 13.5 & 13.6 & 13.6 & 13.6 \\ \hline
-0.1 & 12.5 & 13.2 & 13.2 & 13.5 & 13.6 \\ \hline
-0.01 & 10.3 & 11.0 & 12.8 & 13.2 & 13.4 \\ \hline
-0.001 & 7.3 & 9.1 & 11.0 & 12.3  & 13.0 \\ \hline
+1.0 & 13.6 & 13.6 & 13.6 & 13.7 & 13.7 \\ \hline
+0.1 & 13.4 & 13.5 & 13.6 & 13.6 & 13.6 \\ \hline
+0.01 & 12.8 & 13.2 & 13.4 & 13.5 & 13.6 \\ \hline
+0.001 & 11.0 & 12.3 & 13.0 & 12.3  & 13.5 \\ \hline
 \end{tabular}
 \caption{The convergence with respect to $k$ and mesh refinements for the time-dependent Stokes problem
 when using the $\mathrm{CG}_2-\mathrm{CG}_1$ method.}\label{timestokes:ex}
@@ -541,41 +632,23 @@ Creating the preconditioner in this example is completely analogous to
 the Stokes example except that we need three matrices based on three
 bilinear forms:
 \begin{python}
-k = dot(u, v)*dx +  k*inner(grad(u), grad(v))*dx
-l = kinv*p*q*dx
-m = dot(grad(p),grad(q))*dx
-L0 = dot(f, v)*dx
-L1 = q*g*dx
 
-K, b0 = assemble_system(k, L0, bc)
-L, b1 = assemble_system(l, L1)
-M, b1 = assemble_system(m, L1)
-\end{python}
-Also the code for the block preconditioner is analogous, except that
-it is based on three matrices:
-\begin{python}
-class SaddlePrec2:
-    def __init__(self, K, L, M):
-        self.K_prec = MLPrec.MLPreconditioner(K)
-        self.L_prec = MLPrec.MLPreconditioner(L)
-        self.M_prec = MLPrec.MLPreconditioner(M)
-        self.n = K.size(0)
-        self.m = L.size(0)
+# function spaces, trial and test functions, boundary conditions etc. are previously defined
 
-    def __mul__(self, b):
+A = assemble((dot(u,v) + k*inner(grad(u),grad(v)))*dx)
+B = assemble(div(v)*p*dx)
+C = assemble(div(u)*q*dx)
+b = assemble(dot(f, v)*dx)
 
-        n = self.n
-        m = self.m
-        x = Vector(n+m)
-        y0 = Vector(m)
-        y1 = Vector(m)
+AA = block_mat([[A, B],
+                [C, 0]])
+bb = block_vec([b, 0])
 
-        x[0:n]    = self.K_prec*b[0:n]
-        y0        = self.L_prec*b[n:n+m]
-        y1        = self.M_prec*b[n:n+m]
-        x[n:n+m]   = y0 + y1
+M = assemble(kinv*p*q*dx)
+L = assemble(dot(grad(p),grad(q))*dx)
 
-        return x
+prec = block_mat([[ML(A),      0     ],
+                  [0,     ML(L)+ML(M)]])
 \end{python}
 In Table~\ref{timestokes:ex} we show the condition number for the
 time-dependent Stokes problem discretized with the
@@ -646,7 +719,7 @@ Let the discrete operator be
 \begin{pmatrix} A_h & B_h^* \\ B_h & -C_h \end{pmatrix},
 \]
 where we assume that the discrete system has been obtained by using a stable finite
-element method. We eliminate the pressure to obtain the matrix
+element method. We eliminate the $p$ to obtain the matrix
 \[
 K_h  = A_h +  B_h^* C^{-1}_h B_h,
 \]
@@ -658,62 +731,43 @@ The matrix $L_h$ is then in some sense a vector Laplacian,
 incorporating the mixed discretization technique.  To test the
 efficiency of this preconditioner compared with more straightforward
 applications of AMG, we compare a couple of different problems.
-First, we test the preconditioners for the $A_h$ and the $L_h$
+First, we test the preconditioners for the $A$ and the $L$
 operators; that is, we estimate the condition number for the systems
-$P_1 A_h$ and $P_2 L_h$, where $P_1$ and $P_2$ is simply the algebraic
-multigrid preconditioners for $A_h$ and $L_h$, respectively.  Then we
+$P_1 A$ and $P_2 L$, where $P_1$ and $P_2$ is simply the algebraic
+multigrid preconditioners for $A$ and $L$, respectively.  Then we
 test the preconditioners
 \[
 \mathcal{B}_1  =
-\begin{pmatrix} A_h & 0  \\ 0  & D_h \end{pmatrix}.
+\begin{pmatrix} A & 0  \\ 0  & D \end{pmatrix}.
 \]
-Here, $D_h$ is a discrete Laplacian. The other preconditioner is
+Here, $D$ is a discrete Laplacian. The other preconditioner is
 \[
 \mathcal{B}_2  =
-\begin{pmatrix} L_h & 0  \\ 0  & C_h \end{pmatrix}.
+\begin{pmatrix} L & 0  \\ 0  & C \end{pmatrix}.
 \]
 
-The main challenge in this example is the construction of the
-preconditioner for $L_h$. This preconditioner is based on a matrix
-which is constructed by several matrix-matrix products and DOLFIN does
-not provide functionality for this. However, Epetra/Trilinos have this
-functionality. To be able to use the functionality of Epetra/Trilinos
-we down\_cast the DOLFIN \emp{EpetraMatrix} to its underlying
-type \emp{Epetra\_FECrsMatrix}. We may then use PyTrilinos.  The
-following code demonstrate how to perform matrix matrix products, mass
-lump inversion etc. using PyTrilinos.
+The following code demostrate the construction of $\mathcal{B}_2$, 
+$\mathcal{B}_1$ can be created in a similar fashion as described earlier. 
 \begin{python}
 V = FunctionSpace(mesh, "N1curl", 1)
 Q = FunctionSpace(mesh, "CG", 1)
 
-u, p = TrialFunction(V), TrialFunction(Q)
-v, q = TestFunction(V), TestFunction(Q)
+v,u = TestFunction(V), TrialFunction(V)
+q,p = TestFunction(Q), TrialFunction(Q)
 
-aa = dot(u, v)*dx + dot(curl(v), curl(u))*dx
-bb = dot(grad(p), v)*dx
-ff = p*q*dx
+A = assemble(dot(u,v)*dx + dot(curl(v), curl(u))*dx)
+B = assemble(dot(grad(p),v)*dx)
+C = assemble(dot(grad(q),u)*dx)
+D = assemble(p*q*dx)
 
-AA = assemble(aa)
-BB = assemble(bb)
-BF = assemble(bb)
-FF = assemble(ff)
+AA = block_mat([[A,  B],
+                [C, -D]])
+bb = block_vec([0,0])
 
-AA_epetra = down_cast(AA).mat()
-BB_epetra = down_cast(BB).mat()
-BF_epetra = down_cast(BF).mat()
-FF_epetra = down_cast(FF).mat()
-
-ff_vec = Epetra.Vector(FF_epetra.RowMap())
-FF_epetra.InvRowSums(ff_vec)
-BF_epetra.RightScale(ff_vec)
-
-CC = Epetra.FECrsMatrix(Epetra.Copy, AA_epetra.RowMap(), 100)
-err = EpetraExt.Multiply(BB_epetra, False, BF_epetra, True, CC)
-DD = EpetraMatrix(CC)
-
-EE = assemble(aa, DD, reset_sparsity=False, add_values=True)
+L = collapse(A+B*InvDiag(D)*C)
 \end{python}
-The complete code can be found in \emp{hodge8.py} and \emp{hodge9.py}.
+The complete code can be found in \emp{hodge.py}. 
+%FIXME: hva med hodge9 
 
 In Table~\ref{table:hodge} we list the estimated condition numbers on
 various mesh refinements on the unit cube. We use the lowest
@@ -735,11 +789,15 @@ $\mathcal{B}_2 \mathcal{A}$ & 4.3 & 8.7 & 33.6 & 30.0 & - \\ \hline
 \end{center}
 \end{table}
 
+
+
 \section{Conclusion}
 
 In this chapter we have demonstrated that advanced solution algorithms
-can be developed relatively easily by using the Python interfaces of
-DOLFIN and Trilinos. The Python linear algebra interface in DOLFIN
+can be developed relatively easily by using \emp{cbc.blocks} and the Python interfaces of
+DOLFIN and Trilinos. The \emp{cbc.blocks} module allows rather complicated preconditioners to be
+written in a simple form since it represent the linear operators as a graph.   
+The Python linear algebra interface in DOLFIN
 allow us to write Krylov solvers and customize them in the language
 which these algorithms are typically expressed in books.  Furthermore,
 it is relatively simple to employ state--of--the--art algebraic
