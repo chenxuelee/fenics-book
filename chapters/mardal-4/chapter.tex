@@ -27,11 +27,11 @@
 
 In this chapter we describe the implementation of block preconditioned
 Krylov solvers for systems of partial differential equations (PDEs)
-using the \emp{cbc.blocks} and the Python interfaces of DOLFIN and Trilinos\index{Trilinos}.
+using \emp{cbc.block}\index{cbc.block} and the Python interfaces of DOLFIN and Trilinos\index{Trilinos}.
 We start by reviewing the abstract theory of constructing
 preconditioners\index{preconditioner} by considering the differential
 operators as mappings in properly chosen Sobolev spaces, before giving a short 
-overview of \emp{cbc.blocks}. We then
+overview of \emp{cbc.block}. We then
 present several examples, namely the Poisson problem, the Stokes
 problem, the time-dependent Stokes problem and finally a mixed
 formulation of the Hodge Laplacian.
@@ -108,7 +108,7 @@ preconditioners will be spectrally equivalent with the Riesz mappings.
 \emp{cbc.block} makes it possible to write matrix operations in mathematical notation, such as $M = A B+C$, where $A$, $B$ and $C$ are matrices or operators. The algebraic operations are not performed explicitly; instead the operators are stored in a graph as shown in Fig. \ref{fig:mardal-4:block:dag}. When $M$ is called upon to operate on a vector, as in $y=Mx$, the individual operations are performed in the right order on the vector: $u=Bx$, $v=Au$, $w=Cx$, $y=v+w$. Since the matrix product or sum is not created explicitly, the individual operators do not need to have an explicit matrix representation, but  may be a Dolfin matrix, a preconditioner such as ML, or even an inner iterative solver.
 To enable the construction of this graph \emp{cbc.block} injects the methods \emp{\_\_mul\_\_}, \emp{\_\_add\_\_},
 and \emp{\_\_sub\_\_} into the \emp{Matrix} and \emp{Vector} classes in \dolfin.
-The module also implements block matrices and vectors in Python and instead of using the block matrix in \dolfin. 
+The module also implements block partitioned matrices and vectors. These are pure python objects, and do not use the block matrix in \dolfin.
 
 
 %\begin{figure}
@@ -181,7 +181,6 @@ First of all, the ML preconditioner is constructed as follows,
 \begin{python}
 class ML(block_base):
     def __init__(self, A, pdes=1):
-        from PyTrilinos.ML import MultiLevelPreconditioner
         # create the ML preconditioner
         MLList = {
             "smoother: type"            : "ML symmetric Gauss-Seidel" ,
@@ -192,23 +191,11 @@ class ML(block_base):
         self.ml_prec = MultiLevelPreconditioner(A.down_cast().mat(), 0)
         self.ml_prec.SetParameterList(MLList)
         self.ml_agg = self.ml_prec.GetML_Aggregate()
-        err = self.ml_prec.ComputePreconditioner()
-        if err:
-            raise RuntimeError('ComputePreconditioner returned %d'%err)
+        self.ml_prec.ComputePreconditioner()
 
     def matvec(self, b):
-        from dolfin import GenericVector
-        if not isinstance(b, GenericVector):
-            return NotImplemented
-        # apply the ML preconditioner
         x = self.A.create_vec()
-        if len(x) != len(b):
-            raise RuntimeError, \
-                'incompatible dimensions for AztecOO matvec, %d != %d'%(len(x),len(b))
-
-        err = self.ml_prec.ApplyInverse(b.down_cast().vec(), x.down_cast().vec())
-        if err:
-            raise RuntimeError('ApplyInverse returned %d'%err)
+        self.ml_prec.ApplyInverse(b.down_cast().vec(), x.down_cast().vec())
         return x
 \end{python}
 The linear algebra backends uBLAS, PETSc and Trilinos all have a wide
@@ -224,8 +211,6 @@ def precondconjgrad(B, A, x, b, tolerance, maxiter, progress, relativeconv=False
     z = B*r
     d = z
     rz = inner(r,z)
-    if rz < 0:
-        raise ValueError('Matrix is not positive')
 
     iter = 0
     alphas = []
@@ -287,33 +272,6 @@ right-hand side are both in $L^2_0$. For this reason we subtract the
 mean value from the right hand-side.  The start vector is zero and
 does therefore have mean value zero.
 \begin{python}
-import PyTrilinos
-from dolfin import *
-from block.iterative import ConjGrad
-from block.algebraic.trilinos import ML
-
-# Source term
-class Source(Expression):
-    def eval(self, values, x):
-        dx = x[0] - 0.5
-        dy = x[1] - 0.5
-        values[0] = 500.0*exp(-(dx*dx + dy*dy)/0.02)
-
-# Neumann boundary condition
-class Flux(Expression):
-    def eval(self, values, x):
-        if x[0] > DOLFIN_EPS:
-            values[0] = 25.0*sin(5.0*DOLFIN_PI*x[1])
-        else:
-            values[0] = 0.0
-
-N = 2
-
-# Parse command-line arguments like "N=6"
-import sys
-for s in sys.argv[1:]:
-    exec(s)
-
 # Create mesh and finite element
 mesh = UnitSquare(N,N)
 V = FunctionSpace(mesh, "CG", 1)
@@ -337,7 +295,7 @@ b[:] = c
 
 # create preconditioner
 B = ML(A)
-Ainv = ConjGrad(A, precond=B, tolerance=1e-8, show=0)
+Ainv = ConjGrad(A, precond=B, tolerance=1e-8)
 
 x = Ainv*b
 
@@ -478,33 +436,6 @@ preconditioner consists of two preconditioners.  The following shows
 how to implement this block preconditioner\index{block preconditioner}
 based on the ML preconditioner defined in the previous example.
 \begin{python}
-import PyTrilinos
-from dolfin import *
-from block import *
-from block.iterative import *
-from block.algebraic.trilinos import ML
-
-N = 2
-porder = 1
-vorder = 2
-alpha = 0
-
-# Parse command-line arguments like "N=6", "alpha=0.1"
-import sys
-for s in sys.argv[1:]:
-    exec(s)
-
-class Boundary(SubDomain):
-    def inside(self, x, on_boundary):
-        return on_boundary
-
-class BoundaryFunction(Expression):
-    def value_shape(self):
-        return (2,)
-    def eval(self, values, x):
-        values[0] = 1 if near(x[1],1) else 0
-        values[1] = 0
-
 mesh = UnitSquare(N,N)
 def CG(n):
     return ('DG',0) if n==0 else ('CG',n)
@@ -538,12 +469,12 @@ BB = block_mat([[ML(A),  0],
                 [0, ML(M1)]])
 
 
-AAinv = MinRes(AA, precond=BB, tolerance=1e-8, show=0)
+AAinv = MinRes(AA, precond=BB, tolerance=1e-8)
 x = AAinv * b
 
 x.randomize()
 
-AAi = CGN(AA, precond=BB, initial_guess=x, tolerance=1e-8, maxiter=1000, show=0)
+AAi = CGN(AA, precond=BB, initial_guess=x, tolerance=1e-8, maxiter=1000)
 AAi * b
 
 e = AAi.eigenvalue_estimates()
@@ -801,8 +732,8 @@ $\mathcal{B}_2 \mathcal{A}$ & 4.3 & 8.7 & 33.6 & 30.0 & - \\ \hline
 \section{Conclusion}
 
 In this chapter we have demonstrated that advanced solution algorithms
-can be developed relatively easily by using \emp{cbc.blocks} and the Python interfaces of
-DOLFIN and Trilinos. The \emp{cbc.blocks} module allows rather complicated preconditioners to be
+can be developed relatively easily by using \emp{cbc.block} and the Python interfaces of
+DOLFIN and Trilinos. The \emp{cbc.block} module allows rather complicated block-partitioned preconditioners to be
 written in a simple form since it represent the linear operators as a graph.   
 The Python linear algebra interface in DOLFIN
 allow us to write Krylov solvers and customize them in the language
