@@ -5,6 +5,7 @@
 # Anders Logg, 2010-12-16
 
 import sys
+from utils import *
 
 # FIXME: Add check for . at end of paragraph but not in subsection and section
 
@@ -32,13 +33,12 @@ checklist = [("i.e.",              "'; that is,'"),
              ("\\mathcal{T}\\",    "\\mathcal{T}_h"),
              ("commandline",       "command-line"),
              ("command line",      "command-line"),
-             ("Nedelec",           "\\nedelec{}"),
+             (" Nedelec",          "\\nedelec{}"),
              ("etc ",              "etc."),
              ("etc,",              "etc.,"),
              ("cf.",               "see"),
              ("fig.",              "Figure"),
              ("Fig.",              "Figure"),
-             ("PyDOLFIN",          "DOLFIN"),
              ("eq.",               "\eqref"),
              ("Eq.",               "\eqref"),
              ("(\ref{",            "\eqref{}"),
@@ -53,7 +53,7 @@ checklist = [("i.e.",              "'; that is,'"),
              (" ds",                "\\ds"),
              ("\,dx",                "\\dx"),
              ("\,ds",                "\\ds"),
-             (" conforming",        "-conforming"),
+             ("$ conforming",        "$-conforming"),
              ("H(div)",             "$\Hdiv$"),
              ("H(curl)",            "$\Hcurl$")]
 
@@ -121,10 +121,20 @@ uppercase = ["A",
              "SWIG",
              "Lagrangian",
              "FSI",
-             "Earth's"]
+             "Earth's",
+             "TimeDependentPDE",
+             "ErrorEstimate",
+             "SpaceTimeFunction",
+             "SlipBC",
+             "ElasticSmoother",
+             "MeshAdaptInterface",
+             "Madlib"]
 
 # List of code environments
-code_environments = ["python", "c++", "uflcode"]
+code_environments = [("\\begin{python}",   "\\end{python}"),
+                     ("\\begin{c++}",      "\\end{c++}"),
+                     ("\\begin{uflcode}",  "\\end{uflcode}"),
+                     ("\\begin{swigcode}", "\\end{swigcode}")]
 
 def check_capitalization(text):
     warnings = []
@@ -158,13 +168,12 @@ def check_all(text):
             pos = text[offset:].find(a)
             if pos != -1:
                 if inside_code_environment(offset + pos, text):
-                    #warnings += ["%s --> %s (but inside code environment so IGNORE)" % (a, b)]
-                    warnings += []
+                    warnings += ["%s --> %s (but inside code environment so IGNORE)" % (a, b)]
                 else:
                     warnings += ["%s --> %s" % (a, b)]
+                offset += pos + 1
             else:
                 break
-            offset += pos + 1
 
         #if a in text:
         #    warnings += ["%s --> %s" % (a, b)]
@@ -188,13 +197,13 @@ def strip_text(text):
 def inside_code_environment(pos, text):
     "Check whether text position is inside code environment"
 
-    for env in code_environments:
+    for b, e in code_environments:
 
         # Find positions of preceding begin/end
-        b0, b1 = text[pos:0:-1].find(("\\begin{%s}" % env)[::-1]), text[pos:0:-1].find(("\\end{%s}" % env)[::-1])
+        b0, b1 = text[pos:0:-1].find(b[::-1]), text[pos:0:-1].find(e[::-1])
 
         # Find positions of succeeding end/begin
-        e0, e1 = text[pos:].find("\\end{%s}" % env), text[pos:].find("\\begin{%s}" % env)
+        e0, e1 = text[pos:].find(e), text[pos:].find(b)
 
         # Check
         if (b0 != -1 and (b0 < b1 or b1 == -1)) and (e0 != -1 and (e0 < e1 or e1 == -1)):

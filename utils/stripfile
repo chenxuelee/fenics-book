@@ -5,40 +5,7 @@
 # Anders Logg, 2010-12-16
 
 import sys
+from utils import strip_code_environments
 
 text = sys.stdin.read()
-
-environments = [("\\begin{c++}",        "\\end{c++}"),
-                ("\\begin{python}",     "\\end{python}"),
-                ("\\begin{bash}",       "\\end{bash}"),
-                ("\\begin{xml}",        "\\end{xml}"),
-                ("\\begin{align}",      "\\end{align}"),
-                ("\\begin{align}",      "\\end{align}"),
-                ("\\begin{figure}[",    "]"),
-                ("\\begin{figure*}[",   "]"),
-                ("\\emp{",              "}"),
-                ("\\texttt{",           "}"),
-                ("\\citep{",            "}"),
-                ("\\citet{",            "}"),
-                ("\\ref{",              "}"),
-                ("\\subref{",           "}"),
-                ("\\eqref{",            "}"),
-                ("\\label{",            "}"),
-                ("\\url{",              "}"),
-                ("\\import{",           ".pdf_tex}"),
-                ("\\includegraphics",   ".pdf}"),
-                ("\\includegraphics",   ".png}"),
-                ("%",                   "\n"),
-                ("%",                   "\n"),
-                ("\\langtangenidx{",    "}")]
-
-for begin, end in environments:
-    if not begin in text:
-        continue
-    parts = text.split(begin)
-    text = parts[0]
-    for part in parts[1:]:
-        subparts = part.split(end)
-        text += end.join(subparts[1:])
-
-print text
+print strip_code_environments(text)
