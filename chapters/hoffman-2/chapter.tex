@@ -1,5 +1,5 @@
-\fenicschapter{Unicorn: A Unified Continuum Mechanics Solver}
-              {Unicorn: A Unified Continuum Mechanics Solver}
+\fenicschapter{Unicorn: a unified continuum mechanics solver}
+              {Unicorn: a unified continuum mechanics solver}
               {Cem Degirmenci, Johan Hoffman, Johan Jansson, Niclas Jansson and Murtazo Nazarov}
               {hoffman-2}
 
@@ -13,7 +13,7 @@ the FEniCS framework, how it interfaces to other
 FEniCS components and what interfaces and
 functionality Unicorn provides itself and how the
 implementation is designed. We also give use case
-application examples in fluid-structure interaction
+application examples in fluid--structure interaction
 and adaptivity.
 
 For a more detailed discussion on turbulence and adaptive error
@@ -27,7 +27,7 @@ chapter \ref{chap:hoffman-1}.
 Unicorn is solver technology (models, methods, algorithms and software
 implementations) with the goal of automated simulation of realistic
 continuum mechanics applications, such as drag or lift computation for
-fixed or flexible objects (fluid-structure interaction) in turbulent
+fixed or flexible objects (fluid--structure interaction) in turbulent
 incompressible or compressible flow (airplane or bird flight, car
 aerodynamics). The basis for Unicorn is Unified Continuum (UC)
 modeling formulated in Euler (laboratory) coordinates, together with a
@@ -62,7 +62,7 @@ MAdLib) and cell quality optimization (smoothing).
 }}
 %\includegraphics[width=10cm]{media/unicorn_fsi_flag3D_01.pdf}
 \caption{
-A fluid-structure example application of a flag mounted behind a cube in turbulent flow. The fluid-structure interface, an isosurface of the pressure and a cut of the mesh is plotted.
+A fluid--structure example application of a flag mounted behind a cube in turbulent flow. The fluid--structure interface, an isosurface of the pressure and a cut of the mesh is plotted.
 }
 \label{fig:flag3D}
 \end{figure}
@@ -142,7 +142,7 @@ we can express derivatives with respect to any variable: $D_u u = 1$.
 
 % Intro (explain mesh motion)
 
-We define, following classical continuum mechanics \cite{Gurtin1981}, a
+We define, following classical continuum mechanics \citep{Gurtin1981}, a
 unified continuum model in a fixed Euler coordinate system consisting
 of:
 \begin{itemize}
@@ -255,17 +255,17 @@ conservation equations.
 In Unicorn we choose an Euler coordinate system and moving mesh,
 allowing a unified and canonical formulation of conservation
 equations. This enables automated computational modeling (with
-discretization and error control) for full fluid-structure (or
+discretization and error control) for full fluid--structure (or
 multi-phase) problems, rather than to one component at a time, with
 unclear strategy how to combine them. We believe this is a unique
 method/software system in this respect.
 
-\section{Space-time general galerkin discretization}
+\section{Space-time general Galerkin discretization}
 
 Adaptive G2 methods (also referred to as Adaptive
 DNS/LES) have been used in a number of turbulent flow
 computations to a very low computational
-cost \cite{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,Hoffman2009,HoffmanJansson2009,VilelaJanssonEtAl2010},
+cost \citep{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,Hoffman2009,HoffmanJansson2009,VilelaJanssonEtAl2010},
 where convergence is obtained in output quantities
 such as drag, lift and pressure coefficients and
 Strouhal numbers, using orders of magnitude fewer
@@ -277,10 +277,10 @@ establish basic notation, and proceed to describe streamline diffusion
 stabilization and local ALE map over a mesh $T^h$ with mesh size $h$
 together with adaptive error control based on duality.
 
-\subsection{Standard galerkin}
+\subsection{Standard Galerkin}
 
 We begin by formulating the standard cG(1)cG(1) FEM
-\cite{ErikssonEstepHansboEtAl1996} with piecewise continuous linear solution in time
+\citep{ErikssonEstepHansboEtAl1996} with piecewise continuous linear solution in time
 and space for \ref{eq:TotalModel} by defining the exact solution: $w =
 [u, p, \theta]$, the discrete solution $W = [U, P, \Theta]$, the
 test function $v = [v^u, v^p, v^\theta]$ and the residual $R(W) =
@@ -296,14 +296,14 @@ where $R(w) = 0$ and $S$ denotes a discrete piecewise constant
 stress.
 
 To determine the degrees of freedom $\xi$ we enforce the Galerkin
-orthogonality $(R(W), v) = 0, \forall v \in V_h$ where $v$ are test
+orthogonality $(R(W), v) = 0, \foralls v \in V_h$ where $v$ are test
 functions in the space of piecewise linear continuous functions in
 space and piecewise constant discontinuous functions in time and
 $(\cdot,\cdot)$ denotes the space-time $L_2$ inner product over Q. We
 thus have the weak formulation:
 
 \begin{align}
-  (R^u(W), v^u) &= (\rho(D_t U_i + U_j D_j U_i) - f_i, v^u_i) + (S_{ij}, D_{x_j} v^u_i) - \int_{t_{n-1}}^{t_n}\int_\Gamma S_{ij} v^u_i n_j ds dt = 0\\
+  (R^u(W), v^u) &= (\rho(D_t U_i + U_j D_j U_i) - f_i, v^u_i) + (S_{ij}, D_{x_j} v^u_i) - \int_{t_{n-1}}^{t_n}\int_\Gamma S_{ij} v^u_i n_j \ds \dt = 0\\
   (R^p(W), v^p) &= (D_{x_j} U_j, v^p) = 0\\
   (R^\theta(W), v^\theta) &= (D_t \Theta + u_j D_{x_j} \Theta, v^\theta) = 0
 \end{align}
@@ -334,14 +334,14 @@ diffusion of the phase interface. By introducing a
 moving space-time finite element space and mesh,
 oriented along the characteristics of the convection
 of the phase
-interface \cite{ErikssonEstepHansboEtAl1996} (see
+interface \citep{ErikssonEstepHansboEtAl1996} (see
 space-time meshes in section ``The characterictic
 Galerkin method'') we can define the phase interface
 at cell facets, allowing the interface to stay
 discontinuous.
 
 We thus define a local ALE coordinate
-map \cite{ErikssonEstepHansboEtAl1996} as part of the
+map \citep{ErikssonEstepHansboEtAl1996} as part of the
 discretization on each space-time slab, where it's
 used to be able to introduce a mesh velocity. Note
 that we still compute with global Euler coordinates
@@ -375,7 +375,7 @@ quadrature for clarity):
 \begin{split}\label{eq:ALEFEM}
 x_n &= F(\bar{x}) = \bar{x} + (t_n - t_{n - 1})\beta_h(\bar{x})\\
 J &= D_{\bar{x}} F\\
-\int_{K} u(t, x) dxdt &= \int_{\bar{K}} \bar{u}(t, \phi(t, \bar{x})) |det J| d\bar{x}dt
+\int_{K} u(t, x) \dx\dt &= \int_{\bar{K}} \bar{u}(t, \phi(t, \bar{x})) |det J| d\bar{x}\dt
 \end{split}
 \end{equation}
 We approximate $F = I$ in the integration and plan to
@@ -407,7 +407,7 @@ structure cells) and in the rest of the mesh we use mesh smoothing to
 determine $\beta_h$ to maximize the mesh quality according to a chosen
 objective, alternatively use local mesh modification operations
 (refinement, coarsening, swapping) on the mesh to maintain the quality
-\cite{Comp`ereRemacleJanssonEtAl2009}.
+\citep{Comp`ereRemacleJanssonEtAl2009}.
 
 \subsection{Streamline diffusion stabilization}
 
@@ -415,8 +415,8 @@ For the standard FEM formulation of the model we only have stability
 of $U$ but not of spatial derivatives of $U$. This means the solution
 can be oscillatory, causing inefficiency by introducing unnecessary
 error. We instead choose a weighted standard Galerkin/streamline
-diffusion method of the form $(R(W), v + \delta R(v)) = 0, \forall v
-\in V_h$ (see \cite{ErikssonEstepHansboEtAl1996}) with $\delta > 0$ a stabilization
+diffusion method of the form $(R(W), v + \delta R(v)) = 0, \foralls v
+\in V_h$ (see \citet{ErikssonEstepHansboEtAl1996}) with $\delta > 0$ a stabilization
 parameter. We here also make a simplification where we only introduce
 necessary stabilization terms and drop terms not contributing to
 stabilization. Although not fully consistent, the streamline diffusion
@@ -524,11 +524,11 @@ meshes.
 The {\tt UCSolver} implementation is parallelized for distributed
 memory architectures using MPI, and we can show strong scaling for
 hundreds of cores on several platforms (see
-Fig. \ref{fig:hoffman-2:sp}). The entire adaptive algorithm is
+Figure~\ref{fig:hoffman-2:sp}). The entire adaptive algorithm is
 parallel (including Rivara mesh refinement and a priori predictive
 load balancing) and Unicorn can efficiently simulate massively
 parallel applications for turbulent incompressible
-flow \cite{JanssonHoffmanJansson2010, Jansson2011}. Fluid-structure
+flow \citep{JanssonHoffmanJansson2010, Jansson2011}. Fluid--structure
 interaction is not yet enabled in parallel but this is work in
 progress.
 
@@ -546,7 +546,7 @@ A compressible variant of the {\tt UCSolver} exists as the {\tt
 method and algorithm is very close to that of the {\tt UCSolver},
 aside from the incompressibility. The long term goal is a unification
 of the incompressible/compressible formulations as well. We refer to
-\cite{Nazarov2009} for implementation details of the compressible {\tt
+\citet{Nazarov2009} for implementation details of the compressible {\tt
   CNSSolver}.
 
 There also exists variants of the UC solver as part of the Unicorn
@@ -705,7 +705,7 @@ time step with a Picard fixed-point iteration.  }
 \subsection{Unicorn software design}
 
 In software engineering there is a critical need to control software
-complexity \cite{Brooks1995}. To achieve this, Unicorn follows two
+complexity \citep{Brooks1995}. To achieve this, Unicorn follows two
 basic design principles:
 
 \begin{description}
@@ -782,7 +782,7 @@ def F(u, u0, k, v):
     return (-dot(u, v) + dot(u0, v) + mult(k, g(uc, v)))
 \end{python}
 
-By enforcing the above $\forall v \in V_h$ we generate the equation system.
+By enforcing the above $\foralls v \in V_h$ we generate the equation system.
 
 We solve this system by Newton-type fixed-point iteration:
 
@@ -812,12 +812,11 @@ L = (dFdu(UP, U0, k, v) - F(UP, U0, k, v)) * dx
 \end{python}
 }
 
-Thus, in each time step we need to solve the system given in
-eq. \ref{discrete_cg1} by fixed-point iteration by repeatedly
+Thus, in each time step we need to solve the system given in~\eqref{discrete_cg1} by fixed-point iteration by repeatedly
 computing $a$ and $L$, solving a linear system and updating $U$.
 
 We now encapsulate this in a C++ class interface in
-fig. \ref{code:TimeDependentPDE} called {\tt TimeDependentPDE} where
+Figure~\ref{code:TimeDependentPDE} called {\tt TimeDependentPDE} where
 $a$ and $L$, an end time $T$, a mesh (defining $V_h$) and
 boundary conditions are given.
 
@@ -942,7 +941,7 @@ formulate Newton's method for the system $F(X) = (F_u(X), F_\sigma(X),
 F_p(X))^\top = 0$, with $X = (U, \sigma, P)^\top$, where the three
 components are decoupled.
 
-See \cite{Jansson2009} for a dicussion about
+See \citet{Jansson2009} for a dicussion about
 the efficiency of the fixed-point iteration and its implementation.
 
 \subsection{\tt ErrorEstimate}
@@ -955,7 +954,7 @@ following primitives:
 We compute the mean-value in each cell of the continuous residual
 $R(U) = f(U) = -D_t U + g(U)$, this is computed as the
 $L_2$-projection into the space of piecewise constants $W_h$: $(R(U),
-v) = (-D_t U + g(U), v), \forall v \in W_h$ (the mean value in each
+v) = (-D_t U + g(U), v), \foralls v \in W_h$ (the mean value in each
 cell) as a form representing the continuous residual.
 \item[Dual solution]
 We compute the solution of the dual problem using the same technology
@@ -975,7 +974,7 @@ SpaceTimeFunction} class.
 After the computation of the error indicators we select the largest
 $p\%$ of the indicators for refinement. The refinement is then
 performed by recursive Rivara cell bisection or by general mesh
-adaptation using Madlib \cite{Comp`ereRemacleJanssonEtAl2009}, which is
+adaptation using Madlib \citep{Comp`ereRemacleJanssonEtAl2009}, which is
 based on edge split, collapse and swap operations, and thus gives
 the ability to coarsen a mesh, or more generally to control the mesh
 size.
@@ -983,7 +982,7 @@ size.
 
 Using these primitives, we can construct an adaptive algorithm. The
 adaptive algorithm is encapsulated in the C++ class interface in
-fig. \ref{code:ErrorEstimate} which we call {\tt ErrorEstimate}.
+Figure~\ref{code:ErrorEstimate} which we call {\tt ErrorEstimate}.
 
 \begin{figure}[!h]
 {\small
@@ -1119,7 +1118,7 @@ boundary conditions. The implementation is based on multiplying
 elements of the matrix with components of $n,\tau_1,\tau_2$.
 
 For more details about the implementation of slip boundary conditions
-we refer to \cite{Nazarov2009}.
+we refer to \citet{Nazarov2009}.
 
 \subsection{\tt ElasticSmoother}
 
@@ -1203,7 +1202,7 @@ C++ class interface for {\tt ElasticSmoother}.
 \end{figure}
 
 To maintain a discontinuous phase interface in the UC with
-fluid-structure data, we define the mesh velocity $\beta_h$ as the
+fluid--structure data, we define the mesh velocity $\beta_h$ as the
 discrete velocity $U$ in the solid phase (specifically on the
 interface). The mesh velocity in the fluid can be chosen more
 arbitrarily, but has to satisfy mesh quality and size criteria. We
@@ -1244,7 +1243,7 @@ to the source code for more details.
 
 As an alternative to mesh smoothing we can consider using local mesh
 modification operations (refinement, coarsening, swapping) on the mesh
-to maintain the quality \cite{Comp`ereRemacleJanssonEtAl2009}
+to maintain the quality \citep{Comp`ereRemacleJanssonEtAl2009}
 through {\tt MeshAdaptInterface}.
 
 Unicorn provides the {\tt ElasticSmoother} class (see
@@ -1268,7 +1267,7 @@ A critical component in the adaptive algorithm as described above is
 satisfying a given mesh size function $h(x)$.
 
 We start by presenting the Rivara recursive bisection
-algorithm \cite{Rivara1992} as a basic choice for mesh adaptivity
+algorithm \citep{Rivara1992} as a basic choice for mesh adaptivity
 (currently the only available choice for parallel mesh adaptivity),
 but which can only refine and not coarsen. Then the more general
 MAdLib is presented, which enables the full mesh adaptation to the
@@ -1297,7 +1296,7 @@ an edge of cell $K_1$.
 \end{algorithm}
 
 The same algorithm holds in both 2D/3D (triangles/tetrahedra). In 2D,
-it can be shown \cite{Rivara1992} that the algorithm terminates in a
+it can be shown \citep{Rivara1992} that the algorithm terminates in a
 finite number of steps, and that the minimum angle of the refined mesh
 is at least half the minimum angle of the starting mesh. In practice
 the algorithm produces excellent quality refined meshes both in 2D and
@@ -1332,7 +1331,7 @@ that the cell size of a computational mesh can be freely modified to
 satisfy a desired size field $h(x)$ or to allow mesh motion. In
 state-of-the-art finite element software implementations this is
 seldom the case, where typically only limited operations are allowed
-\cite{BangerthHartmannKanschat2007, COMSOL2009}, (local mesh refinement),
+\citep{BangerthHartmannKanschat2007, COMSOL2009}, (local mesh refinement),
 or a separate often complex, closed and ad-hoc mesh generation
 implementation is used to re-generate meshes.
 
@@ -1392,7 +1391,7 @@ C++ class interface for {\tt MeshAdaptInterface}.
 
 In this section we give use cases for modeling and solving continuum
 mechanics problems using the Unicorn technology. We start with a use
-case for solving a fluid-structure problem without adaptivity, where
+case for solving a fluid--structure problem without adaptivity, where
 we cover modeling of geometry and subdomains, coefficients, dynamic
 allocation of PDE data for mesh adaptivity and specification of main
 program (interface to running the solver). Next, we present a use case
@@ -1402,9 +1401,9 @@ specifying slip/friction boundary conditions for modeling turbulent
 boundary layers.
 
 
-\subsection{Fluid-structure}
+\subsection{Fluid--structure}
 
-We here give a use case of solving a fluid-structure continuum
+We here give a use case of solving a fluid--structure continuum
 mechanics problem, where the user specifies data for modeling the
 problem, and illustrates interfaces and expected outcomes. We divide
 the use case into 4 parts:
@@ -1434,7 +1433,7 @@ to the solver.
 
 We continue with a use case for adaptive solution of a pure fluid
 turbulent flow problem: flow around a 3D cylinder. The implementation
-of the problem is very similar to the fluid-structure case (just with
+of the problem is very similar to the fluid--structure case (just with
 pure fluid data), but with 3 important additions:
 \begin{description}
 \item[Dual problem]

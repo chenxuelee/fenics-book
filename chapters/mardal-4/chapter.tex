@@ -24,17 +24,16 @@
   \end{center}
 \end{figure*}}
 
-
 In this chapter we describe the implementation of block preconditioned
 Krylov solvers for systems of partial differential equations (PDEs)
-using \emp{cbc.block}\index{cbc.block} and the Python interfaces of DOLFIN and Trilinos\index{Trilinos}.
-We start by reviewing the abstract theory of constructing
-preconditioners\index{preconditioner} by considering the differential
-operators as mappings in properly chosen Sobolev spaces, before giving a short 
-overview of \emp{cbc.block}. We then
-present several examples, namely the Poisson problem, the Stokes
-problem, the time-dependent Stokes problem and finally a mixed
-formulation of the Hodge Laplacian.
+using \emp{cbc.block}\index{cbc.block} and the Python interfaces of
+DOLFIN and Trilinos\index{Trilinos}.  We start by reviewing the
+abstract theory of constructing preconditioners\index{preconditioner}
+by considering the differential operators as mappings in properly
+chosen Sobolev spaces, before giving a short overview
+of \emp{cbc.block}. We then present several examples, namely the
+Poisson problem, the Stokes problem, the time-dependent Stokes problem
+and finally a mixed formulation of the Hodge Laplacian.
 
 \section{Abstract framework for constructing preconditioners}
 
@@ -105,11 +104,13 @@ constructed using multigrid techniques. These multigrid
 preconditioners will be spectrally equivalent with the Riesz mappings.
 
 \section{Overview of \emp{cbc.block}}
-\emp{cbc.block} makes it possible to write matrix operations in mathematical notation, such as $M = A B+C$, where $A$, $B$ and $C$ are matrices or operators. The algebraic operations are not performed explicitly; instead the operators are stored in a graph as shown in Fig. \ref{fig:mardal-4:block:dag}. When $M$ is called upon to operate on a vector, as in $y=Mx$, the individual operations are performed in the right order on the vector: $u=Bx$, $v=Au$, $w=Cx$, $y=v+w$. Since the matrix product or sum is not created explicitly, the individual operators do not need to have an explicit matrix representation, but  may be a Dolfin matrix, a preconditioner such as ML, or even an inner iterative solver.
-To enable the construction of this graph \emp{cbc.block} injects the methods \emp{\_\_mul\_\_}, \emp{\_\_add\_\_},
-and \emp{\_\_sub\_\_} into the \emp{Matrix} and \emp{Vector} classes in \dolfin.
-The module also implements block partitioned matrices and vectors. These are pure python objects, and do not use the block matrix in \dolfin.
 
+\emp{cbc.block} makes it possible to write matrix operations in mathematical notation, such as $M = A B+C$, where $A$, $B$ and $C$ are matrices or operators. The algebraic operations are not performed explicitly; instead the operators are stored in a graph as shown in Figure~\ref{fig:mardal-4:block:dag}. When $M$ is called upon to operate on a vector, as in $y=Mx$, the individual operations are performed in the right order on the vector: $u=Bx$, $v=Au$, $w=Cx$, $y=v+w$. Since the matrix product or sum is not created explicitly, the individual operators do not need to have an explicit matrix representation, but  may be a Dolfin matrix, a preconditioner such as ML, or even an inner iterative solver.
+To enable the construction of this graph \emp{cbc.block} injects the
+methods \emp{\_\_mul\_\_}, \emp{\_\_add\_\_}, and \emp{\_\_sub\_\_}
+into the \emp{Matrix} and \emp{Vector} classes in \dolfin.  The module
+also implements block partitioned matrices and vectors. These are pure
+python objects, and do not use the block matrix in \dolfin.
 
 %\begin{figure}
 %%\centering
@@ -130,7 +131,7 @@ The module also implements block partitioned matrices and vectors. These are pur
 
 When the explicit matrix product is required, such as for input to the ML preconditioner, a method \emp{collapse} is provided that performs the calculations using PyTrilinos. This method requires that all components are actual matrices, not general operators.
 
-The module   
+The module
 also provides services to set Dirichlet boundary conditions and perform other transformations of the system, and a range of iterative solvers and preconditioners.
 
 
@@ -153,12 +154,12 @@ Find $u$ such that
 \end{eqnarray}
 The corresponding variational problem is:  Find $u\in H^1 \cap L^2_0$ such that
 \[
-\int_\Omega \nabla u \cdot \nabla v \, \dx = \int_\Omega f v \, \dx +
-\int_{\partial \Omega} g v \, \ds, \quad\foralls v \in H^1 \cap L^2_0 .
+\int_\Omega \nabla u \cdot \nabla v \dx = \int_\Omega f v \dx +
+\int_{\partial \Omega} g v  \ds, \quad\foralls v \in H^1 \cap L^2_0 .
 \]
 Let the linear operator $\mathcal{A}$ be defined in terms of the  bilinear form,
 \[
-(\mathcal{A} u, v) =  \int_\Omega \nabla u \cdot \nabla v \, \dx.
+(\mathcal{A} u, v) =  \int_\Omega \nabla u \cdot \nabla v \dx.
 \]
 It is well-known that $\mathcal{A}$ is a bounded invertible operator
 from $H^1 \cap L^2_0$ into its dual space.  Furthermore, it is
@@ -321,7 +322,7 @@ $\#iterations$ & 8 & 8 & 10 & 9 & 7 \\ \hline
 \end{tabular}
 \caption{The estimated condition number $\kappa$ and the number of iterations for
   convergence with respect to various mesh refinements for the Poisson
-  problem with Neumann conditions solved with the  
+  problem with Neumann conditions solved with the
   $\mathrm{CG}_1$ method.}\label{tabel:neumann}
 \end{center}
 \end{table}
@@ -336,9 +337,9 @@ Our next example is the Stokes problem,
 The variational form is: \\
 Find $u,p \in H^1_g \times L_0^2$ such that
 \[
-\int_\Omega \nabla u : \nabla v \,  \dx +
-\int_\Omega \nabla \cdot u \, q \,  \dx +
-\int_\Omega \nabla \cdot v \, p \,  \dx = \int_\Omega f\, v\, \dx   , \quad
+\int_\Omega \nabla u : \nabla v \dx +
+\int_\Omega \nabla \cdot u \, q \dx +
+\int_\Omega \nabla \cdot v \, p \dx = \int_\Omega f\, v \dx   , \quad
 \foralls v,q \in H^1_0 \times L_0^2.
 \]
 Let the linear operator $\mathcal{A}$ be defined as
@@ -348,8 +349,8 @@ Let the linear operator $\mathcal{A}$ be defined as
 \]
 where
 \begin{eqnarray}
-(A u, v) &=& \int_\Omega \nabla u : \nabla v \,  \dx, \\
-(B u, q) &=& \int_\Omega \nabla \cdot u \, q \,  \dx,
+(A u, v) &=& \int_\Omega \nabla u : \nabla v \dx, \\
+(B u, q) &=& \int_\Omega \nabla \cdot u \, q \dx,
 \end{eqnarray}
 and $B^*$ is the adjoint of $B$.  Then it is well-known that
 $\mathcal{A}$ is a bounded operator from $H^1_g \times L_0^2$ to its
@@ -364,8 +365,8 @@ H^1_g \times L_0^2$ defined as
 \]
 where
 \begin{eqnarray}
-(K u, v) &=& \int_\Omega \nabla u: \nabla v \, \dx, \\
-(L p, q) &=& \int_\Omega p \, q \, \dx .
+(K u, v) &=& \int_\Omega \nabla u: \nabla v \dx, \\
+(L p, q) &=& \int_\Omega p \, q \dx .
 \end{eqnarray}
 We refer to \citet{MardalWinther11} for a mathematical explanation of
 the derivation of such preconditioners.  Notice that the operator
@@ -392,7 +393,7 @@ residual at iteration $k$.  The condition numbers, $\kappa$, were
 estimated using the conjugate gradient method on the normal
 equation. This condition number will always be less than the real
 condition number and is probably too low for the last columns for the
-$\mathrm{CG}_1-\mathrm{CG}_1$ method without stabilization.  
+$\mathrm{CG}_1-\mathrm{CG}_1$ method without stabilization.
 Notice that for the stable methods that satisfy the
 LBB condition (see also Chapter~\ref{chap:rognes}); that is,
 \index{Ladyzhenskaya--\babuska{}--Brezzi conditions}
@@ -406,7 +407,7 @@ decreases, but is here stopped. However, for the stabilized method,
 $\mathrm{CG}_1-\mathrm{CG}_1$-stab, where the pressure is stabilized
 by
 \[
-\int_\Omega \nabla \cdot u \, q  - \alpha h^2 \, \nabla p \cdot \nabla q \,
+\int_\Omega \nabla \cdot u \, q  - \alpha h^2 \, \nabla p \cdot \nabla q
     \dx,
 \]
 with $\alpha=0.01$, the number of iterations and the condition number appear to be bounded.
@@ -495,10 +496,10 @@ Here $k$ is the time stepping parameter.
 The variational form is: \\
 Find $u,p \in H^1_0 \times L_0^2$ such that
 \[
-\int_\Omega u \cdot v \,  \dx +
-k \int_\Omega \nabla u : \nabla v \,  \dx +
-\int_\Omega \nabla \cdot u \, q \,  \dx +
-\int_\Omega \nabla \cdot v \, p \,  \dx = \int_\Omega f\, v\, \dx   , \quad
+\int_\Omega u \cdot v \dx +
+k \int_\Omega \nabla u : \nabla v \dx +
+\int_\Omega \nabla \cdot u \, q \dx +
+\int_\Omega \nabla \cdot v \, p \dx = \int_\Omega f\, v \dx, \quad
 \foralls v,q \in H^1_0 \times L_0^2.
 \]
 Let
@@ -508,9 +509,9 @@ Let
 \]
 where
 \begin{eqnarray}
-(A u, v) &=& \int_\Omega u \cdot v \,  \dx +  k \int_\Omega \nabla u :
-\nabla v \,  \dx, \\
-(B u, q) &=& \int_\Omega \nabla \cdot u \, q \,  \dx,
+(A u, v) &=& \int_\Omega u \cdot v \dx +  k \int_\Omega \nabla u :
+\nabla v \dx, \\
+(B u, q) &=& \int_\Omega \nabla \cdot u \, q \dx,
 \end{eqnarray}
 This operator changes character as $k$ varies.  For $k=1$ the problem
 behaves like Stokes problem, with a non-harmful low order
@@ -521,7 +522,7 @@ u - \nabla p &=& f, \quad \mbox{in} \ \Omega, \\
 \nabla \cdot u  &=& 0, \quad \mbox{in} \ \Omega.
 \end{eqnarray}
 This problem is not a well-defined operator from $H^1_0 \times L_0^2$
-into its dual. Instead, it is a mapping from $H(div) \times L_0^2$ to
+into its dual. Instead, it is a mapping from $\Hdiv \times L_0^2$ to
 its dual.  However, as pointed out in \citet{MardalWinther2004} this
 operator can also be seen as an operator $L^2 \times H^1$ to its dual.
 In fact, in \citet{MardalTaiWinther2002,MardalWinther2004} it was
@@ -541,9 +542,9 @@ Such a $\mathcal{B}$ can be defined as
 \]
 where
 \begin{eqnarray}
-(K u, v) &=& \int_\Omega u\cdot v  +  k \nabla u: \nabla v \, \dx, \\
-(L p, q) &=& \int_\Omega k^{-1} p q \, \dx, \\
-(M p, q) &=& \int_\Omega \nabla p \cdot  \nabla q \, \dx.
+(K u, v) &=& \int_\Omega u\cdot v  +  k \nabla u: \nabla v \dx, \\
+(L p, q) &=& \int_\Omega k^{-1} p q \dx, \\
+(M p, q) &=& \int_\Omega \nabla p \cdot  \nabla q \dx.
 \end{eqnarray}
 Again we refer to \citet{MardalWinther11} and references therein, for
 an overview and more comprehensive mathematical derivation of the
@@ -609,9 +610,9 @@ of the Hodge Laplacian,
 The variational form is: \\
 Find $u, p \in H_0(\operatorname{curl}) \times H^1_0$ such that
 \begin{eqnarray}
-\int_\Omega \nabla \times u \cdot \nabla \times v \, \dx
-- \int_\Omega \nabla p v \, dx  &=& \int_\Omega f v \, \dx  \quad \foralls v \in H_0(\operatorname{curl}), \\
- \int_\Omega u  \nabla q  \, dx - \int_\Omega p q \, \dx   &=& 0 \quad
+\int_\Omega \nabla \times u \cdot \nabla \times v \dx
+- \int_\Omega \nabla p v dx  &=& \int_\Omega f v \dx  \quad \foralls v \in H_0(\operatorname{curl}), \\
+ \int_\Omega u  \nabla q \dx - \int_\Omega p q \dx   &=& 0 \quad
  \foralls q \in H^1_0 .
 \end{eqnarray}
 Hence, it is natural to consider a preconditioner  for
@@ -631,9 +632,9 @@ Let
 \]
 where,
 \begin{eqnarray}
-(A u, v) &=& \int_\Omega \nabla \times u \cdot \nabla \times v \, \dx, \\
-(B p, v) &=&  - \int_\Omega \nabla p v \, \dx, \\
-(C p, q) &=&  - \int_\Omega p q \, \dx.
+(A u, v) &=& \int_\Omega \nabla \times u \cdot \nabla \times v \dx, \\
+(B p, v) &=&  - \int_\Omega \nabla p v \dx, \\
+(C p, q) &=&  - \int_\Omega p q \dx.
 \end{eqnarray}
 Then $\mathcal{A}: H_0(\operatorname{curl}) \times H^1_0 \rightarrow
 H^{-1}(\operatorname{curl}) \times H^{-1}$, where
@@ -684,8 +685,8 @@ Here, $D$ is a discrete Laplacian. The other preconditioner is
 \begin{pmatrix} L & 0  \\ 0  & C \end{pmatrix}.
 \]
 
-The following code demostrate the construction of $\mathcal{B}_2$, 
-$\mathcal{B}_1$ can be created in a similar fashion as described earlier. 
+The following code demostrate the construction of $\mathcal{B}_2$,
+$\mathcal{B}_1$ can be created in a similar fashion as described earlier.
 \begin{python}
 V = FunctionSpace(mesh, "N1curl", 1)
 Q = FunctionSpace(mesh, "CG", 1)
@@ -704,20 +705,20 @@ bb = block_vec([0,0])
 
 L = collapse(A+B*InvDiag(D)*C)
 \end{python}
-The complete code can be found in \emp{hodge.py}. 
-%FIXME: hva med hodge9 
+The complete code can be found in \emp{hodge.py}.
+%FIXME: hva med hodge9
 
 In Table~\ref{table:hodge} we list the estimated condition numbers on
 various mesh refinements on the unit cube. We use the lowest
 order \nedelec{} elements of first kind~\citep{Nedelec1980} combined
 with continuous piecewise linears. In this example we use homogeneous
 boundary conditions and $f=0$, but we use a random start vector.
-Clearly, the simplest preconditioner $P_1$ does not work well for 
-$A$, as compared with $P_2$ for $L$. However, it seems that 
+Clearly, the simplest preconditioner $P_1$ does not work well for
+$A$, as compared with $P_2$ for $L$. However, it seems that
 for the fully compled system, both preconditioners work quite
 well. The reason is probably that the $P_1$ preconditioner
-is poor main on gradients, but these gradients are closely related to     
-$p$. 
+is poor main on gradients, but these gradients are closely related to
+$p$.
 \begin{table}
 \begin{center}
 \begin{tabular}{|c||c|c|c|c|c|c|}
@@ -740,7 +741,7 @@ $\mathcal{B}_2 \mathcal{A}$ & 5.6 & 8.8 & 23.2 & 76.7  & 287 \\ \hline
 In this chapter we have demonstrated that advanced solution algorithms
 can be developed relatively easily by using \emp{cbc.block} and the Python interfaces of
 DOLFIN and Trilinos. The \emp{cbc.block} module allows rather complicated block-partitioned preconditioners to be
-written in a simple form since it represent the linear operators as a graph.   
+written in a simple form since it represent the linear operators as a graph.
 The Python linear algebra interface in DOLFIN
 allow us to write Krylov solvers and customize them in the language
 which these algorithms are typically expressed in books.  Furthermore,

@@ -91,7 +91,7 @@ and~\eqref{selim:eq:continuity} is the conservation of mass.  Here,
 $\subdt(\cdot)$ denotes the total time derivative, $\rho$ the density,
 $u$ the velocity, $\sigma$ the stress, and $b$ represents a given body
 force per unit volume. In a FSI problem, the different physical
-quantities of the fluid and the structure, denoted with sub scripts
+quantities of the fluid and the structure, denoted with subscripts
 $F$ and $S$ respectively, transfer traction forces and exchange data
 at a given common fluid--structure boundary.  Traction forces are
 given by normal stresses and at the common fluid--structure boundary,
@@ -240,7 +240,7 @@ In order to map between the reference domain and the current domain,
 we introduce the sufficiently smooth bijective map $\Phi(\cdot,
 t):\Omega\mapsto \omega(t)$.  For any fixed time $t\in[0,T]$, $\Phi$
 maps a reference point $X\in\Omega$ to the corresponding current
-point $x\in\omega(t)$, i.e., $X \mapsto x = \Phi(X,t)$.
+point $x\in\omega(t)$; that is, $X \mapsto x = \Phi(X,t)$.
 \begin{figure}
   \includegraphics[width=0.8\textwidth]{chapters/selim/pdf/mapping.pdf}
  \caption{The mapping $\Phi(X,t$) maps a reference point $X\in\Omega$
@@ -258,8 +258,8 @@ identical on the common boundary), the map is split up as follows:
 \Phi(X,t) =
 \left\{
 \begin{array}{ccc}
-\PhiS(X, t), \quad \forall X\in\OS,\; t\in[0,T],\\
-\PhiM(X, t), \quad \forall X\in\OF,\; t\in[0,T].
+\PhiS(X, t), \quad \foralls X\in\OS,\; t\in[0,T],\\
+\PhiM(X, t), \quad \foralls X\in\OF,\; t\in[0,T].
 \end{array}
 \right.
 \end{equation}
@@ -581,7 +581,7 @@ algorithm that targets efficiently the computation of a specific goal
 functional $\M$ of interest, such that
 \begin{equation}
   \label{selim:eq:goalTOL}
-|\M(U)-\M(U^{hk})| \leq \mathrm{TOL}.
+|\M(U)-\M(U^{hk})| \leqslant \mathrm{TOL}.
 \end{equation}
 Here, $ U-U^{hk} \equiv e$ is the error of the finite element solution
 in space $(h)$ and time $(k)$, and $\mathrm{TOL}>0$ is a user-defined
@@ -596,7 +596,7 @@ domain $\OF$ using the map $\PhiM$,
   \end{CD}
 \end{equation}
 With the fluid problem $(F)$ defined in the reference domain, all the
-three sub problems $(F,S,M)$ are posed in the reference domain
+three subproblems $(F,S,M)$ are posed in the reference domain
 $\Omega$, and we may thus formulate a monolithic counterpart to the
 FSI problem~\eqref{selim:eq:FSIsystem}. The abstract nonlinear
 variational form reads: Find $U\equiv \{ \UF, \PF, \US, \PS, \UM,
@@ -701,16 +701,16 @@ E_k + E_c$, where
 \label{selim:eq:aposteriori}
 \addtolength{\fboxsep}{5pt} \boxed{
 \begin{split}
-E_h &\leq \sum_{n=1}^{N}\int_{I_n} \sum_{T\in\mathcal{T}}| \langle
+E_h &\leqslant \sum_{n=1}^{N}\int_{I_n} \sum_{T\in\mathcal{T}_h}| \langle
 R_T,\; Z - \pi_h Z \rangle_T |+ | \langle \llbracket R_{\partial T}
-\rrbracket,\; Z - \pi_h Z \rangle _{\partial T}|\dt\\\\ E_k &\leq
+\rrbracket,\; Z - \pi_h Z \rangle _{\partial T}|\dt\\\\ E_k &\leqslant
 \;\mathcal{S}(T)\max_{I_n}\;\{k_n | r_k ^n|\}\\\\ E_c &=
 r(\pi_{hk}Z)
 \end{split}
 }
 \end{equation}
 Here, $E_h$ estimates the space discretization error which on each
-space-time slab $S_n = \mathcal{T} \times I_n$ is expressed as the sum
+space-time slab $S_n = \mathcal{T}_h \times I_n$ is expressed as the sum
 of error indicators $R_T$ and $R_{\partial T}$ from the cells of the
 mesh, weighted by the dual solution. How these indicators are
 implemented is illustrated in Figure~\ref{selim:fig:strong_residuals}.
@@ -776,7 +776,7 @@ where $\mathrm{TOL}_h = w_h \mathrm{TOL}, \;\mathrm{TOL}_k = w_k
 = w_k = w_c = 1/3$. The weight $w_c$ affects the tolerance used for
 the fixed point algorithm when
 solving~\eqref{selim:eq:FSIsystem}. Based on the error estimate $E_h$,
-we refine the mesh until $E_h \leq \mathrm{TOL}_h$.  There are various
+we refine the mesh until $E_h \leqslant \mathrm{TOL}_h$.  There are various
 ways of refining the mesh and determining which elements to refine. In
 the examples to come, we have adopted the Rivara recursive bisection
 algorithm as the refinement algorithm, see
@@ -787,9 +787,9 @@ $\alpha\in(0,1]$, the minimum number of elements $N$ is determined
   such that
 \begin{equation}
   \label{selim:eq:dorfler}
-\sum_{i=1}^{N}\eta_{T_i} \geq  \alpha \sum_{T\in\mathcal{T}}\eta_T ,
+\sum_{i=1}^{N}\eta_{T_i} \geqslant  \alpha \sum_{T\in\mathcal{T}_h}\eta_T ,
 \end{equation}
-where $\{ \eta_{T_{i}}\}_{i = 1}^{|\mathcal{T}|}$ is a list of error
+where $\{ \eta_{T_{i}}\}_{i = 1}^{|\mathcal{T}_h|}$ is a list of error
 indicators sorted in decreasing order.  The adaptive time step size is
 based on the error estimate $E_k$ and connects the global error to the
 local error over time. As a first approximation, we may choose the
@@ -817,7 +817,7 @@ The main outline of the adaptive FSI algorithm is depicted in
 Figure~\ref{selim:fig:adaptiveMAP}. In the \emp{FSISolver}, the FSI
 problem~\eqref{selim:eq:FSIsystem} (referred to as the primal problem)
 is solved in the module \emp{PrimalSolver}, which solves and
-transfers data from the three sub problems defined in
+transfers data from the three subproblems defined in
 \emp{CBC.Twist}, \emp{CBC.Flow} and \emp{MeshSolver}. Once
 the entire primal problem is solved, the primal data is passed to the
 \emp{DualSolver}. In the dual solver, the linearized dual
@@ -927,7 +927,7 @@ Solve the dual problem~\eqref{selim:eq:dual} for $t\in(T,0]$ using the
 Evaluate the error estimate~\eqref{selim:eq:aposteriori} and refine
 the computational domain in space.
 \item
-Repeat steps 1 -- 3 until $\M(e)\leq \mathrm{TOL}$.
+Repeat steps 1 -- 3 until $\M(e)\leqslant \mathrm{TOL}$.
 \end{enumerate}
 %------------------------------------------------------------------------------
 \section{Numerical examples}
