@@ -39,8 +39,8 @@ checklist = [("i.e.",              "'; that is,'"),
              ("fig.",              "Figure"),
              ("Fig.",              "Figure"),
              ("PyDOLFIN",          "DOLFIN"),
-             ("eq.",               ""),
-             ("Eq.",               ""),
+             ("eq.",               "\eqref"),
+             ("Eq.",               "\eqref"),
              ("(\ref{",            "\eqref{}"),
              ("\\begin{code}",     "\begin{python/c++/bash}"),
              (" sub ",             "subfoo"),
@@ -51,6 +51,8 @@ checklist = [("i.e.",              "'; that is,'"),
              ("d\Omega",            "\\dx"),
              (" dx",                "\\dx"),
              (" ds",                "\\ds"),
+             ("\,dx",                "\\dx"),
+             ("\,ds",                "\\ds"),
              (" conforming",        "-conforming"),
              ("H(div)",             "$\Hdiv$"),
              ("H(curl)",            "$\Hcurl$")]
@@ -121,6 +123,9 @@ uppercase = ["A",
              "FSI",
              "Earth's"]
 
+# List of code environments
+code_environments = ["python", "c++", "uflcode"]
+
 def check_capitalization(text):
     warnings = []
     for (i, line) in enumerate(text.split("\n")):
@@ -146,8 +151,23 @@ def check_all(text):
 
     # Check simple replacements
     for (a, b) in checklist:
-        if a in text:
-            warnings += ["%s --> %s" % (a, b)]
+
+        # Find all occurences of a
+        offset = 0
+        while True:
+            pos = text[offset:].find(a)
+            if pos != -1:
+                if inside_code_environment(offset + pos, text):
+                    #warnings += ["%s --> %s (but inside code environment so IGNORE)" % (a, b)]
+                    warnings += []
+                else:
+                    warnings += ["%s --> %s" % (a, b)]
+            else:
+                break
+            offset += pos + 1
+
+        #if a in text:
+        #    warnings += ["%s --> %s" % (a, b)]
 
     # I like this line
     warnings = [warning for warning in warnings if warning is not None]
@@ -164,6 +184,23 @@ def strip_text(text):
             break
         text = new_text
     return text
+
+def inside_code_environment(pos, text):
+    "Check whether text position is inside code environment"
+
+    for env in code_environments:
+
+        # Find positions of preceding begin/end
+        b0, b1 = text[pos:0:-1].find(("\\begin{%s}" % env)[::-1]), text[pos:0:-1].find(("\\end{%s}" % env)[::-1])
+
+        # Find positions of succeeding end/begin
+        e0, e1 = text[pos:].find("\\end{%s}" % env), text[pos:].find("\\begin{%s}" % env)
+
+        # Check
+        if (b0 != -1 and (b0 < b1 or b1 == -1)) and (e0 != -1 and (e0 < e1 or e1 == -1)):
+            return True
+
+    return False
 
 if __name__ == "__main__":
 
