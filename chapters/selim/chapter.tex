@@ -1,8 +1,8 @@
-\fenicschapter{An adaptive finite element solver for fluid--structure
-               interaction problems}
+\fenicschapter{An adaptive finite element solver for fluid--structure interaction problems}
               {An adaptive finite element solver for fluid--structure interaction problems}
               {Kristoffer Selim}
               {selim}
+
 %% My commands
 \definecolor{grey}{rgb}{0.5,0.5,0.5}
 \newcommand{\subdt}{\textrm{d}_t}
@@ -51,38 +51,37 @@
 \newcommand{\AMF}{A_{_{MF}}}
 \newcommand{\AMS}{A_{_{MS}}}
 
-%------------------------------------------------------------------------------
 Fluid--structure interaction (FSI) occurs when a fluid interacts with
-a solid structure, exerting a stress that causes deformation of the
-structure and, thus, alters the flow of the fluid itself.
-The FSI problem is a fully
-coupled multiphysics problem, whether the problem is solved in a
-partitioned manner or by a monolithic approach. However, in many cases
-we are only interested in one physical output quantity of the fully
-coupled system, e.g., the displacement of the structure. In order to
-compute this particular physical output of interest with a high level
-of accuracy, a goal oriented adaptive finite element method can be
-used.
+a solid structure, exerting a traction force that causes deformation
+of the structure and, thus, alters the flow of the fluid itself.  The
+FSI problem is a fully coupled multiphysics problem, whether the
+problem is solved in a partitioned manner or by a monolithic
+approach. In many cases we are only interested in one
+physical output quantity of the fully coupled system, e.g., the
+displacement of the structure. In order to compute this particular
+physical output of interest with a high level of accuracy, a goal
+oriented adaptive finite element method can be used.
 
 This chapter gives a short introduction to goal oriented adaptive
 finite element approximation for FSI problems and demonstrates how to
-solve them using FEniCS. We start by formulating a FSI problem and
+solve them using FEniCS. We start by formulating an FSI problem and
 show how it is implemented in FEniCS, and then define and explain the
 corresponding adaptive algorithm for the given FSI problem. For a more
 comprehensive discussion on goal oriented adaptive finite element
 methods for FSI problems, we refer
-to~\citet{SelimNarayananEtAl2010,Dunne2007,GratschBathe2006,BengzonLarson2010,Van2009,FickZeeBrummelen2008}.
-
+to~\citet{SelimLogg2011a,Dunne2007,Dunne2006,
+GratschBathe2006,BengzonLarson2010,ZeeBrummelenBorst2008a, Van2009}.
 %------------------------------------------------------------------------------
 \section{Fluid--structure interaction}
 \label{selim:sec:fsi}
+
 Fluids and solids obey the fundamental conservation laws that hold
 for any adiabatic continuum body: the balance of linear momentum and
-the conservation mass.  These fundamental conservation laws can be
+the conservation of mass.  These fundamental conservation laws can be
 expressed in local form as
 \begin{eqnarray}
 \label{selim:eq:momentum}
-\subdt(\rho u) - \Div \sigma &=& b, \\
+\subdt(\rho u) - \divv \sigma &=& b, \\
 \label{selim:eq:continuity}
 \subdt(\rho )  &=& 0,
 \end{eqnarray}
@@ -90,7 +89,7 @@ where~\eqref{selim:eq:momentum} is the balance of linear momentum
 and~\eqref{selim:eq:continuity} is the conservation of mass.  Here,
 $\subdt(\cdot)$ denotes the total time derivative, $\rho$ the density,
 $u$ the velocity, $\sigma$ the stress, and $b$ represents a given body
-force per unit volume. In a FSI problem, the different physical
+force per unit volume. In an FSI problem, the different physical
 quantities of the fluid and the structure, denoted with subscripts
 $F$ and $S$ respectively, transfer traction forces and exchange data
 at a given common fluid--structure boundary.  Traction forces are
@@ -98,24 +97,26 @@ given by normal stresses and at the common fluid--structure boundary,
 the following equilibrium equation holds:
 \begin{equation}
 \label{selim:eq:traction}
-\sigma_{_{F}}\cdot n =  \sigma_{_{S}}\cdot n,
+\sigma_{_{F}}\cdot n_{_{F}} =  - \sigma_{_{S}}\cdot n_{_{S}},
 \end{equation}
-where $n$ denotes the normal.  How a continuum responds to stress and
-in particular to shear stress, distinguishes a fluid continuum from a
-solid continuum. A fluid cannot withstand shear forces; it will
-continue to deform as long as the stress is applied. Solids, on the
-other hand, respond with an angular strain and the strain continues
-until the displacement is sufficient to generate internal forces that
-balance the imposed stress. To capture this, the constitutive laws
-modeling fluids and solids relate the stress tensor to different
-physical measures. Moreover, these measures are from a practical point
-of view naturally posed in different frameworks, the so-called
-Lagrangian framework and the Eulerian framework.
+where $n_{_{F}}$ and $n_{_{S}}$ denote the outward normals on the
+fluid--structure boundary, viewed from the fluid and structure
+domains, respectively. Hence, $n_{_{F}} = - n_{_{S}}$.  How a continuum
+responds to stress and in particular to shear stress, distinguishes a
+fluid continuum from a solid continuum. A fluid cannot withstand shear
+forces; it will continue to deform as long as the stress is
+applied. Solids, on the other hand, respond with an angular strain and
+the strain continues until the displacement is sufficient to generate
+internal forces that balance the imposed stress. To capture this, the
+constitutive laws modeling fluids and solids relate the stress tensor
+to different physical measures. Moreover, these measures are from a
+practical point of view naturally posed in different frameworks, the
+so-called Lagrangian framework and the Eulerian framework.
 
 %------------------------------------------------------------------------------
-\subsection{ Lagrangian framework and structure mechanics}
+\subsection{ Lagrangian framework and structural mechanics}
 
-An essential kinematic measure in structure mechanics is the
+An essential kinematic measure in structural mechanics is the
 displacement field which is naturally posed in the Lagrangian
 framework.  In the Lagrangian framework, the motion of a body is
 related to a fixed material point $x_0$ and the position of
@@ -123,7 +124,7 @@ such a point at time $t$ is given by the sufficiently smooth bijective
 map $\phi$ that maps the point $x_0$ at time $t$ to the point $x(t)=
 \phi(x_0,t)$. The \emph{structure displacement} is defined as
 $\uS(x_0,t) = \phi(x_0, t) - x_0$ with the corresponding non-singular
-Jacobi matrix $f = \Grad\phi$ and Jacobi determinant $j =
+Jacobi matrix $f = \textrm{grad}\;\phi$ and Jacobi determinant $j =
 \textrm{det}\; f$. Thus, the total time derivative of a function $y$
 in the Lagrangian framework is given by $\subdt(y) = \dot{y}$.
 \\\\
@@ -135,7 +136,7 @@ kinematic measures, and if $\psi$ is dependent on the so-called
 Green--Lagrange tensor $e= \tfrac{1}{2}(f^{\top}f -I)$, the corresponding first
 Piola--Kirchhoff tensor is given by $\sigma_{_{S}} =
 f\cdot\frac{\partial \psi(e)}{\partial e}$. In this chapter, we focus
-on the compressible St. Venant--Kirchhoff model where the stress is
+on the compressible St.~Venant--Kirchhoff model where the stress is
 described by the energy functional $\psi(e) =
 \mu_{_{S}}\textrm{tr}(e^2) +
 \frac{\lambda_{_{S}}}{2}(\textrm{tr}(e))^2$, where
@@ -144,7 +145,7 @@ constants. Hence, the conservation laws for a ~St. Venant--Kirchhoff
 material in the Lagrangian framework is given by
 \begin{eqnarray}
 \label{selim:eq:SVKmom}
-\rhoS \ddotuS - \Div\sigmaS(\uS) &=& b_{_{S}}, \\
+\rhoS \ddotuS - \divv\sigmaS(\uS) &=& b_{_{S}}, \\
 \label{selim:eq:SVKcon}
 \dot{\rho}_{_{S}}&=&0,
 \end{eqnarray}
@@ -159,8 +160,9 @@ materials and structure mechanics in general, see \citet{Gurtin1981,
 %------------------------------------------------------------------------------
 \subsection{Eulerian framework and fluid mechanics}
 \label{selim:sec:fluid}
+
 In fluid mechanics, the primary variables for describing the fluid
-motion is the \emph{fluid velocity} $\uF$ and the \emph{fluid
+motion are the \emph{fluid velocity} $\uF$ and the \emph{fluid
   pressure} $\pF$. These variables are naturally posed in the Eulerian
 framework where the motion of a body is related to a fixed spatial
 point $x$ and the motion of the body is defined as $\uF(x,t) =
@@ -168,9 +170,8 @@ point $x$ and the motion of the body is defined as $\uF(x,t) =
 in the Eulerian framework is given by $\subdt(y) = \dot{y} +
 \textrm{grad}\;y\cdot\uF$.
 
-The most common constitutive law for fluids is the Newtonian fluid
-where the rate of strain is proportional to the rate of stress. For
-Newtonian fluids, the stress tensor $\sigmaF$ (referred to as the
+The most common constitutive law for fluids is the Newtonian fluid.
+For Newtonian fluids, the stress tensor $\sigmaF$ (referred to as the
 Cauchy stress) is given by $\sigmaFup = 2\mu_{_{F}}\varepsilon (\uF) -
 \pF I$, where $\mu_{_{F}}$ denotes the dynamic viscosity and
 $\varepsilon(\cdot)$ the symmetric gradient. In this chapter, we
@@ -186,34 +187,33 @@ equations:
 \end{eqnarray}
 For a more in depth analysis of constitutive laws for fluids and for
 fluid mechanics in general, see~\citet{Batchelor1967,Panton1984,
-  WeltyWicksWilson2001}.
-
+WeltyWicksWilson2001}.
 %------------------------------------------------------------------------------
 \section{FSI and the ALE computational framework}
 \label{selim:sec:ale}
+
 To combine the Lagrangian and the Eulerian frameworks in a
 computational setting, the fluid traction force from
 problem~\eqref{selim:eq:NSmom}-\eqref{selim:eq:NScon} is transferred
 to the structure
 problem~\eqref{selim:eq:SVKmom}-\eqref{selim:eq:SVKcon} via the Piola
-map $(j\; (\sigma_{_{F}}\circ \phi)\cdot f^{-\top})\cdot n =
-\sigma_{_{S}}\cdot n$ at the common fluid--structure boundary.
+map: $(j\;\sigma_{_{F}}\cdot f^{-\top})\cdot n_{_{F}} = -
+\sigma_{_{S}}\cdot n_{_{S}}$ at the common fluid--structure boundary.
 The deformation of the structure, given by the structure solution in
 the material domain, needs to be tracked in the spatial fluid domain
 and consequently, the mesh in the spatial fluid domain has to be
 updated. A dynamically deforming mesh without any additional smoothing
-algorithm to enhance the mesh quality will result in a mesh of poor
-quality. To treat this shortcoming, an additional mesh equation is
-posed in the fluid domain to enhance the mesh quality. Combining the
-Lagrangian and the Eulerian frameworks with an additional mesh
-smoothing algorithm is commonly referred to as the Arbitrary
-Lagrangian--Eulerian (ALE) method \citep{DoneaGiulianiHalleux1982,
-  DoneaHuertaPonthotEtAl2004}.  In this method, both the Lagrangian
-approach, in which the mesh of grid points moves with the structure,
-and the Eulerian approach, in which the mesh represents a fixed
-reference frame for the fluid, are used. In order to incorporate the
-mesh equation in the FSI problem, an arbitrary reference frame for the
-fluid domain is introduced which is independent of the Lagrangian
+algorithm will result in a mesh of poor quality. To treat this
+shortcoming, an additional mesh equation is posed in the fluid domain
+to enhance the mesh quality. Combining the Lagrangian and the Eulerian
+frameworks with an additional mesh smoothing algorithm is commonly
+referred to as the Arbitrary Lagrangian--Eulerian (ALE) method
+\citep{DoneaGiulianiHalleux1982,DoneaHuertaPonthotEtAl2004}. In this
+method, both the Lagrangian approach, in which the mesh moves with the
+structure, and the Eulerian approach, in which the mesh represents a
+fixed reference frame for the fluid, are used. In order to incorporate
+the mesh equation in the FSI problem, an arbitrary reference frame for
+the fluid domain is introduced which is independent of the Lagrangian
 description and the Eulerian description. This arbitrary reference
 domain is typically the initial undeformed computational domain.
 
@@ -228,28 +228,30 @@ partitioned into two disjoint subsets $\oF(t)$ and $\oS(t)$ such that
 $\bar{\omega}_{_{F}}\cup\bar{\omega}_{_{S}} = \omega$ and
 $\oF(t)\cap\oS(t)=\emptyset$, for all time $t\in[0,T]$. The common
 boundary between the structure and fluid domains is denoted by
-$\Gamma_{FS}$ and $\gamma_{FS}(t)$ respectively. To distinguish
-between variables and operators associated with the reference and
-current domains, we use upper case and lower case letters
-respectively. Thus, $\Divv\SigmaS(\US(X,t))$ is the divergence of the
-structure stress defined on the reference structure domain $\OS$, and
-$\graduF(x,t)$ is the current gradient of the fluid velocity defined
-in the current fluid domain $\oF(t)$.
+$\Gamma_{FS}$ and $\gamma_{FS}(t)$ respectively. In general, to
+distinguish between variables and operators associated with the
+reference and current domains, we use upper case and lower case
+letters respectively. Thus, $\Divv\SigmaS(\US(X,t))$ is the divergence
+of the structure stress defined on the reference structure domain
+$\OS$, and $\graduF(x,t)$ is the current gradient of the fluid
+velocity defined in the current fluid domain $\oF(t)$.
 
 In order to map between the reference domain and the current domain,
 we introduce the sufficiently smooth bijective map $\Phi(\cdot,
 t):\Omega\mapsto \omega(t)$.  For any fixed time $t\in[0,T]$, $\Phi$
-maps a reference point $X\in\Omega$ to the corresponding current
-point $x\in\omega(t)$; that is, $X \mapsto x = \Phi(X,t)$.
+maps a reference point $X\in\Omega$ to the corresponding current point
+$x\in\omega(t)$; that is, $X \mapsto x = \Phi(X,t)$, see
+Figure~\ref{selim:fig:mapping}.
 \begin{figure}
-  \includegraphics[width=0.8\textwidth]{chapters/selim/pdf/mapping.pdf}
+\begin{center}
+  \includegraphics[width=\smallfig]{chapters/selim/pdf/mapping.pdf}
  \caption{The mapping $\Phi(X,t$) maps a reference point $X\in\Omega$
    to the current point $x\in\omega(t)$. The deformation gradient of
    the reference domain $\Omega$ is given by $\textrm{Grad}\:\Phi =
    F$, and the volume change of $\Omega$ is thus $J = \textrm{det}(F)$.}
  \label{selim:fig:mapping}
+\end{center}
 \end{figure}
-\\
 Since we allow the fluid and structure portions of the domain to
 deform independently (only enforcing that these deformations are
 identical on the common boundary), the map is split up as follows:
@@ -271,11 +273,11 @@ defined as
 \PhiM(X, t) &=& X + \UM(X,t),
 \end{eqnarray}
 where $(\US, \UM)$ are the solutions to the structure problem and the
-arbitrarily chosen mesh problem, respectively.  There are several
-possibles ways to formulate and solve the mesh problem to obtain
+arbitrarily chosen mesh problem.  There are several
+possible ways to formulate and solve the mesh problem to obtain
 $\UM$ \citep{HermanssonHansbo2003, LopezNigroStorti2008}.  In the
 following, we have adopted a time dependent mesh problem related to a
-linear elastic description of the fluid domain in which the stress
+linearly elastic description of the fluid domain in which the stress
 tensor is given by $\SigmaM(\UM)\equiv \mu_{{_M}}(\GradUM +
 \GradUM^{\top})+ \lambda_{_{M}}\textrm{tr}(\GradUM)I$ for some given
 positive constants $(\mu_{{_M}},\lambda_{_{M}})$.
@@ -286,8 +288,7 @@ the fully coupled FSI problem:
 \item
 the fluid problem $(f)$ solved in the current fluid domain $\oF(t)$;
 \item
-the structure problem $(S)$ solved in the reference structure domain;
-$\OS$
+the structure problem $(S)$ solved in the reference structure domain $\OS$;
 \item
 the mesh problem $(M)$ solved in the reference fluid domain $\OF$.
 \end{itemize}
@@ -299,12 +300,12 @@ $(f),(S),(M)$ is given by:
    &(f):&\quad \rhoF(\dotuF + \graduF\cdot\uF) -
       \divv\sigmaF(\uF,\pF) =\;& \bff \quad
       \textrm{in}\;\oF(t)\\ &&\divv\uF =\;&
-      0\:\:\quad\textrm{in}\;\oF(t) \\\\ &(S):&\quad \rhoS \ddotUS -
-      \Divv \SigmaS(\US) =\;& \BS \quad \textrm{in}\; \OS\times
-      (0,T]\\\\ &(M):&\quad \dot{U}_{_{M}} - \Divv \SigmaM(\UM) =\;& 0
-  \;\:\quad\textrm{in}\; \OF\times (0,T]
+      0\:\:\quad\textrm{in}\;\oF(t)& \\\\ &(S):&\quad  \rhoS \ddotUS -
+      \Divv \SigmaS(\US) = \BS \quad \textrm{in}\; &\OS\times
+      (0,T]&\\\\ &(M):&\quad \dot{U}_{_{M}} - \Divv \SigmaM(\UM) = 0
+  \;\:\quad\textrm{in}\; &\OF\times (0,T]&
     \end{split}
-  }
+ }
 \end{equation}
 together with initial and boundary conditions. We note that, with the
 proposed notation, the stress from the fluid is transferred to the
@@ -314,7 +315,7 @@ domain at the common fluid--structure boundary such that:
   \addtolength{\fboxsep}{5pt} \boxed{
     \begin{split}\label{selim:eq:ALEtraction}
       (J_{_{M}}\;(\sigmaF\circ\PhiM) \cdot F_{_{M}}^{-\top})\cdot
-      N_{_{F}} &= \SigmaS\cdot N_{_{S}} \quad &\textrm{on}\; \Gamma_{_{FS}}\\
+      N_{_{F}} &=  - \SigmaS\cdot N_{_{S}} \quad &\textrm{on}\; \Gamma_{_{FS}}\\
       \uF\circ\PhiM &= \dot{\Phi}_{_{S}} \quad &\textrm{on}\; \Gamma_{_{FS}}\\
     \end{split}
   }
@@ -323,67 +324,79 @@ Thus, \eqref{selim:eq:ALEtraction} transfers data between all the
 equations in the FSI system~\eqref{selim:eq:FSIsystem} at the common
 FSI interface.
 
-In the numerical solution of the fluid problem $(f)$,
-we compensate for the additional mesh movement $\dot{u}_{_{M}}$ in the
+In the numerical solution of the fluid problem $(f)$, we compensate
+for the additional (unphysical) mesh movement $\dot{u}_{_{M}}$ in the
 fluid domain $\oF(t)$ introduced by the mesh equation $(M)$.  The
 resulting discrete finite element form of the convective term of the
 fluid problem takes the form $\rhoF(\dotuF^{hk} +
-\graduF\cdot(\uF^{hk} - \dot{u}_{_{M}}^{hk}))$.  This additional mesh
+\graduF^{hk}\cdot(\uF^{hk} - \dot{u}_{_{M}}^{hk}))$. This additional mesh
 movement is a pure numerical artifact and is not a part of the
 continuum representation of the FSI problem.
 
 %------------------------------------------------------------------------------
 \section{The FSI solver}
 \label{selim:sec:primalsolver}
+
 The proposed system of equations that defines the fully coupled FSI
 problem~\eqref{selim:eq:FSIsystem} is a partitioned system, where the
 subproblems $(f),(S),(M)$ are connected at the fluid--structure
-interface with the boundary conditions
-in~\eqref{selim:eq:ALEtraction}. To solve such a system, the
-subproblems are iteratively solved using the following simple fixed
-point algorithm:
+interface through the boundary conditions
+in~\eqref{selim:eq:ALEtraction}. To solve such a system, we utilize a
+fixed point iteration. The algorithm reads as follows and is
+illustrated in Figure~\ref{selim:fig:fp}.
+
 \begin{enumerate}
 \item
-Solve the fluid problem $(f)$
+Solve the fluid problem $(f)$.
 \item
 Transfer the fluid stress using~\eqref{selim:eq:ALEtraction} and
-solve the structure problem $(S)$
+solve the structure problem $(S)$.
 \item
-Solve the mesh problem $(M)$ and update the fluid domain
+Solve the mesh problem $(M)$ and update the fluid domain.
 \item
-Repeat steps (1) -- (3) until convergence
+Repeat steps (1)--(3) until convergence.
 \item
-Move on to the next time step
+Move on to the next time step.
 \end{enumerate}
-\begin{figure}
-  \includegraphics[width=0.85\textwidth]{chapters/selim/pdf/primal.pdf}
-  \caption{A partitioned approach to solving the FSI problem. In each
-    time step $k_n$, the three subproblems are solved iteratively
-    using a simple fixed point method. The fluid problem is first
-    solved on the given current fluid domain $\oF(t)$ and the stress
-    $\sigmaF$ is evaluated and transferred (mapped back) to the
-    structure problem in the reference domain. In the structure
-    reference domain $\Omega_{_{S}}$, the fluid stress is set as a
-    Neumann condition and the structure problem is solved for the
-    given fluid stress. The structure displacement field is then set
-    as a Dirichlet boundary condition at the common fluid--structure
-    boundary for the mesh equation in the fluid reference domain
-    $\Omega_{_{F}}$. Having obtained the mesh solution, the solution
-    is pushed forward to the current fluid domain and thus defines the
-    new deformed current domain.}
+
+We note that one may alternatively start each time step with an
+extrapolation of the motion of the structure domain, followed by a
+solution of the mesh problem, then the fluid problem etc. This might
+lead to fewer iterations. However, for this work, we have adopted the
+simple strategy described above.
+
+\begin{figure}[tbp!]
+  \begin{center}
+    \includegraphics[width=\largefig]{chapters/selim/pdf/primal.pdf}
+    \caption{A partitioned approach to solving the FSI problem. In each
+      time step $k_n$, the three subproblems are solved iteratively
+      using a simple fixed point method. The fluid problem is first
+      solved on the given current fluid domain $\oF(t)$ and the stress
+      $\sigmaF$ is evaluated and mapped back to the
+      structure problem in the reference domain. In the structure
+      reference domain $\Omega_{_{S}}$, the fluid stress is set as a
+      Neumann boundary condition and the structure problem is solved for the
+      given fluid stress. The structure displacement field is then set
+      as a Dirichlet boundary condition at the common fluid--structure
+      boundary for the mesh equation in the fluid reference domain
+      $\Omega_{_{F}}$. Having obtained the mesh solution, the solution
+      is pushed forward to the current fluid domain and thus defines the
+      new deformed current domain.}
+    \label{selim:fig:fp}
+  \end{center}
 \end{figure}
+
 The two subproblems $(f)$, $(S)$ in~\eqref{selim:eq:FSIsystem} define
-a classic set of equations from fluid mechanics and structure
-mechanics. To solve the coupled system, a solver framework for
-handling both types of physics is needed. For this purpose, we have
-used the multiphysics framework \emp{CBC.Solve} developed at the
-Center for Biomedical Computing at Simula Research Laboratories in
-Oslo. Currently, \emp{CBC.Solve} consists of two core components;
-\emp{CBC.Flow} and \emp{CBC.Twist} which are frameworks explicitly
-developed for solving fluid mechanics problems and structure mechanics
-problems, respectively.  In the subsequent sections, we will briefly
-explain these frameworks and the code that solves the FSI
-problem~\eqref{selim:eq:FSIsystem}.
+a classic set of equations from fluid and structure mechanics. To
+solve the coupled system, a solver framework for handling both types
+of physics is needed. For this purpose, we have used the multiphysics
+framework \emp{CBC.Solve} developed at the Center for Biomedical
+Computing at Simula Research Laboratory. Currently, \emp{CBC.Solve}
+consists of two core components; \emp{CBC.Flow} and \emp{CBC.Twist}.
+These are frameworks explicitly developed for solving fluid mechanics
+problems and structure mechanics problems, respectively.  In the
+subsequent sections, we will briefly explain these frameworks and the
+code that solves the FSI problem~\eqref{selim:eq:FSIsystem}.
 
 %------------------------------------------------------------------------------
 \subsection{Fluid subproblem}
@@ -405,16 +418,16 @@ computed and corrected using the continuity equation. Finally, in the
 third step, the velocity is corrected using the corrected pressure.
 The implementation is illustrated with a code segment from the class
 \emp{NavierStokesSolver} in Figure~\ref{selim:fig:fluidsolver}. For
-a more comprehensive discussion how to solve and implement different
-solvers for the incompressible Navier--Stokes equations in FEniCS, see
-Chapter~\ref{chap:kvs-1}.
+a more comprehensive discussion on how to solve and implement different
+solvers for the incompressible Navier--Stokes equations in FEniCS,
+see Chapter~\ref{chap:kvs-1}.
 \begin{figure}
-\begin{center}
+  \begin{center}
 \begin{python}
- class NavierStokesSolver(CBCSolver):
+class NavierStokesSolver(CBCSolver):
     "Navier-Stokes solver"
 
-   def __init__(self, problem):
+    def __init__(self, problem):
         "Initialize Navier-Stokes solver"
 
         ...
@@ -451,11 +464,10 @@ Chapter~\ref{chap:kvs-1}.
   computed velocity \emp{u1} from the first step. Finally, the
   velocity is corrected using the corrected pressure.}
 \label{selim:fig:fluidsolver}
-\end{center}
+  \end{center}
 \end{figure}
 
 %------------------------------------------------------------------------------
-
 \subsection{Structure subproblem}
 
 \emp{CBC.Twist} is a solver collection for structure mechanics
@@ -464,56 +476,31 @@ Lagrangian coordinate system.  The solver allows the user to easily
 pose problems and provides many standard material models, including
 St.~Venant--Kirchhoff, Mooney--Rivlin, neo--Hookean, Isihara, Biderman
 and Gent--Thomas. New models may be added easily since the interface
-allows the user to provide an energy functional as function of a
+allows the user to provide an energy functional as a function of a
 suitable kinematic measure, such as the Green--Lagrange strain. Both a
 static and an energy-momentum preserving time-dependent solver are
 provided. The space discretization relies upon first order Lagrange
 elements and for the time discretization several different schemes are
-available, such as the $cG(1)$
-method~\citep{ErikssonEstepHansboEtAl1996, ErikssonEstepJohnson2003} or
-the "HHT'' method~\citep{HilberHughesTaylor1977}.  In the $cG(1)$
-method, used in this chapter, the structure problem is re-written as a
-first order system in time by introducing the additional equation
-$P_{_{S}} - \dot{U}_{_{S}} = 0$ to the structure equation $(S)$
+available, such as the cG(1)
+method~\citep{ErikssonEstepHansboEtAl1996} or the "HHT''
+method~\citep{HilberHughesTaylor1977}.  In the cG(1) method, used in
+this chapter, the structure problem is re-written as a first order
+system in time by introducing the additional equation $P_{_{S}} -
+\dot{U}_{_{S}} = 0$ to the structure equation $(S)$
 in~\eqref{selim:eq:FSIsystem}. The structure stress tensor, regardless
 of material model, is given as the first Piola--Kirchhoff tensor and
 the nonlinear variational problem is solved using Newton's method.
-The implementation of the $cG(1)$ version is illustrated in the code
+The implementation of the cG(1) version is illustrated in the code
 segment from the class \emp{CG1MomentumBalanceSolver} in
 Figure~\ref{selim:fig:structuresolver}. For a more comprehensive
-discussion of how to solve structure problems using
-\emp{CBC.Twist}, and especially how to implement different material
-models, see Chapter~\ref{chap:narayanan}.
+discussion of how to solve structure problems using \emp{CBC.Twist},
+and especially how to implement different material models, see
+Chapter~\ref{chap:narayanan}.
 
-\begin{figure}
-\label{selim:fig:structuresolver}
-\caption{A code segment from the $cG(1)$ version of the structure
-  solver \emp{CBC.Twist}. In the $cG(1)$ method, the structure problem
-  is re-written as a first order system in time by introducing the
-  additional equation $P_{_{S}} - \dot{U}_{_{S}} = 0$ to the structure
-  equation $(S)$ in~\eqref{selim:eq:FSIsystem}. The two resulting
-  equations are multiplied with test functions \emp{v} and \emp{q}
-  respectively, and adding the two equations yields the nonlinear
-  variational form \emp{L}. The nonlinear variational form \emp{L}
-  contains the structure velocity \emp{p} and the first
-  Piola--Kirchhoff stress tensor \emp{sigma} (which is a function of
-  the structure displacement $\US$).  The nonlinear form \emp{L} is
-  linearized using the FEniCS function \emp{derivative} where \emp{U}
-  represents the mixed finite element space containing the structure
-  solution $(\US, P_{_{S}})$.  We note that Neumann conditions, such a
-  fluid stress, are imposed in the variational form \emp{L} while the
-  Dirichlet conditions are set directly in the Newton solver. We also
-  note that the proposed variational form holds for a vast amount of
-  different structure models, where the first Piola--Kirchhoff stress
-  tensor \emp{sigma} is given by an appropriate material model.  }
+\begin{figure}[tbp!]
 \begin{python}
 class CG1MomentumBalanceSolver(CBCSolver):
-    """Solves the dynamic balance of linear momentum using a CG1
-    time-stepping scheme"""
-
     def __init__(self, problem):
-        """Initialize the momentum balance solver"""
-
         ...
 
         # The variational form corresponding to hyperelasticity
@@ -521,8 +508,7 @@ class CG1MomentumBalanceSolver(CBCSolver):
           - k*inner(b, v)*dx + inner(u - u0, q)*dx \
           - k*inner(p_mid, q)*dx
 
-        # Add contributions to the form from the Neumann boundary
-        # conditions
+        # Add contributions form the Neumann boundary
         neumann_conditions = problem.neumann_conditions()
         neumann_boundaries = problem.neumann_boundaries()
 
@@ -536,29 +522,55 @@ class CG1MomentumBalanceSolver(CBCSolver):
 
         a = derivative(L, U, dU)
 \end{python}
+\caption{A code segment from the cG(1) version of the structure
+  solver \emp{CBC.Twist}. In the cG(1) method, the structure problem
+  is re-written as a first order system in time by introducing the
+  additional equation $P_{_{S}} - \dot{U}_{_{S}} = 0$ to the structure
+  equation $(S)$ in~\eqref{selim:eq:FSIsystem}. The two resulting
+  equations are multiplied with test functions \emp{v} and \emp{q}
+  respectively, and adding the two equations yields the nonlinear
+  variational form \emp{L}. The nonlinear variational form \emp{L}
+  contains the structure velocity \emp{p} and the first
+  Piola--Kirchhoff stress tensor \emp{sigma} (which is a function of
+  the structure displacement $\US$).  The nonlinear form \emp{L} is
+  linearized using the FEniCS function \emp{derivative} where \emp{U}
+  represents the mixed finite element function containing the structure
+  solution $(\US, P_{_{S}})$.  We note that Neumann conditions, such a
+  fluid stress, are imposed in the variational form \emp{L} while the
+  Dirichlet conditions are set directly in the Newton solver. We also
+  note that the proposed variational form holds for a large amount of
+  different structure models, in which the first Piola--Kirchhoff stress
+  tensor \emp{sigma} is given by an appropriate material model.  }
+\label{selim:fig:structuresolver}
 \end{figure}
 
-\newpage
 %------------------------------------------------------------------------------
 \subsection{Mesh subproblem}
 
 The linear mesh subproblem is solved using first order Lagrange
-elements in space along with a standard $cG(1)$ formulation in time.
-The implementation of the mesh subproblem is illustrated in
-Figure~\ref{selim:fig:meshsolver}.
-\begin{figure}
+elements in space along with a standard cG(1) formulation in time. We
+note that although piecewise quadratic functions are used to
+approximate the velocity in the fluid problem, an affine mapping is
+used to map the elements in the finite element discretization. It is
+therefore suitable to approximate the mesh problem using piecewise
+linears (not quadratics); see~\citet{FormaggiaNobile1999}.
+
+The implementation of the variational forms describing the mesh
+subproblem is illustrated in Figure~\ref{selim:fig:meshsolver}.
+\begin{figure}[tbp!]
+\begin{python}
+# Define cG(1) scheme for time-stepping
+a = inner(u, v)*dx + 0.5*k*inner(sigma(u), sym(grad(v)))*dx
+L = inner(u0, v)*dx-0.5*k*inner(sigma(u0), sym(grad(v)))*dx
+\end{python}
 \caption{A code segment of the mesh solver \emp{MeshSolver}.}
 \label{selim:fig:meshsolver}
-\begin{python}
-  # Define cG(1) scheme for time-stepping
-  a = inner(u, v)*dx + 0.5*k*inner(sigma(u), sym(grad(v)))*dx
-  L = inner(u0, v)*dx - 0.5*k*inner(sigma(u0), sym(grad(v)))*dx
-\end{python}
 \end{figure}
 The Dirichlet boundary conditions on the mesh subproblem are imposed
 weakly through the introduction of the Lagrange multiplier,
 $P_{_{M}}$. This choice introduces coupling between the mesh and
-structure subproblems in the linearised adjoint problem.
+structure subproblems in the linearized (adjoint) dual problem which
+is described below.
 
 %------------------------------------------------------------------------------
 \section{Duality--based error control}
@@ -566,19 +578,19 @@ structure subproblems in the linearised adjoint problem.
 As mentioned in the beginning of this chapter, in many cases we are
 only interested in computing one output quantity of the fully coupled
 FSI system. This output quantity is commonly referred to as the goal
-functional.  To assure a high level of accuracy of the functional of
+functional.  To ensure a high level of accuracy of the functional of
 interest, the error in the goal functional needs to be controlled. In
-finite element discretizations, classic a posteriori error analysis
+finite element discretizations, \emph{a posteriori} error analysis
 provides a general framework for controlling the approximation error
-of the solution.  The extension of the classical a posteriori error
-analysis to controlling the error of a goal functional has been under
-development over the past two decades, and the technique originates
-form \citet{ErikssonEstepHansboEtAl1995, BeckerRannacher2001}. This
-technique is based on the solution of an auxiliary linearized dual
-(adjoint) problem in order to estimate the error in a given goal
-functional. By solving the dual problem, one may construct an adaptive
-algorithm that targets efficiently the computation of a specific goal
-functional $\M$ of interest, such that
+of the solution.  The extension of the classical \emph{a posteriori}
+error analysis to estimate the error in a goal functional has been
+under development over the past two decades, and the technique
+originates form \citet{ErikssonEstepEtAl1995,
+BeckerRannacher2001}. This technique is based on the solution of an
+auxiliary linearized dual (adjoint) problem in order to estimate the
+error in a given goal functional. By solving the dual problem, one may
+construct an adaptive algorithm that efficiently targets the
+computation of a specific goal functional $\M$, such that
 \begin{equation}
   \label{selim:eq:goalTOL}
 |\M(U)-\M(U^{hk})| \leqslant \mathrm{TOL}.
@@ -586,8 +598,8 @@ functional $\M$ of interest, such that
 Here, $ U-U^{hk} \equiv e$ is the error of the finite element solution
 in space $(h)$ and time $(k)$, and $\mathrm{TOL}>0$ is a user-defined
 tolerance.  To define the dual problem for the FSI
-problem~\eqref{selim:eq:FSIsystem}, we pull back the fluid subproblem
-$(f)$ from the current fluid domain $\oF(t)$ to the fluid reference
+problem~\eqref{selim:eq:FSIsystem}, we pull the fluid subproblem
+$(f)$ back from the current fluid domain $\oF(t)$ to the fluid reference
 domain $\OF$ using the map $\PhiM$,
 \begin{equation}
   \label{selim:eq:pullback}
@@ -599,33 +611,76 @@ With the fluid problem $(F)$ defined in the reference domain, all the
 three subproblems $(F,S,M)$ are posed in the reference domain
 $\Omega$, and we may thus formulate a monolithic counterpart to the
 FSI problem~\eqref{selim:eq:FSIsystem}. The abstract nonlinear
-variational form reads: Find $U\equiv \{ \UF, \PF, \US, \PS, \UM,
-P_{_{M}} \}\in V$ such that
+variational form reads:\footnote{Note that in this paper, we have
+  adopted a different notation for the variational problems compared
+  to the thesis introduction, Paper I and Paper II. This is to comply
+  with the notation used in the book where Paper III will be
+  published. We thus write $a(u, v)$ instead of $a(v, u)$.} find
+$U\equiv \{\UF, \PF, \US, \PS, \UM, P_{_{M}} \}\in V$ such that
 \begin{equation}
 \label{selim:eq:monolithic}
 a(U;v) = L(v),
 \end{equation}
-for all $v\equiv \{ v_{_{F}}, q_{_{F}}, v_{_{S}}, q_{_{S}}, v_{_{M}}, q_{_{M}}
+for all $v\equiv\{ v_{_{F}}, q_{_{F}}, v_{_{S}}, q_{_{S}}, v_{_{M}}, q_{_{M}}
 \}\in\hat{V}$, where the trial and test spaces $(V,\hat{V})$ are
 associated with the geometrically conforming parts of $\Omega_{_{F}}$
 and $\Omega_{_{S}}$, respectively. By introducing the linearized
 variational form $a'(U; \delta U,v ) \equiv \frac{\partial
   a(U;v)}{\partial U}\delta U$, we note that by the chain rule
 \begin{eqnarray}
-\overline{a}(e, v) \equiv \overline{a}(U,U^{hk};e, v) &\equiv& \int_0^1 a'(sU + (1-s)U^{hk}; e,
+\overline{a'}(e, v)  &\equiv& \int_0^1 a'(sU + (1-s)U^{hk}; e,
 v) \ds \\ &=& \int_0^1 \frac{\textrm{d}}{\ds} a (sU + (1-s)U^{hk}; v)
 \ds \\ &=& L(v) - a(U^{hk};v) \\ &\equiv&  r(v),
 \end{eqnarray}
 where $r(\cdot)$ is the (weak) residual of~\eqref{selim:eq:monolithic}.
-We now define the following dual problem: Find the dual solution
+We now define the following dual problem: find the dual solution
 $Z\equiv \{ Z_{_{F}}, Y_{_{F}}, Z_{_{S}}, Y_{_{S}}, Z_{_{M}},
 Y_{_{M}}\}\in V^*$ such that
 \begin{equation}
   \label{selim:eq:dual}
-  \overline{a}^{*}(Z, v) = \M(v),
+  \overline{a'}^{*}(Z, v) = \M(v),
 \end{equation}
 for all $v\equiv \{ v_{_{F}}, q_{_{F}}, v_{_{S}}, q_{_{S}}, v_{_{M}}, q_{_{M}}
-\}\in\hat{V}^*$.
+\}\in\hat{V}^*$, where the dual test and trial spaces are to be
+defined below.
+We assume that the goal functional in \eqref{selim:eq:dual} can
+expressed in the form
+\begin{equation}
+\M(v)  \equiv \langle \psi^T,\;  v(\cdot, T) \rangle +
+\int_0^T \langle \psi^t,\; v \rangle \dt,
+\end{equation}
+where $(\psi^T, \psi^t)$ are suitable Riesz's representers for the
+goal functional. Based on the solution of the dual
+problem \eqref{selim:eq:dual} and by inserting $v=e$,
+we obtain the following computable error representation:
+\begin{eqnarray}
+\label{selim:eq:representation}
+\nonumber
+\M(e) &=& \overline{a'}^{*}(Z ,e) = \overline{a'}(e, Z)\\ &=& L(Z) - a(
+U_{hk}; Z)\\
+\nonumber
+&=& r(Z),
+\end{eqnarray}
+that is, the error is the (weak) residual of the dual solution.  The
+dual problem~\eqref{selim:eq:dual} measures the sensitivity of the
+problem with respect to the given goal functional. The dual solution
+$Z$ contains the dual variables where, for instance, $(Z_{_{F}},
+Y_{_{F}})$ represents the dual fluid velocity and dual fluid pressure.
+The additional dual variable $Y_{_{M}}$ represents the weakly imposed
+dual mesh Lagrange multiplier at the common fluid--structure
+interface.  This term is added to account for the coupling between the
+mesh and structure equations of the FSI problem.  We notice that in
+order for the error representation~\eqref{selim:eq:representation} to
+be consistent, the corresponding dual trial and test spaces are
+defined as $(V^*,
+\hat{V}^*)=(\hat{V}, V_0)$, where  $V_0 = \{v-w:\;v,w\in V
+\}$. We interpret the Riesz's representer $\psi^T$ is an initial condition in
+the dual problem and that the dual problem~\eqref{selim:eq:dual} runs
+backwards in time. In the computations, the stated dual
+problem~\eqref{selim:eq:dual} is replaced by the approximated
+linearized form $\overline{a'}^{*}(Z, v) \equiv a'^{*}(U; Z, v)
+\approx a'^{*}(U^{hk}; Z, v)  = a'(U^{hk}; v, Z)$.
+
 
 We may express the dual problem on block form as
 \begin{eqnarray}
@@ -647,77 +702,70 @@ are the dual fluid variables and $\M_{_{F}}$ the fluid goal functional
 and so on. The interpretation of the individual blocks
 in~\eqref{selim:eq:dualsystem} is that, for instance,
 $\hat{v}_{_{F}}\ASF^{\top}\hat{Z}_{_{S}} $ is interpreted as
-$\overline{a}^*_{_{SF}}(\hat{Z}_{_{S}}, \hat{v}_{_{F}})$ which is the
+$\overline{a'}^*_{_{SF}}(\hat{Z}_{_{S}}, \hat{v}_{_{F}})$ which is the
 (adjoint) structure form linearized around the fluid variables.  We
 notice that the $\textcolor{grey}{\AFS}$ is zero since the fluid
 problem linearized around the structure variables are identically
 zero. Thus, the grey colored entries are by definition zero and that
 $\AMS \neq 0$ by the introduction of the dual mesh Lagrange multiplier
-$Y_{_{M}}$. We also notice that in order for the error
-representation~\eqref{selim:eq:representation} to be consistent, the
-corresponding dual trial and test spaces are defined as $(V^*,
-\hat{V}^*)=(\hat{V}_{\psi^T}, V_0)$, where $\hat{V}_{\psi^T} = \{v\in
-\hat{V} : v(\cdot, T) = \psi^T \}$ and $V_0 = \{v-w:\;v,w\in V
-\}$. Thus, the Riesz's representer $\psi^T$ is an initial condition in
-the dual problem and the dual problem~\eqref{selim:eq:dual} runs
-backwards in time. In the computations, the stated dual
-problem~\eqref{selim:eq:dual} is replaced by the approximated
-linearized form $\overline{a}^{*}(Z, v) \equiv a'^{*}(U,U^{hk}; Z, v)
-\approx a'^{*}(U^{hk}, U^{hk}; Z, v) $.
+$Y_{_{M}}$.
 
-Based on the solution of the dual, we obtain the following computable
-error representation of the goal functional:
-\begin{eqnarray}
-\label{selim:eq:representation}
-\nonumber
-\M(e) &=& \overline{a}^{*}(Z ,e) = \overline{a}(e, Z)\\ &=& L(Z) - a(
-U_{hk}; Z)\\
-\nonumber
-&=& r(Z),
-\end{eqnarray}
-that is, the error is the (weak) residual of the dual solution.  The
-dual problem~\eqref{selim:eq:dual} measures the sensitivity of the
-problem with respect to the given goal functional. The dual solution
-$Z$ contains the dual variables where, for instance, $(Z_{_{F}},
-Y_{_{F}})$ represents the dual fluid velocity and dual fluid pressure.
-The additional dual variable $Y_{_{M}}$ represents the weakly imposed
-dual mesh Lagrange multiplier at the common fluid--structure
-interface.  This term is added to account for the coupling between the
-structure and stress equations of the FSI problem.
-
-We assume that the goal functional can expressed in the form
-\begin{equation}
-\M(U)  \equiv \langle \psi^T,\;  U(\cdot, T) \rangle +
-\int_0^T \langle \psi^t,\; U \rangle \dt,
-\end{equation}
-where $(\psi^T, \psi^t)$ are suitable Riesz's representers for the
-goal functional. To be able to bound the errors in space and time, we
+To be able to bound the errors in space and time, we
 add and subtract suitable interpolants $(\pi_h, \pi_{hk})$ in space
 and space/time in the error
 representation~\eqref{selim:eq:representation} to obtain the following
-a posteriori error estimate: $|\M(U) - \M(U^{hk})| \equiv E = E_h +
+\emph{a posteriori} error estimate: $|\M(U) - \M(U^{hk})| \leqslant  E_h +
 E_k + E_c$, where
+
 \begin{equation}
 \label{selim:eq:aposteriori}
 \addtolength{\fboxsep}{5pt} \boxed{
 \begin{split}
-E_h &\leqslant \sum_{n=1}^{N}\int_{I_n} \sum_{T\in\mathcal{T}_h}| \langle
-R_T,\; Z - \pi_h Z \rangle_T |+ | \langle \llbracket R_{\partial T}
-\rrbracket,\; Z - \pi_h Z \rangle _{\partial T}|\dt\\\\ E_k &\leqslant
-\;\mathcal{S}(T)\max_{I_n}\;\{k_n | r_k ^n|\}\\\\ E_c &=
-r(\pi_{hk}Z)
+E_h &\equiv \sum_{n=1}^{N}\int_{I_n} \sum_{T\in\mathcal{T}_h}| \langle
+R_T,\; Z - \pi_h Z \rangle_T |+ | \langle \tfrac{1}{2}\llbracket R_{\partial T}
+\rrbracket,\; Z - \pi_h Z \rangle _{\partial T}|\dt\\\\ E_k &\equiv
+\;\mathcal{S}(T)\max_{I_n}\;\{k_n | r_k ^n|\}\\\\ E_c &\equiv
+|r(\pi_{hk}Z)|
 \end{split}
 }
 \end{equation}
 Here, $E_h$ estimates the space discretization error which on each
 space-time slab $S_n = \mathcal{T}_h \times I_n$ is expressed as the sum
 of error indicators $R_T$ and $R_{\partial T}$ from the cells of the
-mesh, weighted by the dual solution. How these indicators are
-implemented is illustrated in Figure~\ref{selim:fig:strong_residuals}.
+mesh, weighted by the interpolation error of the dual solution. The
+implementation of these indicators is illustrated in Figure~\ref{selim:fig:strong_residuals}.
 
-\begin{figure}
-\caption{A code segment illustrating the element wise space error
-  indicators. The indicators consists of three parts where each
+\begin{figure}[tbp!]
+\begin{python}
+# Fluid residual contributions
+R_F0 = w*inner(EZ_F - Z_F, Dt_U_F - div(Sigma_F))*dx_F
+R_F1 = avg(w)*inner(EZ_F('+') - Z_F('+'),
+              jump(Sigma_F, N_F))*dS_F
+
+R_F2 = w*inner(EZ_F - Z_F, dot(Sigma_F, N_F))*ds
+R_F3 = w*inner(EY_F - Y_F, div(J(U_M)*
+         dot(inv(F(U_M)), U_F)))*dx_F
+
+# Structure residual contributions
+R_S0 = w*inner(EZ_S - Z_S, Dt_P_S - div(Sigma_S))*dx_S
+R_S1 = avg(w)*inner(EZ_S('-') - Z_S('-'),
+             jump(Sigma_S, N_S))*dS_S
+
+R_S2 = w('-')*inner(EZ_S('-') - Z_S('-'),
+             dot(Sigma_S('-') - Sigma_F('+'),
+             -N_F('+')))*d_FSI
+
+R_S3 = w*inner(EY_S - Y_S, Dt_U_S - P_S)*dx_S
+
+# Mesh residual contributions
+R_M0 = w*inner(EZ_M - Z_M, Dt_U_M - div(Sigma_M))*dx_F
+R_M1 = avg(w)*inner(EZ_M('+') - Z_M('+'),
+              jump(Sigma_M, N_F))*dS_F
+
+R_M2 = w('+')*inner(EY_M - Y_M, U_M - U_S)('+')*d_FSI
+\end{python}
+\caption{A code segment illustrating the element-wise space error
+  indicators. The indicators consist of three parts where each
   subproblem is represented. These estimates are obtained by element
   wise integration by parts of the finite element formulation which is
   weighted by the dual solution. This results in element indicators
@@ -728,27 +776,9 @@ implemented is illustrated in Figure~\ref{selim:fig:strong_residuals}.
     Z} where \emp{EZ} is the extrapolated finite element approximation
   on a richer space and \emp{Z} is the finite element approximation.}
 \label{selim:fig:strong_residuals}
-\begin{python}
-    # Fluid residual contributions
-    R_F0 = w*inner(EZ_F - Z_F, Dt_U_F - div(Sigma_F))*dx_F
-    R_F1 = avg(w)*inner(EZ_F('+') - Z_F('+'), jump(dot(Sigma_F, N_F)))*dS_F
-    R_F2 = w*inner(EZ_F - Z_F, dot(Sigma_F, N_F))*ds
-    R_F3 = w*inner(EY_F - Y_F, div(J(U_M)*dot(inv(F(U_M)), U_F)))*dx_F
-
-    # Structure residual contributions
-    R_S0 = w*inner(EZ_S - Z_S, Dt_P_S - div(Sigma_S))*dx_S
-    R_S1 = avg(w)*inner(EZ_S('-') - Z_S('-'), jump(dot(Sigma_S, N_S)))*dS_S
-    R_S2 = w('-')*inner(EZ_S('-') - Z_S('-'), dot(Sigma_S('-') - Sigma_F('+'), -N_F('+')))*d_FSI
-    R_S3 = w*inner(EY_S - Y_S, Dt_U_S - P_S)*dx_S
-
-    # Mesh residual contributions
-    R_M0 = w*inner(EZ_M - Z_M, Dt_U_M - div(Sigma_M))*dx_F
-    R_M1 = avg(w)*inner(EZ_M('+') - Z_M('+'), jump(dot(Sigma_M, N_F)))*dS_F
-    R_M2 = w('+')*inner(EY_M - Y_M, U_M - U_S)('+')*d_FSI
-\end{python}
 \end{figure}
-The time discretization error estimate $E_k$ consist of the local time
-step size $k_n$ multiplied with a local algebraic (assembled) residual
+The time discretization error estimate $E_k$ consists of the local time
+step size $k_n$ multiplied with a local algebraic residual
 $r_k^n$ and the global stability factor $\mathcal{S}(T) \approx
 \int_0^T \| \dot{Z} \|_{l^2}\dt$. Finally, the computational error
 estimate $E_c$ accounts for the error introduced when the proposed
@@ -756,7 +786,7 @@ Galerkin method is solved using a non-Galerkin method, e.g. the IPCS
 for the fluid subproblem. Also, in addition to the proposed mesh
 equation, an additional local mesh smoothing is added to the fluid
 mesh.  For a more comprehensive discussion and derivation of this a
-posteriori estimate see \citet{SelimNarayananEtAl2010}.
+posteriori estimate see \citet{SelimLogg2011a}.
 
 %------------------------------------------------------------------------------
 \subsection{The adaptive algorithm}
@@ -775,22 +805,22 @@ where $\mathrm{TOL}_h = w_h \mathrm{TOL}, \;\mathrm{TOL}_k = w_k
 \mathrm{TOL}, \;\mathrm{TOL}_c = w_c \mathrm{TOL}$.  We here take $w_h
 = w_k = w_c = 1/3$. The weight $w_c$ affects the tolerance used for
 the fixed point algorithm when
-solving~\eqref{selim:eq:FSIsystem}. Based on the error estimate $E_h$,
-we refine the mesh until $E_h \leqslant \mathrm{TOL}_h$.  There are various
-ways of refining the mesh and determining which elements to refine. In
-the examples to come, we have adopted the Rivara recursive bisection
-algorithm as the refinement algorithm, see
-Chapter~\ref{chap:hoffman-2} for more details, and the so-called
+solving~\eqref{selim:eq:FSIsystem}. Based on the spatial error
+estimate $E_h$, we refine the mesh until $E_h \leqslant \mathrm{TOL}_h$.
+There are various ways in which refine the mesh and to determine which
+elements to refine. In the examples to come, we have adopted the
+Rivara recursive bisection algorithm as the refinement algorithm
+and the so-called
 D\"{o}rfler \citep{Dorfler1996} marking strategy. The D\"{o}rfler
 marking strategy is based on the idea that for a given
-$\alpha\in(0,1]$, the minimum number of elements $N$ is determined
-  such that
+$\alpha\in(0,1]$, a minimum number of elements $N$ is determined
+such that
 \begin{equation}
   \label{selim:eq:dorfler}
 \sum_{i=1}^{N}\eta_{T_i} \geqslant  \alpha \sum_{T\in\mathcal{T}_h}\eta_T ,
 \end{equation}
 where $\{ \eta_{T_{i}}\}_{i = 1}^{|\mathcal{T}_h|}$ is a list of error
-indicators sorted in decreasing order.  The adaptive time step size is
+indicators sorted in decreasing order. The adaptive time step size is
 based on the error estimate $E_k$ and connects the global error to the
 local error over time. As a first approximation, we may choose the
 local time step size such that
@@ -802,7 +832,7 @@ However, this particular choice of time step size introduces
 oscillations in the time step size since a small algebraic residual
 gives a large time step which results in a large residual and so
 on. To overcome this behavior, we use a smoothed
-version \citep{Logg2003d}, where~\eqref{selim:eq:timestep1} is replaced
+version \citep{Logg2004}, where~\eqref{selim:eq:timestep1} is replaced
 by
 \begin{equation}
 \label{selim:eq:timestep2}
@@ -825,34 +855,52 @@ problem~\eqref{selim:eq:dual} is solved. The primal and dual solutions
 are passed to the module \emp{Residuals} where the error
 estimate~\eqref{selim:eq:aposteriori} is evaluated. The code for the
 \emp{FSISolver} is illustrated in
-Figure~\ref{selim:fig:adaptiveMAP}.
-\begin{figure}
-\label{selim:fig:adaptiveMAP}
-\includegraphics[width=1.0\textwidth]{chapters/selim/pdf/adaptive.pdf}
-\caption{A schematic picture of the adaptive FSI algorithm. The primal
-  problem ~\eqref{selim:eq:FSIsystem} is solved iteratively in the
-  \emp{PrimalSolver} and the solution $U$ is passed to the
-  \emp{FSISolver}. The dynamic time step $k_n$ is calculated for
-  each time step in the iterative solver \emp{PrimalSolver}
-  using~\eqref{selim:eq:timestep2} in the module
-  \emp{Residuals}. After the primal problem is solved on the entire
-  time interval, the dual problem is solved with the same time steps
-  as in the primal solution in the module \emp{DualSolver}. Once
-  the dual is solved, the error estimates are evaluated and a new mesh
-  is created.}
+Figure~\ref{selim:fig:FSISolver-1} and Figure~\ref{selim:fig:FSISolver-2}.
+
+
+To summarize, the adaptive feedback process involves the following steps:
+\begin{enumerate}
+\item
+Solve the partitioned (primal) FSI problem~\eqref{selim:eq:FSIsystem} for
+$t\in(0,T]$. For each time step, determine the local time step size $k_n$
+  according to~\eqref{selim:eq:timestep2}.
+\item
+Solve the dual problem~\eqref{selim:eq:dual} for $t\in[0,T)$ using the
+  same time step size as in the primal problem.
+\item
+Evaluate the error estimate~\eqref{selim:eq:aposteriori} and refine
+the computational domain in space.
+\item
+Repeat steps 1 -- 3 until $\M(e)\leqslant \mathrm{TOL}$.
+\end{enumerate}
+
+\begin{figure}[tbp!]
+  \begin{center}
+    \includegraphics[width=0.7\textwidth]{chapters/selim/pdf/adaptive.pdf}
+    \caption{A schematic picture of the adaptive FSI algorithm. The primal
+      problem ~\eqref{selim:eq:FSIsystem} is solved iteratively in the
+      \emp{PrimalSolver} and the solution $U$ is passed to the
+      \emp{FSISolver}. The dynamic time step $k_n$ is calculated for
+      each time step in the iterative solver \emp{PrimalSolver}
+      using~\eqref{selim:eq:timestep2} in the module
+      \emp{Residuals}. After the primal problem is solved on the entire
+      time interval, the dual problem is solved with the same time steps
+      as in the primal solution in the module \emp{DualSolver}. Once
+      the dual is solved, the error estimates are evaluated and a new mesh
+      is created.}
+    \label{selim:fig:adaptiveMAP}
+  \end{center}
 \end{figure}
 
-
 \begin{figure}
-\label{selim:fig:FSISolver}
-\caption{The adaptive solver class \emp{FSISolver}. Here, the
-  problem specific data is passed as the variable \emp{problem}. In
-  the first adaptive loop, we make an initial guess of the stability
-  factor $\mathcal{S}(T)=1$ in order to adapt the time step in the
-  first loop.  The variable name \emp{error} represents the sum of
-  $E_h + E_k + E_c$ in~\eqref{selim:eq:aposteriori} and
-  \emp{indicator} represents $\eta_T$ in~\eqref{selim:eq:dorfler}.}
-\begin{python}
+  \caption{The adaptive solver class \emp{FSISolver}. Here, the
+    problem specific data is passed through the variable \emp{problem}. In
+    the first adaptive loop, we make an initial guess of the stability
+    factor $\mathcal{S}(T)=1$ in order to adapt the time step in the
+    first loop.  The variable name \emp{error} represents the sum of
+    $E_h + E_k + E_c$ in~\eqref{selim:eq:aposteriori} and
+    \emp{indicator} represents $\eta_T$ in~\eqref{selim:eq:dorfler}.}
+\begin{python}[htbp!]
 class FSISolver(CBCSolver):
 
     def __init__(self, problem):
@@ -883,7 +931,13 @@ class FSISolver(CBCSolver):
                 dual_solver.solve()
             else:
                 info("Not solving dual problem")
+\end{python}
+\label{selim:fig:FSISolver-1}
+\end{figure}
 
+\begin{figure}[tbp!]
+\caption{The adaptive solver class \emp{FSISolver}, continued.}
+\begin{python}
             # Estimate error and compute error indicators
             if self.parameters["estimate_error"]:
                 error, indicators, E_h = estimate_error(self.problem)
@@ -912,23 +966,9 @@ class FSISolver(CBCSolver):
         # Return solution
         return U
 \end{python}
+\label{selim:fig:FSISolver-2}
 \end{figure}
 
-To summarize, the adaptive feedback process involves the following steps:
-\begin{enumerate}
-\item
-Solve the partitioned (primal) FSI problem~\eqref{selim:eq:FSIsystem} for
-$t\in(0,T]$. For each time step, determine the local time step size $k_n$
-  according to~\eqref{selim:eq:timestep2}.
-\item
-Solve the dual problem~\eqref{selim:eq:dual} for $t\in(T,0]$ using the
-  same time step size as in the primal problem.
-\item
-Evaluate the error estimate~\eqref{selim:eq:aposteriori} and refine
-the computational domain in space.
-\item
-Repeat steps 1 -- 3 until $\M(e)\leqslant \mathrm{TOL}$.
-\end{enumerate}
 %------------------------------------------------------------------------------
 \section{Numerical examples}
 
@@ -946,7 +986,7 @@ $\Omega = (0, 1)\times (0,4)$, with the structure domain $\OS = (1.4,
 1.6)\times (0, 0.5)$ and the fluid domain $\OF = (\Omega\setminus
 \OS)^{\circ}$. For boundary conditions, we consider a pressure driven
 flow and the flap is attached at the channel wall. As goal functional,
-we have used the displacement of the structure in the positive
+we have used the average displacement of the structure in the positive
 $x_1$-direction, that is,
 \begin{equation}
 \label{selim:eq:goalfunctional_channel}
@@ -957,55 +997,54 @@ where $\psi^t_{_{S}} = (1,0)$. The physical parameters related to the
 problem is set to $(\rhoF,\mu_{_{F}}) = (1, 0.02)$,
 $(\rho_{_{S}},\mu_{_{S}}, \lambda_{_{S}}) = \tfrac{1}{4}(15, 75, 125)$
 and $(\mu_{_{M}}, \lambda_{_{M}}) = (3.8461, 5.76)$. The
-discretization parameters are set to $(\mathrm{TOL}, w_h, w_k,w_c) =
-(0.05, 0.45, 0.45, 0.1)$ with an initial time step size $0.02$. The
+discretization parameters are set to $(\mathrm{TOL}, w_h, w_k,w_c) =$\\
+$(0.05, 0.45, 0.45, 0.1)$ with an initial time step size $0.02$ and
+final time $T=0.5$. The
 adaptive primal FSI solution is depicted in
 Figure~\ref{selim:fig:primal_channel} and the corresponding dual
-solutions are illustrated in Figure~\ref{selim:fig:dual_channel_ZF},
-Figure~\ref{selim:fig:dual_channel_ZS} and in
-Figure~\ref{selim:fig:dual_channel_ZM}.
-\begin{figure*}
-  \label{selim:fig:primal_channel}
-  \caption{The adaptive FSI solution to the channel with flap problem
-    depicted in the current domain $\omega(t)$. Here, the fluid
-    velocity solution is illustrated using streamlines.}
-  \includegraphics[width=1.0\textwidth]{chapters/selim/png/channel.png}
-\end{figure*}
+solutions are illustrated in Figure~\ref{selim:fig:dual_channel_1}
+and in Figure~\ref{selim:fig:dual_channel_2}.
 
-\begin{figure}
-  \label{selim:fig:channel_zoom_mesh}
-  \caption{A close view of the adaptive mesh. The mesh is refined in
-    the immediate area around the structure. The problem is monotone
-    in the sense that the structure bends until it reaches a fixed
-    position.}
-  \includegraphics[width=0.95\textwidth]{chapters/selim/png/channel_test_zoom.png}
+\begin{figure}[tbp!]
+  \begin{center}
+    \subfloat[]{\label{subfig:1:a}\includegraphics[scale=0.2]{chapters/selim/png/new_channel.png}} \\
+    \subfloat[]{\label{subfig:1:b}\includegraphics[scale=0.2]{chapters/selim/png/channel_test_zoom.png}}
+ \end{center}
+  \caption{The adaptive FSI solution to the channel with flap problem
+     depicted in the current domain $\omega(t)$ at final time
+     $t=0.5$. In Figure~(a), the fluid velocity solution
+     is illustrated using streamlines. A close view of the adaptive
+     mesh is given in Figure~(b). The mesh is refined in
+     the immediate area around the structure.}
+\label{selim:fig:primal_channel}
+\end{figure}
+
+\begin{figure}[tbp!]
+  \begin{center}
+    \subfloat[$Z_{_{F}}$]{\label{fig:a}\includegraphics[scale=0.15]{chapters/selim/png/channelZF.png}} \\
+    \subfloat[$Z_{_{S}}$]{\label{fig:b}\includegraphics[scale=0.15]{chapters/selim/png/channelZS.png}}
+ \end{center}
+  \caption{The dual fluid velocity solution $Z_{_{F}}$ and the dual
+    structure solution $Z_{_{S}}$ at the ``final time'' $t=0$ in the
+    reference domain $\Omega$.  Since the only driving force of the
+    fully coupled dual problem is the goal
+    functional~\eqref{selim:eq:goalfunctional_channel}, the dual fluid
+    $Z_{_{F}}$ is concentrated around the top left corner of the
+    structure where the structure displacement is large. The dual
+    structure displacement $Z_{_{S}}$ illustrates the choice of goal
+    functional in~\eqref{selim:eq:goalfunctional_channel}.}
+\label{selim:fig:dual_channel_1}
 \end{figure}
 \begin{figure}
-  \label{selim:fig:dual_channel_ZF}
-\caption{The dual fluid velocity solution  $Z_{_{F}}$  to the channel with flap problem solved in
-  the reference domain $\Omega$. Since the only
-  driving force of the fully coupled dual problem is the goal
-  functional~\ref{selim:eq:goalfunctional_channel}, the dual fluid is
-  concentrated around the top left corner of the structure where the
-  structure displacement is large.}
-\includegraphics[width=1.0\textwidth]{chapters/selim/png/channelZF.png}
-\end{figure}
-\begin{figure}
-  \label{selim:fig:dual_channel_ZS}
-\caption{The dual structure solution $Z_{_{S}}$ to the channel with
-  flap problem solved in the reference domain $\Omega$. The dual
-  structure displacement $Z$ illustrates the choice of goal
-  functional in~\eqref{selim:eq:goalfunctional_channel}.}
-\includegraphics[width=1.0\textwidth]{chapters/selim/png/channelZS.png}
-\end{figure}
-\begin{figure}
-  \label{selim:fig:dual_channel_ZM}
-\caption{The dual mesh displacement $Z_{_{M}}$ to the channel with
-  flap problem solved in the reference domain $\Omega$. The dual mesh
-  displacement is large close to the the top right corner of the
-  structure which is expected since the mesh in the current domain
-  $\omega(t)$ is heavily compressed in this region.}
-\includegraphics[width=1.0\textwidth]{chapters/selim/png/channelZM.png}
+  \begin{center}
+    \includegraphics[scale=0.15]{chapters/selim/png/channelZM.png}
+    \caption{The dual mesh displacement $Z_{_{M}}$ to the channel with
+      flap problem solved in the reference domain $\Omega$. The dual mesh
+      displacement is large close to the the top right corner of the
+      structure. This is expected since the mesh in the current domain
+      $\omega(t)$ is significantly compressed in this region.}
+    \label{selim:fig:dual_channel_2}
+  \end{center}
 \end{figure}
 
 %------------------------------------------------------------------------------
@@ -1015,7 +1054,8 @@ The second problem is a driven cavity with an elastic bottom. Here,
 the computational domain is given by $\Omega = (0,2)\times (0,2)$,
 with structure domain $\OS = (0, 2)\times (0, 0.5)$ and the fluid
 domain $\OF = (\Omega\setminus \OS)^{\circ}$. At the top of the fluid
-domain, the fluid has the regularized tangential velocity profile
+domain, the fluid has the regularized tangential velocity profile in
+$x_1$-direction
 \begin{equation}
 \uF =
 \left\{
@@ -1027,7 +1067,7 @@ domain, the fluid has the regularized tangential velocity profile
 \right.
 \end{equation}
 for all $t \in [0,5]$. The structure is attached at the bottom and the
-goal functional is set as the structure displacement in the positive
+goal functional is set as the average structure displacement in the positive
 $x_2$-direction, that is,
 \begin{equation}
 \label{selim:eq:goalfunctional_cavity}
@@ -1044,23 +1084,27 @@ displacement, varies substantially over time. The adaptive primal FSI
 solution is depicted in~Figure~\ref{selim:fig:primal_cavity} and the
 dynamic time step size is illustrated
 in~Figure~\ref{selim:fig:cavity_timestep}.
-\begin{figure}
+\begin{figure}[tbp!]
+\begin{center}
+  \subfloat[]{\label{subfig:2:a}\includegraphics[scale=0.2]{chapters/selim/png/new_cavity.png}} \\
+  \subfloat[]{\label{subfig:2:b}\includegraphics[scale=0.15]{chapters/selim/png/zoom_cavity.png}}
+\end{center}
+\caption{Figure (a) shows the adaptive FSI solution to the driven
+  cavity problem with an elastic bottom at time $t=2$. The structure
+  does not reach a steady position; instead the structure moves up and
+  down at the common fluid--structure boundary. Figure~(b) is a close
+  up view of the refined mesh at the FSI boundary.}
 \label{selim:fig:primal_cavity}
-\caption{The adaptive solution to the driven cavity problem with an
-  elastic bottom at time $t=2$. The structure does not reach a steady
-  position; instead the structure moves up and down at the common
-  fluid--structure boundary. In the bottom figure a close up view of
-  the refined mesh at the FSI boundary is given.}
-\includegraphics[width=0.9\textwidth]{chapters/selim/png/cavity_large.png}
-
-\includegraphics[width=0.95\textwidth]{chapters/selim/png/zoom_cavity.png}
 \end{figure}
- \begin{figure}
-\label{selim:fig:cavity_timestep}
-\caption{The time step $k_n$ and the algebraic residual $r_k^n$ as
-  a function of time. As seen in the picture, the solution has a large
-  variation in terms of the magnitude of the residual $r_k^n$.}
-\includegraphics[width=0.9\textwidth]{chapters/selim/pdf/plot.pdf}
+
+\begin{figure}[tbp!]
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{chapters/selim/pdf/plot.pdf}
+    \caption{The time step $k_n$ and the algebraic residual $r_k^n$ as
+      a function of time. As seen in the picture, the solution has a large
+      variation in terms of the magnitude of the residual $r_k^n$.}
+    \label{selim:fig:cavity_timestep}
+  \end{center}
 \end{figure}
 
 %------------------------------------------------------------------------------
@@ -1072,21 +1116,13 @@ demonstrated. By relating the fully coupled partitioned FSI
 problem~\eqref{selim:eq:FSIsystem} in a moving domain to a dual
 problem~\eqref{selim:eq:dual} posed on a fixed reference domain, an
 adapted space and time discretization is obtained.
-\\\\
+
 \emp{CBC.Solve} is a collaboratively developed open source project
 (released under the GNU GPL) that is freely available from its source
 repository at \url{https://launchpad.net/cbc.solve/}. Its only
 dependency is a working FEniCS installation. \emp{CBC.Solve} is
 released with the goal that it will allow users to easily solve fluid
-problems, structure and or FSI problems. Everyone is encouraged to
+problems, structure and FSI problems. Everyone is encouraged to
 fetch and try it.  Users are also encouraged to modify the code to
 better suit their own purposes, and contribute changes that they think
 are useful to the community.
-
-
-% Local Variables:
-% mode: latex
-% mode: flyspell
-% mode: auto-fill
-% End:
-
