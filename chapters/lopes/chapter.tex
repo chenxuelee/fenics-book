@@ -154,8 +154,14 @@ Adams--Bashforth--Moulton scheme (third-order Adams--Bashforth
 predictor step and a fourth-order Adams--Moulton corrector-step)
 is used.
 Moreover, a fourth-order Shapiro type filter is applied to remove short length
-waves, which are usually the cause of some instabilities and
-the blowup of the solutions.
+waves.
+The main cause of instabilities in
+nonlinear shallow water computations
+is often due to high nonlinearity in shallow water.
+The instabilities appear through fast growing short
+wavelengths which eventually cause the blowup of the model.
+
+
 
 COULWAVE possesses essentially the main features of FUNWAVE
 plus the inclusion of wave generation due to a moving
@@ -463,7 +469,7 @@ is, now, a  dimensionless function.}:
 \vspace{0.3cm}\\ &\displaystyle
 \frac{\partial \phi_0}{\partial t}+\varepsilon\eta\frac{\partial \phi_1}{\partial t}+\eta +
 \frac{\varepsilon}{2}
-\left|\nabla\phi_0\right|^2+\varepsilon^2\nabla\phi_0\cdot\eta\nabla\phi_1-\nonumber
+\left|\nabla\phi_0\right|^2+\varepsilon^2\nabla\phi_0\cdot\eta\nabla\phi_1\nonumber
 \\ & \displaystyle \qquad
 -\varepsilon^2\eta\nabla^2\phi_0\phi_1
 +\frac{\varepsilon}{2\mu^2}\phi_1^2
@@ -477,10 +483,14 @@ where $\phi_1$ is given by:
 +\frac{\mu^{4}}{6}\nabla\cdot\left(h^3\nabla^3\phi_0\right)
 -\frac{\mu^{4}}{2}\nabla\cdot\left(h^2
 \nabla^2\cdot\left(h\nabla\phi_0\right)
-\right)-\\ -\frac{\mu^6}{120}\nabla\cdot\left(h^5\nabla^5\phi_0\right)+
-\frac{\mu^6}{24}\nabla\cdot\left(h^4\nabla^4\cdot\left(h\nabla\phi_0\right)\right)+\frac{\mu^6}{12}\nabla\cdot\left(h^2\nabla^2\cdot\left(h^3\nabla^3\phi_0\right)\right)-\\ -\frac{\mu^6}{4}\nabla\cdot\left(h^2\nabla^2\cdot\left(h^2\nabla^2\cdot\left(h\nabla\phi_0\right)\right)\right)
+\right)\\
+-\frac{\mu^6}{120}\nabla\cdot\left(h^5\nabla^5\phi_0\right)+
+\frac{\mu^6}{24}\nabla\cdot\left(h^4\nabla^4\cdot\left(h\nabla\phi_0\right)\right)+\frac{\mu^6}{12}\nabla\cdot\left(h^2\nabla^2\cdot\left(h^3\nabla^3\phi_0\right)\right)\\
+-\frac{\mu^6}{4}\nabla\cdot\left(h^2\nabla^2\cdot\left(h^2\nabla^2\cdot\left(h\nabla\phi_0\right)\right)\right)
 -\frac{\mu^2}{\varepsilon}\frac{\partial h}{\partial t}-
-\frac{\mu^2}{\varepsilon}\frac{\mu^2}{2}\nabla\cdot\left(h^2\nabla\frac{\partial h}{\partial t}\right)+\\ +\frac{\mu^2}{\varepsilon}\frac{\mu^4}{24}\nabla\cdot\left(h^4\nabla^3
+\frac{\mu^2}{\varepsilon}\frac{\mu^2}{2}\nabla\cdot\left(h^2\nabla\frac{\partial
+-h}{\partial t}\right)\\
++\frac{\mu^2}{\varepsilon}\frac{\mu^4}{24}\nabla\cdot\left(h^4\nabla^3
 \frac{\partial h}{\partial t}\right)
 -\frac{\mu^2}{\varepsilon}\frac{\mu^4}{4}\nabla\cdot\left(h^2\nabla^2\left(h^2\nabla\frac{\partial h}{\partial t}\right)\right)+O(\mu^{8}).
 \end{multline}
@@ -518,7 +528,8 @@ and
 +\frac{\mu^{4}}{6}\nabla\cdot\left(h^3\nabla^3\phi_0\right)
 -\frac{\mu^{4}}{2}\nabla\cdot\left(h^2
 \nabla^2\cdot\left(h\nabla\phi_0\right)
-\right)-\\ -\frac{2\mu^6}{15}h^5\nabla^6\phi_0-2\mu^6h^4\nabla
+\right)\\
+-\frac{2\mu^6}{15}h^5\nabla^6\phi_0-2\mu^6h^4\nabla
 h\cdot\nabla^5\phi_0
 -\frac{\mu^2}{\varepsilon}\frac{\partial h}{\partial t}+O(\mu^{8}).
 \end{multline}
@@ -710,11 +721,12 @@ The model variational formulation is written as follows:
   h^2\nabla\left(\frac{\partial \eta}{\partial t}\right)\cdot\nabla\vartheta_1\,
   \dx\, \mathrm{d}y- \frac{1}{6}\int_\Omega \nabla\left(
   \frac{\partial \eta}{\partial t}\right)\cdot\nabla(h^2\vartheta_1)\,
-  \dx\, \mathrm{d}y+\\ &\quad \quad\displaystyle +
+  \dx\, \mathrm{d}y\\
+ &\quad \quad\displaystyle +
   \frac{1}{15}\int_\Omega
   h\nabla\left(h\frac{\partial \eta}{\partial t}\right)\cdot
   \nabla\vartheta_1\, \dx\, \mathrm{d}y- \frac{1}{15}\int_\Gamma
-  h\frac{\partial h}{\partial n}\,\frac{\partial \eta}{\partial t}\,\vartheta_1\, \ds=
+  h\frac{\partial h}{\partial n}\,\frac{\partial \eta}{\partial t}\,\vartheta_1\, \ds
   \\ &\quad\quad=\displaystyle
   \int_\Omega(h+\eta)\nabla\Phi\cdot\nabla\vartheta_1\,
   \dx\, \mathrm{d}y -\int_\Gamma(h+\eta)\frac{\partial \Phi}{\partial n}\vartheta_1\, \ds
@@ -726,7 +738,8 @@ The model variational formulation is written as follows:
 &\displaystyle \int_\Omega \frac{\partial \Phi}{\partial t}\,\vartheta_2\,
   \dx\, \mathrm{d}y= -\frac{1}{2}\int_\Omega|\nabla\Phi|^2\vartheta_2\,
   \dx\, \mathrm{d}y -g\int_\Omega \eta\,\vartheta_2\,
-  \dx\, \mathrm{d}y-\\ &\qquad\qquad\qquad\displaystyle-\frac{g}{15}\int_\Omega
+  \dx\, \mathrm{d}y\\
+&\qquad\qquad\qquad\displaystyle-\frac{g}{15}\int_\Omega
   h\nabla\eta\cdot\nabla(h\vartheta_2)\, \dx\, \mathrm{d}y
   +\frac{g}{15}\int_\Gamma h^2\frac{\partial \eta}{\partial n}\,\vartheta_2\,
   \ds,
@@ -1076,7 +1089,7 @@ x}{6}\hat\Phi_{2}\right)=0,\\
 \begin{split}
 &-\frac{H}{\Delta
 x}\left(\hat\Phi_{j-1}+\hat\Phi_{j+1}\right)+\frac{2H}{\Delta
-x}\hat\Phi_{j}-\\
+x}\hat\Phi_{j}\\
 &\quad\quad-i\hat\omega\left[2\left(\frac{\Delta
 x}{3}+\frac{2}{5}\frac{H^2}{\Delta x^2}\right)\hat\eta_i
 +\left(\frac{\Delta x}{6}-\frac{2}{5}\frac{H^2}{\Delta
@@ -1088,7 +1101,7 @@ x^2}\right)\left(\hat\eta_{j-1}+\hat\eta_{j+1}\right)\right]
  &-2\left(g \frac{\Delta x}{3}+g\frac{H^2}{15\Delta
 x}\right)\hat\eta_{j}+\left(-g \frac{\Delta
 x}{6}+g\frac{H^2}{15\Delta
-x}\right)\left(\hat\eta_{j-1}+\hat\eta_{j+1}\right)-
+x}\right)\left(\hat\eta_{j-1}+\hat\eta_{j+1}\right)
 \\
 &\quad\quad-i\hat\omega\left[2\frac{\Delta x}{3}\hat\Phi_j+\frac{\Delta
 x}{6}\left(\hat\Phi_{j-1}+\hat\Phi_{j+1}\right)\right]=0,
@@ -1170,7 +1183,7 @@ to the eigenvalues with imaginary part (exponential
 growth/decay rate) at least of order $10^{-5}\,~{\tt
 s}^{-1}$.  We remark that in the ZTC model, we
 observe at most $10$ unstable wave modes of type I
-with growth rates smaller than $|Im(\omega)|=3\times
+with growth rates smaller than $|Im(\hat\omega)|=3\times
 10^{-5}\,~{\tt s}^{-1}$.
 
 
@@ -1199,9 +1212,9 @@ unstable wave modes.  Moreover, a steep gradient increases the
 growth rate of the unstable solutions for the standard
 potential model.
 In contrast, for the ZTC model  all the growth rates are
-limited to $|Im(\omega)|=3\times 10^{-5}\,~{\tt s}^{-1}$.
-It was shown in~\citet{LovholtPedersen2009} that a
-lower bound growth rate of $|Im(\omega)|=10^{-5}\,~{\tt
+limited to $|Im(\hat\omega)|=3\times 10^{-5}\,~{\tt s}^{-1}$.
+It was shown in~\cite{LovholtPedersen2009} that a
+lower bound growth rate of $|Im(\hat\omega)|=10^{-5}\,~{\tt
 s}^{-1}$ does not influence the numerical results in most
 real problems, even when steep bottom gradients occur as in
 tsunami simulations.
@@ -2030,6 +2043,18 @@ tests we can conclude that the \fenics packages,
 namely \dolfin, \ufl and \ffc, are appropriate to model
 surface water waves, leading to efficient and robust
 algorithms.
+
+Note that  strong nonlinear
+effects, e.g., negative amplitudes extending below the sea floor,
+may cause instabilities in a nonlinear wave model.
+These effects will almost
+certainly be encountered for instance for a tsunami
+inundating a shallow sloping beach.
+Drying and wetting schemes for the treatment of these problems are
+not yet implemented in DOLFWAVE.
+Consequently, this type of instabilities will most likely
+show up when running the proposed model with  high amplitude
+waves  and small depth bottoms.
 
 Surface water wave problems are associated with
 Boussinesq-type governing equations, which require high
