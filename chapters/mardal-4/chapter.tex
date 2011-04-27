@@ -1,6 +1,6 @@
 \fenicschapter{Block preconditioning of systems of PDEs}
               {Block preconditioning of systems of PDEs}
-              {Joachim Berdal Haga and Kent-Andre Mardal}
+              {Kent-Andre Mardal and Joachim Berdal Haga}
               {mardal-4}
 
 \newcommand{\algorithmexample}[3]{%
@@ -176,7 +176,7 @@ eigenvalues of the preconditioned system. We use continuous piecewise
 linear elements and compute the condition number of the preconditioned
 system and corresponding number of iteration required for convergence
 using the conjugate gradient method\index{conjugate gradient method}
-for various refinements of the unit square.
+for various uniform refinements of the unit square.
 
 First of all, the ML preconditioner is constructed as follows,
 \begin{python}
@@ -316,12 +316,12 @@ source code \emp{poisson\_neumann.py}.
 \begin{center}
 \begin{tabular}{|c||c|c|c|c|c|c|}
 \hline
-$h$ & $2^{-4}$ & $2^{-5}$ & $2^{-6}$ & $2^{-7}$ & $2^{-8}$ \\ \hline
+$h$ & $2^{-4}$ & $2^{-5}$ & $2^{-6}$ & $2^{-7}$ & $2^{-8}$ \\ \hline \hline
 $\kappa$ & 1.57 & 1.26 & 2.09 & 1.49 & 1.20 \\ \hline
 $\#iterations$ & 8 & 8 & 10 & 9 & 7 \\ \hline
 \end{tabular}
 \caption{The estimated condition number $\kappa$ and the number of iterations for
-  convergence with respect to various mesh refinements for the Poisson
+  convergence with respect to various uniform mesh refinements for the Poisson
   problem with Neumann conditions solved with the
   $\mathrm{CG}_1$ method.}\label{tabel:neumann}
 \end{center}
@@ -426,7 +426,7 @@ $\mathrm{CG}_1-\mathrm{CG}_1$ & $\kappa$ & 696 & 828 & 672 & 651 & 630 \\ \hline
 $\mathrm{CG}_1-\mathrm{CG}_1$-stab& iterations & 41 & 40 & 40 & 39 & 39 \\ \hline
 $\mathrm{CG}_1-\mathrm{CG}_1$-stab& $\kappa $ & 12.5 & 12.6 & 12.7 & 12.7 & 12.7 \\ \hline
 \end{tabular}
-\caption{The number of iterations for
+\caption{Estimated condition number $\kappa$ and number of iterations for
   convergence with respect to mesh refinements.
   The methods $\mathrm{CG}_2-\mathrm{CG}_1$, $\mathrm{CG}_2-\mathrm{DG}_0$, and $\mathrm{CG}_1-\mathrm{CG}_1$-stab are stable, while $\mathrm{CG}_1-\mathrm{CG}_1$ is not.}\label{stokes:ex}
 \end{center}
@@ -554,7 +554,7 @@ example~\citet{CahouetChabard1988,ElmanSilvesterWathen2005,MardalWinther2004,Mar
 
 \begin{table}
 \begin{center}
-\begin{tabular}{|c|c||c|c|c|c|c|c|}
+\begin{tabular}{|c||c|c|c|c|c|c|c|}
 \hline
 $k\backslash h$ & $2^{-4}$ & $2^{-5}$ & $2^{-6}$ & $2^{-7}$ & $2^{-8}$ \\ \hline\hline
 1.0 & 13.6 & 13.6 & 13.6 & 13.7 & 13.7 \\ \hline
@@ -591,7 +591,7 @@ prec = block_mat([[ML(A),      0     ],
 \end{python}
 In Table~\ref{timestokes:ex} we show the condition number for the
 time-dependent Stokes problem discretized with the
-$\mathrm{CG}_2-\mathrm{CG}_1$ method for various mesh refinements and
+$\mathrm{CG}_2-\mathrm{CG}_1$ method for various uniform mesh refinements and
 values of $k$. We have the same boundary conditions as for the Stokes
 problem; that is, $f=0$ and $g = (1,0)$ for $y=1$ and zero elsewhere.
 Clearly, the condition number appears to be bounded by $\approx 14$,
@@ -662,7 +662,8 @@ element method. We eliminate the $p$ to obtain the matrix
 \[
 K  = A +  B^* C^{-1} B,
 \]
-A problem here is that $C^{-1}$ is a dense matrix. However, we lump $C$ matrix before inverting it; that is,
+A problem here is that $C^{-1}$ is a dense matrix. However, the diagonal of $C$ is spectrally equivalent with $C$ and a cheap approximation of $C^{-1}$ is hence
+to invert the diagonal. We then obtain the following approximation of $L$: 
 \[
 L  = A +  B^* (\mathrm{diag}(C))^{-1} B,
 \]
@@ -709,7 +710,7 @@ The complete code can be found in \emp{hodge.py}.
 %FIXME: hva med hodge9
 
 In Table~\ref{table:hodge} we list the estimated condition numbers on
-various mesh refinements on the unit cube. We use the lowest
+various uniform mesh refinements on the unit cube. We use the lowest
 order \nedelec{} elements of first kind~\citep{Nedelec1980} combined
 with continuous piecewise linears. In this example we use homogeneous
 boundary conditions and $f=0$, but we use a random start vector.
@@ -723,14 +724,14 @@ $p$.
 \begin{center}
 \begin{tabular}{|c||c|c|c|c|c|c|}
 \hline
-$h$ & $2^{-1}$ & $2^{-2}$ & $2^{-3}$ & $2^{-4}$  & $2^{-5}$ \\ \hline
+$h$ & $2^{-1}$ & $2^{-2}$ & $2^{-3}$ & $2^{-4}$  & $2^{-5}$ \\ \hline \hline
 $ P_1 A $ & 15.5 & 40.7 & 155 & 618 & 2370 \\ \hline
 $ P_2 L $ & 1.7 & 2.2  & 5.5  & 18.4 & 68.9 \\ \hline
 $\mathcal{B}_1 \mathcal{A}$ & 4.1 & 6.8 & 14.9 & 44.1 & 148 \\ \hline
 $\mathcal{B}_2 \mathcal{A}$ & 5.6 & 8.8 & 23.2 & 76.7  & 287 \\ \hline
 \end{tabular}
-\caption{The estimated condition number $\kappa$ and the number of iterations for
-  convergence with respect to various mesh refinements and preconditioners for the mixed formulation of the Hodge Laplacian.}  \label{table:hodge}
+\caption{The estimated condition number $\kappa$  with respect to various 
+  uniform mesh refinements and preconditioners for the mixed formulation of the Hodge Laplacian.}  \label{table:hodge}
 \end{center}
 \end{table}
 
