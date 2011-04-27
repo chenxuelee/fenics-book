@@ -4,7 +4,6 @@
               {selim}
 
 %% My commands
-\definecolor{grey}{rgb}{0.5,0.5,0.5}
 \newcommand{\subdt}{\textrm{d}_t}
 \newcommand{\divv}{\textrm{div}\;}
 \newcommand{\Divv}{\textrm{Div}\;}
@@ -474,23 +473,23 @@ class NavierStokesSolver(CBCSolver):
 problems. This module solves the given structure problem in a
 Lagrangian coordinate system.  The solver allows the user to easily
 pose problems and provides many standard material models, including
-St.~Venant--Kirchhoff, Mooney--Rivlin, neo--Hookean, Isihara, Biderman
+St.~Venant--Kirchhoff, Mooney--Rivlin, neo-Hookean, Isihara, Biderman
 and Gent--Thomas. New models may be added easily since the interface
 allows the user to provide an energy functional as a function of a
 suitable kinematic measure, such as the Green--Lagrange strain. Both a
 static and an energy-momentum preserving time-dependent solver are
 provided. The space discretization relies upon first order Lagrange
 elements and for the time discretization several different schemes are
-available, such as the cG(1)
+available, such as the \cgone{}
 method~\citep{ErikssonEstepHansboEtAl1996} or the "HHT''
-method~\citep{HilberHughesTaylor1977}.  In the cG(1) method, used in
+method~\citep{HilberHughesTaylor1977}.  In the \cgone{} method, used in
 this chapter, the structure problem is re-written as a first order
 system in time by introducing the additional equation $P_{_{S}} -
 \dot{U}_{_{S}} = 0$ to the structure equation $(S)$
 in~\eqref{selim:eq:FSIsystem}. The structure stress tensor, regardless
 of material model, is given as the first Piola--Kirchhoff tensor and
 the nonlinear variational problem is solved using Newton's method.
-The implementation of the cG(1) version is illustrated in the code
+The implementation of the \cgone{} version is illustrated in the code
 segment from the class \emp{CG1MomentumBalanceSolver} in
 Figure~\ref{selim:fig:structuresolver}. For a more comprehensive
 discussion of how to solve structure problems using \emp{CBC.Twist},
@@ -522,8 +521,8 @@ class CG1MomentumBalanceSolver(CBCSolver):
 
         a = derivative(L, U, dU)
 \end{python}
-\caption{A code segment from the cG(1) version of the structure
-  solver \emp{CBC.Twist}. In the cG(1) method, the structure problem
+\caption{A code segment from the \cgone{} version of the structure
+  solver \emp{CBC.Twist}. In the \cgone{} method, the structure problem
   is re-written as a first order system in time by introducing the
   additional equation $P_{_{S}} - \dot{U}_{_{S}} = 0$ to the structure
   equation $(S)$ in~\eqref{selim:eq:FSIsystem}. The two resulting
@@ -548,7 +547,7 @@ class CG1MomentumBalanceSolver(CBCSolver):
 \subsection{Mesh subproblem}
 
 The linear mesh subproblem is solved using first order Lagrange
-elements in space along with a standard cG(1) formulation in time. We
+elements in space along with a standard \cgone{} formulation in time. We
 note that although piecewise quadratic functions are used to
 approximate the velocity in the fluid problem, an affine mapping is
 used to map the elements in the finite element discretization. It is
@@ -649,7 +648,7 @@ expressed in the form
 \M(v)  \equiv \langle \psi^T,\;  v(\cdot, T) \rangle +
 \int_0^T \langle \psi^t,\; v \rangle \dt,
 \end{equation}
-where $(\psi^T, \psi^t)$ are suitable Riesz's representers for the
+where $(\psi^T, \psi^t)$ are suitable Riesz representers for the
 goal functional. Based on the solution of the dual
 problem \eqref{selim:eq:dual} and by inserting $v=e$,
 we obtain the following computable error representation:
@@ -674,21 +673,20 @@ order for the error representation~\eqref{selim:eq:representation} to
 be consistent, the corresponding dual trial and test spaces are
 defined as $(V^*,
 \hat{V}^*)=(\hat{V}, V_0)$, where  $V_0 = \{v-w:\;v,w\in V
-\}$. We interpret the Riesz's representer $\psi^T$ is an initial condition in
+\}$. We interpret the Riesz representer $\psi^T$ is an initial condition in
 the dual problem and that the dual problem~\eqref{selim:eq:dual} runs
 backwards in time. In the computations, the stated dual
 problem~\eqref{selim:eq:dual} is replaced by the approximated
 linearized form $\overline{a'}^{*}(Z, v) \equiv a'^{*}(U; Z, v)
 \approx a'^{*}(U^{hk}; Z, v)  = a'(U^{hk}; v, Z)$.
 
-
 We may express the dual problem on block form as
 \begin{eqnarray}
 \label{selim:eq:dualsystem}
 \left[\begin{array}{ccc} \hat{v}_{_{F}} & \hat{v}_{_{S}} & \hat{v}_{_{M}}
   \end{array} \right]
-\left[\begin{array}{lll} \AFF & \textcolor{grey}{\AFS} & \AFM
-    \\ \ASF & \ASS & \ASM \\ \textcolor{grey}{\AMF} & \AMS &
+\left[\begin{array}{lll} \AFF & \textcolor{Grey}{\AFS} & \AFM
+    \\ \ASF & \ASS & \ASM \\ \textcolor{Grey}{\AMF} & \AMS &
     \AMM
 \end{array} \right]^{\top}
 \left[ \begin{array}{c} \hat{Z}_{_{F}} \\ \hat{Z}_{_{S}}
@@ -704,7 +702,7 @@ in~\eqref{selim:eq:dualsystem} is that, for instance,
 $\hat{v}_{_{F}}\ASF^{\top}\hat{Z}_{_{S}} $ is interpreted as
 $\overline{a'}^*_{_{SF}}(\hat{Z}_{_{S}}, \hat{v}_{_{F}})$ which is the
 (adjoint) structure form linearized around the fluid variables.  We
-notice that the $\textcolor{grey}{\AFS}$ is zero since the fluid
+notice that the $\textcolor{Grey}{\AFS}$ is zero since the fluid
 problem linearized around the structure variables are identically
 zero. Thus, the grey colored entries are by definition zero and that
 $\AMS \neq 0$ by the introduction of the dual mesh Lagrange multiplier

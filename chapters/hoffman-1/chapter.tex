@@ -52,7 +52,17 @@ The focus of Unicorn is high Re turbulent fluid flow, also including fluid--stru
 
 An alternative to DNS and RANS is Large eddy simulation (LES) \citep{Sagaut2005}, where a filter is applied to the Navier--Stokes equations to derive a new set of equations with a smallest scale given by the filter width, and where the effect of the filter is the introduction of so called subgrid stresses which need to be modeled in a subgrid model. A subgrid model can be motivated by physics theory or experiments, and the main effect of the subgrid model is to dissipate kinetic energy, for example in the form of turbulent viscosity.
 
-Typically the numerical method used to approximate the LES equations also introduces dissipation, and thus there are two sources of kinetic energy dissipation; the subgrid model and the numerical method. One class of methods, Implicit LES (ILES), relies completely on the numerical method to act as subgrid model, without any additional explicit subgrid model \citep{Sagaut2005}. Turbulence simulation in Unicorn is based on ILES in the form a stabilized finite element method, referred to as a General Galerkin (G2) simulation \citep{HoffmanJohnson2007}, where a least squares stabilization based on the residual of the Navier--Stokes equations acts a an ILES subgrid model.
+Typically the numerical method used to approximate the LES equations
+also introduces dissipation, and thus there are two sources of kinetic
+energy dissipation; the subgrid model and the numerical method. One
+class of methods, Implicit LES (ILES), relies completely on the
+numerical method to act as subgrid model, without any additional
+explicit subgrid model \citep{Sagaut2005}. Turbulence simulation in
+Unicorn is based on ILES in the form a stabilized finite element
+method, referred to as a General Galerkin (G2)
+simulation \citep{HoffmanJohnson2007}, where a least squares
+stabilization based on the residual of the Navier--Stokes equations
+acts a an ILES subgrid model.
 
 More specific, in the current G2/ILES implementation of Unicorn continuous piecewise linear approximation is used in space and time, together with a least squares stabilization based on the residual \citep{HoffmanJohnson2007}.
 
@@ -63,7 +73,7 @@ The choice of boundary conditions at a solid wall is critical for accurate LES m
 
 The standard way to model the effect of turbulent boundary layers is to divide the computational domain into: (i) an interior part $\Omega$, and (ii) a boundary layer region. In the boundary layer a simplified model of the flow is used to provide boundary conditions to the LES equations to be solved in the interior part $\Omega$. Boundary conditions are typically in the form of a wall shear stress, and the coupling between (i) and (ii) may be one-way from (ii) to (i), or more closely coupled. Wall shear stress models are developed based on experimental data, theory, or computation by a simplified model (e.g. a RANS model). For an overview of boundary layer modeling; see, e.g., \citet{SagautDeckTerracol2006,PiomelliBalaras2002}.
 
-The wall shear stress model in Unicorn takes a similar form as the simple Shumann model \citep{Schumann1975}, with the tangential velocity proportional to the local wall shear stress through a skin friction parameter (or function) $\beta$. That is, the following boundary conditions are used for the velocity $u$ and stress $\sigma$:
+The wall shear stress model in Unicorn takes a similar form as the simple Schumann model \citep{Schumann1975}, with the tangential velocity proportional to the local wall shear stress through a skin friction parameter (or function) $\beta$. That is, the following boundary conditions are used for the velocity $u$ and stress $\sigma$:
 \begin{eqnarray}
 &&u\cdot n=0, \label{slfra} \\
 &&\beta u\cdot \tau _k + n^T\sigma \tau _k=0,\quad k=1,2, \label{slfrb}
@@ -83,19 +93,52 @@ Using standard techniques of a posteriori error analysis, an a posteriori error 
 with $M(u)$ the target output to compute and $M(U)$ the approximation, with $U$ a G2 solution, and ${\cal E}_K$ a local error indicator for cell $K$.
 The error indicator ${\cal E}_K$ is constructed from the residual, measuring local errors,
 weighted by the solution to a dual (adjoint) problem measuring the effect of local errors
-on the output $M(\cdot)$. The implementation of the dual problem in Unicorn is based on the cG(1)cG(1) method described in \citet{HoffmanJohnson2007}. The computational mesh is then modified according to $ {\cal E}_K$, by mesh refinement, coarsening or smoothing.
+on the output $M(\cdot)$. The implementation of the dual problem in Unicorn is based on the \cgone{}\cgone{} method described in \citet{HoffmanJohnson2007}. The computational mesh is then modified according to $ {\cal E}_K$, by mesh refinement, coarsening or smoothing.
 
-Adaptive G2 methods (also referred to as Adaptive DNS/LES) have been used in a number of turbulent flow computations to a very low computational cost \citep{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,Hoffman2009,HoffmanJansson2009,VilelaJanssonEtAl2010}, where convergence is obtained in output quantities such as drag, lift and pressure coefficients and Strouhal numbers, using orders of magnitude fewer numbers of mesh points than with LES methods based on ad hoc refined computational meshes in the literature.
+Adaptive G2 methods (also referred to as Adaptive DNS/LES) have been
+used in a number of turbulent flow computations to a very low
+computational
+cost \citep{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,Hoffman2009,HoffmanJansson2009,VilelaJanssonEtAl2010},
+where convergence is obtained in output quantities such as drag, lift
+and pressure coefficients and Strouhal numbers, using orders of
+magnitude fewer numbers of mesh points than with LES methods based on
+ad hoc refined computational meshes in the literature.
 
 \section{Robust fluid--structure coupling}
 
-In a computational method based on so called weakly coupled FSI, separate solvers can be used for the fluid and the structure, with the benefit of being able to reuse existing dedicated fluid and structure solvers. To couple the fluid and the structure, boundary data such as displacements and stresses is exchanged over the fluid--structure interface, either as part of a fixed-point iteration or in a fully explicit fashion. To make the coupling more robust the equations for the fluid and the structure can be placed in the same algebraic system together with all coupling conditions, corresponding to a so called strong FSI coupling.
+In a computational method based on so called weakly coupled FSI,
+separate solvers can be used for the fluid and the structure, with the
+benefit of being able to reuse existing dedicated fluid and structure
+solvers. To couple the fluid and the structure, boundary data such as
+displacements and stresses is exchanged over the fluid--structure
+interface, either as part of a fixed-point iteration or in a fully
+explicit fashion. To make the coupling more robust the equations for
+the fluid and the structure can be placed in the same algebraic system
+together with all coupling conditions, corresponding to a so called
+strong FSI coupling.
 
-Another approach is to formulate the fluid and the structure as one single continuum model, which is then said to be a monolithic FSI method. In Unicorn a monolithic method is used referred to as Unified Continuum FSI (UC-FSI) \citep{HoffmanJanssonStockli2011}, where the fluid and the structure are discretized by the same finite element method over the combined fluid--structure continuum. A velocity formulation is used for the structure to make it consistent with the corresponding fluid equations, and the FSI problem thus takes the form of a multiphase flow problem, with the two phases, the fluid and the structure, described by different constitutive laws. In particular, coupling conditions for displacements and stresses are directly satisfied when using a continuous finite element discretization, which makes UC-FSI very robust.
+Another approach is to formulate the fluid and the structure as one
+single continuum model, which is then said to be a monolithic FSI
+method. In Unicorn a monolithic method is used referred to as Unified
+Continuum FSI (UC-FSI) \citep{HoffmanJanssonStockli2011}, where the
+fluid and the structure are discretized by the same finite element
+method over the combined fluid--structure continuum. A velocity
+formulation is used for the structure to make it consistent with the
+corresponding fluid equations, and the FSI problem thus takes the form
+of a multiphase flow problem, with the two phases, the fluid and the
+structure, described by different constitutive laws. In particular,
+coupling conditions for displacements and stresses are directly
+satisfied when using a continuous finite element discretization, which
+makes UC-FSI very robust.
 
-The computational mesh is made to follow the deformation of the structure, and in the fluid part mesh smoothing is used to optimize the mesh quality, corresponding to an ALE method for the combined fluid--structure continuum.
-In Unicorn, UC-FSI is implemented based on a continuous piecewise linear approximation in space and time, and a simple streamline diffusion stabilization is used, similar to the method in \citet{Hansbo2000}.
-See \citet{HoffmanJanssonStockli2011} for details on the method.
+The computational mesh is made to follow the deformation of the
+structure, and in the fluid part mesh smoothing is used to optimize
+the mesh quality, corresponding to an ALE method for the combined
+fluid--structure continuum.  In Unicorn, UC-FSI is implemented based
+on a continuous piecewise linear approximation in space and time, and
+a simple streamline diffusion stabilization is used, similar to the
+method in \citet{Hansbo2000}.  See \citet{HoffmanJanssonStockli2011}
+for details on the method.
 
 \section{Applications}
 
