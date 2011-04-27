@@ -114,20 +114,7 @@ cylinder with parallel adaptive computation. }
 \label{fig:parcyl3D}
 \end{figure}
 
-
 \label{chapter:implementation:unicorn}
-
-
-%[Implementation: TimeDependentPDE, error estimation based on duality,
-%mesh adaptivity/smoothing, friction BC, solver interface, efficient
-%solution of discrete systems by fixed-point iteration, parallel
-%solver/mesh refinement.]
-
-%Write a short introduction to your chapter here. Explain the purpose
-%of the chapter and include a brief outline. Remember to index
-%important terms and use citations.~\citep{Ciarlet1978}
-
-%\index{important term}
 
 \section{Notation}
 
@@ -279,7 +266,7 @@ together with adaptive error control based on duality.
 
 \subsection{Standard Galerkin}
 
-We begin by formulating the standard cG(1)cG(1) FEM
+We begin by formulating the standard \cgone{}\cgone{} FEM
 \citep{ErikssonEstepHansboEtAl1996} with piecewise continuous linear solution in time
 and space for \ref{eq:TotalModel} by defining the exact solution: $w =
 [u, p, \theta]$, the discrete solution $W = [U, P, \Theta]$, the
@@ -309,7 +296,7 @@ thus have the weak formulation:
 \end{align}
 
 for all $v \in V_h$, where the boundary term on $\Gamma$ arising from
-integration by parts vanishes if we assume a homogenous Neumann
+integration by parts vanishes if we assume a homogeneous Neumann
 boundary condition for the stress $S$.
 
 This standard finite element formulation is unstable for
@@ -319,7 +306,7 @@ formulation by itself but proceed to a streamline diffusion
 stabilization formulation. We also describe a local ALE discretization
 for handling the phase interface.
 
-The cG(1)cG(1) formulation with trapezoid quadrature in time is
+The \cgone{}\cgone{} formulation with trapezoid quadrature in time is
 equivalent to Crank-Nicolson time-stepping with piecewise linear
 elements in space. This has the advantage of being a very simple,
 standard, and familiar discrete formulation. For the turbulent flow
@@ -335,7 +322,7 @@ moving space-time finite element space and mesh,
 oriented along the characteristics of the convection
 of the phase
 interface \citep{ErikssonEstepHansboEtAl1996} (see
-space-time meshes in section ``The characterictic
+space-time meshes in section ``The characteristic
 Galerkin method'') we can define the phase interface
 at cell facets, allowing the interface to stay
 discontinuous.
@@ -505,7 +492,7 @@ time step with a Newton-type method (approximation of Jacobian).  }
 
 \section{Unicorn solver}
 
-The Unicorn solver: {\tt UCSolver} ties together the technology in the
+The Unicorn solver: \emp{UCSolver} ties together the technology in the
 Unicorn library with other parts of FEniCS to expose an interface (see
 listing \ref{code:UCSolver}) for simulating applications in continuum
 mechanics. The main part of the solver implementation is the weak
@@ -513,7 +500,7 @@ forms for the G2 discretization of the UC model (see
 listing \ref{code:FFC_UC}), together with forms for the stress and
 residuals for the error estimation. Coefficients from the application
 are connected to the form, and then time-stepping is carried out by
-{\tt TimeDependentPDE}. Certain coefficients, such as the $\delta$
+\emp{TimeDependentPDE}. Certain coefficients, such as the $\delta$
 stabilization coefficients are also computed as part of the solver
 (not as forms), where we aim to compute them as part of the forms. The
 solver computes one iteration of the adaptive algorithm (primal solve,
@@ -521,7 +508,7 @@ dual solve and mesh refinement), where the adaptive loop is
 implemented by iteratively running the solver for a sequence of
 meshes.
 
-The {\tt UCSolver} implementation is parallelized for distributed
+The \emp{UCSolver} implementation is parallelized for distributed
 memory architectures using MPI, and we can show strong scaling for
 hundreds of cores on several platforms (see
 Figure~\ref{fig:hoffman-2:sp}). The entire adaptive algorithm is
@@ -536,22 +523,21 @@ progress.
 \centering
 \includegraphics[height=5.5cm]{chapters/hoffman-2/pdf/speedup_solve.pdf}
 \includegraphics[height=5.5cm]{chapters/hoffman-2/pdf/speedup_unrivara.pdf}
-\caption{\label{fig:hoffman-2:sp} Strong scaling results for mesh refinement and entire solver on several different architectures, \textit{Lindgren} a Cray XT6m, \textit{Hebb} a BlueGene/L and \textit{Neolith} a regular Linux cluster with InfiniBand. The dashed line refers to ideal speedup}
+\caption{\label{fig:hoffman-2:sp} Strong scaling results for mesh refinement and entire solver on several different architectures: \textit{Lindgren} (Cray XT6m), \textit{Hebb} (BlueGene/L) and \textit{Neolith} (regular Linux cluster with InfiniBand). The dashed line refers to ideal speedup}
 \end{figure}
 
-A compressible variant of the {\tt UCSolver} exists as the {\tt
-  CNSSolver} for adaptive G2 for compressible Euler flow. The general
-  method and algorithm is very close to that of the {\tt UCSolver},
-  aside from the incompressibility. The long term goal is a
-  unification of the incompressible/compressible formulations as
-  well. We refer to
-\citet{Nazarov2009} for implementation details of the compressible {\tt
-  CNSSolver}.
+A compressible variant of the \emp{UCSolver} exists as
+  the \emp{CNSSolver} for adaptive G2 for compressible Euler flow. The
+  general method and algorithm is very close to that of
+  the \emp{UCSolver}, aside from the incompressibility. The long term
+  goal is a unification of the incompressible/compressible
+  formulations as well. We refer to
+\citet{Nazarov2009} for implementation details of the compressible \emp{CNSSolver}.
 
 There also exists variants of the UC solver as part of the Unicorn
 source code representing older formulations of the method, or pure
 incompressible fluid formulations. These are used to verify that the
-general {\tt UCSolver} does not introduce performance overhead or
+general \emp{UCSolver} does not introduce performance overhead or
 implementation errors.
 
 \begin{figure}[!p]
@@ -624,7 +610,7 @@ public:
 }
 \end{c++}
 \caption{
-C++ class interface for the Unicorn solver: UCSolver.
+C++ class interface for the Unicorn solver: \emp{UCSolver}.
 }
 \label{code:UCSolver}
 \end{figure}
@@ -731,34 +717,34 @@ Unicorn consists of key concepts abstracted in the following
 classes/interfaces:
 
 \begin{description}
-\item[{\tt TimeDependentPDE}: \ time-stepping]
+\item[\emp{TimeDependentPDE}: \ time-stepping]
 \ \\
 In each time-step a non-linear algebraic system is solved by
 fixed-point iteration.
-\item[{\tt ErrorEstimate}: \ adaptive error control]
+\item[\emp{ErrorEstimate}: \ adaptive error control]
 \ \\
 The adaptive algorithm is based on computing local {\em error
 indicators} of the form $\epsilon_K = \|h R(U)\|_K \|D \phi\|_K$.
 
-\item[{\tt SpaceTimeFunction}: \ space-time coefficient]
+\item[\emp{SpaceTimeFunction}: \ space-time coefficient]
 \ \\
 Storage and evaluation of a space-time function/coefficient.
-\item[{\tt SlipBC}: \ friction boundary condition]
+\item[\emp{SlipBC}: \ friction boundary condition]
 \ \\
 Efficient computation of turbulent flow in Unicorn is based on
 modeling of turbulent boundary layers by a friction model, where the
 normal condition: $u \cdot n = 0, x \in \Gamma$, is implemented as a
 strong boundary condition in the algebraic system.
-\item[{\tt ElasticSmoother}: \ elastic mesh smoothing/optimization]
+\item[\emp{ElasticSmoother}: \ elastic mesh smoothing/optimization]
 \ \\
 Optimization of cell quality according to an elastic analogy.
-\item[{\tt MeshAdaptInterface}: \ mesh adaptation interface]
+\item[\emp{MeshAdaptInterface}: \ mesh adaptation interface]
 \ \\
 Abstraction of the interface to the MAdLib package for mesh adaptation
 using local mesh operations.
 \end{description}
 
-\subsection{\tt TimeDependentPDE}
+\subsection{\emp{TimeDependentPDE}}
 
 We consider time-dependent equations of the type $f(u) = -D_t u + g(u)
 = 0$ where $g$ can include differential operators in space, where
@@ -766,13 +752,12 @@ specifically the UC model is of this type. In weak form the equation
 type looks like$(f(u), v) = (-D_t u + g(u), v) = 0$, possibly with
 partial integration of terms
 
-We want to define a class (datatype and algorithms) abstracting the
-time-stepping of the G2 method, where we want to give the equation
+We want to define a class (data structures and algorithms) abstracting
+the time-stepping of the G2 method, where we want to give the equation
 (possibly in weak form) as input and generate the time-stepping
-automatically. cG(1)cG(1) (Crank-Nicolson-type discretization in time)
-gives the equation for the (possibly non-linear) algebraic system
-$F(U)$ (in Python notation):
-
+automatically. \cgone{}\cgone{} (Crank-Nicolson-type discretization in
+time) gives the equation for the (possibly non-linear) algebraic
+system $F(U)$ (in Python notation):
 
 \begin{python}
 # cG(1)
@@ -815,7 +800,7 @@ Thus, in each time step we need to solve the system given in~\eqref{discrete_cg1
 computing $a$ and $L$, solving a linear system and updating $U$.
 
 We now encapsulate this in a C++ class interface in
-Figure~\ref{code:TimeDependentPDE} called {\tt TimeDependentPDE} where
+Figure~\ref{code:TimeDependentPDE} called \emp{TimeDependentPDE} where
 $a$ and $L$, an end time $T$, a mesh (defining $V_h$) and
 boundary conditions are given.
 
@@ -859,7 +844,7 @@ protected:
 };
 \end{c++}
 \caption{
-C++ class interface for TimeDependentPDE.
+C++ class interface for \emp{TimeDependentPDE}.
 }
 \label{code:TimeDependentPDE}
 \end{figure}
@@ -940,10 +925,10 @@ formulate Newton's method for the system $F(X) = (F_u(X), F_\sigma(X),
 F_p(X))^\top = 0$, with $X = (U, \sigma, P)^\top$, where the three
 components are decoupled.
 
-See \citet{Jansson2009} for a dicussion about
-the efficiency of the fixed-point iteration and its implementation.
+See \citet{Jansson2009} for a discussion about the efficiency of the
+fixed-point iteration and its implementation.
 
-\subsection{\tt ErrorEstimate}
+\subsection{\emp{ErrorEstimate}}
 
 The duality-based adaptive error control algorithm requires the
 following primitives:
@@ -959,7 +944,7 @@ cell) as a form representing the continuous residual.
 We compute the solution of the dual problem using the same technology
 as the primal problem. The dual problem is solved backward in time,
 but with the time coordinate transform $s = T - t$ we can use the
-standard {\tt TimeDependentPDE} interface and step the dual time $s$
+standard \emp{TimeDependentPDE} interface and step the dual time $s$
 forward.
 \item[Space-time function storage/evaluation]
 We compute error indicators while solving the dual problem as
@@ -967,13 +952,13 @@ space-time integrals over cells: $\epsilon_K = (R(U),
 D_x \Phi)_{L_2(K \times T)}$, where we need to evaluate both the
 primal solution $U$ and the dual solution $\Phi$. In addition, $U$ is
 a coefficient in the dual equation. This requires storage and
-evaluation of a space-time function, which is encapsulated in the {\tt
-SpaceTimeFunction} class.
+evaluation of a space-time function, which is encapsulated in
+the \emp{SpaceTimeFunction} class.
 \item[Mesh adaptation]
 After the computation of the error indicators we select the largest
 $p\%$ of the indicators for refinement. The refinement is then
 performed by recursive Rivara cell bisection or by general mesh
-adaptation using Madlib \citep{Comp`ereRemacleJanssonEtAl2009}, which is
+adaptation using MAdLib \citep{Comp`ereRemacleJanssonEtAl2009}, which is
 based on edge split, collapse and swap operations, and thus gives
 the ability to coarsen a mesh, or more generally to control the mesh
 size.
@@ -981,7 +966,7 @@ size.
 
 Using these primitives, we can construct an adaptive algorithm. The
 adaptive algorithm is encapsulated in the C++ class interface in
-Figure~\ref{code:ErrorEstimate} which we call {\tt ErrorEstimate}.
+Figure~\ref{code:ErrorEstimate} which we call \emp{ErrorEstimate}.
 
 \begin{figure}[!h]
 {\small
@@ -1020,18 +1005,18 @@ public:
 \end{c++}
 }
 \caption{
-C++ class interface for {\tt ErrorEstimate}.
+C++ class interface for \emp{ErrorEstimate}.
 }
 \label{code:ErrorEstimate}
 \end{figure}
 
-\subsection{\tt SpaceTimeFunction}
+\subsection{\emp{SpaceTimeFunction}}
 
 The error estimation algorithm requires, as part of solving the dual
 problem, the evaluation of space-time coefficients (at time s in the
 dual problem we need to evaluate the primal solution $U$ at time t = T
 - s). This requires storage and evaluation of a space-time function,
-which is encapsulated in the {\tt SpaceTimeFunction} class (see
+which is encapsulated in the \emp{SpaceTimeFunction} class (see
 listing \ref{code:SpaceTimeFunction}).
 
 The space-time functionality is implemented as a list of space
@@ -1067,14 +1052,14 @@ public:
 \end{c++}
 }
 \caption{
-C++ class interface for {\tt SpaceTimeFunction}.
+C++ class interface for \emp{SpaceTimeFunction}.
 }
 \label{code:SpaceTimeFunction}
 \end{figure}
 
 
 
-\subsection{\tt SlipBC}
+\subsection{\emp{SlipBC}}
 
 For high Reynolds numbers problems such as car aerodynamics or
 airplane flight, it's not possible to resolve the turbulent boundary
@@ -1111,16 +1096,15 @@ the boundary need to be multiplied with $n,\tau_1,\tau_2$,
 respectively, and then the normal component of the velocity should be
 set to 0.
 
-This concept is encapsulated in the class {\tt SlipBC} which is a
-subclass of \\ {\tt dolfin::BoundaryCondition} for representing strong
+This concept is encapsulated in the class \emp{SlipBC} which is a
+subclass of \emp{dolfin::BoundaryCondition} for representing strong
 boundary conditions. The implementation is based on multiplying
 elements of the matrix with components of $n,\tau_1,\tau_2$.
 
 For more details about the implementation of slip boundary conditions
 we refer to \citet{Nazarov2009}.
 
-\subsection{\tt ElasticSmoother}
-
+\subsection{\emp{ElasticSmoother}}
 
 \begin{figure}[!h]
 {\small
@@ -1195,7 +1179,7 @@ public:
 \end{c++}
 }
 \caption{
-C++ class interface for {\tt ElasticSmoother}.
+C++ class interface for {\emp{ElasticSmoother}}.
 }
 \label{code:ElasticSmoother}
 \end{figure}
@@ -1243,9 +1227,9 @@ to the source code for more details.
 As an alternative to mesh smoothing we can consider using local mesh
 modification operations (refinement, coarsening, swapping) on the mesh
 to maintain the quality \citep{Comp`ereRemacleJanssonEtAl2009}
-through {\tt MeshAdaptInterface}.
+through \emp{MeshAdaptInterface}.
 
-Unicorn provides the {\tt ElasticSmoother} class (see
+Unicorn provides the \emp{ElasticSmoother} class (see
 listing \ref{code:ElasticSmoother}, which can be used to
 smooth/optimize for quality in all or part of the mesh.
 
@@ -1254,12 +1238,12 @@ adaptivity shown in \ref{fig:flag_robustness} where we use the same
 geometry as the turbulent 3D flag problem, but define 0 inflow
 velocity and instead add a gravity body force to the flag to create a
 very large deformation with the flag pointing straight down. Both the
-elastic smoothing and the mesh adaptvity compute solutions, but as
+elastic smoothing and the mesh adaptivity compute solutions, but as
 expected, the elastic mesh smoothing eventually cannot control the
 cell quality (there does not exist a mesh motion which can handle
 large rigid body rotations while bounding the cell quality).
 
-\subsection{\tt MeshAdaptInterface}
+\subsection{\emp{MeshAdaptInterface}}
 
 A critical component in the adaptive algorithm as described above is
 {\em Mesh adaptivity}, which we define as constructing a mesh
@@ -1301,7 +1285,7 @@ is at least half the minimum angle of the starting mesh. In practice
 the algorithm produces excellent quality refined meshes both in 2D and
 3D.
 
-\paragraph{Local mesh operations: Madlib}
+\paragraph{Local mesh operations: MAdLib}
 
  \begin{figure}[!h]
  \begin{center}
@@ -1316,7 +1300,7 @@ the algorithm produces excellent quality refined meshes both in 2D and
  \label{fig:op:eswap}
  \end{figure}
 
-Madlib incorporates an algorithm and implementation of {\bf mesh
+MAdLib incorporates an algorithm and implementation of {\bf mesh
 adaptation} where a small set of local mesh modification operators are
 defined such as edge split, edge collapse and edge swap. A mesh
 adaptation algorithm is defined which uses this set of local operators
@@ -1334,13 +1318,13 @@ seldom the case, where typically only limited operations are allowed
 or a separate often complex, closed and ad-hoc mesh generation
 implementation is used to re-generate meshes.
 
-The mesh adaptation algorithm in Madlib gives the freedom to adapt to
+The mesh adaptation algorithm in MAdLib gives the freedom to adapt to
 a specified size field using local mesh operations. The implementation
 is published as free software/open source allowing other research to
 build on the results and scientific repeatability of numerical
 experiments.
 
-Unicorn provides the {\tt MeshAdaptInterface} class (see
+Unicorn provides the \emp{MeshAdaptInterface} class (see
 listing \ref{code:MeshAdaptInterface}, where one can subclass and
 implement virtual functions to control the mesh adaptation.
 
@@ -1379,7 +1363,7 @@ protected:
 };
 \end{c++}
 \caption{
-C++ class interface for {\tt MeshAdaptInterface}.
+C++ class interface for \emp{MeshAdaptInterface}.
 }
 \label{code:MeshAdaptInterface}
 \end{figure}
@@ -1419,9 +1403,9 @@ Known coefficients such as a force function and boundary conditions
 are declared.
 \item[PDE data]
 \ \\
-The user subclasses a PDEData class and specifies how the PDE data is
-constructed and destroyed. This construction/destruction may happen
-during the simulation if the mesh is adapted.
+The user subclasses a \emp{PDEData} class and specifies how the PDE
+data is constructed and destroyed. This construction/destruction may
+happen during the simulation if the mesh is adapted.
 \item[main program]
 \ \\
 The user implements the main program and declares and passes data to
@@ -1487,7 +1471,7 @@ for i in range(offset, N):
 For turbulent flow we model the boundary layer as a friction boundary
 condition. We specify the normal component as a string slip boundary
 condition used just as a regular Dirichlet boundary condition. The
-{\tt xcomp} variable denotes an offset for the first velocity
+\emp{xcomp} variable denotes an offset for the first velocity
 component in a system (for compressible Euler the system is [density,
 velocity, energy], and we would thus give component 2 as offset).
 
@@ -1666,8 +1650,5 @@ simulation described in chapter \ref{chap:hoffman-1}.
 
 We acknowledge contributions to Unicorn, both software development as
 well as ideas and scientific support from: Mattias Aechtner, Peter
-Brune, Zilan Ciftci, G\"aetan Compere, Niyazi Cem Degirmenci, Claes
-Johnson, Ashraful Kadir, Jeannette Sp\"uhler, Michael St\"ockli and
-Rodrigo Vilela de Abreu.
-
-
+Brune, Zilan Ciftci, G\"aetan Compere, Claes Johnson, Ashraful Kadir,
+Jeannette Sp\"uhler, Michael St\"ockli and Rodrigo Vilela de Abreu.

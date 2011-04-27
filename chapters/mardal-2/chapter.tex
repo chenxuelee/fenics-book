@@ -186,7 +186,7 @@ in terms of \emp{\_add}, using the \emp{\%extend} directive:
 The above script will now report the same \emp{id} for all objects.
 No objects are created or deleted, and segmentation fault is avoided.
 
-\subsection{ \emp{std::ostream \& operator<{}<}}%>>
+\subsection{\emp{std::ostream \& operator<{}<}}%>>
 In C++, shift operators such as \emp{operator <<} are typically used
 to implement I/O, while in Python the \emp{\_str\_} method is used.
 Therefore, SWIG ignores the shift operator, as it is likely not to perform
@@ -260,14 +260,14 @@ Overloading operators, functions and methods is not possible in Python.
 Instead, Python dynamically determines what code to call, a process
 which is called dynamic dispatch.  To generate proper wrapper code,
 SWIG relies on \emp{\%typecheck} directives to resolve the overloading.
-A suitable typecheck for our example typemap is:
+A suitable type check for our example typemap is:
 \begin{swigcode}
 %typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) (int n_, double* a_) {
    $1 = PyArray_Check($input) ? 1 : 0;
  }
 \end{swigcode}
 Here, \emp{SWIG\_TYPECHECK\_DOUBLE\_ARRAY} is a \emp{typedef} for the
-priority number assigned for arrays of doubles. The typecheck should
+priority number assigned for arrays of doubles. The type check should
 return 1 if the Python object \emp{\$input} has the correct type, and
 0 otherwise.
 
@@ -299,12 +299,12 @@ Python module.
 %module(package="dolfin", directors="1") cpp
 \end{swigcode}
 This statement tells SWIG to create a module called \emp{cpp} that
-resides in the package of \emp{dolfin}. We have also enabled the use of
+resides in the package of \dolfin{}. We have also enabled the use of
 directors.  The latter is required to be able to subclass \dolfin classes
 in Python, an issue that will be discussed below.  By naming the generated
-extension module \emp{cpp}, and including it in the \emp{dolfin} Python
-package, we hide the generated interface into a submodule of dolfin; the
-\emp{dolfin.cpp} module.  The \emp{dolfin} module then imports the needed
+extension module \emp{cpp}, and including it in the \dolfin{} Python
+package, we hide the generated interface into a submodule of \dolfin{}; the
+\emp{dolfin.cpp} module.  The \dolfin{} module then imports the needed
 classes and functions from \emp{dolfin.cpp} in the \emp{\_\_init\_\_.py}
 file along with additional pure Python classes and functions.
 
@@ -332,8 +332,7 @@ Python module is initialized. A typical example of such a function is
 several such statements, each inserting code verbatim into the wrapper
 file at different positions.
 
-
-\subsection{Reference counting using shared\_ptr}
+\subsection{Reference counting using \emp{shared\_ptr}}
 In the previous example dealing with \emp{operator+=}, we saw that
 it is important to prevent premature destruction of underlying C++
 objects. A nice feature of SWIG is that we can declare that a wrapped
@@ -391,7 +390,7 @@ with SWIG. However, as in the \emp{Array} example above, there
 is need for typemaps, for instance to handle \numpy arrays.
 In \emp{dolfin.i} we include three different types of global
 typemaps: \textit{i)} general-, \textit{ii)} \numpy- and,
-\textit{iii)} std\_vector-typemaps. These are implemented in the
+\textit{iii)} \emp{std::vector}-typemaps. These are implemented in the
 interface files: \emp{typemaps.i}, \emp{numpy\_}\emp{typemaps.i} and
 \emp{std\_}\emp{vector\_}\emp{typemaps.i}. Here, we present some of the
 typemaps defined in these files.
@@ -506,19 +505,19 @@ using 5 arguments:
 \item \emp{TYPE} is the name of the primitive type. Examples are
 \emp{dolfin::uint} and \emp{double}.
 
-\item \emp{TYPE\_UPPER} is the name of the typecheck-name SWIG uses. Examples
+\item \emp{TYPE\_UPPER} is the name of the type check name that SWIG uses. Examples
 are \emp{INT32} and \emp{DOUBLE}.
 
 \item \emp{NUMPY\_TYPE} is the name of the \numpy type. Examples are
 \emp{NPY\_UINT} and \emp{NPY\_DOUBLE}.
 
-\item \emp{TYPE\_NAME} is a short typename used in exception string.
+\item \emp{TYPE\_NAME} is a short type name used in exception string.
 Examples are \emp{uint} and \emp{double}.
 
 \item \emp{DESCR} is a description character used in \numpy to describe the
 type. Examples are \emp{'I'} and \emp{'d'}.
 \end{enumerate}
-We can then call the macro to instantiate the typemaps and typechecks.
+We can then call the macro to instantiate the typemaps and type checks.
 \begin{swigcode}
 UNSAFE_NUMPY_TYPEMAPS(dolfin::uint,INT32,NPY_UINT,uint,I)
 UNSAFE_NUMPY_TYPEMAPS(double,DOUBLE,NPY_DOUBLE,double,d)
@@ -541,7 +540,7 @@ similar to what we did for the \emp{dolfin::uint} out-typemap above.
 
 In \emp{std\_vector\_typemaps.i}, two typemap macros for passing
 \emp{std::vector<Type>} between Python and C++ are defined. One is
-an in-typemap macro for passing a std::vector of pointers of \dolfin
+an in-typemap macro for passing a \emp{std::vector} of pointers of \dolfin
 objects to a C++ function. The other is an out-typemap macro for passing
 a \emp{std::vector} of primitives, using \numpy arrays, to Python. It
 is not strictly necessary to add these typemaps as SWIG provides a
@@ -711,8 +710,7 @@ the \emp{std::vector}. Note that here we are forced to copy the values,
 or else the return argument would overwrite any previous created return
 argument, with memory corruption as result.
 
-
-\subsection{\dolfin header files and Python docstrings}
+\subsection{\dolfin{} header files and Python docstrings}
 As mentioned earlier, the file \emp{kernel\_module.i}, generated
 by \emp{generate.py}, tells SWIG what parts of DOLFIN that should be
 wrapped.  The associated script \emp{generate\_docstrings.py} generates
@@ -727,14 +725,14 @@ and saved to a SWIG interface file \emp{docstrings.i}. The
 \emp{docstrings.i} file is included from the main \emp{dolfin.i} file.
 Note that the \emp{kernel\_module.i} and \emp{docstrings.i} files
 are not generated automatically during the build process. This means
-that when a header file is added to the \dolfin library, one must to
+that when a header file is added to the \dolfin{} library, one must to
 manually run \emp{generate.py} to update the \emp{kernel\_module.i}
 and \emp{docstrings.i} files.
 
 
 \subsection{Specializations of kernel modules}
 The DOLFIN SWIG interface file \emp{kernel\_module.i} mirrors the directory
-structure of the \emp{dolfin}.  As mentioned above, many directories come
+structure of \dolfin{}. As mentioned above, many directories come
 with specializations in \emp{$\ldots$\_pre.i} and \emp{$\ldots$\_post.i}
 files.  Below, we will highlight some of these specializations.
 
