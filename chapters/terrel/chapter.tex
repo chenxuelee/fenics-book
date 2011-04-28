@@ -12,13 +12,14 @@ stable formulations for the steady-state Stokes equations.  It is
 demonstrated that the expressiveness of the FEniCS Project components
 allows solvers for the Stokes problem that use various element
 formulations to be created with ease.
+
 %------------------------------------------------------------------------------
 \section{Stokes equations}
 \label{sec:terrel:Stokes}
 
 The Stokes equations describe steady, incompressible low Reynolds number
-flows. For a domain $\Omega \subset \mathbb{R}^{d}$, where $1 \le d \le 3$,
-the Stokes equations read:
+flows. For a domain $\Omega \subset \mathbb{R}^{d}$, where $1 \le d \le
+3$, the Stokes equations read:
 %
 \begin{align}
      -\Delta u - \nabla p &= f \quad \mbox{in} \ \Omega,
@@ -78,23 +79,22 @@ of fronts.  Firstly, finite element subspaces of $V$ and $\Pi$ must be
 chosen carefully to ensure stability of the resulting finite element
 problem. Secondly, the mixed variational form is a saddle point problem,
 which leads to indefinite matrix equations. Such systems are particularly
-taxing on iterative linear solvers.  Moreover, conservation of mass requires
-that the velocity field is divergence-free; very few schemes can satisfy
-this condition point-wise.  The degree to which this condition is imposed
-depends on the specific scheme.
+taxing on iterative linear solvers.  Moreover, conservation of mass
+requires that the velocity field is divergence-free; very few schemes can
+satisfy this condition point-wise.  The degree to which this condition
+is imposed depends on the specific scheme.
 
-Stable mixed finite element methods for the Stokes equations must
-satisfy the Ladyzhenskaya--\babuska--Brezzi (LBB) (or inf--sup)
-compatibility condition (see~\citet{BrezziFortin1991} for more
-details).  The most straightforward scheme --- equal-order continuous
-Lagrange finite element spaces for both pressure and velocity
-components --- leads to an unstable problem.  Additionally, mixed
-element formulations can exhibit a type of ``locking'', which in
-practice is sometimes remedied by using inexact quadrature for the
-$b(v, q)$-type terms.  This has been recognized as equivalent to
-modifying the pressure space.  Here we take the modern perspective and
-work with velocity and pressure spaces that are known to satisfy the
-LBB condition.
+Stable mixed finite element methods for the Stokes equations must satisfy
+the Ladyzhenskaya--\babuska--Brezzi (LBB) (or inf--sup) compatibility
+condition (see~\citet{BrezziFortin1991} for more details).  The most
+straightforward scheme --- equal-order continuous Lagrange finite element
+spaces for both pressure and velocity components --- leads to an unstable
+problem.  Additionally, mixed element formulations can exhibit a type of
+``locking'', which in practice is sometimes remedied by using inexact
+quadrature for the $b(v, q)$-type terms.  This has been recognized as
+equivalent to modifying the pressure space.  Here we take the modern
+perspective and work with velocity and pressure spaces that are known
+to satisfy the LBB condition.
 
 An approach to circumventing the difficulties associated with the
 saddle-point nature of the Stokes problem is to modify the discrete
@@ -108,25 +108,24 @@ Few numerical studies of the Stokes problem address more than one
 finite element formulation. This can be attributed to the difficultly
 in implementing a number of the known stable methods. With automated
 code generation, solvers for a range of methods can be easily produced;
-it is as simple as redefining the finite element spaces or modifying the
-variational formulation.  In the remainder of this section, we demonstrate
-the construction of a variety stable finite element solvers for the
-mixed form of the Stokes equations.
+it is as simple as redefining the finite element spaces or modifying
+the variational formulation.  In the remainder of this section, we
+demonstrate the construction of a variety stable finite element solvers
+for the mixed form of the Stokes equations.
 
 %------------------------------------------------------------------------------
 \subsection{Formulations based on compatible function spaces}
 
 We consider a number of LBB-stable formulations that are based on the
 selection of compatible function spaces for the velocity and pressure
-fields. The generic \ufl{} input for most of these formulations is
-shown in Figure~\ref{code:terrel:var:mixed}.  Following the \ufl{}
-convention, the bilinear and linear forms are named {\tt a} and {\tt
-L}, respectively.  Different finite element spaces are defined via the
-element type for the velocity ({\tt U\_element}), the basis function
-order for the velocity ({\tt U\_order}), the element type for the
-pressure ({\tt P\_element}) and the basis function order for the
-pressure ({\tt P\_order}). From the input in
-Figure~\ref{code:terrel:var:mixed}, \ffc{} generates the
+fields. The generic \ufl{} input for most of these formulations is shown
+in Figure~\ref{code:terrel:var:mixed}.  Following the \ufl{} convention,
+the bilinear and linear forms are named {\tt a} and {\tt L}, respectively.
+Different finite element spaces are defined via the element type for the
+velocity ({\tt U\_element}), the basis function order for the velocity
+({\tt U\_order}), the element type for the pressure ({\tt P\_element})
+and the basis function order for the pressure ({\tt P\_order}). From
+the input in Figure~\ref{code:terrel:var:mixed}, \ffc{} generates the
 problem-specific code used in numerical simulations.
 %
 \begin{figure}
@@ -150,9 +149,9 @@ L = inner(f, v)*dx
 
 One of the most widely used family of finite elements for the Stokes
 equations is the Taylor--Hood family~\citep{TaylorHood1973,Boffi1997}.
-It consists of a continuous $P_q$ ($q\geqslant 2$) Lagrange element for the
-velocity components and a continuous $P_{q-1}$ Lagrange element for the
-pressure field (see Figure~\ref{fig:terrel:THElements} for the $q=3$
+It consists of a continuous $P_q$ ($q\geqslant 2$) Lagrange element for
+the velocity components and a continuous $P_{q-1}$ Lagrange element for
+the pressure field (see Figure~\ref{fig:terrel:THElements} for the $q=3$
 case). The order of the pressure convergence is lower than that for the
 velocity.  For the \ufl{} extract in Figure~\ref{code:terrel:var:mixed},
 the Taylor-Hood element corresponds to {\tt U\_element = Lagrange},
@@ -169,14 +168,15 @@ the Taylor-Hood element corresponds to {\tt U\_element = Lagrange},
 \end{figure}
 
 The Crouzeix--Raviart element~\citep{CrouzeixRaviart1973} is a
-non-conforming element that uses integral moments over cell edges as a
-basis for the velocity, and a discontinuous pressure space that is one
-order lower than the velocity space.  For the low-order case, the
-velocity edge moments are equivalent to evaluating Lagrange basis
-functions at the center of each edge and the pressure uses $P_0$ (see
-Figure~\ref{fig:terrel:CRElements}).  For the extract in
-Figure~\ref{code:terrel:var:mixed}, the Crouzeix--Raviart element
-corresponds to {\tt U\_element = CR}, {\tt U\_order = 1}, \emp{P\_element = DiscontinuousLagrange} and {\tt P\_order = 0}.
+non-conforming element that uses integral moments over cell edges as
+a basis for the velocity, and a discontinuous pressure space that is
+one order lower than the velocity space.  For the low-order case,
+the velocity edge moments are equivalent to evaluating Lagrange
+basis functions at the center of each edge and the pressure uses
+$P_0$ (see Figure~\ref{fig:terrel:CRElements}).  For the extract
+in Figure~\ref{code:terrel:var:mixed}, the Crouzeix--Raviart element
+corresponds to {\tt U\_element = CR}, {\tt U\_order = 1}, \emp{P\_element
+= DiscontinuousLagrange} and {\tt P\_order = 0}.
 %
 \begin{figure}
   \center
@@ -220,13 +220,12 @@ that is two orders lower for the pressure field. We loosely call
 this element ``CD'', for continuous velocity/discontinuous pressure.
 \citet{BrezziFortin1991} discuss the $P_2-P_0$ case, and higher order
 versions were analyzed in~\citet{MadayPateraRonquist1992}.  For the
-low-order case, the CD method does not satisfy the LBB condition
-and is commonly used with a stabilization parameter or enriched with
-bubble functions. This case is not discussed here. For higher orders the
-method is stable.  For the extract
-in Figure~\ref{code:terrel:var:mixed}, the CD element corresponds to
-{\tt U\_element = Lagrange}, {\tt U\_order = q}, \emp{P\_element =
-DiscontinuousLagrange} and {\tt P\_order = q-2}.
+low-order case, the CD method does not satisfy the LBB condition and
+is commonly used with a stabilization parameter or enriched with bubble
+functions. This case is not discussed here. For higher orders the method
+is stable.  For the extract in Figure~\ref{code:terrel:var:mixed}, the
+CD element corresponds to {\tt U\_element = Lagrange}, {\tt U\_order =
+q}, \emp{P\_element = DiscontinuousLagrange} and {\tt P\_order = q-2}.
 
 \begin{table}
 \centering
@@ -281,17 +280,15 @@ stabilized method that we consider involves:
 \quad \foralls \ q \in \Pi_{h},
 \end{align}
 %
-where $\delta$ is a stabilization parameter, and $V_{h} \subset V$
-and $\Pi_{h} \subset \Pi$ are suitable finite element spaces. For
-our tests, $\delta = 0.2 h_{T}^{2}$, where $h_{T}$ is two times
-the circumference of the cell~$T$.
-For the stabilized tests,
-continuous Lagrange elements of the same order for both the pressure
-and velocity spaces are used. This method will be referred to
-as ``STAB''. The stabilized method that we adopt is simple, but it
-does violate consistency for orders~$q > 1$.
-Figure~\ref{code:terrel:var:stab} illustrates the
-addition of the stabilization terms to the standard weak form in
+where $\delta$ is a stabilization parameter, and $V_{h} \subset V$ and
+$\Pi_{h} \subset \Pi$ are suitable finite element spaces. For our tests,
+$\delta = 0.2 h_{T}^{2}$, where $h_{T}$ is two times the circumference
+of the cell~$T$.  For the stabilized tests, continuous Lagrange
+elements of the same order for both the pressure and velocity spaces
+are used. This method will be referred to as ``STAB''. The stabilized
+method that we adopt is simple, but it does violate consistency
+for orders~$q > 1$.  Figure~\ref{code:terrel:var:stab} illustrates
+the addition of the stabilization terms to the standard weak form in
 Figure~\ref{code:terrel:var:mixed}.  Figure~\ref{tab:terrel:element_vars}
 includes the definitions for the STAB element.
 
@@ -313,11 +310,11 @@ code in Figure~\ref{code:terrel:var:mixed}.}
 %------------------------------------------------------------------------------
 \section{A penalty approach: the Scott--Vogelius method}
 
-Other solutions to deal with the LBB condition include the Uzawa
-iteration method and penalty methods.  A combination of these two
-approaches results in the iterated penalty method presented in
-\citet{ScottVogelius1985}. Let $r \in \R$ and $\rho \in \R^{+}$ be
-prescribed parameters. We wish to find $u^n \in V_{h}$ such that
+Other solutions to deal with the LBB condition include the Uzawa iteration
+method and penalty methods.  A combination of these two approaches results
+in the iterated penalty method presented in \citet{ScottVogelius1985}. Let
+$r \in \R$ and $\rho \in \R^{+}$ be prescribed parameters. We wish to
+find $u^n \in V_{h}$ such that
 \begin{equation}
 \label{eqn:terrel:IPStokes}
  a(u^n, v) + r(\nabla \cdot u^n, \nabla \cdot v)
@@ -385,9 +382,9 @@ while iters < max_iters and U_m_u > 1e-8:
 
 To evaluate the presented methods, we compare the computed results to
 a manufactured solution for different mesh refinements and element
-degrees. All simulations used \fenics{} tools to generate the discrete
-problems (\ffc{} v0.7.0, \dolfin{} v0.9.4, \ufl{} v0.4.0, \ufc{}
-v1.2.0), with the \packagefont{UMFPACK} LU solver (from the
+degrees. All simulations used \fenics{} tools to generate the
+discrete problems (\ffc{} v0.7.0, \dolfin{} v0.9.4, \ufl{} v0.4.0,
+\ufc{} v1.2.0), with the \packagefont{UMFPACK} LU solver (from the
 \packagefont{SuiteSparse} package v3.4).  For iterative methods
 applied to Stokes problems, we refer to Chapter~\ref{chap:mardal-4}
 and \citet{ElmanSilvesterWathen2005}.  The number of the degrees of
@@ -474,10 +471,10 @@ cases are shown in Table~\ref{tab:terrel:DOFs}.
 
 \editornote{AL: Why criss-cross? Please comment.}
 
-For our tests, we use an $n \times n$ unit square mesh with a
-criss-cross pattern, as illustrated in
-Figure~\ref{fig:terrel:meshsolution}(a). As a first test case, we use
-the following analytical solution of the Stokes equations:
+For our tests, we use an $n \times n$ unit square mesh with a criss-cross
+pattern, as illustrated in Figure~\ref{fig:terrel:meshsolution}(a). As
+a first test case, we use the following analytical solution of the
+Stokes equations:
 %
 \begin{align}
 \label{eqn:terrel:testcase}
@@ -505,13 +502,13 @@ and~\ref{fig:terrel:meshsolution}(c)).
 Figures~\ref{code:terrel:domain:test} and~\ref{code:terrel:domain:lid}
 show the \dolfin{} Python input for the considered problems. To change
 from the analytical test problem to the lid-driven cavity, only a
-change in the boundary condition functions and the right-hand side $f$
-are required.  The pressure field, which is determined only up to an
-arbitrary constant, is ``pinned'' at zero at one pressure degree of
-freedom.  Given one of the above domains and one of the defined
-variational problems, \dolfin{} will use \ffc{} and \fiat{} to
-generate the necessary computer code automatically, allowing for one
-script to test all the methods.
+change in the boundary condition functions and the right-hand side
+$f$ are required.  The pressure field, which is determined only up to
+an arbitrary constant, is ``pinned'' at zero at one pressure degree
+of freedom.  Given one of the above domains and one of the defined
+variational problems, \dolfin{} will use \ffc{} and \fiat{} to generate
+the necessary computer code automatically, allowing for one script to
+test all the methods.
 
 \begin{figure}
 \small
@@ -584,9 +581,9 @@ f = Constant(mesh, (0.0, 0.0))
 \label{code:terrel:domain:lid}
 \end{figure}
 
-In computing the error for the analytical test cases in terms of function
-norms, the exact solution is interpolated using 10th degree Lagrange
-elements. The code for computing the error is presented in
+In computing the error for the analytical test cases in terms of
+function norms, the exact solution is interpolated using 10th degree
+Lagrange elements. The code for computing the error is presented in
 Figure~\ref{code:terrel:error}.
 
 \begin{figure}
@@ -663,20 +660,20 @@ To further compare the methods, a number of error and performance measures
 for the case of a fourth-order velocity space with a suitably chosen
 pressure space are presented. The Crouzeix--Raviart and MINI elements
 are only implemented for low-order bases. For the sake of comparison,
-they are computed on a finer mesh that has a comparable number of
-degrees of freedom to the fourth-order Taylor--Hood element.
+they are computed on a finer mesh that has a comparable number of degrees
+of freedom to the fourth-order Taylor--Hood element.
 
-Figure~\ref{fig:terrel:4th_Order:vel} compares the $L^{2}$ error in
-the velocity for the different methods. The velocity approximation
-appears to converge for all elements.  The $L^{2}$ error in the pressure
-is shown in Figure~\ref{fig:terrel:4th_Order:press}.  Unpredictable
+Figure~\ref{fig:terrel:4th_Order:vel} compares the $L^{2}$ error in the
+velocity for the different methods. The velocity approximation appears
+to converge for all elements.  The $L^{2}$ error in the pressure is
+shown in Figure~\ref{fig:terrel:4th_Order:press}.  Unpredictable
 behavior for the pressure is observed for the CD element, whereas
 convergence for the pressure field is observed for the other methods.
 The $L^{2}$ norm of the divergence of the velocity field is presented
-in Figure~\ref{fig:terrel:4th_Order:div}.  The divergence error for
-the Crouzeix--Raviart and Scott--Vogelius methods are zero to within machine
-precision for all meshes, as predicted by theory. The divergence error
-for the MINI element is considerably greater than that for the other methods.
+in Figure~\ref{fig:terrel:4th_Order:div}.  The divergence error for the
+Crouzeix--Raviart and Scott--Vogelius methods are zero to within machine
+precision for all meshes, as predicted by theory. The divergence error for
+the MINI element is considerably greater than that for the other methods.
 
 \begin{figure}
   \center\includegraphics[width=\largefig]{chapters/terrel/pdf/vel_4.pdf}
@@ -696,7 +693,8 @@ for the MINI element is considerably greater than that for the other methods.
   \label{fig:terrel:4th_Order:div}
 \end{figure}
 
-\editornote{AL: Unclear which test case the results are for: analytic or lid-driven cavity? Please add info to all tables and figures.}
+\editornote{AL: Unclear which test case the results are for: analytic
+or lid-driven cavity? Please add info to all tables and figures.}
 
 Figure~\ref{fig:terrel:4th_Order:run} presents the run time for the
 various fourth-order cases.  All run times, using a 2.6 GHz Intel
@@ -751,14 +749,14 @@ fixed point iteration to converge.
 
 Comparisons between different finite elements for the Stokes problem have
 been presented. The flexibility afforded by automated code generation
-has been demonstrated via the ease with which a solvers for a range
-of methods could be produced.
-The observed convergence rates for all cases are consistent with \emph{a
-priori} estimates.  Of the elements examined, the Crouzeix--Raviart
-element and the Scott--Vogelius lead to the smallest divergence error.
-If mass conservation properties are not crucial, the simplicity of
-elements such as the Taylor--Hood or STAB is attractive.
+has been demonstrated via the ease with which a solvers for a range of
+methods could be produced.  The observed convergence rates for all cases
+are consistent with \emph{a priori} estimates.  Of the elements examined,
+the Crouzeix--Raviart element and the Scott--Vogelius lead to the smallest
+divergence error.  If mass conservation properties are not crucial,
+the simplicity of elements such as the Taylor--Hood or STAB is attractive.
 
-\editornote{AL: Missing conclusion that TH produced the smallest velocity errors in all cases?}
+\editornote{AL: Missing conclusion that TH produced the smallest velocity
+errors in all cases?}
 
 %------------------------------------------------------------------------------
