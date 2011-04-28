@@ -23,9 +23,6 @@ tensor~$A_T$ can be computed efficiently by an approach referred to as
 %------------------------------------------------------------------------------
 \section{Tensor representation for Poisson equation}
 
-\editornote{Need to update notation to use $\hat{T}$ for the reference
-cell to match introductory chapter [kirby-7].}
-
 We first describe how one may express the cell tensor for Poisson's
 equation as a special tensor contraction and explain below how this
 may be generalized to other variational forms. For Poisson's equation,
@@ -41,27 +38,27 @@ the cell tensor (matrix) $A_T$ is defined by
   \frac{\partial \phi_{i_1}^{T,1}}{\partial x_{\beta}}
   \frac{\partial \phi_{i_2}^{T,2}}{\partial x_{\beta}} \dx.
 \end{equation}
-Let $F_T : T_0 \rightarrow T$ be an affine map from a
-reference cell~$T_0$ to the current cell~$T$ as illustrated in
+Let $F_T : \hat{T} \rightarrow T$ be an affine map from a
+reference cell~$\hat{T}$ to the current cell~$T$ as illustrated in
 Figure~\ref{fig:affinemap}. Using this affine map, we make a change of
 variables to obtain
 \begin{equation}
   A_{T,i} =
-  \int_{T_0}
+  \int_{\hat{T}}
   \sum_{\beta=1}^d
   \sum_{\alpha_1=1}^d
-  \frac{\partial X_{\alpha_1}}{\partial x_{\beta}}
-  \frac{\partial \Phi^1_{i_1}}{\partial X_{\alpha_1}}
+  \frac{\partial \hat{x}_{\alpha_1}}{\partial x_{\beta}}
+  \frac{\partial \hat{\phi}^1_{i_1}}{\partial \hat{x}_{\alpha_1}}
   \sum_{\alpha_2=1}^d
-  \frac{\partial X_{\alpha_2}}{\partial x_{\beta}}
-  \frac{\partial \Phi^2_{i_2}}{\partial X_{\alpha_2}}
+  \frac{\partial \hat{x}_{\alpha_2}}{\partial x_{\beta}}
+  \frac{\partial \hat{\phi}^2_{i_2}}{\partial \hat{x}_{\alpha_2}}
   \det F_T'
-  \dX.
+  \dxhat.
 \end{equation}
-Here, $\Phi_i^j = \phi_i^{T,j} \circ F_T$ denotes the basis function
-on the reference cell~$T_0$ corresponding to the basis function
+Here, $\hat{\phi}_i^j = \phi_i^{T,j} \circ F_T$ denotes the basis function
+on the reference cell~$\hat{T}$ corresponding to the basis function
 $\phi_i^{T,j}$ on the current cell~$T$. Since $F_T$ is affine, the
-derivatives $\partial X / \partial x$ and the determinant~$\det F_T'$
+derivatives $\partial \hat{x} / \partial x$ and the determinant~$\det F_T'$
 are constant. We thus obtain
 \begin{equation}
   A_{T,i} =
@@ -69,12 +66,12 @@ are constant. We thus obtain
   \sum_{\alpha_1=1}^d
   \sum_{\alpha_2=1}^d
   \sum_{\beta=1}^d
-  \frac{\partial X_{\alpha_1}}{\partial x_{\beta}}
-  \frac{\partial X_{\alpha_2}}{\partial x_{\beta}}
-  \int_{T_0}
-  \frac{\partial \Phi^1_{i_1}}{\partial X_{\alpha_1}}
-  \frac{\partial \Phi^2_{i_2}}{\partial X_{\alpha_2}}
-  \dX
+  \frac{\partial \hat{x}_{\alpha_1}}{\partial x_{\beta}}
+  \frac{\partial \hat{x}_{\alpha_2}}{\partial x_{\beta}}
+  \int_{\hat{T}}
+  \frac{\partial \hat{\phi}^1_{i_1}}{\partial \hat{x}_{\alpha_1}}
+  \frac{\partial \hat{\phi}^2_{i_2}}{\partial \hat{x}_{\alpha_2}}
+  \dxhat
   =
   \sum_{\alpha_1=1}^d
   \sum_{\alpha_2=1}^d
@@ -85,16 +82,16 @@ where
   \begin{split}
     A^0_{i\alpha}
     &=
-    \int_{T_0}
-    \frac{\partial \Phi^1_{i_1}}{\partial X_{\alpha_1}}
-    \frac{\partial \Phi^2_{i_2}}{\partial X_{\alpha_2}}
-    \dX, \\
+    \int_{\hat{T}}
+    \frac{\partial \hat{\phi}^1_{i_1}}{\partial \hat{x}_{\alpha_1}}
+    \frac{\partial \hat{\phi}^2_{i_2}}{\partial \hat{x}_{\alpha_2}}
+    \dxhat, \\
     G_T^{\alpha}
     &=
     \det F_T'
     \sum_{\beta=1}^d
-    \frac{\partial X_{\alpha_1}}{\partial x_{\beta}}
-    \frac{\partial X_{\alpha_2}}{\partial x_{\beta}}.
+    \frac{\partial \hat{x}_{\alpha_1}}{\partial x_{\beta}}
+    \frac{\partial \hat{x}_{\alpha_2}}{\partial x_{\beta}}.
   \end{split}
 \end{equation}
 We refer to the tensor~$A^0$ as the \emph{reference tensor} and to the
@@ -109,7 +106,7 @@ tensor contraction
   \begin{center}
     \def\svgwidth{\largefig}
     \import{chapters/kirby-8/pdf/}{affinemap.pdf_tex}
-    \caption{The (affine) map $F_T$ from a reference cell $T_0$
+    \caption{The (affine) map $F_T$ from a reference cell $\hat{T}$
       to a cell $T \in \mathcal{T}_h$.}
     \label{fig:affinemap}
   \end{center}
@@ -184,7 +181,7 @@ matrix) and $a(w; u, v) = \inner{w \cdot \nabla u}{v}$ (advection).
       \hline
       \hline
       &&&\\[-2ex]
-      $A^0_{i\alpha}$ &$=$& $\int_{T_0} \Phi_{i_1}^{1} \Phi_{i_2}^{2} \dX$
+      $A^0_{i\alpha}$ &$=$& $\int_{\hat{T}} \hat{\phi}_{i_1}^{1} \hat{\phi}_{i_2}^{2} \dxhat$
       & $|i\alpha| = 2$ \\[1ex]
       \hline
       &&&\\[-2ex]
@@ -209,17 +206,17 @@ matrix) and $a(w; u, v) = \inner{w \cdot \nabla u}{v}$ (advection).
       &&&\\[-2ex]
       $A^0_{i\alpha}$ &$=$&
       $\sum_{\beta=1}^d
-      \int_{T_0}
-      \frac{\partial \Phi^2_{i_2}[\beta]}{\partial X_{\alpha_3}}
-      \Phi^3_{\alpha_1}[\alpha_2]
-      \Phi^1_{i_1}[\beta]
-      \dX$
+      \int_{\hat{T}}
+      \frac{\partial \hat{\phi}^2_{i_2}[\beta]}{\partial \hat{x}_{\alpha_3}}
+      \hat{\phi}^3_{\alpha_1}[\alpha_2]
+      \hat{\phi}^1_{i_1}[\beta]
+      \dxhat$
       & $|i\alpha| = 5$ \\[1ex]
       \hline
       &&&\\[-2ex]
       $G_T^{\alpha}$ &$=$&
       $w^T_{\alpha_1} \det F_T'
-      \frac{\partial X_{\alpha_3}}{\partial x_{\alpha_2}}$
+      \frac{\partial \hat{x}_{\alpha_3}}{\partial x_{\alpha_2}}$
       & $|\alpha| = 3$ \\[1ex]
       \hline
     \end{tabular}
@@ -238,7 +235,7 @@ matrix) and $a(w; u, v) = \inner{w \cdot \nabla u}{v}$ (advection).
 
 The tensor contraction~\eqref{eq:tensorcontraction} assumes that the
 map~$F_T$ from the reference cell is affine, allowing the transforms
-$\partial X / \partial x$ and the determinant $\det F_K'$ to be pulled
+$\partial \hat{x} / \partial x$ and the determinant $\det F_K'$ to be pulled
 out of the integral. If the map is non-affine (sometimes called a
 ``higher-order'' map), one may expand it in the basis functions of the
 corresponding finite element space and pull the coefficients outside
@@ -260,7 +257,7 @@ $T$, such as the affine map or Piola transform. Then the physical
 element basis functions can be expressed as a linear combination of
 the transformed reference element basis functions,
 \begin{equation}
-  \phi^T_i = \sum_{j=1}^n M_{T,{ij}} \mathcal{F}_T \left( \Phi_j \right).
+  \phi^T_i = \sum_{j=1}^n M_{T,{ij}} \mathcal{F}_T \left( \hat{\phi}_j \right).
 \end{equation}
 The structure of this matrix \( M_T \) depends on the kinds of degrees
 freedom, and the values typically vary for each \( T \) based on the
