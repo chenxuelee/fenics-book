@@ -21,19 +21,21 @@ in continuum mechanics we refer to chapter \ref{chap:hoffman-1}.
 
 Unicorn is solver technology (models, methods, algorithms and software
 implementations) with the goal of automated simulation of realistic
-continuum mechanics applications, such as drag or lift computation
-for fixed or flexible objects (fluid--structure interaction) in
-turbulent incompressible or compressible flow (airplane or bird flight,
-car aerodynamics). The basis for Unicorn is Unified Continuum (UC)
-modeling formulated in Euler (laboratory) coordinates, together with
-a G2 (General Galerkin) adaptive stabilized FEM discretization with a
-moving mesh for tracking the phase interfaces. The UC model consists of
-canonical conservation equations for mass, momentum, energy and phase
-over the whole domain as one continuum, together with a Cauchy stress and
-phase variable as data for defining material properties and constitutive
-equation. Unicorn formulates and implements the adaptive G2 method applied
-to the UC model, and interfaces to other components in the FEniCS chain
-(FIAT, FFC, DOLFIN) providing representation of finite element function
+continuum mechanics applications, such as drag or lift computation for
+fixed or flexible objects (fluid--structure interaction) in turbulent
+incompressible or compressible flow (airplane or bird flight, car
+aerodynamics. See figure \ref{fig:flag3D} for a plot of a model problem
+of a 3D flexible flag in turbulent flow). The basis for Unicorn is
+Unified Continuum (UC) modeling formulated in Euler (laboratory)
+coordinates, together with a G2 (General Galerkin) adaptive stabilized
+FEM discretization with a moving mesh for tracking the phase
+interfaces. The UC model consists of canonical conservation equations
+for mass, momentum, energy and phase over the whole domain as one
+continuum, together with a Cauchy stress and phase variable as data
+for defining material properties and constitutive equation. Unicorn
+formulates and implements the adaptive G2 method applied to the UC
+model, and interfaces to other components in the FEniCS chain (FIAT,
+FFC, DOLFIN) providing representation of finite element function
 spaces, weak forms and mesh, and algorithms such as automated parallel
 assembly and linear algebra.
 
@@ -467,14 +469,17 @@ solver computes one iteration of the adaptive algorithm (primal solve,
 dual solve and mesh refinement), where the adaptive loop is implemented
 by iteratively running the solver for a sequence of meshes.
 
-The \emp{UCSolver} implementation is parallelized for distributed memory
-architectures using MPI, and we can show strong scaling for hundreds
-of cores on several platforms (see Figure~\ref{fig:hoffman-2:sp}). The
-entire adaptive algorithm is parallel (including Rivara mesh refinement
-and a priori predictive load balancing) and Unicorn can efficiently
-simulate massively parallel applications for turbulent incompressible
-flow \citep{JanssonHoffmanJansson2010, Jansson2011}. Fluid--structure
-interaction is not yet enabled in parallel but this is work in progress.
+The \emp{UCSolver} implementation is parallelized for distributed
+memory architectures using MPI, and we can show strong scaling for
+hundreds of cores on several platforms (see
+Figure~\ref{fig:hoffman-2:sp}). The entire adaptive algorithm is
+parallel (including Rivara mesh refinement and a priori predictive
+load balancing) and Unicorn can efficiently simulate massively
+parallel applications for turbulent incompressible
+flow \citep{JanssonHoffmanJansson2010, Jansson2011}, see an example
+plot of a parallel adaptive cylinder simulation in
+figure \ref{fig:parcyl3D}. Fluid--structure interaction is not yet
+enabled in parallel but this is work in progress.
 
 \begin{figure}
 \centering
@@ -487,15 +492,18 @@ refinement and entire solver on several different architectures:
 line refers to ideal speedup}
 \end{figure}
 
-\editornote{Images in Fig~\ref{fig:hoffman-2:sp} should be vector graphics, not bitmap.}
+\editornote{Above figures should not be bitmaps}
 
-A compressible variant of the \emp{UCSolver} exists as the \emp{CNSSolver}
-for adaptive G2 for compressible Euler flow. The general method
-and algorithm is very close to that of the \emp{UCSolver}, aside
-from the incompressibility. The long term goal is a unification of
-the incompressible/compressible formulations as well. We refer to
-\citet{Nazarov2009} for implementation details of the compressible
-\emp{CNSSolver}.
+A compressible variant of the \emp{UCSolver} exists as
+the \emp{CNSSolver} for adaptive G2 for compressible Euler flow. The
+general method and algorithm is very close to that of
+the \emp{UCSolver}, aside from the incompressibility. The long term
+goal is a unification of the incompressible/compressible formulations
+as well. We refer to \citet{Nazarov2009} for implementation details of
+the compressible
+\emp{CNSSolver}. See figure \ref{fig:compr3D} for an example plot of compressible flow around a
+sphere and figure \ref{code:form_compressible} for the source code of
+the variational forms.
 
 There also exists variants of the UC solver as part of the Unicorn
 source code representing older formulations of the method, or pure
@@ -1234,12 +1242,14 @@ highlighted (b) possible configuration after the swap.}
 \editornote{Figure~\ref{fig:op:eswap} is not referenced in text.}
 
 MAdLib incorporates an algorithm and implementation of {\bf mesh
-adaptation} where a small set of local mesh modification operators
-are defined such as edge split, edge collapse and edge swap. A mesh
-adaptation algorithm is defined which uses this set of local operators
-in a control loop to satisfy a prescribed size field $h(x)$ and quality
-tolerance. Edge swapping is the key operator for improving quality of
-cells, for example around a vertex with a large number of connected edges.
+adaptation} where a small set of local mesh modification operators are
+defined such as edge split, edge collapse and edge swap (see
+figure \ref{fig:op:eswap} for an illustration of the edge swap
+operator). A mesh adaptation algorithm is defined which uses this set
+of local operators in a control loop to satisfy a prescribed size
+field $h(x)$ and quality tolerance. Edge swapping is the key operator
+for improving quality of cells, for example around a vertex with a
+large number of connected edges.
 
 In the formulation of finite element methods it is typically assumed
 that the cell size of a computational mesh can be freely modified
@@ -1461,11 +1471,6 @@ public:
 \end{c++}
 \caption{Part 1 of Unicorn solver FSI use case: geometry and subdomains.}
 \end{figure}
-
-\editornote{Numerous figures not referenced in text.}
-
-\editornote{Figures with more than one image should use (a), (b), etc.}
-
 
 \begin{figure}
 \begin{c++}
