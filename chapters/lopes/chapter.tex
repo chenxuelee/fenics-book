@@ -3,42 +3,41 @@
               {Nuno D. Lopes, Pedro Jorge Silva Pereira and Lu{\'\i}s Trabucho}
               {lopes}
 
-The main motivation of this work is the implementation of a general
-finite element solver for some of the improved Boussinesq
-models\index{Boussinesq models}. Here, we use an extension of the
-model proposed by~\citet{ZhaoTengCheng2004} to investigate the
-behavior of surface water waves. The equations in this model do not
-contain spatial derivatives with an order higher than 2. Some effects
-like energy dissipation and wave generation by natural phenomena or
-external physical mechanisms are also included.  As a consequence,
-some modified dispersion relations are derived for this extended
-model. A matrix-based linear stability analysis of the proposed model
-is presented.  It is shown that this model is robust with respect to
-instabilities related to steep bottom gradients.
+The main motivation of this work is the implementation of a
+general finite element solver for some of the improved Boussinesq
+models\index{Boussinesq models}. Here, we use an extension of the model
+proposed by~\citet{ZhaoTengCheng2004} to investigate the behavior
+of surface water waves. The equations in this model do not contain
+spatial derivatives with an order higher than 2. Some effects like
+energy dissipation and wave generation by natural phenomena or external
+physical mechanisms are also included.  As a consequence, some modified
+dispersion relations are derived for this extended model. A matrix-based
+linear stability analysis of the proposed model is presented.  It is
+shown that this model is robust with respect to instabilities related
+to steep bottom gradients.
 
 \section{Overview}
 
-The \fenics project, via \dolfin, \ufl and \ffc, provides good
-technical and scientific support for the implementation of large scale
-industrial models based on the finite element method. Specifically,
-all the finite element matrices and vectors are automatically
-generated and assembled by \dolfin\ and \ffc, directly from the
-variational formulation of the problem which is declared using
-\ufl. Moreover, \dolfin\ provides a user friendly interface for the
-libraries needed to solve the finite element system of equations.
+The \fenics project, via \dolfin, \ufl and \ffc, provides good technical
+and scientific support for the implementation of large scale industrial
+models based on the finite element method. Specifically, all the finite
+element matrices and vectors are automatically generated and assembled
+by \dolfin\ and \ffc, directly from the variational formulation of the
+problem which is declared using \ufl. Moreover, \dolfin\ provides a user
+friendly interface for the libraries needed to solve the finite element
+system of equations.
 
-Numerical implementation of Boussinesq equations goes back to the
-works of \citet{Peregrine1967} and \citet{Wu1981}, and later by the
-development of improved dispersion characteristics (see, e.g.,
-\citet{MadsenEtAl1991,Nwogu1993,ChenLiu1994} as well as
+Numerical implementation of Boussinesq equations goes back to
+the works of \citet{Peregrine1967} and \citet{Wu1981}, and later
+by the development of improved dispersion characteristics (see,
+e.g., \citet{MadsenEtAl1991,Nwogu1993,ChenLiu1994} as well as
 \citet{BejiNadaoka1996}).
 
-We implement a solver for some of the Boussinesq type systems to model
-the evolution of surface water waves\index{water waves} in a variable
-depth seabed.  This type of model is used, for instance, in harbor
-simulation (see Figure~\ref{fig:lopes:harbor} for an example of a
-standard harbor), tsunami generation and wave propagation as well as
-in coastal dynamics.
+We implement a solver for some of the Boussinesq type systems to model the
+evolution of surface water waves\index{water waves} in a variable depth
+seabed.  This type of model is used, for instance, in harbor simulation
+(see Figure~\ref{fig:lopes:harbor} for an example of a standard harbor),
+tsunami generation and wave propagation as well as in coastal dynamics.
 
 \begin{figure}
   \begin{center}
@@ -48,44 +47,43 @@ in coastal dynamics.
   \label{fig:lopes:harbor}
 \end{figure}
 
-In Section~\ref{sec:lopes:dolfwave}, we begin by describing the
-DOLFWAVE application which is a \fenics based application for the
-simulation of surface water waves (see
-\emp{http://ptmat.fc.ul.pt/$\sim$ndl/}).
+In Section~\ref{sec:lopes:dolfwave}, we begin by describing the DOLFWAVE
+application which is a \fenics based application for the simulation of
+surface water waves (see \url{http://ptmat.fc.ul.pt/~ndl/}).
 
-The governing equations for surface water waves are presented in
-Section~\ref{sec:lopes:modelderivation}. From these equations
+\editornote{URL should be archival.}
+
+The governing equations for surface water waves are presented
+in Section~\ref{sec:lopes:modelderivation}. From these equations
 different types of models can be derived. There are several Boussinesq
 models and some of the most widely used are those based on the wave
 surface Elevation and horizontal Velocities formulation (BEV) (see,
-e.g., ~\citet{WalkleyBerzins2002}, ~\citet{WooLiu2004a} as well
-as~\citet{WooLiu2004b} for finite element discretizations of BEV
-models).  However, we only consider the wave surface Elevation and
-velocity Potential (BEP) formulation (see, e.g.,
-~\citet{LangtangenPedersen1998} for a finite element discretization of
-a BEP model).  Thus, the number of unknowns is reduced from five (the
-three velocity components, the pressure and the wave surface
-elevation) in the BEV models to three (the velocity potential, the
-pressure and the wave surface elevation) in the BEP models. Two
-different types of BEP models are taken into account:
-
-\begin{itemize}
-\item[{\it i})] a standard  model containing sixth-order
+e.g., \citet{WalkleyBerzins2002}, \citet{WooLiu2004a} as well as
+\citet{WooLiu2004b} for finite element discretizations of BEV models).
+However, we only consider the wave surface Elevation and velocity
+Potential (BEP) formulation (see, e.g., ~\citet{LangtangenPedersen1998}
+for a finite element discretization of a BEP model).  Thus, the number
+of unknowns is reduced from five (the three velocity components, the
+pressure and the wave surface elevation) in the BEV models to three (the
+velocity potential, the pressure and the wave surface elevation) in the
+BEP models. Two different types of BEP models are taken into account:
+%%
+\begin{enumerate}
+\item \label{lopes:i}  a standard  model containing sixth-order
   spatial derivatives;
-\item[{\it ii})] the  model proposed
-by~\citet{ZhaoTengCheng2004} (ZTC),
+\item the  model proposed by~\citet{ZhaoTengCheng2004} (ZTC),
  containing only first and second-order spatial derivatives.
-\end{itemize}
+\end{enumerate}
 
 A standard technique is used in order to derive the Boussinesq-type
-model mentioned in {\it i)}.  In the subsequent sections, only the
+model mentioned in~\ref{lopes:i}.  In the subsequent sections, only the
 ZTC-type model is considered.  Note that these two models are
 complemented with some extra terms, due to the inclusion of effects
 like energy dissipation and wave generation by moving an impermeable
 bottom or using a source function.
 
-An important characteristic of the extended ZTC model, including
-dissipative effects, is presented in
+An important characteristic of the extended ZTC
+model, including dissipative effects, is presented in
 Section~\ref{sec:lopes:dispersionproperties}, namely, the dispersion
 relation.
 
@@ -102,7 +100,7 @@ wave generation, absorption and reflection mechanisms. Initial
 conditions for a solitary wave and a periodic wave induced by
 Dirichlet boundary conditions are also presented. Moreover, the
 extended ZTC model includes a source function to generate surface
-water waves, as proposed in~\citet{WeiKirbySinha1999}. Total
+water waves, as proposed in \citet{WeiKirbySinha1999}. Total
 reflective walls are modelled by standard zero Neumann conditions for
 the wave surface elevation and velocity potential.  The wave energy
 absorption is simulated using sponge layers.
@@ -111,7 +109,7 @@ In Section~\ref{sec:lopes:linearanalysis}, we use a matrix-based
 analysis in order to study some stability properties of the linearized
 ZTC model in one horizontal dimension and with a time-independent
 bathymetry. The standard potential model with depth averaged velocity
-potential investigated by~\citet{LovholtPedersen2009} is also used
+potential investigated by \citet{LovholtPedersen2009} is also used
 here as a reference for comparison.
 
 In Section~\ref{sec:lopes:numericaltests}, the extended ZTC equations
@@ -125,10 +123,10 @@ first numerical test to illustrate the usage of the DOLFWAVE
 application.
 
 Other solvers, mostly based on finite difference methods, have been
-proposed in the literature, such like FUNWAVE (see~\citet{Kirby1998}),
-COULWAVE (see~\citet{LynettLiu2004}) and the global Boussinesq solver
-by~\citet{PedersenLovholt2008}.  FUNWAVE is based on the fully
-nonlinear and BEV equations by~\citet{WeiKirby1995}.  Wave generation
+proposed in the literature, such like FUNWAVE (see \citet{Kirby1998}),
+COULWAVE (see \citet{LynettLiu2004}) and the global Boussinesq solver
+by \citet{PedersenLovholt2008}.  FUNWAVE is based on the fully
+nonlinear and BEV equations by \citet{WeiKirby1995}.  Wave generation
 by source function, wave breaking, bottom friction, treatment of
 moving shorelines, subgrid turbulent mixing, totally reflective walls
 and sponge layers are included in this model.  The third-order spatial
@@ -152,9 +150,9 @@ unknowns in this two horizontal dimensional model with $n$-layers
 increases from $3$ to $2n+1$. Thus, the computational time is also
 increased, accordingly.
 
-The global Boussinesq solver by~\citet{PedersenLovholt2008} is based
+The global Boussinesq solver by \citet{PedersenLovholt2008} is based
 on BEV and BEP models, although the BEV versions are preferred by the
-authors.  In~\citet{LovholtPedersen2009} several BEV and BEP models
+authors.  In \citet{LovholtPedersen2009} several BEV and BEP models
 are studied regarding linear stability properties.  It was shown that
 the tested BEV formulations are less prone to instabilities due to
 steep depth gradients than some BEP ones.  This solver includes
@@ -179,16 +177,16 @@ not yet included in the application, however they are planned for
 future implementation.
 
 We have already implemented solvers for the following cases:
-
-\begin{itemize}
-\item[{\it i)}] Shallow water wave models for unidirectional
+%%
+\begin{enumerate}
+\item \label{lopes:list_i} Shallow water wave models for unidirectional
   long waves in one horizontal dimension;
-\item[{\it ii)}] Boussinesq-type models for moderately long
+\item  Boussinesq-type models for moderately long
   waves with small amplitude in shallow water.
-\end{itemize}
-
-The shallow water wave models implemented and mentioned in {\it i)}
-are the following:
+\end{enumerate}
+%%
+The shallow water wave models implemented and mentioned in
+\ref{lopes:list_i} are the following:
 \begin{itemize}
 \item The Korteweg--de Vries (KdV) model which consists of a weakly
   nonlinear and dispersive third-order partial differential equation
@@ -202,10 +200,10 @@ are the following:
   of the spatial variable is accomplished using continuous finite
   element methods with Lagrange $P_1$ or $P_2$ elements.
 \end{itemize}
-
+%%
 For the Boussinesq-type models we considered the following
 cases:
-
+%%
 \begin{itemize}
 \item The extended ZTC model which is based on a system of two
   second-order partial differential equations for the wave surface
@@ -240,11 +238,11 @@ on the C++ interface of DOLFIN $0.9.9$ to assemble and solve all the
 systems of equations related with the finite element method.
 
 All the DOLFWAVE code is available for download at
-\emp{https://launchpad.net/dolfwave}. Some tools for the generation of
+\url{https://launchpad.net/dolfwave}. Some tools for the generation of
 the C++ code for boundary conditions and source functions are
 included. Scripts for visualization and data analysis are also part of
 the application. The Xd3d post-processor is used in some cases (see
-\emp{http://www.cmap.polytechnique.fr/$\sim$jouve/xd3d/}).  DOLFWAVE
+\url{http://www.cmap.polytechnique.fr/~jouve/xd3d/}).  DOLFWAVE
 has a large number of demos covering all the implemented models (see
 \emp{dolfwave/demo}). Different physical effects are illustrated.  All
 the numerical examples in this work are included in the demos.
@@ -316,20 +314,20 @@ given by $\nabla=\left(\frac{\partial }{\partial
 the following boundary conditions must be satisfied:
 
 \begin{enumerate}
-\item[{\it i})] the kinematic boundary condition for the free water
+\item the kinematic boundary condition for the free water
   surface:
   \begin{equation}
     \frac{\partial \phi}{\partial
       z}=\frac{\partial\eta}{\partial
       t}+\nabla\phi\cdot\nabla\eta,\quad z=\eta;
   \end{equation}
-\item[{\it ii})] the kinematic boundary condition for the
+\item the kinematic boundary condition for the
   impermeable sea bottom:
   \begin{equation}
     \frac{\partial \phi}{\partial z}+(\nabla\phi\cdot\nabla
     h)=-\frac{\partial h}{\partial t}, \quad z=-h;
   \end{equation}
-\item[{\it iii})] the dynamic boundary condition for the
+\item the dynamic boundary condition for the
   free water surface:
   \begin{equation}\label{eq:lopes:dyn}
     \frac{\partial \phi}{\partial t}+ g\eta+\frac{1}{2}
@@ -337,16 +335,16 @@ the following boundary conditions must be satisfied:
           z}\right)^2\right)+ D(\phi) = 0, \quad z =\eta,
   \end{equation}
 \end{enumerate}
-
+%%
 where $D(\phi)$ is a dissipative term (see, e.g., the work
 by~\citet{DutykhDias2007}).  We assume that this dissipative term is
 of the following form:
-
+%%
 \begin{equation}
   \label{eq:lopes:diss}
   D(\phi)=\nu\frac{\partial ^2\phi}{\partial z^2},
 \end{equation}
-
+%%
 with $\nu=\bar{\mu}/\rho$ and $\bar{\mu}$ an eddy-viscosity
 coefficient.  Note that a non-dissipative model means that there is no
 energy loss.  This is not acceptable from a physical point of view,
@@ -370,19 +368,19 @@ velocity potential formulation.  To transform
 equations~\eqref{eq:lopes:bern}--~\eqref{eq:lopes:diss} in a
 dimensionless form, the following scales are introduced (see
 Figure~\ref{fig:lopes:schematic}):
-
+%%
 \begin{equation}
 ( x', y')=\frac{1}{L}(x,y),\quad z'=\frac{z}{H}, \quad
 t'=\frac{t\sqrt{gH}}{L},\quad \eta'=\frac{\eta}{A},\quad
 \phi'= \frac{H\phi}{AL\sqrt{gH}},\quad h'=\frac{h}{H},
 \end{equation}
-
+%%
 together with the small parameters
-
+%%
 \begin{equation}
   \mu=\frac{H}{L},\quad \varepsilon=\frac{A}{H}.
 \end{equation}
-
+%%
 In the last equation, $\mu$ is called the long wave parameter and
 $\varepsilon$ the small amplitude wave parameter.  Note that
 $\varepsilon$ is related with the nonlinear terms and $\mu$ with the
@@ -394,35 +392,35 @@ one.  This may be accomplished by expanding the velocity potential in
 a Taylor power series in terms of $z$.  Using Laplace's equation, in a
 dimensionless form, we can obtain the following expression for the
 velocity potential:
-
+%%
 \begin{equation}
 \phi(x,y,z,t) = \sum_{n=0}^{+\infty} \left((-1)^n \frac{z^{2n}}{(2n)!}
   \mu^{2n}\nabla^{2n}\phi_0(x,y,t) + (-1)^n \frac{z^{2n+1}}{(2n+1)!}
   \mu^{2n}\nabla^{2n}\phi_1(x,y,t)\right),
 \end{equation}
-
+%%
 with
-
+%%
 \begin{equation}
   \phi_0=\phi\mid_{ z=0},\quad
   \phi_1=\left(\frac{\partial \phi}{\partial z}\right)\mid_{z=0}\!.
 \end{equation}
-
+%%
 From asymptotic expansions, successive approximation techniques and
 the kinematic boundary condition for the sea bottom, it is possible to
 write $\phi_1$ in terms of $\phi_0$ (see~\citet{ChenLiu1994}
 and~\citet{ZhaoTengCheng2004}).  In this work, without loss of
 generality, we assume that the dispersive and nonlinear terms are
 related by the following equation:
-
+%%
 \begin{equation}
   \label{eq:lopes:ursell}
   \frac{\varepsilon}{\mu^2}=O(1)\ {\rm with}\ \mu<1\ {\rm
     and}\ \varepsilon<1.
 \end{equation}
-
-Note that the Ursell number is defined by $\displaystyle
-U_r=\frac{\varepsilon}{\mu^2}$ and plays a central role in deciding
+%%
+Note that the Ursell number is defined by
+$U_r = \varepsilon/\mu^2$ and plays a central role in deciding
 the choice of approximations which correspond to very different
 physics.  The regime of weakly nonlinear, small amplitude and
 moderately long waves in shallow water is characterized by
@@ -440,7 +438,7 @@ expanded in terms of $\phi_0$ and all terms up to $O(\mu^8)$ are
 retained.  Thus, the asymptotic kinematic and dynamic boundary
 conditions for the free water surface are rewritten as follows
 \footnote{Note that $D$ is, now, a dimensionless function.}:
-
+%%
 \begin{subequations}
   \label{eq:lopes:kindyn}
   \begin{align}
@@ -460,9 +458,9 @@ conditions for the free water surface are rewritten as follows
     =O(\mu^{6}),
   \end{align}
 \end{subequations}
-
+%%
 where $\phi_1$ is given by:
-
+%%
 \begin{multline}\label{eq:lopes:phi_1}
   \phi_1= -\mu^{2}\nabla\cdot\left(h\nabla\phi_0\right)
   +\frac{\mu^{4}}{6}\nabla\cdot\left(h^3\nabla^3\phi_0\right)
@@ -495,9 +493,9 @@ only $O(h,\nabla h)$ terms are retained.  Also, only $O(\varepsilon)$
 nonlinear terms are admitted.  In fact, the extended ZTC model is
 written retaining only $O(\varepsilon,\mu^4)$ terms.
 
-Under these conditions,~\eqref{eq:lopes:kindyn} and
-~\eqref{eq:lopes:phi_1} lead to:
-
+Under these conditions, \eqref{eq:lopes:kindyn} and~\eqref{eq:lopes:phi_1}
+lead to:
+%%
 \begin{subequations}
 \label{eq:lopes:kindyn2}
 \begin{align} &\displaystyle\frac{\partial \eta}{\partial
@@ -512,9 +510,9 @@ Under these conditions,~\eqref{eq:lopes:kindyn} and
   \label{eq:lopes:kindyn2-b}
 \end{align}
 \end{subequations}
-
+%%
 where $\nu^*=\nu\sqrt{H}/(AL\sqrt{g})$ and
-
+%%
 \begin{multline}
 \label{eq:lopes:phi_2}
 \phi_1= -\mu^{2}\nabla\cdot\left(h\nabla\phi_0\right)
@@ -526,9 +524,9 @@ where $\nu^*=\nu\sqrt{H}/(AL\sqrt{g})$ and
 h\cdot\nabla^5\phi_0
 -\frac{\mu^2}{\varepsilon}\frac{\partial h}{\partial t}+O(\mu^{8}).
 \end{multline}
-
+%%
 Thus, these extended equations are written as follows:
-
+%%
 \begin{subequations}
 \label{eq:lopes:ztcdimensionless}
 \begin{align}
@@ -545,17 +543,17 @@ Thus, these extended equations are written as follows:
   \label{eq:lopes:ztcdimensionless-b}
 \end{align}
 \end{subequations}
-
+%%
 where $\Phi$ is the transformed velocity potential given by:
-
+%%
 \begin{equation}
   \label{eq:lopes:phitransdimensionless}
   \Phi=\phi_0+\mu^2\frac{h}{15}\nabla\cdot(h\nabla\phi_0).
 \end{equation}
-
+%%
 In terms of the dimensional variables,
 equations~\eqref{eq:lopes:ztcdimensionless} become:
-
+%%
 \begin{subequations}
   \label{eq:lopes:ztc}
   \begin{align}
@@ -571,25 +569,25 @@ equations~\eqref{eq:lopes:ztcdimensionless} become:
     \label{eq:lopes:ztc-b}
   \end{align}
 \end{subequations}
-
+%%
 whereas equation~\eqref{eq:lopes:phitransdimensionless} is rewritten
 as follows:
-
+%%
 \begin{equation}
   \label{eq:lopes:phitrans}
   \Phi=\phi_0+\frac{h}{15}\nabla\cdot(h\nabla\phi_0).
 \end{equation}
-
+%%
 In this context, the use of the transformed velocity potential has two
 main advantages (see~\citet{ZhaoTengCheng2004}):
-
-\begin{itemize}
-\item[{\it i})] the spatial derivative order is reduced to 2;
-\item[{\it ii})] linear dispersion characteristics, analogous to the
-  BEP model proposed by~\citet{ChenLiu1994} and the  BEV model
-  developed by~\citet{Nwogu1993}, are obtained. The latter models
+%%
+\begin{enumerate}
+\item the spatial derivative order is reduced to 2;
+\item linear dispersion characteristics, analogous to the
+  BEP model proposed by \citet{ChenLiu1994} and the  BEV model
+  developed by \citet{Nwogu1993}, are obtained. The latter models
   contain fourth and third-order spatial derivatives, respectively.
-\end{itemize}
+\end{enumerate}
 
 \section{Linear dispersion relation}
 \label{sec:lopes:dispersionproperties}
@@ -610,7 +608,7 @@ usually used in the sponge layers.
 
 For simplicity, a one horizontal dimensional model is considered.  To
 obtain the dispersion relation, a standard test wave is assumed:
-
+%%
 \begin{subequations}
   \label{eq:lopes:linwave}
   \begin{align}
@@ -619,47 +617,47 @@ obtain the dispersion relation, a standard test wave is assumed:
     &\Phi(x,t)=-b\,i\,e^{i(kx-\omega t)},
   \end{align}
 \end{subequations}
-
+%%
 where $a$ is the wave amplitude, $b$ the potential magnitude,
 $k=2\pi/L$ the wave number and $\omega$ the angular frequency.  This
 wave, described by equations~\eqref{eq:lopes:linwave}, is the solution
 of the linearized extended ZTC model, with a constant depth bottom and
 an extra dissipative term, if the following equation is satisfied:
-
+%%
 \begin{equation}
   \label{eq:lopes:dissdisp}
   \omega^2-ghk^2\frac{1+\frac{1}{15}(kh)^2}{1 +
   \frac{2}{5}(kh)^2} + i\nu\omega k^2=0.
 \end{equation}
-
+%%
 The dispersion relation given by the last equation is accurate up to
 $O((kh)^4)$ or $O(\mu^4)$ when compared with the Pad\'{e} approximant
 of order $[2/2]$ of the following equation:
-
+%%
 \begin{equation}
   \label{eq:lopes:linairy}
   \omega^2-ghk^2\frac{\tanh(kh)}{kh} + i\nu\omega k^2 = 0.
 \end{equation}
-
+%%
 In fact, equation~\eqref{eq:lopes:linairy} is the dispersion relation
 of the full linear problem.
+%%
 
-From~\eqref{eq:lopes:dissdisp}, the phase velocity, $\displaystyle
-C=\frac{w}{k}$, for this dissipative and extended ZTC model is given
-by:
-
+From~\eqref{eq:lopes:dissdisp}, the phase velocity, $C= w/k$, for this
+dissipative and extended ZTC model is given by:
+%%
 \begin{equation}
 \label{eq:lopes:phasevel}
 C = -\frac{i\nu k}{2}\pm\sqrt{-\left(\frac{\nu
       k}{2}\right)^2+gh\frac{(1+\frac{1}{15}(kh)^2)}{(1+\frac{2}{5}(kh)^2)}}.
 \end{equation}
-
+%%
 In Figure~\ref{fig:lopes:dispersion}, we can see the positive real
 part of $\displaystyle\left(C/\sqrt{gh}\right)$ as a function of $kh$
 for the following models: full linear theory (FL), Zhao et al. (ZTC),
 full linear theory with a dissipative model (FL\_D) and the improved
 ZTC model with the dissipative term (ZTC\_D).
-
+%%
 \begin{figure}
   \begin{center}
     \includegraphics[width=\largefig]{chapters/lopes/pdf/phase_velocity_simple.pdf}
@@ -669,8 +667,8 @@ ZTC model with the dissipative term (ZTC\_D).
     several models.}
   \label{fig:lopes:dispersion}
 \end{figure}
-
-\noindent From Figure~\ref{fig:lopes:dispersion}, we can also see that
+%%
+From Figure~\ref{fig:lopes:dispersion}, we can also see that
 these two dissipative models admit critical wave numbers $k_1$ and
 $k_2$, such that the positive part of $\displaystyle
 Re\left(C/\sqrt{gh}\right)$ is zero for $k\geqslant k_1$ and
@@ -678,22 +676,22 @@ $k\geqslant k_2$, respectively.  We can optimize the value of $\nu$ in
 the ZTC\_D model in order to have $k_1=k_2$.  From
 \eqref{eq:lopes:linairy}, $\displaystyle Re\left(C/\sqrt{gh}\right)$
 is zero for
-
+%%
 \begin{equation}
   k_1^3=4g\frac{\tanh{(k_1h)}}{\nu^2}.
 \end{equation}
-
+%%
 Thus, we can obtain the values of $k_1$, in the FL\_D model, for which
 short waves no longer propagate for fixed $h$ and $\nu=\nu_1$ values.
 Considering now the real part of \eqref{eq:lopes:phasevel} equal to
 zero, we have
-
+%%
 \begin{equation}
 \label{eq:lopes:nu1}
 \nu^2=4\frac{gh}{k^2}\left(\frac{1+\frac{1}{15}(kh)^2}{1 +
     \frac{2}{5}(kh)^2}\right).
 \end{equation}
-
+%%
 Therefore, inserting the previous value of $k_1$ into
 \eqref{eq:lopes:nu1} we obtain the corresponding value of $\nu=\nu_2$,
 in the ZTC\_D model, for which the same type of waves do not
@@ -717,14 +715,14 @@ and~\citet{MadsenBinghamSchaffer2003}).
 \label{sec:lopes:numericalmethods}
 We start this section by noting that a detailed description of the
 implemented numerical methods referred bellow can be found in the work
-of~\citet{Lopes2007}.
+of \citet{Lopes2007}.
 
 For simplicity, we only consider the system described by
 equations~\eqref{eq:lopes:ztc} restricted to a stationary bottom and
 without dissipative or extra source terms.
 
 The model variational formulation is written as follows:
-
+%%
 \begin{subequations}
   \label{eq:lopes:varform}
   \begin{align}
@@ -763,7 +761,7 @@ The model variational formulation is written as follows:
     \end{split}
   \end{align}
 \end{subequations}
-
+%%
 where the unknown functions $\eta$ and $\Phi$ are the wave surface
 elevation and the transformed velocity potential, whereas
 $\vartheta_1$ and $\vartheta_2$ are the test functions defined in
@@ -778,11 +776,11 @@ RungeKutta classes (see \emp{dolfwave/src/predictorcorrector} and
 
 Note that the discretization of equations~\eqref{eq:lopes:varform} can
 be written in the following form:
-
+%%
 \begin{equation}
   M\dot U=F(t,U),
 \end{equation}
-
+%%
 where $\dot U$ and $U$ refer to $\displaystyle \left(\frac{\partial
 \eta}{\partial t},\frac{\partial \Phi}{\partial t}\right)$ and
 $(\eta,\Phi)$, respectively.  The coefficient matrix $M$ is given by
@@ -790,7 +788,7 @@ the left-hand sides of~\eqref{eq:lopes:varform}, whereas the known
 vector $F$ is related with the right-hand sides of the same equations.
 In this way, the fourth-order Adams-Bashforth-Moulton method can be
 written as follows:
-
+%%
 \begin{subequations}
   \label{eq:lopes:pc}
   \begin{align}
@@ -806,7 +804,7 @@ written as follows:
     \label{eq:lopes:pc-b}
   \end{align}
 \end{subequations}
-
+%%
 where $\Delta t$ is the time step, $t_n=n\Delta t$ $(n\in \mathbb{N})$
 and $U_n$ is $U$ evaluated at $t_n$.  The predicted and corrected
 values of $U_n$ are denoted by $U_n^{(0)}$ and $U_n^{(1)}$,
@@ -905,37 +903,37 @@ mechanisms to generate surface water waves along the $x$ direction.
 The simplest way of inducing a wave into a certain domain is to
 consider an appropriate initial condition. A useful and typical case
 is to assume a solitary wave given by:
-
+%%
 \begin{equation}
   \label{eq:lopes:solita}
   \eta(x,t)=a_1\,{\rm sech}^2(kx -\omega t)+a_2\,{\rm
     sech}^4(kx-\omega t)\quad {\rm at\,\,} t=0\,{\tt s},
 \end{equation}
-
+%%
 \begin{equation}
   \label{eq:lopes:solitb}
   u(x,t)=a_3\,{\rm sech}^2(k x-\omega t) \quad {\rm at\,\,}
   t=0\,{\tt s},
 \end{equation}
-
+%%
 where the parameters $a_1$ and $a_2$ are the wave amplitudes and $a_3$
 is the magnitude of the velocity in the $x$ direction.  Since we use a
 potential formulation, $\Phi$ is given by:
-
+%%
 \begin{equation}
 \label{eq:lopes:solitp}
 \Phi(x,t)=-\frac{2a_3\,e^{2\omega t }}{k\,(e^{2\omega t }+e^{2k x})}+
 K_1(t) \quad {\rm at\,\,} t=0\,{\tt s},
 \end{equation}
-
-where $K_1(t)$ is a generic time dependent function of integration.
-In fact, in order to satisfy the solution of equation
-~\eqref{eq:lopes:ztc-b} $K_1(t)$ is specified as a constant.
+%%
+where $K_1(t)$ is a generic time dependent function of integration.  In
+fact, in order to satisfy the solution of equation~\eqref{eq:lopes:ztc-b}
+$K_1(t)$ is specified as a constant.
 
 We remark that the above solitary wave given
 by~\eqref{eq:lopes:solita} and~\eqref{eq:lopes:solitb}, but for all
 time $t$, was presented as a solution of the extended Nwogu's
-Boussinesq model in~\citet{Walkley1999} and~\citet{WeiKirby1995}.
+Boussinesq model in \citet{Walkley1999} and \citet{WeiKirby1995}.
 
 \subsection{Incident wave}
 
@@ -946,17 +944,17 @@ conditions, e.g., Dirichlet or Neumann conditions.\index{boundary
 conditions}
 
 The simplest case is to consider a periodic wave given by:
-
+%%
 \begin{equation}
   \label{eq:lopes:dirichleteta}
   \eta(x,t)=a \sin(kx-\omega t)
 \end{equation}
-
+%%
 \begin{equation}
   \label{eq:lopes:dirichletphi}
   \Phi(x,t)=-\frac{c}{k}\cos(k x-\omega t)+K_2(t),
 \end{equation}
-
+%%
 where $c$ is the wave velocity magnitude and $K_2(t)$ is a time
 dependent function of integration.  This function $K_2(t)$ must
 satisfy the initial condition of the problem.  Note that the
@@ -964,11 +962,11 @@ parameters $a,c,k$ and $\omega$ are not arbitrary. Specifically, $k$
 and $\omega$ should be related by the dispersion
 equation~\eqref{eq:lopes:dissdisp} (with no dissipative effects) while
 $c$ is given by the following expression:
-
+%%
 \begin{equation}
   \frac{c}{k}=\frac{a\omega}{hk^2}\left(1+\frac{2}{5}(kh)^2\right)
 \end{equation}
-
+%%
 We can also consider the superposition of water waves as solutions of
 the full linear problem with a constant depth.
 
@@ -984,27 +982,25 @@ adapted here to deduce the source function.
 
 We consider a monochromatic Gaussian wave generated by the following
 source function:
-
+%%
 \begin{equation}
   \label{eq:lopes:src}
   S(x,t)=D^* \exp(-\beta (x-x_s)^2)\cos(\omega t),
 \end{equation}
-
+%%
 with $D^*$ given by:
-
+%%
 \begin{equation}
-\displaystyle
 D^* = \frac{\sqrt{\beta}} {\omega\sqrt{\pi}} a
 \exp(\frac{k^2}{4\beta})\frac{2}{15}h^3k^3g.
 \end{equation}
-
-In the above expressions $x_s$ is the center line of the source
-function and $\beta$ is a parameter associated with the width of the
-generation band (see~\citet{WeiKirbySinha1999}).  Note that $S(x,t)$
-should be added to the right-hand side of
-equation~\eqref{eq:lopes:ztc-a}.  A DOLFWAVE demo code for an example
-of wave generation using a this source function is available at
-\emp{dolfwave/demo/2HD/srcFunction}.
+%%
+In the above expressions $x_s$ is the center line of the source function
+and $\beta$ is a parameter associated with the width of the generation
+band (see \citet{WeiKirbySinha1999}).  Note that $S(x,t)$ should be added
+to the right-hand side of equation~\eqref{eq:lopes:ztc-a}.  A DOLFWAVE
+demo code for an example of wave generation using a this source function
+is available at \emp{dolfwave/demo/2HD/srcFunction}.
 
 \section{Reflective walls and sponge layers}
 \label{sec:lopes:boundaryconditions}
@@ -1012,32 +1008,32 @@ of wave generation using a this source function is available at
 Besides the incident wave boundaries where the wave profiles are
 given, we must close the system with appropriate boundary conditions.
 We consider two more types of boundaries:
-
-\begin{itemize}
-\item[{\it i})] full reflective boundaries;\index{reflective
+%%
+\begin{enumerate}
+\item full reflective boundaries;\index{reflective
     boundaries}
-\item[{\it ii})] sponge layers.
-\end{itemize}
-
+\item sponge layers.
+\end{enumerate}
+%%
 The first case is modelled by the following equations:
-
+%%
 \begin{equation}\label{eq:lopes:fullrefl}
   \frac{\partial \Phi}{\partial n}=0\quad {\rm
     and}\quad\frac{\partial \eta}{\partial n}=0\quad {\rm
     on\,\, } \Gamma,
 \end{equation}
-
+%%
 where $n$ is the outward unit vector normal to the boundary
 $\Gamma$ of the domain $\Omega$.
 
-Regarding the second case, we consider equations
-~\eqref{eq:lopes:fullrefl} and an extra artificial term, often called
-sponge \index{sponge-layers} or damping layer, given by
-$\nu\nabla^2\Phi$ (see equation ~\eqref{eq:lopes:ztc-b}), acting in a
-neighborhood of the boundary $\Gamma$.  In this way, the reflected
-energy can be controlled. Moreover, we can prevent unwanted wave
-reflections and avoid complex wave interactions.  It is also possible
-to simulate effects like energy dissipation by wave breaking.
+Regarding the second case, we consider equations~\eqref{eq:lopes:fullrefl}
+and an extra artificial term, often called sponge \index{sponge-layers}
+or damping layer, given by $\nu\nabla^2\Phi$ (see equation
+~\eqref{eq:lopes:ztc-b}), acting in a neighborhood of the boundary
+$\Gamma$.  In this way, the reflected energy can be controlled. Moreover,
+we can prevent unwanted wave reflections and avoid complex wave
+interactions.  It is also possible to simulate effects like energy
+dissipation by wave breaking.
 
 In fact, a sponge layer is a subset $\Omega_S$ of $\Omega$ where some
 extra viscosity term is added.  As mentioned above, the system of
@@ -1045,7 +1041,7 @@ equations can incorporate several extra damping terms, like that one
 provided by the inclusion of a dissipative model. Thus, the viscosity
 coefficient $\nu$ can be described by a function of the following
 form:
-
+%%
 \begin{equation}
 \label{eq:lopes:sponge}
 \nu(x,y)= \left\{
@@ -1057,12 +1053,12 @@ form:
   \end{matrix}
 \right.
 \end{equation}
-
+%%
 where $n_1$ and $n_2$ are, in general, experimental parameters,
 $d_{\Omega_S}$ is the sponge-layer diameter and $d(x,y)$ stands for a
 distance function between a point $(x,y)$ and the intersection of
 $\Gamma$ with the boundary of $\Omega_S$ (see,
-e.g.,~\citet{Walkley1999}).
+e.g., \citet{Walkley1999}).
 
 \section{Linear stability analysis}
 \label{sec:lopes:linearanalysis}
@@ -1079,13 +1075,13 @@ reference for comparison.  For both models, full reflective boundary
 conditions are considered.
 
 We start by assuming  a separated  solution of the form
-
+%%
 \begin{equation}
 \label{eq:lopes:exp}
 \eta(x,t)=e^{i\omega t}\hat\eta(x),\quad
 \Phi(x,t)=e^{i\omega t}\hat\Phi(x),
 \end{equation}
-
+%%
 where $\omega$ denotes the angular frequency which may be real or
 complex.  In the linearized ZTC equations this separation will simply
 result in the substitution of $\frac{\partial \eta}{\partial t}$ by
@@ -1096,12 +1092,12 @@ t}\sin\left(\frac{\omega \Delta t}{2}\right)$ where $\Delta t$ is the
 time-step (see~\citet{LovholtPedersen2009}).  Replacing $\eta$ and
 $\Phi$ in~\eqref{eq:lopes:varform} by their finite element
 approximations we obtain an eigenvalue problem of the form
-
+%%
 \begin{equation}
   \label{eq:lopes:eigenvalue}
 (K- i\hat\omega M) U=0,
 \end{equation}
-
+%%
 where $K$ is the stiffness matrix related to the right-hand sides of
 equations~\eqref{eq:lopes:varform} and $M$ is the mass matrix given by
 the left-hand sides of the same equations.  This problem is solved
@@ -1111,7 +1107,7 @@ demo code for this eigenvalue problem is available at
 
 We remark that in a constant depth
 bathymetry~\eqref{eq:lopes:eigenvalue} takes the simplified form:
-
+%%
 \begin{subequations}
   \label{eq:lopes:disceigenvalue1}
   \begin{align}
@@ -1161,17 +1157,17 @@ bathymetry~\eqref{eq:lopes:eigenvalue} takes the simplified form:
         x}{6}\hat\Phi_{n-1}\right)=0,
   \end{align}
 \end{subequations}
-
+%%
 where $\Delta x=x_{j+1}-x_{j}$ ($j=1,\ldots,n-1$) is the uniform mesh
 size and $\hat\eta_j$ as well as $\hat\Phi_j$ stand for
 $\hat\eta(x_j)$ and $\hat\Phi(x_j)$ ($j=1,\ldots,n$), respectively.
 We can show that
-
+%%
 \begin{equation}
 \hat\omega = \pm\sqrt{ g\left(\frac{3 H}{\Delta x^2}\right)
   \left(\frac{5\Delta x^2 + H^2}{5\Delta x^2+6H^2}\right)}
 \end{equation}
-
+%%
 are always eigenvalues of the constant depth problem.  This allows us
 to conclude that, for this case, the accuracy of the eigenvalue solver
 is $10^{-11}$ and that the spectral radius goes to infinity as the
@@ -1184,23 +1180,23 @@ comparison is very prone to such instabilities.  From
 equations~\eqref{eq:lopes:exp} and~\eqref{eq:lopes:eigenvalue},
 unstable wave modes may appear when eigenvalues $\hat\omega$ are of
 the following types:
-
-\begin{itemize}
-\item[(I)] when $\hat\omega$ is a pure imaginary number the solutions
+%%
+\begin{enumerate}
+\item when $\hat\omega$ is a pure imaginary number the solutions
   grow or decay exponentially without propagation;
-\item[(II)] when $\hat\omega$ is a complex number the solutions grow
+\item when $\hat\omega$ is a complex number the solutions grow
   or decay exponentially and propagate;
-\item[(III)] when a real solution is found for $\hat\omega$ but
+\item when a real solution is found for $\hat\omega$ but
   yielding $\frac{1}{2}\Delta t |\hat\omega|>1$ and $\omega$ complex.
   This corresponds to a CFL criterion but this kind of instability may
   anyhow be avoided for a sufficiently small $\Delta t$.
-\end{itemize}
-
+\end{enumerate}
+%%
 For the stability tests, we consider the geometries in
 Figure~\ref{fig:lopes:spikeshelf} with $l=2$\,~{\tt m}, $l=1$\,~{\tt
 m} and $l=0.5$\,~{\tt m}.  In all the cases we test 1300 pairs of
 $(h_m,\Delta x)$ with $ h_m$ and $\Delta x\in ]0,1]$\,~({\tt m}).
-
+%%
 \begin{figure}
   {\small
     \begin{center}
@@ -1210,7 +1206,7 @@ $(h_m,\Delta x)$ with $ h_m$ and $\Delta x\in ]0,1]$\,~({\tt m}).
   \caption{Spike and shelf geometries for the impermeable sea bottom.}
   \label{fig:lopes:spikeshelf}
 \end{figure}
-
+%%
 In Figs.~\ref{fig:lopes:spectrum1}--\ref{fig:lopes:spectrum3}, we can
 see the unstable wave modes $(h_m,\Delta x)$ of the ZTC (red circles)
 and standard potential (blue points) models for the spike (left
@@ -1249,9 +1245,6 @@ From Figures \ref{fig:lopes:spectrum1}--\ref{fig:lopes:spectrumhm3},
 we can conclude that the ZTC model is very robust in terms of the
 instabilities depending on $l$, depth gradients and mesh
 discretizations.
-
-In the next section, we also test the weakly nonlinear ZTC model in
-order to verify its robustness with respect to instabilities.
 
 \begin{figure}
   \begin{center}
@@ -1331,6 +1324,10 @@ order to verify its robustness with respect to instabilities.
   \label{fig:lopes:spectrumhm3}
 \end{figure}
 
+In the next section, we also test the weakly nonlinear ZTC model in
+order to verify its robustness with respect to instabilities.
+
+
 \section{Model validation and numerical applications}
 \label{sec:lopes:numericaltests}
 
@@ -1353,7 +1350,7 @@ implicit Radau IIA-type Runge--Kutta scheme for the time integration
 We start now the description of the problem along with the DOLFWAVE
 code used to solve it. This C++ code should start with the inclusion
 of the DOLFWAVE library.
-
+%%
 \begin{c++}
 #include <dolfwave.h>
 using namespace dolfin::dolfwave;
@@ -1375,10 +1372,10 @@ class ElevationInit : public Expression
   }
 };
 \end{c++}
-
+%%
 Moreover, the initial condition for the velocity potential is defined
 by~\eqref{eq:lopes:solitp} and implemented using the following code:
-
+%%
 \begin{c++}
 class PotentialInit :  public Expression
 {
@@ -1394,10 +1391,11 @@ class PotentialInit :  public Expression
   }
 };
 \end{c++}
+%%
 
-The trapezoidal sea bottom $h$ ({\tt m}) is described by the following
+Te trapezoidal sea bottom $h$ ({\tt m}) is described by the following
 continuous and piecewise differentiable function:
-
+%%
 \begin{equation}
   \label{eq:lopes:piecewisebottom}
   h(x)=\begin{cases}
@@ -1408,9 +1406,9 @@ continuous and piecewise differentiable function:
     0.4& {\rm if}\quad 17< x\leqslant 25
   \end{cases}  ({\tt m})
 \end{equation}
-
+%%
 which is implemented by:
-
+%%
 \begin{c++}
 class Depth :  public Expression
 {
@@ -1440,7 +1438,7 @@ of~\eqref{eq:lopes:varform}.  We use a LU solver provided by the PETSc
 algebra backend (see Chapter~\ref{chap:langtangen}).  Here we use
 Viper for previewing the numerical solutions, which are saved in the
 ``output'' directory using a simple ASCII format denoted by ``xyz''.
-
+%%
 \begin{c++}
 int main( )
 {
@@ -1453,28 +1451,28 @@ int main( )
               "output" /*Output directory*/,
               "xyz" /*File output format*/);
 \end{c++}
-
+%%
 The spatial domain used in the case of the trapezoidal
 submerged bar  is the interval $[-25,25]$ ({\tt m})
 which is discretized using 201 nodes.
-
+%%
 \begin{c++}
   Interval mesh(201,-25,25);
 \end{c++}
-
+%%
 Now all the known functions are initialized.  Sponge layers or source
 functions are not used here.
-
+%%
 \begin{c++}
   Depth depth; // Depth function
   ElevationInit eta_init; // Initial condition for the surface elevation
   PotentialInit phi_init;  // Initial condition for the velocity potential
   Constant zero(0.0); // Sponge layers and source function are 0
 \end{c++}
-
+%%
 From the bilinear and linear forms of the variational formulation, all
 the finite element matrices and vectors are created.
-
+%%
 \begin{c++}
   dw.FunctionSpaceInit(mesh); // Initialization of the function spaces
   dw.BilinearFormInit(mesh,depth); // Initialization of the bilinear form 'a'
@@ -1484,25 +1482,25 @@ the finite element matrices and vectors are created.
   dw.InitialCondition(eta_init,phi_init); // Setting the initial conditions
   dw.VectorInit( ); // Initialization of the auxiliary vectors for the time integration schemes
 \end{c++}
-
+%%
 We only need to make an initial factorization for the LU solver, since
 the system matrix does not depend on time.
-
+%%
 \begin{c++}
 dw.LUFactorization(true); // Reuse the LU factorization throughout the time integration routines
 \end{c++}
-
+%%
 The output of the symmetric of the depth function is given by:
-
+%%
 \begin{c++}
   dw.DepthPlot(mesh,depth,true); // Plot the symmetric of the depth function h
 \end{c++}
-
-Now, the time integration routines are used.  The
-Adams--Bashforth--Moulton method described by
-equations~\eqref{eq:lopes:pc} is initialized by a fourth-order
-explicit Runge--Kutta scheme.
-
+%%
+Now, the time integration routines are used.
+The Adams--Bashforth--Moulton method described by
+equations~\eqref{eq:lopes:pc} is initialized by a fourth-order explicit
+Runge--Kutta scheme.
+%%
 \begin{c++}
   dw.RKInit("exp4");    // Choose the explicit 4th-order Runge-Kutta for initialization
   dw.RKSolve( );        // Use the Runge-Kutta for the 3 initial steps
@@ -1519,8 +1517,8 @@ explicit Runge--Kutta scheme.
   return (EXIT_SUCCESS); // Finish the process
 }
 \end{c++}
-
- In this case only the wave surface elevation is saved and previewed
+%%
+In this case only the wave surface elevation is saved and previewed
 using the Plot function.  The solution provided by this code, for the
 trapezoidal submerged bar with $x\in[-10,25]$ ({\tt m}), is given in
 Figure~\ref{fig:lopes:submergedbar}.  We remark that the shoaling
@@ -1642,7 +1640,7 @@ we provide grid refinement tests to ensure convergence and accuracy.
 Reflective wall boundary conditions are applied
 (see~\eqref{eq:lopes:fullrefl}) and no sponge layers are considered.
 As initial conditions, we have
-
+%%
 \begin{equation}
   \left\{
     \begin{array}{l}
@@ -1652,7 +1650,7 @@ As initial conditions, we have
     \end{array}
   \right.
 \end{equation}
-
+%%
 A constant depth \(h=0.5\)~{\tt m} is considered.  These initial
 conditions and see bottom are considered in the FUNWAVE manual
 (see~\citet{Kirby1998}).  Even though we do not know the exact
@@ -1877,31 +1875,32 @@ The spatial numerical domain is a rectangular basin of $12.5\times 6\,
 elements.  Full reflective boundary conditions are only considered
 here.  The moving bottom $h\, ({\tt m})$ with a constant speed
 $S_0=1\, {\tt m\, s}^{-1}$ is defined by
-
+%%
 \begin{equation}
   \label{eq:lopes:bottom1}
   h(x,y,t)=0.45-\frac{\Delta h}{(1+\tanh(1))^4}{\bar
     X}(x,t){\bar Y}(y)
 \end{equation}
-
+%%
 with
-
+%%
 \begin{equation}
   {\bar X}(x,t)=(1+\tanh(2(x-x_l(t))))(1-\tanh(2(x-x_r(t)))),
 \end{equation}
 \begin{equation}
   {\bar Y}(y)=(1+\tanh(2y+1)))(1-\tanh(2y-1)),
 \end{equation}
+%%
 
 \begin{equation}
   \label{eq:lopes:bottom4}
   x_l(t)=x_c(t)-\frac{1}{2},\quad
   x_r(t)=x_c(t)+\frac{1}{2},\quad x_c(t)=x_0+S_0t,
 \end{equation}
-
-where $x_0=0\, {\tt m}$ and $\Delta h=0.045\, {\tt m}$ is the maximum
-thickness of the slide (see
-Figs. \ref{fig:lopes:objectbottom}--\ref{fig:lopes:objectbottom2}).
+%%
+where $x_0=0\, {\tt m}$ and $\Delta h=0.045\, {\tt
+m}$ is the maximum thickness of the slide (see
+Figs.~\ref{fig:lopes:objectbottom}--\ref{fig:lopes:objectbottom2}).
 
 \begin{figure}
   \begin{center}
@@ -2065,7 +2064,7 @@ in~\citet{LopesPereiraTrabucho}.
 
 We have been developing DOLFWAVE which is \fenics based application
 for surface water wave models. This package already includes some
-models with equations containing spatial derivatives of order $4$.
-The current state of the work, along with several nume\-ri\-cal
-simulations, can be found at \emp{http://ptmat.fc.ul.pt/$\sim$ndl} and
-\emp{https://launchpad.net/dolfwave}.
+models with equations containing spatial derivatives of order~$4$.
+The current state of the work, along with several numerical
+simulations, can be found at \url{http://ptmat.fc.ul.pt/~ndl} and
+\url{https://launchpad.net/dolfwave}.
