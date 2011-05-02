@@ -1,9 +1,1627 @@
-\fenicschapter{Applications in Solid Mechanics}
-              {Applications in Solid Mechanics}
+\fenicschapter{Applications in solid mechanics}
+              {Applications in solid mechanics}
               {Kristian B. {\O}lgaard and Garth N. Wells}
               {oelgaard-1}
 
-Summarise work on automated modelling for solid mechanics, with
-application to hyperelasticity, plasticity and strain gradient
-dependent models. Special attention will be paid the linearisation of
-function which do come from a finite element space.
+%------------------------------------------------------------------------------
+Problems in solid mechanics constitute perhaps the largest field of
+application of finite element methods. The vast majority of solid
+mechanics problems involve the standard momentum balance equation,
+posed in a Lagrangian setting, with different models distinguished by the
+choice of nonlinear or linearized kinematics, and the constitutive model
+for determining the stress. For some common models, the constitutive
+relationships are rather complex. This chapter addresses a number of
+canonical solid mechanics models in the context of automated modeling,
+and focuses on some pertinent issues that arise due to the nature of the
+constitutive models. The solution of equations with second-order time
+derivatives, which characterizes dynamic problems, is also considered.
+
+%------------------------------------------------------------------------------
+\section{Background}
+
+We present in this chapter the solution of a collection of common
+solid mechanics problems using automated code generation techniques.
+For users familiar with traditional development techniques for
+solid mechanics problems, it is often not evident how the automation
+techniques established with the FEniCS Project should be applied to
+solid mechanics problems.  The traditional development approach to solid
+mechanics problems, and traditional finite element codes, places a strong
+emphasis on the implementation of constitutive models at the quadrature
+point level. Automated methods, on the other hand, tend to stress more
+heavily the governing balance equations.  Widely used finite element
+codes for solid mechanics applications provide application programming
+interfaces (APIs) for users to implement their own constitutive models.
+The interface supplies kinematic and history data, and the user code
+computes the stress tensor, and when required also the linearization
+of the stress. Users of such libraries will typically not be exposed to
+code development other than via the constitutive model API.
+
+The purpose of this chapter is to illustrate how problems of relevance
+in solid mechanics can be solved using automation tools.  We consider
+the common problems of linearized elasticity, plasticity, hyperelasticity
+and elastic wave propagation.  Topics that we address via these problems
+include `off-line' computation of stress updates, linearization of
+problems with off-line stress updates, automatic differentiation and time
+stepping for problems with second-order time derivatives. The presentation
+starts with the relevant governing equations and some constitutive models,
+followed by a summary of a commonly used time stepping method.  We then
+address the important issue of solution and linearization of problems
+in which the governing equation is expressed in terms of the stress
+tensor (rather than explicitly in terms of the displacement field, or
+derivatives of the displacement field), and the stress tensor is computed
+via a separate algorithm.  These topics are then followed by a number
+of examples that demonstrate implementation approaches.  Finally,
+two future extensions of the \fenics framework that are particular
+interesting with respect to solid mechanics problems are summarized.
+
+This chapter does not set out to provide a comprehensive treatment of
+solid mechanics problems. It addresses a number of the most frequently
+encountered issues when applying automated techniques to solid mechanics
+problems. It should be clear from the considered examples how a wider
+range of common solid mechanics problems can be tackled using automated
+modeling.
+
+%------------------------------------------------------------------------------
+\section{Governing equations}
+%------------------------------------------------------------------------------
+\subsection{Preliminaries}
+
+We will consider problems posed on a polygonal domain $\Omega \subset
+\mathbb{R}^{d}$, where $1 \le d \le 3$. The boundary of $\Omega$,
+denoted by $\partial \Omega$, is decomposed into regions $\Gamma_{D}$
+and $\Gamma_{N}$ such that $\Gamma_{D} \cup \Gamma_{N} = \partial \Omega$
+and $\Gamma_{D} \cap \Gamma_{N} = \emptyset$.  The outward unit normal
+vector on $\partial \Omega$ is will be denoted by~$n$.  For time-dependent
+problems, we will consider a time interval of interest~$I = (0, T]$
+and let superimposed dots denote time derivatives.  We will use $\Omega$
+to denote the current configuration of a solid body; that is, the domain
+$\Omega$ depends on the displacement field. It is sometimes convenient
+to also define a reference domain $\Omega_{0} \subset \mathbb{R}^{d}$
+that remains fixed.  For convenience, we will consider cases in which
+$\Omega$ and $\Omega_{0}$ coincide at time $t = 0$.  To indicate
+boundaries, outward unit normal vectors, and other quantities relative
+to $\Omega_{0}$, the subscript `$0$' will be used.  When considering
+linearized kinematics, the domains $\Omega$ and $\Omega_{0}$ are both
+fixed and coincide at all times~$t$.  A triangulation of the domain
+$\Omega$ will be denoted by~$\mathcal{T}$, and a triangulation of the
+domain $\Omega_{0}$ will be denoted by~$\mathcal{T}_{0}$.  A finite
+element cell will be denoted by $K \in \mathcal{T}$.
+
+The governing equations for the different models will be formulated in
+the common framework of: find $u \in V$ such that
+%
+\begin{equation}
+  F(u; w) = 0 \quad \foralls w \in V,
+  \label{eq:oelgaard-1:gov_generic}
+\end{equation}
+%
+where $F: V \times V \rightarrow \mathbb{R}$ is linear in $w$ and $V$
+is a suitable function space. If $F$ is also linear in $u$, then $F$
+can be expressed as
+%
+\begin{equation}
+  F(u; w) := a(u, w) - L(w),
+\end{equation}
+%
+where $a: V \times V \rightarrow \mathbb{R}$ is linear in $u$ and in $w$,
+and $L: V \rightarrow \mathbb{R}$ is linear in~$w$.  For this case, the
+problem can be cast in the canonical setting of: find $u \in V$ such that
+%
+\begin{equation}
+  a(u, w) = L(w) \quad \foralls w \in V.
+\label{eq:oelgaard-1:linear_weak_form}
+\end{equation}
+%
+For nonlinear problems, a Newton method is typically employed to
+solve~\eqref{eq:oelgaard-1:gov_generic}.  Linearizing $F$ about $u =
+u_{0}$ leads to a bilinear form,
+%
+\begin{equation}
+  a(du, w) := D F_{du}\brac{u_{0}; w}
+     = \left. \frac{d F\brac{u_{0} + \epsilon du; w}}{d \epsilon} \right|_{\epsilon = 0},
+\label{eq:oelgaard-1:gov_jacobian}
+\end{equation}
+%
+and a linear form is given by:
+%
+\begin{equation}
+  L(w) := F(u_{0}, w).
+\label{eq:oelgaard-1:gov_residual}
+\end{equation}
+%
+Using the definitions of $a$ and $L$ in~\eqref{eq:oelgaard-1:gov_jacobian}
+and~\eqref{eq:oelgaard-1:gov_residual}, respectively,
+a Newton step involves solving a problem of the type
+in~\eqref{eq:oelgaard-1:linear_weak_form}, followed by the correction
+$u_{0} \leftarrow u_{0} - du$. The process is repeated until
+\eqref{eq:oelgaard-1:gov_generic} is satisfied to within a specified
+tolerance.
+
+%------------------------------------------------------------------------------
+\subsection{Balance of momentum}
+%
+The standard balance of linear momentum problem for the body $\Omega$
+reads:
+%
+\begin{align}
+  \rho \ddot{u} - \nabla \cdot \sigma  &= b \quad \text{in} \;
+    \Omega \times I,
+  \label{eq:oelgaard-1:gov_balance_momentum}
+\\
+  u &= g \quad \text{on} \; \Gamma_{D} \times I,
+\\
+  \sigma  n &= h \quad \text{on} \; \Gamma_{N} \times I,
+  \label{eq:oelgaard-1:gov_neumann_bc}
+\\
+  u\brac{x, 0} &= u_{0} \quad \text{in} \; \Omega,
+  \label{eq:oelgaard-1:gov_initial_condition_0}
+\\
+  \Dot{u}(x, 0) &= v_{0} \quad \text{in} \; \Omega,
+  \label{eq:oelgaard-1:gov_initial_condition_1}
+\end{align}
+%
+where $\rho: \Omega \times I \rightarrow \mathbb{R}$ is the mass density,
+$u: \Omega \times I \rightarrow \mathbb{R}^{d}$ is the displacement field,
+$\sigma: \Omega \times I \rightarrow \mathbb{R}^{d} \times \mathbb{R}^{d}$
+is the symmetric Cauchy stress tensor, $b: \Omega \times I \rightarrow
+\mathbb{R}^{d}$ is a body force, $g: \Omega \times I \rightarrow
+\mathbb{R}^{d}$ is a prescribed boundary displacement, $h: \Omega \times
+I \rightarrow \mathbb{R}^{d}$ is a prescribed boundary traction, $u_{0}:
+\Omega \rightarrow \mathbb{R}^{d}$ is the initial displacement and $v_{0}:
+\Omega \times I \rightarrow \mathbb{R}^{d}$ is the initial velocity.
+To complete the boundary value problem, a constitutive model that relates
+$\sigma$ to $u$ is required.
+
+To develop finite element models, it is necessary to cast the momentum
+balance equation in a weak form by multiplying the balance equation
+\eqref{eq:oelgaard-1:gov_balance_momentum} by a weight function $w$
+and integrating.  It is possible to formulate a space-time method by
+considering a weight function that depends on space and time, and then
+integrating over $\Omega \times I$. However, it is far more common in
+solid mechanics applications to consider a weight function that depends
+on spatial position only and to apply finite difference methods to deal
+with time derivatives.  Following this approach, at a time $t \in (0,
+T]$ we multiply \eqref{eq:oelgaard-1:gov_balance_momentum} by a function
+$w$ ($w$ is assumed to satisfy $w = 0$ on $\Gamma_{D}$) and integrate
+over~$\Omega$:
+%
+\begin{equation}
+  \int_{\Omega} \rho \ddot{u} \cdot w \dx
+- \int_{\Omega} \left( \nabla \cdot \sigma \right) \cdot w \dx
+- \int_{\Omega} b \cdot w \dx = 0.
+\end{equation}
+%
+Applying integration by parts, using the divergence theorem and inserting
+the boundary condition in \eqref{eq:oelgaard-1:gov_neumann_bc}, we obtain:
+%
+\begin{equation}
+F := \int_{\Omega} \rho \ddot{u} \cdot w \dx
+  + \int_{\Omega} \sigma : \nabla w \dx
+  - \int_{\Gamma_{N}} h \cdot w \ds
+  - \int_{\Omega} b \cdot w \dx = 0.
+\label{eqn:oelgaard-1:F}
+\end{equation}
+
+In this section, the momentum balance equation has been presented
+on the current configuration~$\Omega$. It can also be posed on the
+fixed reference domain $\Omega_{0}$ via a pull-back operation.  For the
+particular presentation that we will use in this chapter for geometrically
+nonlinear models details of the pull-back will not be needed.
+%------------------------------------------------------------------------------
+\subsection{Potential energy minimization}
+\label{sec:oelgaard-1:minimization}
+
+An alternative approach to solving static problems (problems without an
+inertia term) is to consider the minimization of potential energy. This
+approach leads to the same governing equation when applied to a
+standard problem, but may be a preferable framework for problems that are
+naturally posed in terms of stored energy densities and for which external
+forcing terms are conservative (see \citet[p.~159]{Holzapfel2000} for
+an explanation of conservative loading), and for problems that involve
+coupled physical phenomena that are best described energetically.
+
+Consider a system for which the total potential energy $\Pi$ associated
+with a body can be expressed as
+%%
+\begin{equation}
+\label{eq:oelgaard-1:gov_potential_energy}
+  \Pi = \Pi_{\rm int} + \Pi_{\rm ext}.
+\end{equation}
+%%
+We will consider an internal potential energy functional of the form
+%%
+\begin{equation}
+  \Pi_{\rm int} = \int_{\Omega_{0}} \Psi_{0}\brac{u} \dx,
+\end{equation}
+%
+where $\Psi_{0}$ is the stored strain energy density, and an
+external potential energy functional of the form
+%%
+\begin{equation}
+  \Pi_{\rm ext} = - \int_{\Omega_{0}} b_{0} \cdot u \dx
+      - \int_{\Gamma_{0, N}} h_{0} \cdot u \ds.
+\end{equation}
+%
+It is the form of the stored energy density function $\Psi_{0}$ that
+defines a particular constitutive model.  For later convenience,
+the potential energy terms have been presented on the reference
+domain~$\Omega_{0}$.
+
+A stable solution $u$ to~\eqref{eq:oelgaard-1:gov_potential_energy}
+minimizes the potential energy:
+%%
+\begin{equation}
+  \min_{u \in V} \Pi,
+\end{equation}
+%%
+where $V$ is a suitably defined function space.  Minimization of $\Pi$
+corresponds to the directional derivative of $\Pi$ being zero for all
+possible variations of~$u$.  Therefore, minimization of $\Pi$ corresponds
+to solving~\eqref{eq:oelgaard-1:gov_generic} with
+%%
+\begin{equation}
+\label{eq:oelgaard-1:gov_energy_variation}
+  F(u; w) := D_{w} \Pi\brac{u}
+      = \left. \frac{d \Pi\brac{u + \epsilon w}}{d \epsilon} \right|_{\epsilon = 0}.
+\end{equation}
+%%
+For suitable definitions of the stress tensor, it is straightforward
+to show that minimizing $\Pi$ is equivalent to solving the balance of
+momentum problem, for the static case.
+
+%------------------------------------------------------------------------------
+\section{Constitutive models}
+
+A constitutive model describes the relationship between stress and
+deformation.  The stress can be defined explicitly in terms of primal
+functions, it can be implicitly defined via stored energy density
+functions, or it can be defined as the solution to a secondary problem.
+The constitutive model can be either linear or nonlinear.  In the
+following sections we present examples of these cases in the form of
+linearized elasticity, plasticity and hyperelasticity.  The expressions
+for the stress or stored energy density presented in this section can
+be inserted into the balance equations or the minimization framework in
+the preceding section to yield a governing equation.
+
+%------------------------------------------------------------------------------
+\subsection{Linearized elasticity}
+\label{sec:oelgaard-1:lin_elasticity}
+
+For linearized elasticity the stress tensor as a function of the strain
+tensor for an isotropic, homogeneous material is given by
+%
+\begin{equation}
+  \sigma = 2\mu \varepsilon + \lambda {\rm tr}(\varepsilon) I,
+\label{eq:oelgaard-1:elas_stress_def}
+\end{equation}
+%
+where $\varepsilon = \brac{\nabla u + \brac{\nabla u}^{\rm T}}/2$
+is the strain tensor, $\mu$ and $\lambda$ are the Lam\'{e} parameters,
+and $I$ is the second-order identity tensor.  The relationship between
+the stress and the strain can also be expressed as
+%
+\begin{equation}
+  \sigma = \mathcal{C} : \varepsilon,
+\end{equation}
+%%
+where
+%%
+\begin{equation}
+  \mathcal{C}_{ijkl} = \mu\brac{\delta_{ik}\delta_{jl} + \delta_{il}\delta_{jk}} +
+  \lambda\delta_{ij}\delta_{kl},
+\label{eq:oelgaard-1:elas_constitutive_tensor}
+\end{equation}
+%%
+and $\delta_{ij}$ is the Kronecker-Delta.
+
+%------------------------------------------------------------------------------
+\subsection{Flow theory of plasticity}
+\label{sec:oelgaard-1:plasticity}
+
+We consider the standard flow theory model of plasticity, and present
+only the background necessary to support the examples that we will
+present. In depth coverage can be found in many textbooks, such
+as \citet{Lubliner2008}.
+
+For a geometrically linear plasticity problem, the stress tensor is
+computed by
+%%
+\begin{equation}
+  \sigma = \mathcal{C} : \varepsilon^{\rm e},
+\label{eq:oelgaard-1:plas_stress_def}
+\end{equation}
+%
+where $\varepsilon^{\rm e}$ is the elastic part of the strain tensor.
+It is assumed that the strain tensor can be decomposed additively
+into elastic and plastic parts:
+%
+\begin{equation}
+  \varepsilon = \varepsilon^{\rm e} + \varepsilon^{\rm p}.
+\label{eq:oelgaard-1:plas_strain_decomposed}
+\end{equation}
+%
+If $\varepsilon^{\rm e}$ can be determined, then the stress can be
+computed.
+
+The stress tensor in classical plasticity models must satisfy the yield
+criterion:
+%
+\begin{equation}
+  f\brac{\sigma, \varepsilon^{\rm p}, \kappa} :=
+  \phi\brac{\sigma, q_{\rm kin}\brac{\varepsilon^{\rm p}}} - q_{\rm iso}\brac{\kappa} - \sigma_{\rm y} \leq 0,
+\label{eq:oelgaard-1:plas_yield_function}
+\end{equation}
+%%
+where $\phi\brac{\sigma, q_{\rm kin}\brac{\varepsilon^{\rm p}}}$ is a
+scalar effective stress measure, $q_{\rm kin}$ is a stress-like internal
+variable used to model kinematic hardening, $q_{\rm iso}$ is a scalar
+stress-like term used to model isotropic hardening, $\kappa$ is a scalar
+internal variable and $\sigma_{\rm y}$ is the initial scalar yield stress.
+For the commonly adopted von Mises model (also known as $J_{2}$-flow)
+with linear isotropic hardening, $\phi$ and $q_{\rm iso}$ read:
+%
+\begin{align}
+\label{eq:oelgaard-1:plas_von_mises_linear_hardening}
+  \phi\brac{\sigma} &= \sqrt{\frac{3}{2}s_{ij}s_{ij}},
+\\
+  q_{\rm iso}\brac{\kappa} &= H\kappa,
+\end{align}
+%
+where $s_{ij} = \sigma_{ij} - \sigma_{kk}\delta_{ij}/3$ is the deviatoric
+stress and the constant scalar $H > 0$ is a hardening parameter.
+
+In the flow theory of plasticity, plastic strain rate is given by:
+%
+\begin{equation}
+  \dot{\varepsilon}^{\rm p} = \Dot{\lambda}\frac{\partial g}{\partial\sigma},
+\label{eq:oelgaard-1:plas_plas_strain}
+\end{equation}
+%
+where $\Dot{\lambda}$ is the rate of the plastic multiplier and the
+scalar $g$ is known as the plastic potential.  In the case of associative
+plastic flow, $g = f$.  The term $\dot{\lambda}$ determines the magnitude
+of the plastic strain rate, and the direction is given by $\partial
+g/\partial\sigma$.  For isotropic strain-hardening, it is usual to set
+%
+\begin{equation}
+  \dot{\kappa} = \sqrt{\frac{2}{3} \dot{\varepsilon}^{\rm p}_{ij}\dot{\varepsilon}^{\rm p}_{ij}},
+\end{equation}
+%
+which for associative von Mises plasticity implies that $\dot{\kappa}
+= \dot{\lambda}$.
+
+A feature of the flow theory of plasticity is that the constitutive
+model is postulated in a rate form. This requires the application
+algorithms for to compute the stress from increments of the total strain.
+A discussion of algorithmic aspects on how the stress tensor can be
+computed from the equations presented in this section is postponed to
+Section~\ref{sec:oelgaard-1:examples_plasticity}.
+
+%------------------------------------------------------------------------------
+\subsection{Hyperelasticity}
+\label{sec:oelgaard-1:hyperelasticity}
+
+Hyperelastic models are characterized by the existence of a stored
+strain energy function $\Psi_{0}$. The linearized model presented at
+the start of this section falls with the class of hyperelastic models.
+Assuming linearized kinematics, the stored energy function
+%
+\begin{equation}
+\label{eq:oelgaard-1:hyp_small_strain_energy}
+\Psi_{0} = \frac{\lambda}{2} \brac{{\rm tr} \, \varepsilon}^{2} +
+       \mu \varepsilon:\varepsilon,
+\end{equation}
+%
+corresponds to the linearized model
+in~\eqref{eq:oelgaard-1:elas_stress_def}.  It is straightforward to
+show that using this stored energy function in the potential energy
+minimization approach in~\eqref{eq:oelgaard-1:gov_energy_variation}
+leads to the same equation as inserting the stress
+from~\eqref{eq:oelgaard-1:elas_stress_def} into the weak momentum balance
+equation~\eqref{eqn:oelgaard-1:F}.
+
+More generally, stored energy functions that correspond to nonlinear
+models can be defined. A wide range of stored energy functions for
+hyperelastic models have been presented and analyzed in the literature
+(see, for example, \citet{bonet1997} for a selection). In order to
+present concrete examples, it is necessary to introduce some kinematics,
+and in particular strain measures.  The Green--Lagrange strain tensor
+$E$ is defined in terms of the deformation gradient $F : \Omega_{0}
+\times I \rightarrow \mathbb{R}^{d} \times \mathbb{R}^{d}$, and right
+Cauchy--Green tensor~$C: \Omega_{0} \times I \rightarrow \mathbb{R}^{d}
+\times \mathbb{R}^{d}$:
+%
+\begin{align}
+\label{eq:oelgaard-1:hyp_green_strain}
+F &= I + \nabla u,
+\\
+C &= F^{\rm T} F,
+\\
+E &= \frac{1}{2} \brac{C - I},
+\end{align}
+%
+where $I$ is the second-order identity tensor.  Using $E$ in
+\eqref{eq:oelgaard-1:hyp_small_strain_energy} in place of the
+infinitesimal strain tensor $\varepsilon$, we obtain the following
+expression for the strain energy density function:
+%
+\begin{equation}
+\label{eq:oelgaard-1:hyp_st_venant_kirchhoff}
+  \Psi_{0} = \frac{\lambda}{2} \brac{{\rm tr} \, E}^{2} + \mu E:E,
+\end{equation}
+%
+which is known as the St Venant--Kirchhoff model.  Unlike the linearized
+case, this energy density function is not linear in~$u$ (or spatial
+derivatives of $u$), which means that when minimizing the total potential
+energy~$\Pi$, the resulting equations are nonlinear.  Another example
+of a hyperelastic model is the compressible neo-Hookean model:
+%
+\begin{equation}
+\label{eq:oelgaard-1:hyp_neo_hookean}
+  \Psi_{0} = \frac{\mu}{2} (I_{C} -3) - \mu \ln J + \frac{\lambda}{2} (\ln J)^{2},
+\end{equation}
+%
+where $I_{C} = {\rm tr} \, C $ and $J = \det F$.
+
+In most presentations of hyperelastic models, one would proceed from the
+definition of the stored energy function to the derivation of a stress
+tensor, and then often to a linearization of the stress for use in a
+Newton method.  This process can be lengthy and tedious. For a range of
+models, features of \ufl{} will permit problems to be posed as energy
+minimization problems, and it will not be necessary to compute expression
+for a stress tensor, or its linearization, explicitly. A particular model
+can then be posed in terms of a particular expression for~$\Psi_{0}$. It
+is also possible to follow the momentum balance route, in which case
+\ufl{} can be used to compute the stress tensor and its linearization
+automatically from an expression for~$\Psi_{0}$.
+
+%------------------------------------------------------------------------------
+\section{Time integration}
+\label{sec:oelgaard-1:time_integration}
+
+In this chapter we focus on the Newmark family of methods, which are
+widely used in structural dynamics.  It is a direct integration method,
+in which the equations are evaluated at discrete points in time separated
+by a time increment $\Delta t$.  Thus, the time step $t_{n + 1}$ is equal
+to $t_{n} + \Delta t$.  While this chapter addresses the Newmark scheme,
+it is straightforward to extend the approach (and implementation) to
+generalized-$\alpha$ methods.
+
+The Newmark relations between displacements, velocities and accelerations
+at $t_{n}$ and $t_{n + 1}$ read:
+%
+\begin{align}
+\label{eq:oelgaard-1:time_u_n1}
+  u_{n + 1} &= u_{n} + \Delta t \dot{u}_{n} +
+              \frac{1}{2}\Delta t^2 \brac{2\beta \ddot{u}_{n + 1} +
+                \brac{1 - 2\beta}\Ddot{u}_{n + 1} },
+\\
+\label{eq:oelgaard-1:time_v_n1}
+\dot{u}_{n + 1} &= \dot{u}_{n} + \Delta t \brac{\gamma \ddot{u}_{n + 1} +
+                    \brac{1 - \gamma} \ddot{u}_{n}},
+\end{align}
+%
+where $\beta$ and $\gamma$ are parameters.  Various well-known schemes are
+recovered for particular combinations of $\beta$ and $\gamma$. Setting
+$\beta = 1/4$ and $\gamma = 1/2$ leads to the trapezoidal scheme, and
+setting $\beta = 0$ and $\gamma = 1/2$ leads to a central difference
+scheme.  For $\beta > 0$, re-arranging~\eqref{eq:oelgaard-1:time_u_n1}
+and using \eqref{eq:oelgaard-1:time_v_n1} leads to:
+%
+\begin{align}
+\label{eq:oelgaard-1:time_a_n1}
+\Ddot{u}_{n + 1} &= \frac{1}{\beta \Delta t^2}
+                      \brac{u_{n + 1} - u_{n} - \Delta t \dot{u}_{n}} -
+                      \brac{\frac{1}{2\beta} - 1} \ddot{u}_{n},
+\\
+\label{eq:oelgaard-1:time_v(u)_n1}
+ \dot{u}_{n + 1} &= \frac{\gamma}{\beta \Delta t}
+                      \brac{u_{n + 1} - u_{n}} -
+                      \brac{\frac{\gamma}{\beta} - 1} \dot{u}_{n} -
+                      \Delta t \brac{\frac{\gamma}{2\beta} - 1} \ddot{u}_{n},
+\end{align}
+%
+in which $u_{n+1}$ is the only unknown term on the right-hand side.
+
+To solve a time dependent problem, the governing equation can be posed
+at time $t_{n+1}$,
+%
+\begin{equation}
+  F\left( u_{n+1}; w \right) = 0 \quad \foralls w \in V,
+\end{equation}
+%
+with the expressions in~\eqref{eq:oelgaard-1:time_a_n1}
+and~\eqref{eq:oelgaard-1:time_v(u)_n1} used for first and second time
+derivatives of~$u$ at time~$t_{n+1}$.
+
+%------------------------------------------------------------------------------
+\section{Linearization issues for complex constitutive models}
+\label{sec:oelgaard-1:linearization}
+
+Solving problems with nonlinear constitutive models, such
+as plasticity, using Newton's method requires linearization
+of~\eqref{eqn:oelgaard-1:F}. There are two particular issues that deserve
+attention. The first is that if the stress $\sigma$ is computed via
+some algorithm, then proper linearization of $F$ requires linearization
+of the algorithm for computing the stress, and not linearization of the
+continuous problem. This point is well known in computational plasticity,
+and has been extensively studied \citep{SimoTaylor1985}. The second issue
+is that the stress field, and its linearization, will not in general
+come from a finite element space.  Hence, if all functions are assumed
+to be in a finite element space, or are interpolated in a finite element
+space, sub-optimal convergence of a Newton method will be observed.
+
+%------------------------------------------------------------------------------
+\subsection{Consistency of linearization}
+
+To illustrate the second issue raised in the preceding paragraph, we
+consider the representation that FFC would generate for a simple model
+problem, and linearize this representation. We then consider how FFC
+would represent a linearization of the original problem, which turns out
+not to be consistent with the linearization of the FFC representation
+of the original problem.
+
+Consider the following one-dimensional problem:
+%
+\begin{equation}
+\label{eq:oelgaard-1:lin_issue_F}
+F\brac{u; w} := \int_{\Omega} \sigma w,_{x} \dx,
+\end{equation}
+%
+where the scalar stress $\sigma$ is a nonlinear function of the strain
+field $u_{,x}$, and will be computed via a separate algorithm outside of
+the main forms. We consider a continuous, piecewise quadratic displacement
+field (and likewise for $w$), and a strain field that is computed via
+an $L^2$-projection onto the space of discontinuous, piecewise linear
+elements (for the considered spaces, this is equivalent to a direct
+evaluation of the strain).  We also represent the stress $\sigma$ on the
+discontinuous, piecewise linear basis.  Since the polynomial degree of
+the integrand is two, \eqref{eq:oelgaard-1:lin_issue_F} can be integrated
+using two Gauss quadrature points on an element $T \in \mathcal{T}$:
+%
+\begin{equation}
+\label{eq:oelgaard-1:lin_issue_f}
+f_{T,i_{1}} := \sum_{q=1}^2 \sum_{\alpha=1}^2 \psi^{T}_{\alpha}\brac{x_{q}} \sigma_{\alpha}
+\phi^{T}_{i_{1},x}\brac{x_q} W_{q},
+\end{equation}
+%
+where $q$ is integration point index, $\alpha$ is the degree of freedom
+index for the local basis of $\sigma$, $\psi^{T}$ and $\phi^{T}$ denotes
+the linear and quadratic basis functions on the element $T$, respectively,
+and $W_{q}$ is the quadrature weight at integration point~$x_{q}$.
+Note that $\sigma_{\alpha}$ is the stress at the element node~$\alpha$.
+
+To apply a Newton method, the Jacobian (linearization)
+of~\eqref{eq:oelgaard-1:lin_issue_f} is required. This will be
+denoted by $A^{\star}_{T,i}$.  To achieve quadratic convergence of
+a Newton method, the linearization must be exact.  The Jacobian of
+\eqref{eq:oelgaard-1:lin_issue_f} is:
+%
+\begin{equation}
+\label{eq:oelgaard-1:lin_issue_linearised_stiffness}
+A^{\star}_{T,i} := \frac{df_{T,i_{1}}}{du_{i_{2}}},
+\end{equation}
+%
+where $u_{i_{2}}$ are the displacement degrees of freedom.
+In~\eqref{eq:oelgaard-1:lin_issue_linearised_stiffness}, only
+$\sigma_{\alpha}$ depends on~$du_{i_{2}}$, and the linearization of this
+terms reads:
+%
+\begin{equation}
+\label{eq:oelgaard-1:lin_issue_stress}
+\frac{ d \sigma_{\alpha}}{du_{i_{2}}}
+    = \frac{d \sigma_{\alpha}}{d \varepsilon_{\alpha}}
+    \frac{d \varepsilon_{\alpha}}{du_{i_{2}}}
+    = D_{\alpha} \frac{d \varepsilon_{\alpha}}{du_{i_{2}}},
+\end{equation}
+%
+where $D_{\alpha}$ is the tangent. To compute the values of the strain
+at nodes, $\varepsilon_{\alpha}$, from the displacement field, the
+derivative of the displacement field is evaluated at~$x_{\alpha}$:
+%
+\begin{equation}
+\label{eq:oelgaard-1:lin_issue_strain}
+\varepsilon_{\alpha} = \sum_{i_{2}=1}^3 \phi^{T}_{i_{2},x}\brac{x_{\alpha}}u_{i_{2}}.
+\end{equation}
+%
+Inserting~\eqref{eq:oelgaard-1:lin_issue_stress}
+and~\eqref{eq:oelgaard-1:lin_issue_strain}
+into~\eqref{eq:oelgaard-1:lin_issue_linearised_stiffness} yields:
+%
+\begin{equation}
+\label{eq:oelgaard-1:lin_issue_k_star}
+A^{\star}_{T,i} = \sum_{q=1}^{2}\sum_{\alpha=1}^2 \psi^{T}_{\alpha}(x_{q}) D_{\alpha}
+\phi^{T}_{i_{2},x}(x_{\alpha}) \phi^{T}_{i_{1},x}(x_{q}) W_{q}.
+\end{equation}
+%
+This is the exact linearization of~\eqref{eq:oelgaard-1:lin_issue_f}.
+
+We now consider linearization of \eqref{eq:oelgaard-1:lin_issue_F},
+which leads to the bilinear form:
+%
+\begin{equation}
+a(u, w) = \int_{\Omega} D u,_{x} w,_{x} \dx,
+\end{equation}
+%
+where $D = d\sigma / d\varepsilon$. If $D$ is represented using a
+discontinuous, piecewise linear basis, and two quadrature points are
+used to integrate the form (which is exact for this form), the resulting
+element matrix is:
+%
+\begin{equation}
+\label{eq:oelgaard-1:lin_issue_k}
+A_{T,i} = \sum_{q=1}^{2}\sum_{\alpha=1}^2 \psi^{T}_{\alpha}(x_{q}) D_{\alpha}
+\phi^{T}_{i_{2},x}(x_{q}) \phi^{T}_{i_{1},x}(x_{q}) W_{q}.
+\end{equation}
+%
+The above representation is what would be produced by FFC.
+
+Equations~\eqref{eq:oelgaard-1:lin_issue_k_star}
+and~\eqref{eq:oelgaard-1:lin_issue_k} are not identical since
+$x_{q} \neq x_{\alpha}$. As a consequence, the bilinear form in
+\eqref{eq:oelgaard-1:lin_issue_k} is not an exact linearization
+of~\eqref{eq:oelgaard-1:lin_issue_F}, and a Newton method will therefore
+exhibit sub-optimal convergence.  In general, the illustrated problem
+arises when some coefficients in a form are computed by a nonlinear
+operation elsewhere, and then interpolated and evaluated at a point
+that differs from where the coefficients were computed. This situation
+is different from the use of nonlinear operators in UFL, and compiled
+by FFC. An example of such an operator is the $\ln J$ term in the neo-Hookean
+model~\eqref{eq:oelgaard-1:hyp_neo_hookean} where $J$ will be computed
+at quadrature points during assembly after which the operator $\ln$ is applied
+to compute~$\ln J$.
+
+The linearization issue highlighted in this section is further illustrated
+in the following section, as too is a solution that involves the dentition
+of `quadrature elements'.
+
+%------------------------------------------------------------------------------
+\subsection{Quadrature elements}
+
+To introduce the concept of quadrature elements, we first present a
+model problem that will be used in numerical examples. Given the finite
+element space
+%
+\begin{equation}
+  V = \left\{ w \in H^{1}_{0}(\Omega), \ w \in P_{k}(K) \ \foralls K \ \in \mathcal{T} \right\},
+\end{equation}
+%
+where $\Omega \subset \mathbb{R}$ and $k \ge 1$, the model problem of
+interest involves: given $f \in V$, find $u \in V$ such that
+%
+\begin{equation}
+  F := \int_{\Omega} \brac{1 + u^2} u_{,x} w_{,x} \dx
+            - \int_{\Omega} f w \dx
+    = 0 \quad \foralls w \in V.
+\label{eq:oelgaard-1:plas_nonlinear_poisson}
+\end{equation}
+%
+Solving this problem via Newton's method involves solving a series of
+linear problems with
+%
+\begin{align}
+L\brac{w}
+   &:= \int_{\Omega} \brac{1 + u^{2}_{n}} u_{n,x} w_{n,x} \dx
+            - \int_{\Omega} f w \dx,\\
+a\brac{du_{n+1}, w}
+   &:= \int_{\Omega} \brac{1 + u^{2}_{n}} du_{n+1, x} w_{,x} \dx
+        + \int_{\Omega} 2u_{n}u_{n,x} du_{n+1} w_{,x} \dx,
+\label{eq:oelgaard-1:plas_nonlinear_poisson_forms}
+\end{align}
+%
+with the update $u_{n} \leftarrow u_{n} - du_{n+1}$.  To draw an analogy
+with complex constitutive models, we rephrase the above as:
+%
+\begin{align}
+L\brac{w}
+   &:= \int_{\Omega} \sigma_{n} w_{,x} \dx - \int_{\Omega} f w \dx,
+\\
+a\brac{du_{n+1}, w}
+   &:=  \int_{\Omega} C_{n} du_{n+1, x} w_{,x} \dx
+      + \int_{\Omega} 2u_{n}u_{n,,x} du_{n+1} w_{,x} \dx,
+\label{eq:oelgaard-1:plas_nonlinear_poisson_forms2}
+\end{align}
+%
+where $\sigma_{n} = \brac{1 + u^{2}_{n}} u_{n, x}$ and $C_{n} = \brac{1
++ u^{2}_{n}}$.  The forms now resemble those for a plasticity problem
+where, $\sigma$ is the `stress', $C$ is the `tangent' and $u_{,x}$ is the
+`strain'.
+
+Similar to a plasticity problem, we wish to compute $\sigma$ and $C$
+`off-line', and to supply $\sigma$ and $C$ as functions in a space $Q$
+to the forms used in the Newton solution process. To access $u_{n ,x}$
+for use off-line, an approach is to perform an $L^{2}$-projection of
+the derivative of $u$ onto a space~$Q$.  For the example in question,
+we will also project $1 + u^{2}$ onto $Q$.  A natural choice would be
+to make $Q$ one polynomial order less that $V$ and discontinuous across
+cell facets.  However, following this approach leads to a convergence
+rate for a Newton solver that is less than the expected quadratic rate.
+The reason for this is that the linearization that follows from this
+process is not consistent with the problem being solved.
+
+To resolve this issue within the context of the Unified Form Language
+(UFL, Chapter~\ref{chap:alnes-1}), and the FeniCS Form Compiler (FFC,
+Chapter~\ref{chap:logg-1}), the concept of \emph{quadrature elements}
+\index{quadrature element} has been developed.  This special type of
+element is used to represent `functions' that can only be evaluated at
+particular points (quadrature points), and cannot be differentiated.
+In the remainder of this section we present some key features of the
+quadrature element and a demonstration of its use for the model problem
+considered above.  A quadrature element is declared in UFL by:
+%
+\begin{python}
+element = FiniteElement("Quadrature", tetrahedron, k)
+\end{python}
+%
+where \emp{k} is the polynomial degree that the underlying quadrature
+rule will be able to integrate exactly.  The declaration of a quadrature
+element is similar to the declaration of any other element in \ufl
+and it can be used as such, with some limitations. Note, however,
+the subtle difference that the element order does not refer to the
+polynomial degree of the finite element shape functions, but instead
+relates to the quadrature scheme.  \ffc{} uses a Gauss-Legendre-Jacobi
+quadrature scheme mapped onto simplices for the numerical integration of
+variational forms.  So for `sufficient' integration of a second-order
+polynomial in three dimensions, \ffc{} will use two quadrature points
+in each spatial direction that is, $2^3 = 8$ points per cell.  \ffc{}
+interprets the quadrature points of the quadrature element as degrees of
+freedom where the value of a shape function for a degree of freedom is
+equal to one at the quadrature point and zero otherwise.  This has the
+implication that a function that is defined on a quadrature element can
+only be evaluated at quadrature points.  Furthermore, it is not possible
+to take derivatives of functions defined on a quadrature element.
+
+Before demonstrating the importance of quadrature elements when computing
+terms off-line, we illustrate a simple usage of a quadrature element.
+Consider the bilinear form for a mass matrix weighted by a coefficient
+$q$ that is defined on a quadrature element:
+%
+\begin{equation}
+  a\brac{u, w} = \int_{\Omega} q u w \dx.
+\label{eq:oelgaard-1:quad_elem_mass_form}
+\end{equation}
+%
+If the test and trial functions $w$ and $u$ come from a space of linear
+Lagrange functions, the polynomial degree of their product is two.
+This means that the function $q$ should be defined as:
+%
+\begin{python}
+ElementQ = FiniteElement("Quadrature", tetrahedron, 2)
+q = Coefficient(ElementQ)
+\end{python}
+%
+to ensure appropriate integration of the form
+in~\eqref{eq:oelgaard-1:quad_elem_mass_form}.  The reason for this is
+that the quadrature element in the form dictates the quadrature scheme
+that \ffc{} will use for the numerical integration since the quadrature
+element, as described above, only have non-zero values at points that
+coincide with the underlying quadrature scheme of the quadrature element.
+Thus, if the degree of \emp{ElementQ} is set to one, the form will be
+integrated using only one integration point, since one point is enough
+to integrate a linear polynomial exactly, and as a result the form
+is under integrated.  If quadratic Lagrange elements are used for $w$
+and $u$, the polynomial degree of the integrand is four, therefore the
+declaration for the coefficient $q$ should be changed to:
+%
+\begin{python}
+ElementQ = FiniteElement("Quadrature", tetrahedron, 4)
+q = Coefficient(ElementQ)
+\end{python}
+
+The DOLFIN code for solving the nonlinear model problem with a
+source term $f = x^2 - 4$, and Dirichlet boundary conditions
+$u = 1$ at $x = 0$, continuous quadratic elements for $V$,
+and quadrature elements of degree two for $Q$ is shown in
+Figure~\ref{fig:oelgaard-1:plas_nonlinear_poisson_code}.  The
+relative residual norm after each iteration of the Newton solver
+for four different combinations of spaces $V$ and $Q$ is shown
+in Table~\ref{tab:oelgaard-1:plas_nonlinear_poisson_convergence}.
+Continuous, discontinuous and quadrature elements are denoted by $CG_{k}$,
+$DG_{k}$ and $Q_{k}$ respectively where $k$ refers to the polynomial
+degree as discussed previously.  It is clear from the table that using
+quadratic elements for $V$ requires the use of quadrature elements in
+order to ensure quadratic convergence of the Newton solver.
+
+\begin{figure}
+\begin{python}
+from dolfin import *
+
+# Sub domain for Dirichlet boundary condition
+class DirichletBoundary(SubDomain):
+    def inside(self, x, on_boundary):
+        return abs(x[0] - 0.0) < DOLFIN_EPS and on_boundary
+
+# Class for interfacing with the Newton solver
+class NonlinearModelProblem(NonlinearProblem):
+    def __init__(self, a, L, u, C, S, Q, bc):
+        NonlinearProblem.__init__(self)
+        self.a, self.L = a, L
+        self.u, self.C, self.S, self.Q, self.bc = u, C, S, Q, bc
+
+    def F(self, b, x):
+        assemble(self.L, tensor=b)
+        self.bc.apply(b, x)
+
+    def J(self, A, x):
+        assemble(self.a, tensor=A)
+        self.bc.apply(A)
+
+    def form(self, A, b, x):
+        C = project((1.0 + self.u**2), self.Q)
+        self.C.vector()[:] = C.vector()
+
+        S = project(Dx(self.u, 0), self.Q)
+        self.S.vector()[:] = S.vector()
+        self.S.vector()[:] = self.S.vector()*self.C.vector()
+
+# Create mesh and define function spaces
+mesh = UnitInterval(8)
+V = FunctionSpace(mesh, "Lagrange", 2)
+Q = FunctionSpace(mesh, "Q", 2)
+
+# Define boundary condition
+bc = DirichletBC(V, Constant(1.0), DirichletBoundary())
+
+# Define source and functions
+f = Expression("x[0]*x[0] - 4")
+u, C, S = Function(V), Function(Q), Function(Q)
+
+# Define variational problems
+w  = TestFunction(V)
+du = TrialFunction(V)
+L  = S*Dx(w, 0)*dx - f*w*dx
+a  = C*Dx(du, 0)*Dx(w, 0)*dx + 2*u*Dx(u, 0)*du*Dx(w, 0)*dx
+
+# Create nonlinear problem, solver and solve
+problem = NonlinearModelProblem(a, L, u, C, S, Q, bc)
+solver  = NewtonSolver()
+solver.solve(problem, u.vector())
+\end{python}
+\caption{DOLFIN implementation for the nonlinear model problem
+in~\eqref{eq:oelgaard-1:plas_nonlinear_poisson} with `off-line'
+computation of terms used in the variational forms.}
+\label{fig:oelgaard-1:plas_nonlinear_poisson_code}
+\end{figure}
+
+\begin{table}
+\caption{Computed relative residual norms after each iteration of
+the Newton solver for the nonlinear model problem using different
+elements for $V$ and~$Q$. Quadratic convergence is observed when
+using quadrature elements, and when using piecewise constant
+functions for $Q$, which coincides with a one-point quadrature
+element. The presented results are computed using the code in
+Figure~\ref{fig:oelgaard-1:plas_nonlinear_poisson_code}.}
+\label{tab:oelgaard-1:plas_nonlinear_poisson_convergence}
+\begin{center}
+\begin{tabular}{crrrr}
+\multicolumn{1}{c}{Iteration} & \multicolumn{1}{c}{$CG_{1}$/$DG_{0}$}
+                              & \multicolumn{1}{c}{$CG_{1}$/$Q_{1}$}
+                              & \multicolumn{1}{c}{$CG_{2}$/$DG_{1}$}
+                              & \multicolumn{1}{c}{$CG_{2}$/$Q_{2}$}\\
+\hline
+1         & 1.114e+00 & 1.101e+00 & 1.398e+00 & 1.388e+00\\
+2         & 2.161e-01 & 2.319e-01 & 2.979e-01 & 2.691e-01\\
+3         & 3.206e-03 & 3.908e-03 & 2.300e-02 & 6.119e-03\\
+4         & 7.918e-07 & 7.843e-07 & 1.187e-03 & 1.490e-06\\
+5         & 9.696e-14 & 3.662e-14 & 2.656e-05 & 1.242e-13\\
+6         &           &           & 5.888e-07 & \\
+7         &           &           & 1.317e-08 & \\
+8         &           &           & 2.963e-10 &
+\end{tabular}
+\end{center}
+\end{table}
+
+%------------------------------------------------------------------------------
+\section{Implementation and examples}
+\label{sec:oelgaard-1:examples}
+
+We present in this section implementation examples that correspond
+to the afore presented models. Where feasible, complete solvers are
+presented. When this is not feasible, relevant code extracts are
+presented.  Python examples are preferred due the compactness of the
+code extracts, however, in the case of plasticity efficiency demands
+a C++ implementation.  It is possible in the future that an efficient
+Python interface for plasticity problems will be made available via
+just-in-time compilation.
+
+The examples are chosen to highlight some implementation aspects that are
+typical for solid mechanics applications. In the code extracts,
+we do not provide commentary on generic aspects, such as the creation of
+meshes, application of boundary conditions and the solution of linear
+systems.  For an explanation of such aspects in the code examples,
+we refer to Chapters~\ref{chap:logg-2} and~\ref{chap:langtangen}.
+
+%------------------------------------------------------------------------------
+\subsection{Linearized elasticity}
+
+This example is particularly simple since the stress can be expressed as
+a straightforward function of the displacement field, and the expression
+for the stress in~\eqref{eq:oelgaard-1:elas_stress_def} can be inserted
+directly into~\eqref{eqn:oelgaard-1:F}.  For the steady case (inertia
+terms are ignored), a complete solver for a linearized elasticity
+problem in presented in Figure~\ref{fig:oelgaard-1:elas_code}.
+The solver in Figure~\ref{fig:oelgaard-1:elas_code} is for a
+simulation on a unit cube with a source term $b = (1, 0, 0)$ and
+$u = 0$ on $\partial \Omega$.  A continuous, piecewise quadratic
+finite element space is used.  The expressiveness of the UFL input
+means that that the expressions for \emp{sigma} and \emp{F} in
+Figure~\ref{fig:oelgaard-1:elas_code} resemble closely the mathematical
+expressions used in the text for $\sigma$ and $F$. We have presented
+this problem in Figure~\ref{fig:oelgaard-1:elas_code} in terms of $F$
+to unify our presentation of linear and nonlinear equations, and used
+the UFL functions \emp{lhs} and \emp{rhs} to automatically extract the
+bilinear and linear forms, respectively, from~\emp{F}.
+
+\begin{figure}
+\begin{python}
+from dolfin import *
+
+# Create mesh
+mesh = UnitCube(8, 8, 8)
+
+# Create function space
+V = VectorFunctionSpace(mesh, "CG", 2)
+
+# Create test and trial functions, and source term
+u, w = TrialFunction(V), TestFunction(V)
+b = Constant((1.0, 0.0, 0.0))
+
+# Elasticity parameters
+E, nu = 10.0, 0.3
+mu, lmbda = E/(2.0*(1.0 + nu)), E*nu/((1.0 + nu)*(1.0 - 2.0*nu))
+
+# Stress
+sigma = 2*mu*sym(grad(u)) + lmbda*tr(grad(u))*Identity(w.cell().d)
+
+# Governing balance equation
+F = inner(sigma, grad(w))*dx - dot(b, w)*dx
+
+# Extract bilinear and linear forms from F
+a, L = lhs(F), rhs(F)
+
+# Dirichlet boundary condition on entire boundary
+c  = Constant((0.0, 0.0, 0.0))
+bc = DirichletBC(V, c, DomainBoundary())
+
+# Set up PDE and solve
+problem = VariationalProblem(a, L, bc)
+problem.parameters["symmetric"] = True
+u = problem.solve()
+\end{python}
+\caption{DOLFIN Python solver for a simple linearized elasticity problem
+on a unit cube.}
+\label{fig:oelgaard-1:elas_code}
+\end{figure}
+
+%------------------------------------------------------------------------------
+\subsection{Plasticity}
+\label{sec:oelgaard-1:examples_plasticity}
+
+The computation of the stress tensor, and its linearization,
+for the model outlined in Section~\ref{sec:oelgaard-1:plasticity}
+in a displacement-driven finite element model is rather involved.
+A method of computing point-wise a stress tensor that satisfies
+\eqref{eq:oelgaard-1:plas_yield_function} from the strain, strain
+increment and history variables is known as a `return mapping
+algorithm'.  Return mapping strategies are discussed in detail in
+\citet{SimoHughes1998}.  A widely used return mapping approach, the
+`closest point projection', is summarized below for a plasticity model
+with linear isotropic hardening.
+
+From~\eqref{eq:oelgaard-1:plas_stress_def}
+and~\eqref{eq:oelgaard-1:plas_strain_decomposed} the stress at the end
+of a strain increment reads:
+%
+\begin{equation}
+\label{eq:oelgaard-1:rm_stress_strain}
+\sigma_{n+1} = \mathcal{C} : (\varepsilon_{n+1} - \varepsilon^{\rm p}_{n+1}).
+\end{equation}
+%
+Therefore, given $\varepsilon_{n+1}$, it is necessary to determine the
+plastic strain $\varepsilon^{\rm p}_{n+1}$ in order to compute the stress.
+In a closest-point projection method the increment in plastic strain
+is computed from:
+%
+\begin{equation}
+\label{eq:oelgaard-1:rm_plas_strain}
+\varepsilon^{\rm p}_{n+1} - \varepsilon^{\rm p}_{n} =
+  \Delta \lambda \frac{\partial g \brac{\sigma_{n+1}}}{\partial \sigma},
+\end{equation}
+%
+where $g$ is the plastic potential function and $\Delta \lambda
+= \lambda_{n+1} - \lambda_{n}$.  Since $\partial_{\sigma} g$ is
+evaluated at $\sigma_{n+1}$, \eqref{eq:oelgaard-1:rm_stress_strain}
+and \eqref{eq:oelgaard-1:rm_plas_strain} constitute as system of coupled
+equations with unknowns $\Delta \lambda$ and $\sigma_{n+1}$. In general,
+the system is nonlinear.  To obtain a solution, Newton's method is
+employed as follows, with $k$ denoting the iteration number.  First, a
+`trial stress' is computed:
+%
+\begin{equation}
+\label{eq:oelgaard-1:rm_trial_stress}
+\sigma_{\rm trial} = \mathcal{C} : (\varepsilon_{n+1} - \varepsilon^{\rm p}_{n}).
+\end{equation}
+%
+Subtracting \eqref{eq:oelgaard-1:rm_trial_stress}
+from~\eqref{eq:oelgaard-1:rm_stress_strain} and
+inserting~\eqref{eq:oelgaard-1:rm_plas_strain}, the following equation is
+obtained:
+%
+\begin{equation}
+\label{eq:oelgaard-1:rm_residual_stress}
+R_{n+1} := \sigma_{n+1} - \sigma_{\rm trial} + \Delta \lambda \mathcal{C} :
+                \frac{\partial g \brac{\sigma_{n+1}}}{\partial \sigma} = 0,
+\end{equation}
+%
+where $R_{n+1}$ is the `stress residual'.  During the Newton
+iterations this residual is driven towards zero.  If the trial stress
+in~\eqref{eq:oelgaard-1:rm_trial_stress} leads to satisfaction of
+the yield criterion in~\eqref{eq:oelgaard-1:plas_yield_function},
+then $\sigma_{\rm trial}$ is the new stress and the Newton procedure
+is terminated.  Otherwise, the Newton increment of $\Delta \lambda$
+is computed from:
+%
+\begin{equation}
+\label{eq:oelgaard-1:rm_dlambda}
+d\lambda_{k} = \frac{f_{k} - R_{k} : Q_{k} : \partial_{\sigma} f_{k}}
+{\partial_{\sigma} f_{k} : \Xi_{k} : \partial_{\sigma} g_{k} + h},
+\end{equation}
+%
+where $Q = \left[I + \Delta \lambda \mathcal{C} : \partial^{2}_{\sigma
+\sigma} g\right]^{-1}$, $\Xi = Q : \mathcal{C}$ and $h$ is a hardening
+parameter, which for the von Mises model with linear hardening is equal
+to $H$ (the constant hardening parameter).  The stress increment is
+computed from:
+%
+\begin{equation}
+\label{eq:oelgaard-1:rm_dsigma}
+\Delta \sigma_{k} = \left[-d\lambda_{k} \mathcal{C} : \partial_{\sigma} g_{k}
+- R_{k}\right] : Q_{k},
+\end{equation}
+%
+after which the increment of the plastic multiplier and the stresses for the
+next iteration can be computed:
+%
+\begin{align}
+\label{eq:oelgaard-1:rm_update_values}
+  \Delta \lambda_{k+1} &= \Delta \lambda_{k} + d \lambda_{k},
+\\
+  \sigma_{k+1} &= \sigma_{k} + \Delta \sigma_{k}.
+\end{align}
+%
+The yield criterion is then evaluated again using the updated values,
+and the procedure continues until the yield criterion is satisfied to
+within a prescribed tolerance.  Note that to start the procedure $\Delta
+\lambda_{0} = 0$ and $\sigma_{0} = \sigma_{\rm trial}$.  After convergence
+is achieved, the consistent tangent can be computed:
+%
+\begin{equation}
+\label{eq:oelgaard-1:rm_consistent_tangent}
+C_{\rm tan} = \Xi - \frac{\Xi : \partial_{\sigma} g \otimes \partial_{\sigma} f : \Xi}
+{\partial_{\sigma} f : \Xi : \partial_{\sigma} g + h},
+\end{equation}
+%
+which is used when assembling the global Jacobian (stiffness matrix).
+The return mapping algorithm is applied at all quadrature points.
+
+The closest-point return mapping algorithm described above is common
+to range of plasticity models that are defined by the form of the
+functions $f$ and~$g$. The process can be generalized for models with
+more complicated hardening behavior.  To aid the implementation of
+different models, a return mapping algorithm and support for quadrature
+point level history parameters is provided by the FEniCS Plasticity
+library (\url{https://launchpad.net/fenics-plasticity/}).  The library
+adopts a polymorphic design, with the base class \emp{PlasticityModel}
+providing an interface for users to implement, and thereby supply
+functions for
+$f$,
+$\partial_{\sigma} f$,
+$\partial_{\sigma} g$,
+and $\partial_{\sigma \sigma} g$.
+Figure~\ref{fig:oelgaard-1:plasticity_interface} shows the
+\emp{PlasticityModel} class public interface.  Supplied with details
+of $f$ (and possibly $g$), the library can compute stress updates and
+linearizations using the closest-point projection method.
+
+\begin{figure}
+\begin{c++}
+class PlasticityModel
+{
+public:
+
+  /// Constructor
+  PlasticityModel(double E, double nu);
+
+  /// Return hardening parameter
+  virtual double hardening_parameter(double eps_eq) const;
+
+  /// Equivalent plastic strain
+  virtual double kappa(double eps_eq, const arma::vec& stress,
+                       double lambda_dot) const;
+
+  /// Value of yield function f
+  virtual double f(const arma::vec& stress,
+                   double equivalent_plastic_strain) const = 0;
+
+  /// First derivative of f with respect to sigma
+  virtual void df(arma::vec& df_dsigma,
+                  const arma::vec& stress) const = 0;
+
+  /// First derivative of g with respect to sigma
+  virtual void dg(arma::vec& dg_dsigma,
+                  const arma::vec& stress) const;
+
+  /// Second derivative of g with respect to sigma
+  virtual void ddg(arma::mat& ddg_ddsigma,
+                   const arma::vec& stress) const = 0;
+
+};
+\end{c++}
+\caption{\emp{PlasticityModel} public interface defined by the plasticity
+library. Users are required to supply implementations for at least the
+pure virtual functions. These functions describe the plasticity model.}
+\label{fig:oelgaard-1:plasticity_interface}
+\end{figure}
+
+Computational efficiency is important in the return mapping algorithm
+as the stress and its linearization are computed at all quadrature
+points at each global Newton iteration. Therefore, it is necessary to
+execute the algorithm in C++ rather than in Python. For this reason, the
+FEniCS Plasticity library provides a C++ interface only at this stage.
+To reconcile ease and efficiency, it would be possible to use just-in-time
+compilation for a Python implementation of the \emp{PlasticityModel}
+interface, just as DOLFIN presently does for the \emp{Expression} class
+(see Chapter~\ref{chap:logg-2}).
+
+We now outline a solver based on the FEniCS Plasticity library.
+Firstly, the \ufl{} input for a formulation in three dimensions
+using a continuous, piecewise quadratic basis is shown in
+Figure~\ref{fig:oelgaard-1:plas_ufl_code}. Note that the stress
+and the linearized tangent are supplied as coefficients to the
+form as they are computed inside the plasticity library.  Symmetry
+has been exploited to flatten the stress and the tangent terms.
+Note also in Figure~\ref{fig:oelgaard-1:plas_ufl_code} that quadrature
+elements are used for the coefficients \emp{s} and \emp{t}.  Recall from
+Section~\ref{sec:oelgaard-1:linearization} that when constitutive updates
+are computed outside of the form file care must be taken to ensure
+quadratic convergence of a Newton method.  By using quadrature elements
+in Figure~\ref{fig:oelgaard-1:plas_ufl_code}, it is possible to achieve
+quadratic convergence during a Newton solve for plasticity problems.
+
+\begin{figure}
+\begin{python}
+element  = VectorElement("Lagrange", tetrahedron, 2)
+elementT = VectorElement("Quadrature", tetrahedron, 2, 36)
+elementS = VectorElement("Quadrature", tetrahedron, 2, 6)
+
+u, w =  TrialFunction(element), TestFunction(element)
+b, h = Coefficient(element), Coefficient(element)
+t, s = Coefficient(elementT), Coefficient(elementS)
+
+def eps(u):
+	return as_vector([u[i].dx(i) for i in range(3)] \
++ [u[i].dx(j) + u[j].dx(i) for i, j in [(0, 1), (0, 2), (1, 2)]])
+
+def sigma(s):
+	return as_matrix([[s[0], s[3], s[4]],
+                    [s[3], s[1], s[5]],
+                    [s[4], s[5], s[2]]])
+
+def tangent(t):
+  return as_matrix([[t[i*6 + j] for j in range(6)] for i in range(6)])
+
+a = inner(dot(tangent(t), eps(u)), eps(w))*dx
+L = inner(sigma(s), grad(w))*dx - dot(b, w)*dx - dot(h, w)*ds
+\end{python}
+\caption{Definition of the linear and bilinear variational forms for
+plasticity expressed using \ufl syntax.}
+\label{fig:oelgaard-1:plas_ufl_code}
+\end{figure}
+
+In addition to the \ufl file, which defines the momentum balance
+equation for a plasticity problem, two auxiliary \ufl files
+are required. The first is used to compute the strain from
+the displacement field via an
+$L^2$-projection\footnote{It would be more efficient to compute
+the strain at quadrature points directly from the displacement
+field, but this is not presently supported. The projection approach works
+for elements for which it is possible to define a lower-dimensional
+space that coincides exactly with the derivative of the original
+space. This is the case for Lagrange basis functions on simplices.
+The cost of the projection operation is small relative to other
+operations in the solution process for the plasticity problem.}
+as shown in
+Figure~\ref{fig:oelgaard-1:plas_strain_code}, and the second defines
+the function space for the equivalent plastic strain field, and which
+is shown in Figure~\ref{fig:oelgaard-1:plas_eqstrain_code}.
+
+\begin{figure}
+\begin{python}
+elementS = VectorElement("Quadrature", tetrahedron, 2, 6)
+element  = VectorElement("Lagrange", tetrahedron, 2)
+
+s, w = TrialFunction(elementS), TestFunction(elementS)
+u = Coefficient(element)
+
+def eps(u):
+	return as_vector([u[i].dx(i) for i in range(3)] \
++ [u[i].dx(j) + u[j].dx(i) for i, j in [(0, 1), (0, 2), (1, 2)]])
+
+a = inner(s, w)*dx
+L = inner(eps(u), w)*dx
+\end{python}
+\caption{Definition of the linear and bilinear variational forms to
+compute strains via an $L^2$-projection of the displacement field.
+Note that the \emp{eps} function returns engineering strain.}
+\label{fig:oelgaard-1:plas_strain_code}
+\end{figure}
+
+\begin{figure}
+\begin{python}
+element = FiniteElement("Quadrature", tetrahedron, 2)
+\end{python}
+\caption{Definition of the function space for the equivalent plastic strain
+field.}
+\label{fig:oelgaard-1:plas_eqstrain_code}
+\end{figure}
+
+The solver is implemented in C++, and
+Figure~\ref{fig:oelgaard-1:plas_cpp_code} shows an extract of the
+most relevant parts of the solver in the context of plasticity.
+First, the necessary function spaces are created.  \emp{Vps} and
+\emp{Veq} are used for the two history variables, the plastic strain
+and equivalent plastic strain.  \emp{Vt} and \emp{Vs} are used for
+the two coefficient spaces: the consistent tangent and the stress,
+which enter the bilinear and linear forms of the plasticity problem.
+The function space \emp{Vs} is also used for the strains.  The forms
+defining the plasticity problem and the forms to compute the strains
+are then created and the relevant functions are attached to the forms.
+Then the object defining the plasticity model is created.  The class
+\emp{VonMises} is a sub-class of the \emp{PlasticityModel} class shown
+in Figure~\ref{fig:oelgaard-1:plasticity_interface} and it implements
+functions for $f$, $\partial_{\sigma} f$ and $\partial_{\sigma\sigma} g$.
+It is constructed with values for the Young's modulus, Poisson's ratio,
+yield stress and linear hardening parameter.  This object can then be
+passed to the constructor of the \emp{PlasticityProblem} class along
+with the other necessary forms, function spaces, coefficient functions
+and boundary conditions.  \emp{PlasticityProblem} is a sub-class
+of the DOLFIN class \emp{NonlinearProblem}, which is described in
+Chapter~\ref{chap:logg-2}. The \emp{PlasticityProblem} class handles
+the assembly over cells, loops over cell quadrature points, and variable
+updates.  The \emp{PlasticityProblem} is solved by the \emp{NewtonSolver}
+like any other \emp{NonlinearProblem} object. After each Newton solver
+the history variables are updated by calling the \emp{update\_variables},
+function before proceeding with the next solution increment.
+
+\begin{figure}
+\begin{c++}
+// Create mesh and define function spaces
+UnitCube mesh(4, 4, 4);
+Plasticity::FunctionSpace V(mesh);
+Plasticity::LinearForm::CoefficientSpace_s Vps(mesh);
+Plasticity::BilinearForm::CoefficientSpace_t Vt(mesh);
+Strain::FunctionSpace Vs(mesh);
+EQPlasStrain::FunctionSpace Veq(mesh);
+
+// Create forms and attach functions
+Function tangent(Vt);
+Plasticity::BilinearForm a(V, V);
+a.t = tangent;
+
+Function stress(Vs);
+Plasticity::LinearForm L(V);
+L.s = stress;
+
+Function u(V);
+Strain::BilinearForm a_strain(Vs, Vs);
+Strain::LinearForm L_strain(Vs);
+L_strain.u = u;
+
+// Young's modulus and Poisson's ratio
+double E = 20000.0; double nu = 0.3;
+
+// Slope of hardening (linear) and hardening parameter
+double E_t(0.1*E);
+double hardening_parameter = E_t/(1.0 - E_t/E);
+
+// Yield stress
+double yield_stress = 200.0;
+
+// Object of class von Mises
+fenicsplas::VonMises J2(E, nu, yield_stress, hardening_parameter);
+
+// Create PlasticityProblem
+fenicsplas::PlasticityProblem nonlinear_problem(a, L, a_strain, L_strain, Vps, Veq, tangent, stress, bcs, J2);
+
+// Create nonlinear solver
+NewtonSolver nonlinear_solver;
+
+// Pseudo time stepping parameters
+double t = 0.0; double dt  = 0.005; double T = 0.02;
+
+// Apply load in steps
+while ( t < T )
+{
+  // Increment time and solve non-linear problem
+  t += dt;
+  nonlinear_solver.solve(nonlinear_problem, u.vector());
+
+  // Update variables for next load step
+  nonlinear_problem.update_variables();
+}
+\end{c++}
+\caption{Code extract for solving a plasticity problem.}
+\label{fig:oelgaard-1:plas_cpp_code}
+\end{figure}
+
+%------------------------------------------------------------------------------
+\subsection{Hyperelasticity}
+\label{sec:oelgaard-1:examples_hyp_elas}
+
+We present the construction of a solver for a hyperelastic problem that is
+phrased as a minimization problem, following the minimization framework
+that was presented in Section~\ref{sec:oelgaard-1:minimization}. The
+compressible neo-Hookean model in~\eqref{eq:oelgaard-1:hyp_neo_hookean}
+is adopted.  The automatic functional differentiation features of UFL
+permit the solver code to resemble closely the abstract mathematical
+presentation. Noteworthy in this approach is that it is not necessary to
+provide an explicit expression for the stress tensor.  Changing model is
+therefore as simple as redefining the stored energy function~$\Psi_{0}$.
+
+A complete hyperelastic solver is presented
+in Figure~\ref{fig:oelgaard-1:hyperelastic_solver_code}.
+It corresponds to a problem posed on a unit cube, and loaded by
+a body force $b_{0} = (0, -0.5, 0)$, and restrained such that $u =
+(0, 0, 0)$ where $x = 0$. Elsewhere on the boundary the traction
+$h_{0} = (0.1, 0, 0)$ is applied.  Continuous, piecewise linear
+functions for the displacement field are used. The code in
+Figure~\ref{fig:oelgaard-1:hyperelastic_solver_code} adopts the
+same notation used in Sections~\ref{sec:oelgaard-1:minimization}
+and~\ref{sec:oelgaard-1:hyperelasticity}. The problem is posed on the
+reference domain, and for convenience the subscripts `$0$' have been
+dropped in the code.
+
+\begin{figure}
+\begin{python}
+from dolfin import *
+
+# Optimization options for the form compiler
+parameters["form_compiler"]["cpp_optimize"] = True
+
+# Create mesh and define function space
+mesh = UnitCube(16, 16, 16)
+V = VectorFunctionSpace(mesh, "Lagrange", 1)
+
+def left(x):
+    return x[0] < DOLFIN_EPS
+
+# Define Dirichlet boundary (x = 0 or x = 1)
+zero = Constant((0.0, 0.0, 0.0))
+bc = DirichletBC(V, zero, left)
+
+# Define test and trial functions
+du, w = TrialFunction(V), TestFunction(V)
+
+# Displacement from previous iteration
+u  = Function(V)
+b  = Constant((0.0, -0.5, 0.0))  # Body force per unit mass
+h  = Constant((0.1,  0.0, 0.0))  # Traction force on the boundary
+
+# Kinematics
+I = Identity(V.cell().d)    # Identity tensor
+F = I + grad(u)             # Deformation gradient
+C = F.T*F                   # Right Cauchy-Green tensor
+
+# Invariants of deformation tensors
+Ic, J = tr(C), det(F)
+
+# Elasticity parameters
+E, nu = 10.0, 0.3
+mu, lmbda = E/(2*(1 + nu)), E*nu/((1 + nu)*(1 - 2*nu))
+
+# Stored strain energy density (compressible neo-Hookean model)
+Psi = (mu/2)*(Ic - 3) - mu*ln(J) + (lmbda/2)*(ln(J))**2
+
+# Total potential energy
+Pi = Psi*dx - dot(b, u)*dx - dot(h, u)*ds
+
+# Compute first variation of Pi (directional derivative about u in the direction of v)
+F = derivative(Pi, u, w)
+
+# Compute Jacobian of F
+dF = derivative(F, u, du)
+
+# Create nonlinear variational problem and solve
+problem = VariationalProblem(F, dF, bc)
+problem.solve(u)
+
+# Save solution in VTK format
+file = File("displacement.pvd");
+file << u;
+\end{python}
+\caption{Complete DOLFIN solver for the compressible neo-Hookean model,
+formulated as a minimization problem.}
+\label{fig:oelgaard-1:hyperelastic_solver_code}
+\end{figure}
+
+The solver in Figure~\ref{fig:oelgaard-1:hyperelastic_solver_code}
+solves the problem using one Newton step. For problems with stronger
+nonlinearities, perhaps as a result of greater volumetric or surface
+forcing terms, it may be necessary to apply a pseudo time-stepping
+approach and solve the problem in number of Newton increments, or it
+may be necessary to apply a path following solution method.
+
+%------------------------------------------------------------------------------
+\subsection{Elastodynamics}
+
+We present now a linearized elastodynamics problem to
+illustrate the solution of time-dependent problems. The
+example is based on the Newmark family of methods presented in
+Section~\ref{sec:oelgaard-1:time_integration}.  For this example, we
+consider a viscoelastic model that is a minor extension of the elasticity
+model in~\eqref{eq:oelgaard-1:elas_stress_def}.  For this model, the
+stress tensor is given by:
+%%
+\begin{equation}
+  \sigma = 2\mu \varepsilon
+   + \left( \lambda {\rm tr}(\varepsilon) + \eta {\rm tr}(\Dot{\varepsilon}) \right) I,
+\label{eq:oelgaard-1:viscoelastic}
+\end{equation}
+%%
+where the constant scalar $\eta \ge 0$ is a viscosity parameter.
+
+A simple, but complete, elastodynamics solver is
+presented in Figures~\ref{fig:oelgaard-1:time_ufl_code}
+and~\ref{fig:oelgaard-1:time_ufl_code2}.  The solver mirrors the notation
+used in Section~\ref{sec:oelgaard-1:time_integration}, with expressions
+for the acceleration, velocity and displacement at time $t_{n}$
+(\emp{a0}, \emp{v0}, \emp{u0}), and expressions for the acceleration
+and velocity at time $t_{n+1}$ (\emp{a1}, \emp{v1}) in terms of the
+displacement at $t_{n+1}$ (\emp{u1}) and other fields at time $t_{n}$.
+For simplicity, the source term $b = (0, 0, 0)$.  The body is fixed such
+that $u=0$ at $x=0$ and the initial conditions are $u_{0} = v_{0} = 0$.
+A traction $h$ is applied at $x=1$ and is increased linearly from zero
+to one over the first five time steps.  Therefore, no forces are acting
+on the body at $t=0$ and the initial acceleration is zero.  Again, the
+\ufl{} functions \emp{lhs} and \emp{rhs} have been used to extract the
+bilinear and linear terms from the form.  This is particularly convenient
+for time-dependent problems since it allows the code implementation to
+be posed in the same format as is usually adopted in the mathematical
+presentation, with the equation of interest posed in terms of fields at
+some point between times $t_{n}$ and~$t_{n+1}$.  The presented solver
+could be made more efficient by exploiting linearity of the governing
+equation and thereby re-using the factorization of the system matrix.
+
+\begin{figure}
+\begin{python}
+from dolfin import *
+
+# Form compiler options
+parameters["form_compiler"]["cpp_optimize"] = True
+parameters["form_compiler"]["optimize"] = True
+
+# External load
+class Traction(Expression):
+    def __init__(self, end):
+        Expression.__init__(self)
+        self.t = 0.0
+        self.end = end
+
+    def eval(self, values, x):
+        values[0] = 0.0
+        values[1] = 0.0
+        if x[0] > 1.0 - DOLFIN_EPS:
+            values[0] = self.t/self.end if self.t < self.end else 1.0
+
+    def value_shape(self):
+        return (2,)
+
+def update(u, u0, v0, a0, beta, gamma, dt):
+    # Get vectors (references)
+    u_vec, u0_vec  = u.vector(), u0.vector()
+    v0_vec, a0_vec = v0.vector(), a0.vector()
+
+    # Update acceleration and velocity
+    a_vec = (1.0/(2.0*beta))*( (u_vec - u0_vec - v0_vec*dt)/(0.5*dt*dt) - (1.0-2.0*beta)*a0_vec )
+
+    # v = dt * ((1-gamma)*a0 + gamma*a) + v0
+    v_vec = dt*((1.0-gamma)*a0_vec + gamma*a_vec) + v0_vec
+
+    # Update (t(n) <-- t(n+1))
+    v0.vector()[:], a0.vector()[:] = v_vec, a_vec
+    u0.vector()[:] = u.vector()
+
+# Load mesh and define function space
+mesh = UnitSquare(32, 32)
+
+# Define function space
+V = VectorFunctionSpace(mesh, "Lagrange", 1)
+
+# Test and trial functions
+u1, w = TrialFunction(V), TestFunction(V)
+
+E, nu  = 10.0, 0.3
+mu, lmbda = E/(2.0*(1.0 + nu)), E*nu/((1.0 + nu)*(1.0 - 2.0*nu))
+
+# Mass density and viscous damping coefficient
+rho, eta = 1.0, 0.2
+
+# Time stepping parameters
+beta, gamma = 0.25, 0.5
+dt   = 0.1
+t, T = 0.0, 20*dt
+
+# Fields from previous time step (displacement, velocity, acceleration)
+u0, v0, a0 = Function(V), Function(V), Function(V)
+h = Traction(T/4.0)
+\end{python}
+\caption{Python code for solving for a dynamic
+problem using an implicit Newmark scheme. Program continues in
+Figure~\ref{fig:oelgaard-1:time_ufl_code2}.}
+\label{fig:oelgaard-1:time_ufl_code}
+\end{figure}
+
+\begin{figure}
+\begin{python}
+# Velocity and acceleration at t_(n+1)
+v1 = (gamma/(beta*dt))*(u1 - u0) - (gamma/beta - 1.0)*v0 - dt*(gamma/(2.0*beta) - 1.0)*a0
+a1 = (1.0/(beta*dt**2))*(u1 - u0 - dt*v0) - (1.0/(2.0*beta) - 1.0)*a0
+
+# Stress tensor
+def sigma(u, v):
+    return 2.0*mu*sym(grad(u)) + (lmbda*tr(grad(u)) + eta*tr(grad(v)))*Identity(u.cell().d)
+
+# Governing equation
+F = (rho*dot(a1, w) + inner(sigma(u1, v1), sym(grad(w))))*dx - dot(h, w)*ds
+
+# Extract bilinear and linear forms
+a, L = lhs(F), rhs(F)
+
+# Set up boundary condition at left end
+zero = Constant((0.0, 0.0))
+def left(x):
+    return x[0] < DOLFIN_EPS
+bc = DirichletBC(V, zero, left)
+
+# Set up PDE, advance in time and solve
+problem = VariationalProblem(a, L, bcs=bc)
+# Save solution in VTK format
+file = File("displacement.pvd")
+while t <= T:
+    t += dt
+    h.t = t
+    u = problem.solve()
+    update(u, u0, v0, a0, beta, gamma, dt)
+    file << u
+\end{python}
+\caption{Continuation of Python code extract for solving for a dynamic
+problem in Figure~\ref{fig:oelgaard-1:time_ufl_code2}.}
+\label{fig:oelgaard-1:time_ufl_code2}
+\end{figure}
+%------------------------------------------------------------------------------
+\section{Future developments}
+
+In this chapter we have presented a range of solid mechanics problems in
+the context of automated modeling.  The implementation of the models
+was shown to be relatively straightforward due to the high level of
+abstraction provided in the \fenics framework.  The presented cases
+cover a range of typical solid mechanics problems that can currently be
+solved using \fenics tools.  To broaden the range of problems that can
+be handled in the \fenics framework the following two extensions are of
+particular interest from a solid mechanics viewpoint:
+%%
+\begin{description}
+\item [Assembly of forms on manifolds] Currently, it is assumed that
+two-dimensional elements, like triangles, are embedded in $\R^2$ and
+three-dimensional elements, like tetrahedra, are embedded in $\R^3$.
+An improvement would be to support two-dimensional elements embedded
+in $\R^3$ and one-dimensional elements embedded in $\R^2$ or $\R^3$.
+This would, among other things, provide support for shell and truss
+problems within the automated framework.
+
+\item [Isoparametric elements] This issue relates to quadrilateral
+and hexahedral elements, which are currently not supported, and to
+elements with higher order mappings that allow curved mesh boundaries
+to be represented.
+\end{description}
+%------------------------------------------------------------------------------
