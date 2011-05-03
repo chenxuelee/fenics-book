@@ -20,42 +20,11 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
 %------------------------------------------------------------------------------
-%\let\cleardoublepage\clearpage
+\usepackage{emptypage}
+
 
 \renewcommand{\baselinestretch}{1.2}
-
-
-\newcommand{\plaintitle}{}%     plain-text-only title
-\newcommand{\plainauthor}{}%    plain-text-only author
-\newcommand{\plainpublisher}{}% plain-text-only publisher
-
-\newcommand{\thanklesstitle}{}%     full title text minus \thanks{}
-\newcommand{\thanklessauthor}{}%    full author text minus \thanks{}
-\newcommand{\thanklesspublisher}{}% full publisher minus \thanks{}
-
-\newcommand{\@publisher}{}% full publisher with \thanks{}
-\newcommand{\publisher}[2][]{%
-  \gdef\@publisher{#2}%
-  \begingroup%
-    \renewcommand{\thanks}[1]{}% swallow \thanks contents
-    \protected@xdef\thanklesspublisher{#2}%
-  \endgroup%
-  \ifthenelse{\isempty{#1}}
-    {\renewcommand{\plainpublisher}{\thanklesspublisher}}% use thankless publisher
-    {\renewcommand{\plainpublisher}{#1}}% use provided plain-text publisher
-}
-
 
 
 \usepackage{hyperref}
@@ -72,14 +41,6 @@
 \newcommand{\allcaps}[1]{\allcapsspacing{\MakeTextUppercase{#1}}}
 \newcommand{\smallcaps}[1]{\smallcapsspacing{\MakeTextLowercase{#1}}}
 
-%\usepackage{sectsty}
-%\partfont{\mdseries\itshape}
-%\chapterfont{\LARGE\mdseries\itshape}
-%\sectionfont{\large\mdseries\itshape}
-%\subsectionfont{\normalsize\mdseries\itshape}
-%\subsubsectionfont{\normalsize\mdseries\itshape}
-%\paragraphfont{\normalsize\mdseries\itshape}
-
 \usepackage[a4paper,layoutsize={193mm,260mm},layoutoffset={8mm},total={157mm,235mm},%
             outer=18mm,top=13mm,includeheadfoot=true,showcrop]{geometry}
 
@@ -90,16 +51,16 @@
 \titleformat*{\subsubsection}{\itshape}
 \titleformat*{\paragraph}{\itshape}
 
-\usepackage{titletoc}
+%\usepackage{titletoc}
 
 
-\usepackage{fancyhdr}
-\renewcommand{\headrulewidth}{0pt}
-\renewcommand{\footrulewidth}{0pt}
-\pagestyle{fancy}
-\fancyhf{}
+%\usepackage{fancyhdr}
+%\renewcommand{\headrulewidth}{0pt}
+%\renewcommand{\footrulewidth}{0pt}
+%\pagestyle{fancy}
+%\fancyhf{}
 %\fancyhead[LE]{\thepage\quad\smallcaps{\newlinetospace{\plaintitle}}}
-\fancyhead[RO,LE]{\bfseries The performance of new graduates}
+%\fancyhead[RO,LE]{\bfseries The performance of new graduates}
 
 % FEniCS book stuff
 \input{layout/fenics.defs}
