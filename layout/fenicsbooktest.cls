@@ -8,10 +8,13 @@
 \NeedsTeXFormat{LaTeX2e}[1994/06/01]
 \ProvidesClass{fenicsbooktest}[2010/10/21 v1.0 FEniCS book class]
 
-\ExecuteOptions{a4paper,11pt,openright}
+\ExecuteOptions{a4paper,10pt,openright}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{book}}
 \ProcessOptions
 \LoadClass{book}
+
+\usepackage[a4paper,layoutsize={193mm,260mm},layoutoffset={8mm},total={157mm,235mm},%
+            outer=18mm,top=13mm,includeheadfoot=true,showcrop]{geometry}
 
 \setcounter{secnumdepth}{1}
 
@@ -29,6 +32,38 @@
 
 \usepackage{hyperref}
 
+% FEniCS book stuff
+\input{layout/fenicstest.defs}
+
+
+\RequirePackage{fancyhdr}
+
+\renewcommand\frontmatter{%
+  \cleardoublepage%
+  \@mainmatterfalse%
+  \pagenumbering{arabic}%
+  \pagestyle{plain}%
+  \fancyhf{}%
+  \fancyhead[LE,RO]{\thepage}
+}
+
+
+\renewcommand\mainmatter{%
+  \cleardoublepage%
+  \@mainmattertrue%
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+  \pagestyle{fancy}
+  \fancyhf{}%
+  %\renewcommand{\chaptermark}[1]{\markboth{##1}{}}%
+  \fancyhead[LE]{\thepage\quad\rightmark}% book title
+  \fancyhead[RO]{\leftmark\quad\thepage}% chapter title
+  %\fancyhead[LE]{\thepage\quad\smallcaps{\newlinetospace{\plaintitle}}}% book title
+  %\fancyhead[RO]{\smallcaps{\newlinetospace{\leftmark}}\quad\thepage}% chapter title
+}
+
+
+
 \usepackage[osf,sc]{mathpazo}
 \usepackage[scaled=0.90]{helvet}
 \usepackage[scaled=0.85]{beramono}
@@ -41,8 +76,6 @@
 \newcommand{\allcaps}[1]{\allcapsspacing{\MakeTextUppercase{#1}}}
 \newcommand{\smallcaps}[1]{\smallcapsspacing{\MakeTextLowercase{#1}}}
 
-\usepackage[a4paper,layoutsize={193mm,260mm},layoutoffset={8mm},total={157mm,235mm},%
-            outer=18mm,top=13mm,includeheadfoot=true,showcrop]{geometry}
 
 \usepackage{titlesec}
 \titleformat{\chapter}{\normalfont\Huge\itshape}{\thechapter}{1.0em}{}
@@ -62,18 +95,16 @@
 %\fancyhead[LE]{\thepage\quad\smallcaps{\newlinetospace{\plaintitle}}}
 %\fancyhead[RO,LE]{\bfseries The performance of new graduates}
 
-% FEniCS book stuff
-\input{layout/fenics.defs}
 
 
 
-\usepackage{fancyhdr}
-\renewcommand{\headrulewidth}{0pt}
-\renewcommand{\footrulewidth}{0pt}
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[LE]{\thepage\quad \leftmark}
-\fancyhead[RO]{\rightmark -- \@title \quad\thepage}% chapter title
+%\usepackage{fancyhdr}
+%\renewcommand{\headrulewidth}{0pt}
+%\renewcommand{\footrulewidth}{0pt}
+%\pagestyle{fancy}
+%\fancyhf{}
+%\fancyhead[LE]{\thepage\quad \leftmark}
+%\fancyhead[RO]{\rightmark -- \@title \quad\thepage}% chapter title
 
 
 \usepackage{sidecap}
