@@ -14,7 +14,7 @@
 \LoadClass{book}
 
 \usepackage[a4paper,layoutsize={193mm,260mm},layoutoffset={8mm},total={157mm,235mm},%
-            outer=18mm,top=13mm,includeheadfoot=true,showcrop]{geometry}
+            outer=18mm,top=13mm,includeheadfoot=true,headheight=23pt,showcrop]{geometry}
 
 \setcounter{secnumdepth}{1}
 
@@ -78,7 +78,7 @@
 
 
 \usepackage{titlesec}
-\titleformat{\chapter}{\normalfont\Huge\itshape}{\thechapter}{1.0em}{}
+\titleformat{\chapter}{\normalfont\huge\itshape}{\thechapter}{1.0em}{}
 \titleformat*{\section}{\itshape\large}
 \titleformat*{\subsection}{\itshape}
 \titleformat*{\subsubsection}{\itshape}
