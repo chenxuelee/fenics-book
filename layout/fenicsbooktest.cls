@@ -14,7 +14,7 @@
 \LoadClass{book}
 
 \usepackage[a4paper,layoutsize={193mm,260mm},layoutoffset={8mm},total={157mm,235mm},%
-            outer=18mm,top=13mm,includeheadfoot=true,headheight=23pt,showcrop]{geometry}
+            outer=18mm,top=13mm,includeheadfoot=true,headheight=25pt,showcrop]{geometry}
 
 \setcounter{secnumdepth}{1}
 
@@ -30,10 +30,13 @@
 \renewcommand{\baselinestretch}{1.2}
 
 
-\usepackage{hyperref}
 
 % FEniCS book stuff
 \input{layout/fenicstest.defs}
+
+
+\usepackage{hyperref}
+\hypersetup{colorlinks}
 
 
 \RequirePackage{fancyhdr}
