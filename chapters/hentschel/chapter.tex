@@ -61,7 +61,7 @@ surgically, the condition may become more severe and cause serious
 neurological deterioration, and may even lead to death.
 
 Many people with the Chiari I malformation develop fluid filled
-cavities, often called syrinxes or systs, within the spinal
+cavities, often called syrinxes or cysts, within the spinal
 cord, \index{spinal cord} a condition called syringomyelia. The exact
 relation between the Chiari I malformation and syringomyelia is not
 known. It is believed that flow and pressure disturbances caused by
@@ -96,7 +96,7 @@ in \fenics\ may be used to investigate unresolved issues in CSF flow
 dynamics.  Specifically, we investigate different boundary conditions,
 different geometries, and also how far velocity and pressure
 disturbances travel under realistic conditions. We also compare the
-different solvers Chorin, IPCS, and G2, c.f. Chapter~\ref{chap:kvs-1}.
+different solvers Chorin, IPCS, and G2, cf. Chapter~\ref{chap:kvs-1}.
 
 \section{Mathematical description}
 
@@ -185,16 +185,16 @@ implemented as subclasses of \emp{SubDomain}, similarly to the given
 example of \emp{Top}.
 \begin{python}
 class Top(SubDomain):
-	def __init__(self, index, z_max, z_min):
+	def __init__(self, z_index, z_max, z_min):
 		SubDomain.__init__(self)
-		self.z_index = index
+		self.z_index = z_index
 		self.z_max = z_max
 		self.z_min = z_min
 
 	def inside(self, x, on_boundary):
 		return bool(on_boundary and x[self.z_index] == self.z_max)
 \end{python}
-To define the domain correctly, we override the base class' object
+To define the domain correctly, we override the base class
 function \emp{inside}. It returns a boolean evaluating if the inserted
 point \emp{x} is part of the subdomain. The boolean \emp{on\_boundary}
 is very useful to easily partition the whole mesh boundary to
@@ -207,7 +207,7 @@ and outflow sections as implemented below:
 def on_ellipse(x, a, b, x_index, y_index, x_move=0, y_move=0):
 	x1 = x[x_index] - x_move
 	x2 = x[y_index] - y_move
-	return bool( abs((x1/a)**2 + (x2/b)**2 - 1.0 ) < 10**(-6) )
+	return bool( abs((x1/a)**2 + (x2/b)**2 - 1.0 ) < 10**-6 )
 \end{python}
 The vectors describing the ellipses of the cord and the dura in a
 cross section with the corresponding axes are required. The global
@@ -221,9 +221,9 @@ done as shown in the following code. The outflow area at the bottom is
 defined analogously.
 
 \begin{python}
-class Top(SubDomain):	#bc for top
-	def __init__(self, a2_o, a2_i, b2_o, b2_i,  x_index, y_index, z_index, z_max, x2_o_move=0,\
-				 y2_o_move=0, x2_i_move=0, y2_i_move=0):
+class Top(SubDomain): # bc for top
+	def __init__(self, a2_o, a2_i, b2_o, b2_i, x_index, y_index, z_index, z_max, \
+	             x2_o_move=0, y2_o_move=0, x2_i_move=0, y2_i_move=0):
 		SubDomain.__init__(self)
 		self.x_index = x_index
 		self.y_index = y_index
@@ -239,18 +239,18 @@ class Top(SubDomain):	#bc for top
 		self.y2_i_move = y2_i_move
 
 	def inside(self, x, on_boundary):
-		return bool(on_boundary and abs(x[self.z_index] - self.z_max) <10**(-6) \
-                       and not on_ellipse(x, self.a2_o, self.b2_o, self.x_index,  \
-                           self.y_index, self.x2_o_move, self.y2_o_move )\
-                       and not on_ellipse(x, self.a2_i, self.b2_i, self.x_index, \
-                           self.y_index, self.x2_i_move, self.y2_i_move ) )
+		return bool(on_boundary and abs(x[self.z_index] - self.z_max) < 10**-6 \
+		            and not on_ellipse(x, self.a2_o, self.b2_o, self.x_index, \
+		                               self.y_index, self.x2_o_move, self.y2_o_move) \
+		            and not on_ellipse(x, self.a2_i, self.b2_i, self.x_index, \
+		                               self.y_index, self.x2_i_move, self.y2_i_move))
 \end{python}
 
 The underscores \emp{o} and \emp{i} represent the outer and inner
 ellipse, respectively. The numbering with \emp{2} distinguishes the
 subdomain at the top from that at the bottom, which may be defined
 differently. The details of how different problems can easily be
-defined in separate classes can be found in:
+defined in separate classes can be found in
 \emp{src/mesh\_definitions/}. %FIXME
 
 According to \citet{GuptaSoellingerBoesigerEtAl2009}, a volume of 0.27
@@ -290,22 +290,22 @@ considerably longer.  The global function for defining the pulse is:
 \begin{python}
 def get_pulse_input_function(V, z_index, factor, A, HR_inv, HR, b, f1):
 	C0 = 3.4 * pi
-	rad = C0 /HR_inv
+	rad = C0 / HR_inv
 	v_z = "factor*(-A*(exp(-fmod(t,T)*rad)*Ees*(sin(-f1*fmod(t,T)*rad)-vd)\
-          -(1-exp(-factor*fmod(t,T)*rad))*p0*(exp(sin(-fmod(t,T)*rad)-vd)-1))-b)"
+	       -(1-exp(-factor*fmod(t,T)*rad))*p0*(exp(sin(-fmod(t,T)*rad)-vd)-1))-b)"
 	vel = None
 	if z_index == 0:
 		vel = (v_z, "0.0", "0.0")
-	elif z_index ==1:
+	elif z_index == 1:
 		vel = ("0.0", v_z, "0.0")
-	elif z_index ==2:
+	elif z_index == 2:
 		vel = ("0.0", "0.0", v_z)
 
 	class Pulse(Function):
 		cpparg = vel
 		print vel
-		defaults = {"factor":factor, "A":A, "p0":1, "vd":0.03, "Ees":50, "T":HR_inv, "HR":HR,\
-                     "rad":rad, "b":b, \emp{f1}:f1}
+		defaults = {"factor":factor, "A":A, "p0":1, "vd":0.03, "Ees":50, \
+		            "T":HR_inv, "HR":HR, "rad":rad, "b":b, "f1":f1}
 
 	return Pulse(V)
 \end{python}
@@ -323,8 +323,8 @@ The boundary condition \emp{Pulse} is defined as a subclass of
 \emp{get\_pulse\_input\_function} has to be called. The function input
 contains all necessary constants to define the pulse function, scaled
 to cardiac cycle and volume transport. The index \emp{z\_index}
-defines the coordinate of the tubular direction. The Velocity Function
-Space \emp{V} is a necessary input for the base class \emp{Function}.
+defines the coordinate of the tubular direction. The velocity
+function space \emp{V} is a necessary input for the base class \emp{Function}.
 
 \paragraph{Initialization of the problem.}
 The initialization of the class
@@ -379,8 +379,8 @@ def __init__(self, options):
 	self.bottom = Bottom(self.z_index, self.z_max, self.z_min)
 	self.top = Top(self.z_index, self.z_max, self.z_min)
 
-    # Load subdomain markers
-	self.sub_domains =  MeshFunction("uint", self.mesh, self.mesh.topology().dim() - 1)
+	# Load subdomain markers
+	self.sub_domains = MeshFunction("uint", self.mesh, self.mesh.topology().dim() - 1)
 
 	# Mark all facets as subdomain 3
 	for i in range(self.sub_domains.size()):
@@ -390,15 +390,15 @@ def __init__(self, options):
 	self.top.mark(self.sub_domains, 1)
 	self.bottom.mark(self.sub_domains, 2)
 
-    # Set viscosity
-	self.nu = 0.7 *10**(-2) # cm^2/s
+	# Set viscosity
+	self.nu = 0.7 * 10**-2 # cm^2/s
 
-    # Create right-hand side function
+	# Create right-hand side function
 	self.f = Constant(self.mesh, (0.0, 0.0, 0.0))
 	n = FacetNormal(self.mesh)
 
-    # Set end-time
-	self.T = 1.2* 1.0/self.HR
+	# Set end-time
+	self.T = 1.2 * 1.0/self.HR
 	self.dt = 0.001
 \end{python}
 
@@ -406,7 +406,7 @@ Increasing the time step length usually speeds up the calculation of
 the solution. As long as the CFL number with the maximum velocity
 $v_{max}$, time step length $dt$ and minimal edge length $h_{min}$ is
 smaller than one $(CFL = \frac{v_{max} dt}{h_{min}} < 1)$, the solvers
-should converge. For too small time steps, however, it can lead to an
+should converge. Too small time steps, however, can lead to an
 increasing number of iterations for the solver on each time step.  As
 a characterization of the fluid flow, the Reynolds number $(Re =
 \frac{v_c l}{\nu})$ was calculated with the maximum velocity $v_c$ at
@@ -416,10 +416,10 @@ for different scenarios can be found in Table \ref{tab:Re_We}.
 
 The area of the mesh surfaces and the mesh size can be found as follows.
 \begin{python}
-self.h = MeshSize(self.mesh)
-self.A0 = self.area(0)
-self.A1 = self.area(1)
-self.A2 = self.area(2)
+	self.h = MeshSize(self.mesh)
+	self.A0 = self.area(0)
+	self.A1 = self.area(1)
+	self.A2 = self.area(2)
 
 def area(self, i):
 	f = Constant(self.mesh, 1)
@@ -439,7 +439,7 @@ separate function \emp{flux}.
 def update(self, t, u, p):
 	self.g1.t = t
 	self.g2.t = t
-	pass
+
 def functional(self, t, u, p):
 	v_max = u.vector().norm(linf)
 	f0 = self.flux(0,u)
@@ -455,7 +455,7 @@ def functional(self, t, u, p):
 	print "flux through bottom ", f2
 
 	# if current velocity is peak
-	if v_max >  self.peak_v:
+	if v_max > self.peak_v:
 		self.peak_v = v_max
 		print pressure_at_peak_v
 		self.pressure_at_peak_v = pressure_at_peak_v
@@ -588,7 +588,7 @@ length = 5.0
 csf[] = Extrude(0,0,length){Surface{32};};
 \end{gencode}
 
-We store the above Gmsh commands in a \emp{.geo} file that is read by Gmsh as,
+We store the above Gmsh commands in a \emp{.geo} file that is read by Gmsh as:
 \begin{bash}
 > gmsh filename.geo
 \end{bash}
@@ -829,12 +829,12 @@ the time steps $t=0.07s, 0.18s, 0.25s$.}
 \end{center}\end{figure}
 
 Syrinxes expand the cord so that it occupies more space of the spinal
-SAS. Increasing the cord radius from 4 mm to 5 mm \footnote{similar to
-setting the variables c and d in the geo-file to 0.5} decreases the
+SAS. Increasing the cord radius from 4 mm to 5 mm~\footnote{Similar to
+setting the variables c and d in the geo-file to 0.5.} decreases the
 cross sectional area by almost one third to 0.64 $\mathrm{cm^2}$. The
 resulting flow is shown in Figure \ref{fig:case4}. Apart from the
 increased velocities, we see bidirectional flow already at t = 0.18 s
-and at t=0.25 s as before. The fact that diastolic back-flow is
+and at t = 0.25 s as before. The fact that diastolic back-flow is
 visible at t = 0.18 s, shows that the pulse with its increased
 amplitude travels faster.
 
