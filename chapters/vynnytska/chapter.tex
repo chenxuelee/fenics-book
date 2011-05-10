@@ -706,7 +706,7 @@ def stokes(mesh, eta, f):
     (v, q) = TestFunctions(W)
 
     # Define equation F((u, p), (v, q)) = 0
-    F = (2.0*eta*inner(sym(grad(u)), sym(grad(v)))*dx
+    F = (2.0*eta*inner(sym(grad(u)),sym(grad(v)))*dx
          + div(v)*p*dx
          + div(u)*q*dx
          + inner(f, v)*dx)
@@ -714,7 +714,8 @@ def stokes(mesh, eta, f):
     # Define form for preconditioner
     precond = inner(grad(u), grad(v))*dx + p*q*dx
 
-    # Return right and left hand side and preconditioner
+    # Return right and left hand side
+    # and preconditioner
     return (lhs(F), rhs(F), precond)
   \end{python}
 
@@ -766,11 +767,11 @@ def advection(phi, psi, u, n, theta=1.0):
     un = abs(dot(u('+'), n('+')))
 
     # Contributions from cells
-    a_cell = - theta*dot(u*phi, grad(psi))*dx
+    a_cell = -theta*dot(u*phi, grad(psi))*dx
 
     # Contribution from interior facets
-    a_int = theta*(dot(u('+'), jump(psi, n))*avg(phi)
-                   + 0.5*un*dot(jump(phi, n), jump(psi, n)))*dS
+    a_int = theta*(dot(u('+'), jump(psi,n))*avg(phi)
+        + 0.5*un*dot(jump(phi, n), jump(psi, n)))*dS
 
     return a_cell + a_int
     \end{python}
@@ -796,9 +797,11 @@ def diffusion(phi, psi, k_c, alpha, n, h, theta=1.0):
     a_cell = theta*k_c*dot(grad(phi), grad(psi))*dx
 
     # Contribution from the interior facets
-    a_int = theta*(k_c('+')*alpha('+')/h('+')*dot(jump(phi, n), jump(psi, n))
-                   - k_c('+')*dot(avg(grad(psi)), jump(phi, n))
-                   - k_c('+')*dot(jump(psi, n), avg(grad(phi))))*dS
+    a_int = theta*(k_c('+')*alpha('+')/h('+')
+                   * dot(jump(phi, n), jump(psi, n))
+        - k_c('+')*dot(avg(grad(psi)), jump(phi,n))
+        - k_c('+')*dot(jump(psi, n), avg(grad(phi)))
+        )*dS
 
     return a_cell + a_int
     \end{python}
@@ -834,15 +837,19 @@ def energy_correction(mesh, dt, u, u_, T_):
     n = FacetNormal(mesh)
 
     # Define discrete time derivative operator
-    Dt =  lambda T: (T - T_)/dt
+    Dt = lambda T: (T - T_)/dt
 
-    # Add syntactical sugar for advection and diffusion terms
-    a_A = lambda u, T, psi: advection(T, psi, u, n, theta=0.5)
-    a_D = lambda u, T, psi: diffusion(T, psi, k_c, alpha, n, h, theta=0.5)
+    # Add syntactical sugar for a_A and a_D
+    a_A = lambda u, T, psi: \
+              advection(T, psi, u, n, theta=0.5)
+    a_D = lambda u, T, psi: \
+              diffusion(T, psi, k_c, alpha,
+                        n, h, theta=0.5)
 
     # Define form
-    F = Dt(T)*psi*dx + a_A(u, T, psi) + a_A(u_, T_, psi) \
-        + a_D(u, T, psi) + a_D(u_, T_, psi)
+    F = (Dt(T)*psi*dx
+         + a_A(u, T, psi) + a_A(u_, T_, psi)
+         + a_D(u, T, psi) + a_D(u_, T_, psi))
 
     return (lhs(F), rhs(F))
     \end{python}
