@@ -626,6 +626,7 @@ while (t <= finish):
     u_.assign(u)
     t += dt
     \end{python}
+  \end{center}
 
     \caption{Abridged code for the main predictor-corrector algorithm,
       see Algorithm~\ref{vynnytska:alg:algorithm}. The initialization
@@ -637,7 +638,7 @@ while (t <= finish):
       and \emp{T\_pr}, \emp{u\_pr}, and \emp{phi\_pr} for predictor
       fields. These \emp{Functions} are all initialized (but the
       initialization is not included here).
-
+%
       First, the initial conditions are constructed. This involves the
       solution of a Stokes system for the initial velocity \emp{u\_},
       and in particular the construction of a preconditioner matrix
@@ -647,7 +648,7 @@ while (t <= finish):
       the solutions at each time. The \emp{KrylovSolver} can also be
       reused in each iteration and is therefore created outside the
       loop.
-
+%
       The contents of the loop follow steps (1) -- (6) of
       Algorithm~\ref{vynnytska:alg:algorithm}. First, the predicted
       temperature \emp{T\_pr} must be computed. This is done is 4
@@ -658,7 +659,7 @@ while (t <= finish):
       performed for the predicted composition \emp{phi\_pr}. The
       predicted composition is then filtered (in place) and also
       assigned to \emp{phi}.
-
+%
       Using the predicted temperature and filtered composition, the
       source term and viscosity for the Stokes equations are defined,
       and then the variational Stokes form is created. In order to
@@ -670,13 +671,12 @@ while (t <= finish):
       solver to the right-hand side vector. The procedure is repeated
       for the corrected temperature and again for the corrected Stokes
       system.
-
+%
       Finally, the solution fields at the current time are stored, the
       new time step \emp{dt} is computed based on the current velocity
       and the current solutions are assigned to the previous time as
       we step forward in time.}
-    \label{vynnytska:fig:mainalgorithm}
-  \end{center}
+  \label{vynnytska:fig:mainalgorithm}
 \end{figure}
 
 \subsection{Variational formulation of the Stokes equations}
@@ -783,9 +783,10 @@ def advection(phi, psi, u, n, theta=1.0):
       contributions from the cell integrals and facet integrals are
       defined in accordance with~\eqref{vynnytska:eq:dgadv}. The sum
       of the contributions is returned.}
-    \label{vynnytska:fig:advection}
   \end{center}
+  \label{vynnytska:fig:advection}
 \end{figure}
+%
 \begin{figure}
   \begin{center}
     \begin{python}
@@ -810,8 +811,8 @@ def diffusion(phi, psi, k_c, alpha, n, h, theta=1.0):
       integrals and facet integrals are defined
       following~\eqref{vynnytska:eq:dgdiff}. The sum of the
       contributions is returned.}
-    \label{vynnytska:fig:diffusion}
   \end{center}
+  \label{vynnytska:fig:diffusion}
 \end{figure}
 
 \begin{figure}
@@ -855,22 +856,22 @@ def energy_correction(mesh, dt, u, u_, T_):
       this case $1.0$. We define the penalty parameter \emp{alpha}
       and also the cell normal \emp{n} and mesh size \emp{h} to be
       used in the advection and diffusion forms.
-
+%
       We use \emp{lambda} functions to reduce the number of input
       arguments to the advection and diffusion functions. This is in
       part merely syntactical, but does also increase readability and
       facilitates debugging. The input to the functions \emp{a\_A}
       and \emp{a\_D} thus directly corresponds to the arguments of
       $a_A$ and $a_D$.
-
+%
       The equation is again phrased in the style $F(\cdot, \cdot) =
       0$. The reader is encouraged to compare the code with the
       mathematical formulation of the equation,
       see~\eqref{vynnytska:eq:corrector}. Finally, the left- and
       right-hand side forms are extracted using the UFL
       functions \emp{lhs} and \emp{rhs}.}
-    \label{vynnytska:fig:temperaturecorrection}
   \end{center}
+  \label{vynnytska:fig:temperaturecorrection}
 \end{figure}
 
 %%------------------------------------------------------------------------------
