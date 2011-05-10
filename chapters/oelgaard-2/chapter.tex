@@ -51,12 +51,12 @@ functions will come from
   \label{oelgaard-2:eq:space_H1}
 \end{equation}
 
-where $P_{q}\brac{T}$ denotes the space of Lagrange polynomials of
-degree $q$ on the element $T$ of the standard triangulation of
-$\Omega$, which is denoted by~$\mathcal{T}$.  If we let
-$\bracc{\phi^{T}_{i}}$ denote the local finite element basis that span
-the discrete function space $V_{h}$ on $T$, the local element tensor
-for an element $T$ can be computed as
+\noindent where $P_{q}\brac{T}$ denotes the space of Lagrange
+polynomials of degree $q$ on the element $T$ of the standard
+triangulation of $\Omega$, which is denoted by~$\mathcal{T}$.  If we
+let $\bracc{\phi^{T}_{i}}$ denote the local finite element basis that
+span the discrete function space $V_{h}$ on $T$, the local element
+tensor for an element $T$ can be computed as
 
 \begin{equation}
   A_{T,i} = \int_{T} w \nabla \phi^{T}_{i_1} \cdot \nabla
@@ -64,7 +64,7 @@ for an element $T$ can be computed as
   \label{oelgaard-2:eq:localtensor}
 \end{equation}
 
-where $i = (i_{1}, i_{2})$.
+\noindent where $i = (i_{1}, i_{2})$.
 
 The expression for the local element tensor
 in~\eqref{oelgaard-2:eq:localtensor} can be expressed in \ufl{} (see
@@ -93,18 +93,19 @@ $T \in \mathcal{T}$, this intermediate representation reads
 \label{oelgaard-2:eq:weightedlaplacian_quadraturerepresentation}
 \end{equation}
 
-where a change of variables from the reference coordinates $X$ to the
-real coordinates $x = F_T(X)$ has been used. In the above equation,
-$N$ denotes the number of integration points, $d$ is the dimension of
-$\Omega$, $n$ is the number of degrees of freedom for the local basis
-of~$w$, $\Phi_{i}$ denotes basis functions on the reference element,
-$\det F_T'$ is the determinant of the Jacobian, and $W^q$ is the
-quadrature weight at integration point~$X^q$.  By default, \ffc{}
-applies a quadrature scheme that will integrate the variational form
-exactly.  It calls FIAT (see Chapter~\ref{chap:kirby-2}) to compute
-the quadrature scheme.  FIAT supplies schemes that are based on the
-Gauss-Legendre-Jacobi rule mapped onto simplices
-(see~\citet{KarniadakisSherwin2005} for details of such schemes).
+\noindent where a change of variables from the reference coordinates
+$X$ to the real coordinates $x = F_T(X)$ has been used. In the above
+equation, $N$ denotes the number of integration points, $d$ is the
+dimension of $\Omega$, $n$ is the number of degrees of freedom for the
+local basis of~$w$, $\Phi_{i}$ denotes basis functions on the
+reference element, $\det F_T'$ is the determinant of the Jacobian, and
+$W^q$ is the quadrature weight at integration point~$X^q$.  By
+default, \ffc{} applies a quadrature scheme that will integrate the
+variational form exactly.  It calls FIAT (see
+Chapter~\ref{chap:kirby-2}) to compute the quadrature scheme.  FIAT
+supplies schemes that are based on the Gauss-Legendre-Jacobi rule
+mapped onto simplices (see~\citet{KarniadakisSherwin2005} for details
+of such schemes).
 
 From the representation
 in~\eqref{oelgaard-2:eq:weightedlaplacian_quadraturerepresentation},
@@ -208,16 +209,16 @@ some common features which can be categorized as:
 
 \begin{description}
 \item[Loop invariant code motion] In short, this procedure seeks to
-  identify terms that are independent of one or more of the summation
-  indices and to move them outside the loop over those particular
-  indices.  For instance, in
-  equation~\eqref{oelgaard-2:eq:weightedlaplacian_quadraturerepresentation}
-  the terms regarding the coefficient $w$, the quadrature weight $W^q$
-  and the determinant $\det F_T'$ are all independent of the basis
-  function indices $i_1$ and $i_2$ and therefore only need to be
-  computed once for each integration point.  A generic discussion of
-  this technique, which is also known as `loop hoisting' \index{loop
-    hoisting}, can be found in~\citet{AhoSethiUllman1986}.
+identify terms that are independent of one or more of the summation
+indices and to move them outside the loop over those particular
+indices.  For instance, in equation~\eqref{oelgaard-2:eq:%
+weightedlaplacian_quadraturerepresentation} the terms regarding the
+coefficient $w$, the quadrature weight $W^q$ and the determinant $\det
+F_T'$ are all independent of the basis function indices $i_1$ and
+$i_2$ and therefore only need to be computed once for each integration
+point.  A generic discussion of this technique, which is also known as
+`loop hoisting'\index{loop hoisting}, can be found
+in~\citet{AhoSethiUllman1986}.
 
 \item[Reuse common terms] Terms that appear multiple times in an
   expression can be identified, computed once, stored as temporary
@@ -335,7 +336,7 @@ weighted Laplace equation, the terms
     \frac{\partial \Phi_{i_2}(X^q)}{\partial X_{\alpha_2}}
 \end{equation}
 
-will be expanded into
+\noindent will be expanded into
 
 \begin{equation}
   \sum_{\beta=1}^d
@@ -347,7 +348,7 @@ will be expanded into
   \frac{\partial \Phi_{i_2}(X^q)}{\partial X_{\alpha_2}},
 \end{equation}
 
-where $\brac{\partial X_{\alpha_1} / \partial x_{\beta}}
+\noindent where $\brac{\partial X_{\alpha_1} / \partial x_{\beta}}
 \brac{\partial X_{\alpha_2} / \partial x_{\beta}}$ is independent of
 the indices $i_1$ and $i_2$ and can therefore be moved outside these
 loops.
@@ -732,6 +733,9 @@ g++ option \emp{-O2 -funroll-loops} which improves the runtime
 performance of the code by a factor of 3149 when compared to the case
 where no optimization is used by either \ffc{} or~g++.
 
+\editornote{HN: GNW, should -basis -zeros above be -simplify -zeros?
+  That is what I gather from the figure.}
+
 For the considered examples, it is clear that no single optimization
 strategy is the best for all cases.  Furthermore, the generation phase
 optimizations that one can best use depends on which optimizations are
@@ -763,8 +767,8 @@ premultiplied by a number of scalar coefficients~$f_{i}$:
   \label{oelgaard-2:eq:elasticity_form}
 \end{equation}
 
-where $n_f$ is the number of premultiplying coefficients.  The test
-and trial functions are denoted by $v, u \in V_{h}$, with
+\noindent where $n_f$ is the number of premultiplying coefficients.
+The test and trial functions are denoted by $v, u \in V_{h}$, with
 
 \begin{equation}
   V_{h} = \bracc{v \in \brac{H^{1}\brac{\Omega}}^2: \ v\vert_T \in
@@ -772,7 +776,7 @@ and trial functions are denoted by $v, u \in V_{h}$, with
  \label{oelgaard-2:eq:elastictity_H1_vector_space}
 \end{equation}
 
-and the coefficient functions $f_{i} \in W_{h}$ with
+\noindent and the coefficient functions $f_{i} \in W_{h}$ with
 
 \begin{equation}
   W_{h} = \bracc{f \in H^{1}\brac{\Omega}: \ f\vert_T \in
@@ -780,28 +784,28 @@ and the coefficient functions $f_{i} \in W_{h}$ with
  \label{oelgaard-2:eq:elasticity_H1_space}
 \end{equation}
 
-where $q$ and $p$ denote the polynomial order of the Lagrange basis
-functions.  The number of coefficients and the polynomial orders are
-varied and the number of flops needed to compute the local element
-tensor is recorded for both tensor and quadrature representations.
-The results were obtained by using the optimization options \emp{-f
-eliminate\_zeros -f simplify\_expressions} for the quadrature
-representation.  In
-Table~\ref{oelgaard-2:tab:elasticity2D_complex_comparison} the flops
-for the tensor representation is presented together with the ratio
-given by the flops for quadrature representation divided by the flops
-for tensor representation, denoted by $q/t$.  In terms of flops, a
-ratio $q/t > 1$ indicates that the tensor representation is more
-efficient while $q/t < 1$ indicates that the quadrature representation
-is more efficient.  It was found that when comparing the runtime
-performance of the two representations for this problem that the
-number of flops is a good indicator of performance.  However, as we
-have shown in the previous section, the quadrature code with the
-lowest number of flops does not always perform best for a given
-form. Furthermore, the runtime performance even depends on which g++
-options are used.  This begs the question of whether or not it is
-possible to make a sound selection between representations based only
-on an estimation of flops, as suggested in~\citet{OelgaardWells2010}.
+\noindent where $q$ and $p$ denote the polynomial order of the
+Lagrange basis functions.  The number of coefficients and the
+polynomial orders are varied and the number of flops needed to compute
+the local element tensor is recorded for both tensor and quadrature
+representations.  The results were obtained by using the optimization
+options \emp{-f eliminate\_zeros -f simplify\_expressions} for the
+quadrature representation.  In Table~\ref{oelgaard-2:tab:%
+elasticity2D_complex_comparison} the flops for the tensor
+representation is presented together with the ratio given by the flops
+for quadrature representation divided by the flops for tensor
+representation, denoted by $q/t$.  In terms of flops, a ratio $q/t >
+1$ indicates that the tensor representation is more efficient while
+$q/t < 1$ indicates that the quadrature representation is more
+efficient.  It was found that when comparing the runtime performance
+of the two representations for this problem that the number of flops
+is a good indicator of performance.  However, as we have shown in the
+previous section, the quadrature code with the lowest number of flops
+does not always perform best for a given form. Furthermore, the
+runtime performance even depends on which g++ options are used.  This
+begs the question of whether or not it is possible to make a sound
+selection between representations based only on an estimation of
+flops, as suggested in~\citet{OelgaardWells2010}.
 
 \begin{table}
   \caption{The number of operations and the ratio between number of
