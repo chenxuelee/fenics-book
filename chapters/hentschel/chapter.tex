@@ -713,13 +713,11 @@ self.v_max = self.flow_per_unit_area/sin_integration_factor
 As before, we have a global function returning the sine as a Function - object,
 \begin{python}
 def get_sine_input_function(V, z_index, HR, HR_inv, v_max):
-	v_z = "sin(2*pi*HR*fmod(t,T))*(v_max)"
-	vel = ["0.0", "0.0", "0.0"]
-	vel[z_index] = v_z
-	class Sine(Function):
-		cpparg = tuple(vel)
-		defaults = {'HR':HR, 'v_max':v_max, 'T':HR_inv}
-	return Sine(V)
+        v_z = "sin(2*pi*HR*fmod(t,T))*(v_max)"
+        vel = ["0.0", "0.0", "0.0"]
+        vel[z_index] = v_z
+        defaults = {'HR':HR, 'v_max':v_max, 'T':HR_inv}         
+        sine = Expression(vel, defaults)
 \end{python}
 that is called instead of \emp{get\_pulse\_input\_function} in the function \emp{boundary\_conditions}:
 \begin{python}
