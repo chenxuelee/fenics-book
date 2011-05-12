@@ -29,8 +29,8 @@ Nonlinear elasticity theory plays a fundamental role in modeling the
 mechanical response of many polymeric and biological materials. Such
 materials are capable of undergoing finite deformation, and their
 material response is often characterized by complex, nonlinear
-constitutive relationships. (See, for example, \citep{Holzapfel2000}
-and \citep{TruesdellNoll1965} and the references within for several
+constitutive relationships. (See, for example, \citet{Holzapfel2000}
+and \citet{TruesdellNoll1965} and the references within for several
 examples.) Because of these difficulties, predicting the response of
 arbitrary structures composed of such materials to arbitrary loads
 requires numerical computation, usually based on the finite element
@@ -91,13 +91,14 @@ treatment presented in this chapter is posed in terms of fields which
 are parametrized by reference positions. This is commonly termed the
 {\em material} or {\em Lagrangian} description.
 
-In its most basic terms, the {\em deformation} of the body over a time
+In its most basic terms, the {\em deformation} of the body over time
 $t \in [0, T]$ is a sufficiently smooth bijective map $\Bvarphi:
 \overline{\Omega} \times [0,T] \rightarrow \mathbb{R}^{2, 3}$, where
 $\overline{\Omega} :=\ \overline{\Omega\cup\partial\Omega}$ and
 $\partial\Omega$ is the boundary of $\Omega$. The restrictions on the
-map ensure that the motion it describes is physical (e.g., disallowing
-the interpenetration of matter or the formation of cracks). From this,
+map ensure that the motion it describes is physical and within the
+range of applicability of the theory (e.g., disallowing the
+interpenetration of matter or the formation of cracks). From this map,
 we can construct the {\em displacement field},
 %%
 \begin{equation}
@@ -159,16 +160,16 @@ implementation by the finite element method:
   \label{eq:narayanan:balance-of-momentum}
 \end{equation}
 %%
-where $\rho$ is the {\em reference density} of the body,
-$\bP$ is the {\em first Piola--Kirchhoff stress tensor}, $\mathrm{Div}
-(\cdot)$ is the divergence operator and $\bB$ is the body force per
-unit volume. Along with \eqref{eq:narayanan:balance-of%
--momentum}, we have initial conditions $\bu(\bX, 0) = \bu_{0}(\bX)$
-and $\frac{\partial\bu}{\partial t}(\bX, 0) = \bv_{0}(\bX)$ in
-$\Omega$, and boundary conditions $\bu(\bX, t) = \bg(\bX, t)$ on
-$\partial\Omega_{\mathrm{D}}$ and $\bP \bN = \bT$ on
-$\partial\Omega_{\mathrm{N}}$. Here, $\bN$ is the outward normal
-on the boundary.
+where $\rho$ is the {\em reference density} of the body, $\bP$ is the
+{\em first Piola--Kirchhoff stress tensor}, $\mathrm{Div} (\cdot)$ is
+the divergence operator and $\bB$ is the body force per unit
+volume. Along with \eqref{eq:narayanan:balance-of-momentum}, we have
+initial conditions $\bu(\bX, 0) = \bu_{0}(\bX)$ and
+$\frac{\partial\bu}{\partial t}(\bX, 0) = \bv_{0}(\bX)$ in $\Omega$,
+and boundary conditions $\bu(\bX, t) = \bg(\bX, t)$ on
+$\partial\Omega_{\mathrm{D}}$ and $\bP(\bX, t) \bN(\bX) = \bT(\bX, t)$
+on $\partial\Omega_{\mathrm{N}}$. Here, $\bN(X)$ is the outward normal
+on the boundary at the point $\bX$.
 
 We focus on the balance of linear momentum because, in a continuous
 sense, the other fundamental balance principles that materials must
@@ -190,14 +191,14 @@ stress responses.
 
 \subsection{Accounting for different materials}
 
-It is important to reiterate that
-\eqref{eq:narayanan:balance-of-momentum} is valid for all
-materials. In order to differentiate between different materials and
-to characterize their specific mechanical responses, the theory turns
-to {\em constitutive relationships}, which are models for describing
-the real mechanical behavior of matter. In the case of nonlinear
-elastic (or {\em hyperelastic}) materials, this description is posed
-in the form of a stress-strain relationship through an objective and
+It is important to reiterate that \eqref{eq:narayanan:balance%
+-of-momentum} is valid for all materials. In order to differentiate
+between different materials and to characterize their specific
+mechanical responses, the theory turns to {\em constitutive
+relationships}, which are models for describing the real mechanical
+behavior of matter. In the case of nonlinear elastic (or {\em
+hyperelastic}) materials, this description is usually posed in the
+form of a stress-strain relationship through an objective and
 frame-indifferent Helmholtz free energy function called the {\em
 strain energy function}, $\psi$. This is an energy defined per unit
 reference volume and is solely a function of the local {\em strain
@@ -216,8 +217,10 @@ Infinitesimal strain tensor & $\Bepsilon = \frac{1}{2}
 \\
 Deformation gradient &  $\bF = \bone + \mathrm{Grad}(\bu)$
 \\
-Right Cauchy--Green tensor & $\bC = \bF^{\mathrm{T}} \bF$\\
-Green--Lagrange strain tensor & $\bE = \frac{1}{2} \left(\bC - \bone\right)$
+Right Cauchy--Green tensor & $\bC = \bF^{\mathrm{T}} \bF$
+\\
+Green--Lagrange strain tensor & $\bE = \frac{1}{2} \left(\bC -
+  \bone\right)$
 \\
 Left Cauchy--Green tensor & $\bb = \bF \bF^{\mathrm{T}}$
 \\
@@ -300,7 +303,7 @@ as the {\em second Piola--Kirchhoff stress tensor} is defined using the
 following {\em constitutive relationship}:
 %%
 \begin{equation}
-\bS = \bF^{-1} \frac{\partial \psi(\bF)}{\partial \bF}.
+  \bS = \bF^{-1} \frac{\partial \psi(\bF)}{\partial \bF}.
 \end{equation}
 %%
 The second Piola--Kirchhoff stress tensor is related to the first
@@ -309,25 +312,25 @@ $\bP = \bF \bS$.
 
 As already mentioned, the strain energy function can be posed in
 equivalent forms in terms of different strain measures. (Again, the
-reader is directed to classical texts to motivate this.) In order to
-then arrive at the second Piola--Kirchhoff stress tensor, we turn to
-the chain rule of differentiation. For example,
+interested reader is directed to classical texts to motivate this.) In
+order to then arrive at the second Piola--Kirchhoff stress tensor, we
+turn to the chain rule of differentiation. For example,
 %%
 \begin{equation}
-\begin{split}
-  \bS & = 2 \frac{\partial \psi(\bC)}{\partial \bC} = \frac{\partial
-    \psi(\bE)}{\partial \bE}\\
-      & = 2\left[\left(\frac{\partial \psi (I_{1}, I_{2},
-            I_{3})}{\partial I_{1}} + I_{1} \frac{\partial \psi (I_{1}, I_{2},
-            I_{3})}{\partial I_{2}} \right) \bone - \frac{\partial \psi (I_{1},
-          I_{2}, I_{3})}{\partial I_{2}} \bC + I_{3} \frac{\partial \psi (I_{1},
-          I_{2}, I_{3})}{\partial I_{3}} \bC^{-1} \right]\\
-      & = \sum_{A = 1}^{3}
-      \frac{1}{\lambda_{A}} \frac{\partial \psi(\lambda_{1},
-        \lambda_{2}, \lambda_{3})}{\partial
-        \lambda_{A}} \bN^{A}\otimes\bN^{A} = \ldots
-\end{split}
-\label{eq:narayanan:secondpk}
+  \begin{split}
+    \bS & = 2 \frac{\partial \psi(\bC)}{\partial \bC} =
+    \frac{\partial \psi(\bE)}{\partial \bE}\\
+    & = 2\left[\left(\frac{\partial \psi (I_{1}, I_{2},
+          I_{3})}{\partial I_{1}} + I_{1} \frac{\partial \psi (I_{1},
+          I_{2}, I_{3})}{\partial I_{2}} \right) \bone -
+      \frac{\partial \psi (I_{1}, I_{2}, I_{3})}{\partial I_{2}} \bC +
+      I_{3} \frac{\partial \psi (I_{1}, I_{2}, I_{3})}{\partial I_{3}}
+      \bC^{-1} \right]\\
+    & = \sum_{A = 1}^{3} \frac{1}{\lambda_{A}} \frac{\partial
+      \psi(\lambda_{1}, \lambda_{2}, \lambda_{3})}{\partial
+      \lambda_{A}} \bN^{A}\otimes\bN^{A} = \ldots
+  \end{split}
+  \label{eq:narayanan:secondpk}
 \end{equation}
 
 Using definitions such as the ones explicitly provided in
@@ -335,12 +338,12 @@ Using definitions such as the ones explicitly provided in
 Piola--Kirchhoff stress tensor from the strain energy function by
 suitably differentiating it with respect to the appropriate strain
 measure. This allows the user to easily specify material models in
-terms of each of the strain measures introduced in
-Table~\ref{tab:narayanan:straindefs}. The base class for all material
-models, \emp{MaterialModel}, encapsulates this functionality. The
-relevant method of this class is provided in
-Figure~\ref{code:narayanan:material_model_base.py}. The implementation
-relies heavily on the UFL \emp{diff} operator.
+terms of each of the strain measures introduced in Table~\ref{tab:%
+narayanan:straindefs}. The base class for all material models,
+\emp{MaterialModel}, encapsulates this functionality. The relevant
+method of this class is provided in Figure~\ref{code:narayanan:%
+material_model_base.py}. The implementation relies heavily on the UFL
+\emp{diff} operator.
 
 \begin{figure}
 \begin{python}
@@ -370,7 +373,8 @@ def SecondPiolaKirchhoffStress(self, u):
 \end{python}
 \label{code:narayanan:material_model_base.py}
 \caption{Partial listing of the method that suitably computes the
-  second Piola--Kirchhoff stress tensor based on the strain measure.}
+  second Piola--Kirchhoff stress tensor based on the chosen strain
+  measure.}
 \end{figure}
 
 The generality of the material model base class allows for the (almost
@@ -448,50 +452,49 @@ is directed to \citet{SimoHughes1998}.
 \subsection{The finite element formulation of the balance of linear
   momentum}
 
-By taking the dot product of
-\eqref{eq:narayanan:balance-of-momentum} with a test function
-$\bv \in \hat{\mathrm{V}}$ and integrating over the reference domain
-and time, we have
+By taking the dot product of \eqref{eq:narayanan:balance-of-momentum}
+with a test function $\bv \in \hat{\mathrm{V}}$ and integrating over
+the reference domain and time, we have
 %%
 \begin{equation}
- \int_{0}^{T} \int_{\Omega} \rho \frac{\partial^{2}
+  \int_{0}^{T} \int_{\Omega} \rho \frac{\partial^{2}
     \bu}{\partial t^{2}} \cdot \bv \dx \dt\;
   = \int_{0}^{T}\int_{\Omega} \mathrm{Div}(\bP) \cdot \bv \dx \dt\;
   + \int_{0}^{T} \int_{\Omega} \bB \cdot \bv \dx \dt.
 \end{equation}
 %%
 Noting that the traction vector $\bT = \bP \bN$ on
-$\partial\Omega_{\mathrm{N}}$ ($\bN$ being the outward normal
-on the boundary) and that by definition
-$\bv|_{\partial\Omega_{\mathrm{D}}} = 0$, we apply the divergence
-theorem to arrive at the following weak form of the balance of linear
-momentum: \\*
-Find $\bu \in \mathrm{V}$, such that $\foralls \bv \in \hat{\mathrm{V}}$:
+$\partial\Omega_{\mathrm{N}}$ ($\bN$ being the outward normal on the
+boundary) and that by definition $\bv|_{\partial\Omega_{\mathrm{D}}} =
+0$, we apply the divergence theorem to arrive at the following weak
+form of the balance of linear momentum: \\*
+Find $\bu \in \mathrm{V}$, such that $\foralls \bv \in
+\hat{\mathrm{V}}$:
+%%
 \begin{equation}
   \int_{0}^{T} \int_{\Omega} \rho \frac{\partial^{2} \bu}{\partial
-t^{2}} \cdot \bv \dx \dt\; + \int_{0}^{T} \int_{\Omega}
-\bP:\mathrm{Grad}(\bv) \dx \dt\; = \int_{0}^{T} \int_{\Omega} \bB
-\cdot \bv \dx \dt\; + \int_{0}^{T} \int_{\partial\Omega_{\mathrm{N}}}
-\bT \cdot \bv \ds \dt,
+    t^{2}} \cdot \bv \dx \dt\; + \int_{0}^{T} \int_{\Omega}
+  \bP:\mathrm{Grad}(\bv) \dx \dt\; = \int_{0}^{T} \int_{\Omega} \bB
+  \cdot \bv \dx \dt\; + \int_{0}^{T} \int_{\partial\Omega_{\mathrm{N}}}
+  \bT \cdot \bv \ds \dt,
 \label{eq:narayanan:weakform}
 \end{equation}
 %%
 with initial conditions $\bu(\bX, 0) = \bu_{0}(\bX)$ and
-$\frac{\partial\bu}{\partial t}(\bX, 0) = \bv_{0}(\bX)$ in
-$\Omega$, and boundary conditions $\bu(\bX, t) = \bg(\bX, t)$ on
+$\frac{\partial\bu}{\partial t}(\bX, 0) = \bv_{0}(\bX)$ in $\Omega$,
+and boundary conditions $\bu(\bX, t) = \bg(\bX, t)$ on
 $\partial\Omega_{\mathrm{D}}$.
 
 The finite element formulation implemented in \twist{} follows the
-Galerkin approximation of the above weak
-form~\eqref{eq:narayanan:weakform}, by looking for solutions in a finite
-solution space  $\mathrm{V}_{h} \subset \mathrm{V}$ and allowing for
-test functions in a finite approximation of the test space
-$\hat{\mathrm{V}}_{h} \subset \hat{\mathrm{V}}$.\footnote{We now
-  note an inherent advantage in choosing the Lagrangian description in
-  formulating the theory. The fact that the integrals in
-  \eqref{eq:narayanan:weakform}, along with the various fields
-  and differential operators, are defined over the fixed domain
-  $\Omega$ means that one need not be concerned with the
+Galerkin approximation of the above weak form~\eqref{eq:narayanan:%
+weakform}, by looking for solutions in a finite solution space
+$\mathrm{V}_{h} \subset \mathrm{V}$ and allowing for test functions in
+a finite approximation of the test space $\hat{\mathrm{V}}_{h} \subset
+\hat{\mathrm{V}}$.\footnote{We now note an inherent advantage in
+  choosing the Lagrangian description in formulating the theory. The
+  fact that the integrals in \eqref{eq:narayanan:weakform}, along with
+  the various fields and differential operators, are defined over the
+  fixed domain $\Omega$ means that one need not be concerned with the
   complexity associated with calculations on a moving computational
   domain when implementing this formulation.}
 
@@ -507,34 +510,33 @@ term) of the balance of linear momentum which reads
 \label{eq:narayanan:staticweakform}
 \end{equation}
 %%
-Since \twist{} provides the necessary functionality to
-easily compute the first Piola--Kirchhoff stress tensor, $\bP$, given
-a displacement field, $\bu$, for arbitrary material models,
-\eqref{eq:narayanan:staticweakform} is just a nonlinear functional in
-terms of $\bu$. The automatic differentiation capabilities of
-UFL\footnote{An earlier chapter on UFL~(\ref{chap:alnes-1}) provides a
-detailed look at the capabilities of UFL, as well as insights into how
-it achieves its functionality. Even so, we note the following
-differentiation capabilities of UFL because of their pivotal relevance
-to this work:
+Since \twist{} provides the necessary functionality to easily compute
+the first Piola--Kirchhoff stress tensor, $\bP$, given a displacement
+field, $\bu$, for arbitrary material models, \eqref{eq:narayanan:%
+staticweakform} is just a nonlinear functional in terms of $\bu$. The
+automatic differentiation capabilities of UFL\footnote{An earlier
+  chapter on UFL~(\ref{chap:alnes-1}) provides a detailed look at the
+  capabilities of UFL, as well as insights into how it achieves its
+  functionality. Even so, we note the following differentiation
+  capabilities of UFL because of their pivotal relevance to this work:
 %%
-\begin{itemize}
-\item Computing spatial derivatives of fields, which allows for the
-  construction of differential operators such as such as
-  $\mathrm{Grad(\cdot)}$ or $\mathrm{Div(\cdot)}$:\\
-  \texttt{df\_i = Dx(f, i)}
-\item Differentiating arbitrary expressions with respect to variables
-  they are functions of:\\
-\texttt{g = variable(cos(cell.x[0]))}\\
-\texttt{f = exp(g**2)}\\
-\texttt{h = diff(f, g)}
-\item Differentiating forms with respect to coefficients of a discrete
-  function, allowing for automatic linearizations of nonlinear
-  variational forms:\\
-\texttt{a = derivative(L, w, u)}
-\end{itemize}} make
-this nonlinear form straightforward to implement, as evidenced by the
-code listing in Figure~\ref{code:narayanan:staticmomentumsolver}.
+  \begin{itemize}
+  \item Computing spatial derivatives of fields, which allows for the
+    construction of differential operators such as such as
+    $\mathrm{Grad(\cdot)}$ or $\mathrm{Div(\cdot)}$:\\
+    \texttt{df\_i = Dx(f, i)}
+  \item Differentiating arbitrary expressions with respect to variables
+    they are functions of:\\
+    \texttt{g = variable(cos(cell.x[0]))}\\
+    \texttt{f = exp(g**2)}\\
+    \texttt{h = diff(f, g)}
+  \item Differentiating forms with respect to coefficients of a discrete
+    function, allowing for automatic linearizations of nonlinear
+    variational forms:\\
+    \texttt{a = derivative(L, w, u)}
+  \end{itemize}} make this nonlinear form straightforward to
+implement, as evidenced by the code listing in Figure~\ref{code:%
+narayanan:staticmomentumsolver}.
 
 This listing provides the relevant section of the static balance of
 linear momentum solver class, \emp{StaticMomentumBalanceSolver}. The
@@ -597,15 +599,17 @@ Find ($\bu, \bw) \in \mathrm{V}$, such that $\foralls (\bv,
 \br) \in \hat{\mathrm{V}}$:
 %%
 \begin{equation}
-\begin{split}
-  \int_{0}^{T} \int_{\Omega} \rho \frac{\partial \bw}{\partial t}
-\cdot \bv \dx \dt\; + \int_{0}^{T} \int_{\Omega}
-\bP:\mathrm{Grad}(\bv) \dx \dt\; &= \int_{0}^{T} \int_{\Omega} \bB
-\cdot \bv \dx \dt\; + \int_{0}^{T} \int_{\partial\Omega_{\mathrm{N}}}
-\bT \cdot \bv \ds \dt, \; \mathrm{and}\\ \int_{0}^{T} \int_{\Omega}
-\frac{\partial \bu}{\partial t} \cdot \br \dx \dt\; &= \int_{0}^{T}
-\int_{\Omega} \bw \cdot \br \dx \dt.
-\end{split}
+  \begin{split}
+    \int_{0}^{T} \int_{\Omega} \rho \frac{\partial \bw}{\partial t}
+    \cdot \bv \dx \dt\; + \int_{0}^{T} \int_{\Omega}
+    \bP:\mathrm{Grad}(\bv) \dx \dt\;
+    &= \int_{0}^{T} \int_{\Omega} \bB \cdot \bv \dx \dt\; +
+    \int_{0}^{T} \int_{\partial\Omega_{\mathrm{N}}} \bT \cdot \bv \ds
+    \dt, \; \mathrm{and}\\
+    \int_{0}^{T} \int_{\Omega} \frac{\partial \bu}{\partial t} \cdot
+    \br \dx \dt\;
+    &= \int_{0}^{T} \int_{\Omega} \bw \cdot \br \dx \dt.
+  \end{split}
 \label{eq:narayanan:cg1weakform}
 \end{equation}
 %%
@@ -620,14 +624,16 @@ constant in time). With these assumptions, we arrive at the following
 scheme:
 %%
 \begin{equation}
-\begin{split}
-  \int_{\Omega} \rho \frac{\left(\bw_{n+1} - \bw_{n}\right)}{\Delta t} \cdot \bv \dx\;
-  + \int_{\Omega} \bP(\bu_{\mathrm{mid}}):\mathrm{Grad}(\bv) \dx\;
-  &=  \int_{\Omega} \bB \cdot \bv \dx\;
-  +  \int_{\partial\Omega_{\mathrm{N}}} \bT \cdot \bv \ds,
-  \; \mathrm{and}\\
-    \int_{\Omega} \frac{\left(\bu_{n+1} - \bu_{n}\right)}{\Delta t} \cdot \br \dx\;
-  &=  \int_{\Omega} \bw_{\mathrm{mid}} \cdot \br \dx,
+  \begin{split}
+    \int_{\Omega} \rho \frac{\left(\bw_{n+1} - \bw_{n}\right)}{\Delta
+      t} \cdot \bv \dx\; + \int_{\Omega}
+    \bP(\bu_{\mathrm{mid}}):\mathrm{Grad}(\bv) \dx\;
+    &=  \int_{\Omega} \bB \cdot \bv \dx\;
+    +  \int_{\partial\Omega_{\mathrm{N}}} \bT \cdot \bv \ds,
+    \; \mathrm{and}\\
+    \int_{\Omega} \frac{\left(\bu_{n+1} - \bu_{n}\right)}{\Delta t}
+    \cdot \br \dx\;
+    &=  \int_{\Omega} \bw_{\mathrm{mid}} \cdot \br \dx,
 \end{split}
 \label{eq:narayanan:cg1weakformapprox}
 \end{equation}
@@ -690,7 +696,7 @@ class CG1MomentumBalanceSolver(CBCSolver):
     a = derivative(L, U, dU)
 \end{python}
 \caption{Relevant portion of the dynamic balance of linear momentum
-  balance solver using the CG$_{1}$ time-stepping scheme.}
+  solver using the CG$_{1}$ time-stepping scheme.}
 \label{code:narayanan:cg1}
 \end{figure}
 
@@ -701,7 +707,7 @@ second order accurate and energy conserving.\footnote{This is
   second example calculation.}  But it should also be noted that the mixed
 system that results from the formulation is computationally expensive
 and memory intensive as the number of variables being solved for have
-doubled.
+doubled due to the introduction of the velocity variable.
 
 \twist{} also provides a standard implementation of a finite
 difference time-stepping algorithm that is commonly used in the
@@ -727,9 +733,9 @@ compute the initial acceleration, $\ba_{0}$, from the weak form:
 %%
 \begin{equation}
   \int_{\Omega} \rho a_{0} \cdot \bv \dx\; +  \int_{\Omega}
-\bP(u_{0}):\mathrm{Grad}(\bv) \dx\; - \int_{\Omega} \bB(X, 0)
-\cdot \bv \dx\; -  \int_{\partial\Omega_{\mathrm{N}}}
-\bT(X, 0) \cdot \bv \ds = 0.
+  \bP(u_{0}):\mathrm{Grad}(\bv) \dx\; - \int_{\Omega} \bB(X, 0)
+  \cdot \bv \dx\; -  \int_{\partial\Omega_{\mathrm{N}}}
+  \bT(X, 0) \cdot \bv \ds = 0.
 \end{equation}
 %%
 This provides the complete initial state ($\bu_{0}, \bv_{0}, \ba_{0}$)
@@ -738,15 +744,15 @@ advance the solution to step $n+1$ as follows. First, we note the
 following definitions:
 %%
 \begin{equation}
-\begin{split}
-\bu_{n+1} & = \bu_{n} + \Delta t \bv_{n} + \Delta t^{2} \left[
-  \left(\frac{1}{2} - \beta \right) \ba_{n} + \beta \ba_{n+1}
-\right]\\
-\bv_{n+1} & = \bv_{n} + \Delta t \left[ (1-\gamma) \ba_{n} + \gamma
-  \ba_{n+1} \right]\\
-\bu_{n+\alpha} & = (1 - \alpha) \bu_{n} + \alpha \bu_{n+1}\\
-\bv_{n+\alpha} & = (1 - \alpha) \bv_{n} + \alpha \bv_{n+1}\\
-t_{n+\alpha} &= (1 - \alpha) t_{n} + \alpha t_{n + 1}
+  \begin{split}
+    \bu_{n+1} & = \bu_{n} + \Delta t \bv_{n} + \Delta t^{2} \left[
+      \left(\frac{1}{2} - \beta \right) \ba_{n} + \beta \ba_{n+1}
+    \right]\\
+    \bv_{n+1} & = \bv_{n} + \Delta t \left[ (1-\gamma) \ba_{n} +
+      \gamma \ba_{n+1} \right]\\
+    \bu_{n+\alpha} & = (1 - \alpha) \bu_{n} + \alpha \bu_{n+1}\\
+    \bv_{n+\alpha} & = (1 - \alpha) \bv_{n} + \alpha \bv_{n+1}\\
+    t_{n+\alpha} &= (1 - \alpha) t_{n} + \alpha t_{n + 1}
 \end{split}
 \label{eq:narayanan:hhtdefs}
 \end{equation}
@@ -756,23 +762,23 @@ into the following form of the balance of linear momentum,
 %%
 \begin{equation}
    \int_{\Omega} \rho a_{n+1} \cdot \bv \dx\; + \int_{\Omega} \bP(u_{n
-+ \alpha}):\mathrm{Grad}(\bv) \dx\; - \int_{\Omega} \bB(X, t_{n +
-\alpha}) \cdot \bv \dx\; - \int_{\partial\Omega_{\mathrm{N}}} \bT(X,
-t_{n + \alpha}) \cdot \bv \ds = 0,
+     + \alpha}):\mathrm{Grad}(\bv) \dx\; - \int_{\Omega} \bB(X, t_{n +
+     \alpha}) \cdot \bv \dx\; - \int_{\partial\Omega_{\mathrm{N}}}
+   \bT(X, t_{n + \alpha}) \cdot \bv \ds = 0,
 \label{eq:narayanan:newaccn}
 \end{equation}
 %%
-we can solve for the for the only unknown variable, the
-acceleration at the next step, $\ba_{n+1}$. The acceleration solution
-to \eqref{eq:narayanan:newaccn} is then used in the
-definitions~\eqref{eq:narayanan:hhtdefs} to update to new displacement
-and velocity values, and the problem is stepped through time.
+we can solve for the for the only unknown variable, the acceleration
+at the next step, $\ba_{n+1}$. The acceleration solution to
+\eqref{eq:narayanan:newaccn} is then used in the definitions%
+~\eqref{eq:narayanan:hhtdefs} to update to new displacement and
+velocity values, and the problem is stepped through time.
 
 We close this subsection on time-stepping algorithms with one usage
 detail pertaining to \twist. By default, when solving a dynamics
 problem, \twist{} assumes that the user wants to use the HHT
-method. In case one wants to override this behavior, they can do so
-by returning \emp{"CG(1)"} in the \emp{time\_stepping} method while
+method. In case one wants to override this behavior, they can do so by
+returning \emp{"CG(1)"} in the \emp{time\_stepping} method while
 specifying the problem. Figure~\ref{code:narayanan:dynamicrelease} is
 an example showing this.
 
@@ -781,12 +787,12 @@ an example showing this.
 The algorithms discussed thus far serve primarily to explain the
 computational framework's inner working, and are not at the level at
 which the user usually interacts with \twist{} (unless they are
-interested in extending it). In practice, the functionality of \twist{}
-is exposed to the user through two primary problem definition classes:
-\emp{StaticHyperelasticity} and \emp{Hyperelasticity}. These classes
-reside in \emp{problem\_definitions.py}, and contain numerous methods
-for defining aspects of the nonlinear elasticity problem. As their
-names suggest, these are respectively used to describe static or
+interested in extending it). In practice, the functionality of
+\twist{} is exposed to the user through two primary problem definition
+classes: \emp{StaticHyperelasticity} and \emp{Hyperelasticity}. These
+classes reside in \emp{problem\_definitions.py}, and contain numerous
+methods for defining aspects of the nonlinear elasticity problem. As
+their names suggest, these are respectively used to describe static or
 dynamic problems in nonlinear elasticity.
 
 Over the course of the following examples, we will see how various
@@ -808,9 +814,9 @@ St.~Venant--Kirchhoff material with Lam\'e's parameters $\mu =
 3.8461$~N/m$^2$ and a spatially varying $\lambda = 5.8 x_{1} + 5.7 (1
 - x_{1})$~N/m$^2$. Here, $x_{1}$ is the first coordinate of the
 reference position, $\bX$.\footnote{The numerical parameters in this
-chapter have been arbitrarily chosen for illustration of the
-framework's use. They do not necessarily correspond to a real
-material.} In order to twist the cube, the face $x_{1} = 0$ is held
+  chapter have been arbitrarily chosen for illustration of the
+  framework's use. They do not necessarily correspond to a real
+  material.} In order to twist the cube, the face $x_{1} = 0$ is held
 fixed and the opposite face $x_{1} = 1$ is rotated 60 degrees using
 the Dirichlet condition defined in
 Figure~\ref{code:narayanan:statictwist}.
@@ -834,17 +840,17 @@ from cbc.twist import *
   functionality that it offers.}
 \end{figure}
 %%
-The problem is completely specified by defining
-relevant methods in the user-created class \emp{Twist} (see
+The problem is completely specified by defining relevant methods in
+the user-created class \emp{Twist} (see
 Figure~\ref{code:narayanan:statictwist}), which derives from the base
 class \emp{StaticHyperelasticity}. \twist{} only requires relevant
 methods to be provided, and for the current problem, this includes
-the computational domain, Dirichlet boundary conditions and material
-model. The methods are fairly self-explanatory, but the following points
-are to be noted. Firstly, \twist{} supports spatially-varying material
-parameters. Secondly, Dirichlet boundary conditions are posed in two
-parts: the conditions themselves, and the corresponding boundaries along
-which they act.
+those that define the computational domain, Dirichlet boundary
+conditions and material model. The methods are fairly
+self-explanatory, but the following points are to be noted. Firstly,
+\twist{} supports spatially-varying material parameters. Secondly,
+Dirichlet boundary conditions are posed in two parts: the conditions
+themselves, and the corresponding boundaries along which they act.
 
 \begin{figure}
 \begin{python}
@@ -993,14 +999,15 @@ When \emp{Release} is instantiated and its \emp{solve} method is
 called, we see the relaxation of the pre-twisted cube. After initial
 unwinding of the twist, the body proceeds to twist in the opposite
 direction due to inertia. This process repeats itself, and snapshots
-of the displacement over the first 0.5~s are shown in
-Figure~\ref{fig:narayanan:releasedcube}. Figure~\ref{fig:narayanan:energies}
-highlights the energy conservation of the CG$_{1}$ numerical scheme used
-to time-step this problem by totaling the kinetic energy and
+of the displacement over the first 0.5~s are shown in Figure%
+~\ref{fig:narayanan:releasedcube}. Figure~\ref{fig:narayanan:energies}
+highlights the energy conservation of the CG$_{1}$ numerical scheme
+used to time-step this problem by totaling the kinetic energy and
 potential energy of the body over the course of the
 calculation. \twist{} provides this information through the methods
 \emp{kinetic\_energy(v)} and \emp{potential\_energy(u)}, where \emp{v}
-and \emp{u} are velocity and displacement fields respectively.
+and \emp{u} are the discrete velocity and displacement fields
+respectively.
 
 \begin{figure}
   \begin{center}
