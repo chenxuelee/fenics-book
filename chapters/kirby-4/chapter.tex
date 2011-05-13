@@ -3,18 +3,16 @@
               {Robert C. Kirby, Matthew G. Knepley, Anders Logg, L. Ridgway Scott and Andy R. Terrel}
               {kirby-4}
 
-\vspace{-0.5cm}
-
 The tensor contraction structure for the computation of the element
-tensor~$A_T$ obtained in Chapter~\ref{chap:kirby-8} enables not only
+tensor~$A_T$ obtained in Chapter~\ref{chap:kirby-8}, enables not only
 the construction of a compiler for variational forms, but an
 \emph{optimizing} compiler. For typical variational forms, the
 reference tensor~$A^0$ has significant structure that allows the
-element tensor~$A_T$ to be computed on an arbitrary cell~$T$ in a
-reduced amount of arithmetic. Reducing the number of operations based
-on this structure leads naturally to several problems in discrete
-mathematics.  This chapter introduces the kind of optimizations that
-are possible and discusses compile-time combinatorial optimization
+element tensor~$A_T$ to be computed on an arbitrary cell~$T$ at a lower
+computational cost. Reducing the number of operations by making use of
+this structure, leads naturally to several problems in discrete
+mathematics. This chapter introduces some of the optimizations that
+are possible, and discusses compile-time combinatorial optimization
 problems that form the core of the FErari
 project \citep{KirbyLoggScottEtAl2006,KirbyScott2007,KirbyLogg2008},
 which is the subject of Chapter~\ref{chap:kirby-3}.
@@ -23,15 +21,15 @@ We consider two basic kinds of optimizations in this chapter. First,
 we consider relations between pairs of rows in the reference tensor.
 This naturally leads to a graph that models proximity among these
 pairs.  If two rows are ``close'' together, then one may reuse results
-computed with the first row to compute with the second. This proximity
-is computed via Hamming distance and linearity relations.  This gives
-rise to a weighted graph that is (almost) a metric space, so we
-designate such optimizations ``topological''. Second, we consider
-relations between more than two rows of the reference tensor. Such
-relations typically rely on sets of rows, considered as vectors in
+computed with the first row to compute a desired quantity with the second.
+The proximity of two such rows is computed using a Hamming distance and
+linearity relations. This approach gives rise to a weighted graph that is
+(almost) a metric space, so we designate such optimizations as ``topological''.
+Second, we consider relations between more than two rows of the reference
+tensor. Such relations typically rely on sets of rows, considered as vectors in
 Euclidean space. Because we are using planes and hyperplanes to reduce
 the amount of computation, we describe these optimizations as
-``geometric''.  For comparison, we briefly discuss optimizations using
+``geometric''. For comparison, we briefly discuss optimizations using
 more traditional optimized dense linear algebra packages.
 
 \section{Optimization framework}
@@ -51,45 +49,44 @@ element tensor $A_T$ and $\mathcal{A}$ is the set of admissible
 multi-indices for the geometry tensor $G_T$. The reference tensor $
 A^0 $ can be computed at compile-time, and may then be contracted with
 a $ G_T $ to obtain the element tensor $A_T$ for each cell $T$ in
-the finite element mesh at run-time. The case of computing finite
-element stiffness matrices of size $n_T \times n_T$, where $n_T$ is
-the dimension of the local finite element space on $T$, corresponds to
-$ \mathcal{I} $ consisting of $|\mathcal{I}| = n_T^2$ multi-indices of
-length~two.
+the finite element mesh at run-time. The case of computing local finite
+element stiffness matrices of size $n_T \times n_T$ corresponds to
+$\mathcal{I}$ consisting of $|\mathcal{I}| = n_T^2$ multi-indices of
+length~two, where $n_T$ is the dimension of the local finite element space on $T$.
 
 It is convenient to recast~\eqref{eq:kirby-4:contract} in terms of a
 matrix--vector product:
 \begin{equation} \label{eq:kirby-4:tildeag}
   A^0 : G_T \leftrightarrow \tilde{A}^0 \tilde{g}_T.
 \end{equation}
-The matrix $ \tilde{A} $ lies in $ \mathbb{R}^{|\mathcal{I}| \times
+Here, the matrix $ \tilde{A} $ lies in $ \mathbb{R}^{|\mathcal{I}| \times
   |\mathcal{A}|} $, and the vector $ \tilde{g}_{T} $ lies in $
 \mathbb{R}^{|\mathcal{A}|} $. The resulting matrix--vector product can
 then be reshaped into the element tensor $A_T$. As this computation
 must occur for each cell $T$ in a finite element mesh, it makes
-sense to try to make this operation efficient.
+sense to try to make this operation as efficient as possible.
 
 In the following, we will drop the subscripts and superscripts
 of~\eqref{eq:kirby-4:tildeag} and consider the problem of computing
+a general matrix--vector product
 \begin{equation}
-y = A x
+y = A x,
 \end{equation}
-efficiently, where $ A = \tilde{A}^0 $ is a fixed matrix known \emph{a
-  priori} and $ x = g_T $ is an arbitrary vector. We will study
-structures of $ A $ that enables a reduction in the amount of
-arithmetic required to form these products.  With this structure, we
+efficiently, where $ A = \tilde{A}^0 $ is a constant matrix known \apriori{},
+and $ x = \tilde{g}_T $ is an arbitrary vector. We will study
+structure of $ A $ that allows for a reduction in the number of
+arithmetic operations required to form these products. With this structure, we
 are able to produce a routine that computes the action of the system
-with less operations than would be performed in general sparse or
+in less operations than would be performed using general sparse or
 dense linear algebra routines.
 
 Before proceeding with the mathematical formulation, we give an
 example of a matrix $ A $ that we would like to
-optimize. In~\eqref{eq:kirby-4:ALap}, we display the $6 \times 6
-\times 2 \times 2$ reference tensor $A^0$ for computing a standard
-stiffness matrix discretizing a two dimensional Laplacian with
-quadratic Lagrange elements on triangles. The rank four tensor is here
-depicted as a $6 \times 6$ matrix of $2 \times 2$ matrices. Full
-analysis would use a corresponding flattened $36 \times 4$ matrix $A$.
+optimize. In~\eqref{eq:kirby-4:ALap}, we display the reference tensor
+$A^0$ for computing a standard stiffness matrix discretizing a two--dimensional
+Laplacian with quadratic Lagrange elements on triangles. The rank
+four tensor is depicted here as a $6 \times 6$ matrix of $2 \times 2$ matrices.
+Full analysis would use a corresponding flattened $36 \times 4$ matrix $A$.
 
 % Laplacian with quadratic triangular Lagrange elements
 \begin{equation} \label{eq:kirby-4:ALap}
@@ -116,20 +113,19 @@ A^0 =
 
 It is possible to apply the matrix $A$, corresponding to the reference
 tensor $A^0$ depicted in~\eqref{eq:kirby-4:ALap}, to an arbitrary
-vector $x$ in fewer operations than a standard matrix--vector
-multiplication which requires $144$ multiply--add pairs. This requires
+vector $x$ in fewer operations than the $144$ multiply--add pairs required
+by a standard matrix--vector multiplication. This requires
 offline analysis of $A$ and special-purpose code generation that
 applies the particular $A$ to a generic $x$. For $ A \in
 \mathbb{R}^{M\times N} $, let $\{ a^i \}_{i=1}^M \subset \mathbb{R}^N$
-denote the rows of $ A $.  The vector $ y = Ax $ may then be computed
-by $ M $ dot products of the form $ y_i = a^i x $.  Below, we
+denote the rows of $ A $. The vector $ y = Ax $ may then be computed
+by $ M $ dot products of the form $ y_i = a^i x $. Below, we
 investigate relationships among the rows of $ A $ to find an optimized
 computation of the matrix--vector product.
 
-For examination of $A$, we consider the following small illustrative
-subset of~\eqref{eq:kirby-4:ALap} which would only cost $40$
-multiply--add pairs but contains all the relations we use to optimize
-the larger version:
+For the purpose of illustration, we consider the following subset
+of~\eqref{eq:kirby-4:ALap}, which would only cost $40$ multiply--add
+pairs but contains all the relations we use to optimize the larger version:
 
 \begin{equation} \label{eq:kirby-4:Aflat}
 A =
@@ -164,39 +160,40 @@ A =
 \right).
 \end{equation}
 %
-A brief inspection of~\eqref{eq:kirby-4:Aflat} shows that $ a^9 $ is
+Inspection of~\eqref{eq:kirby-4:Aflat} shows that $ a^9 $ is
 zero; therefore, it does not need to be multiplied by the entries of $
 x $. In particular, if $ z $ entries of $ a^i $ are zero, then the dot
 product $ a^i x $ requires $ N - z $ multiply--add pairs rather than $
 N $.
 
-Suppose $ a^i = a^j $ for some $ i \neq j $, as seen in the sixth and
-tenth rows of $ A $.  Then of course $ y_i = y_j $, and only one dot
-product needs to be performed instead of two. In other cases, $ \alpha
+If $ a^i = a^j $ for some $ i \neq j $, as seen in the sixth and
+tenth rows of $ A $, then it follows that $ y_i = y_j $, and only one dot
+product needs to be performed instead of two. A similar case is where $ \alpha
 a^i = a^j $ for some number $ \alpha $, as in the first and second
-rows of~$A$. This means that after $ y_i $ has been computed, then $
+rows of~$A$. This means that after $ y_i $ has been computed, $
 y_j = \alpha y_i $ may be computed with a single multiplication.
 
-In addition to equality and collinearity as above, one may also
-consider other relations between the rows of $A$. A further inspection
+% I have changed the symbol for Hamming distance here to d_H since d is used later
+% as a weight for graph edges.
+In addition to equality and collinearity discussed above, one may also
+consider other relations between the rows of $A$. Further inspection
 of $A$ in~\eqref{eq:kirby-4:Aflat} reveals rows that have some entries
 in common but are neither equal nor collinear. Such rows have a small
 \emph{Hamming distance}, that is, the number of entries in which the
-two rows differ is small. This occurs frequently, as seen in, e.g.,
-rows five and six . Write $ a^j = a^i + (a^j-a^i) $. Then $ a^j -a^i $
-only has $ d $ nonzero entries, where $d$ is the Hamming distance
-between $a^i$ and $a^j$.  Once $ y_i $ has been computed, one may thus
-compute $y_j$ by
+two rows differ is small. This occurs frequently, as seen in, for example,
+rows five and six . We can write $ a^j = a^i + (a^j-a^i) $, where $ a^j -a^i $ has $ d_H \leqslant N $ nonzero entries and where $d_H$ is the Hamming distance
+between $a^i$ and $a^j$. Once $ y_i $ has been computed, one may thus
+compute $y_j$ as
 \begin{equation}
 y_j = y_i + \left( a^j - a^i \right) x,
 \end{equation}
-which requires only $ d \leqslant N $ additional multiply--add pairs. If
-$ d $ is small compared to $ N $, the savings are considerable.
+which requires only $ d_H $ additional multiply--add pairs. If
+$ d_H $ is small compared to $ N $, the savings are considerable.
 
 In \citet{WolfHeath2009}, these binary relations are extended to
-include the partial collinearity of two vectors.  For example, the
+include the partial collinearity of two vectors. For example, the
 sixth and seventh rows have parts that are collinear, namely
-$a^6_{2:4} = - a^7_{2:4}$.  This allows $y_j$ to be computed via:
+$a^6_{2:4} = - a^7_{2:4}$. This allows $y_j$ to be computed via:
 \begin{equation}
   y_j = \alpha(y_i - y_{i,\mathrm{nonmatching}}) + a^j_{\mathrm{nonmatching}} \, x,
 \end{equation}
@@ -206,14 +203,14 @@ to the subtraction of the non-matching contributions, a scaling of the
 result computed with $y^i$, and then an additional multiplication with
 the non-matching entries in $a^j$.
 
-All of these examples of structure either relate to a single row of $
-A $ or else to a pair of rows of $ A $. Such \emph{binary} relations
+All of these examples of structure relate to either a single row of $
+A $ or a pair of rows of $ A $. Such \emph{binary} relations
 between pairs of rows are amenable to the formulation of
 graph-theoretic structures, as is developed in
 Section~\ref{sec:kirby-4:graph}. Higher-order relations also occur
-between the rows of $ A $.  For example, the first and third rows may
-be added and scaled to make the fourth row.  In this case, once $ a^1
-x $ and $ a^2 x $ are known, the results may be used to compute $
+between the rows of $ A $. For example, the first and third rows may
+be added and scaled to make the fourth row. In this case, once $ a^1
+x $ and $ a^3 x $ are known, the results may be used to compute $
 a^{4} x $ using one addition and one multiplication, compared to four
 multiplications and three additions for direct evaluation of the dot
 product $a^{4} x$.
@@ -223,12 +220,11 @@ product $a^{4} x$.
 
 If we restrict consideration to binary relations between the rows of $
 A $, we are led naturally to a weighted, undirected graph whose
-vertices are the rows $ a^i $ of $A$.  An edge between $ a^i $ and $
-a^j $ with weight $ d $ indicates that if $ a^i x $ is known for some
-$ x $, then that result may be used to compute $ a^j x $ with $ d $
-multiply--add pairs.  In practice, such edges also need to be labeled
-with information indicating the kind of relationship such as equality,
-collinearity or low Hamming distance.
+vertices are the rows $ a^i $ of $A$. An edge between $ a^i $ and $
+a^j $ with weight $ d $ indicates that if $ a^i x $ is known, then that
+result may be used to compute $ a^j x $ with $ d $ multiply--add pairs. In
+practice, such edges also need to be labeled with information indicating
+the kind of relationship such as equality, collinearity or a low Hamming distance.
 
 To find the optimal computation through the graph, we use Prim's
 algorithm \citep{Prim1957} for computing a minimum-spanning tree. A
@@ -236,7 +232,8 @@ minimum spanning tree is a tree that connects all the vertices of the
 graph and has minimum total edge
 weight. In \citet{KirbyLoggScottEtAl2006}, it is demonstrated that,
 under a given set of relationships between rows, a minimum spanning
-tree in fact encodes an algorithm that optimally reduces arithmetic.
+tree in fact encodes an algorithm that optimally reduces the number of
+arithmetic operations required.
 This discussion assumes that the initial graph is connected. In
 principle, every $ a^i $ is no more than a distance of $ N $ away from
 any $ a^j $. In practice, however, only edges with $d < N - z$ are
@@ -263,28 +260,28 @@ relations is shown in Figure~\ref{fig:kirby-4:mst}.
 Such a forest may then be used to determine an efficient algorithm for
 evaluating $ A x $ as follows. Start with some $ a^i $ and
 compute $ y^i = a^i x $ directly in at most $ N $ multiply--add
-pairs. The number of multiply--add pairs may be less than one if one
+pairs. The number of multiply--add pairs may be less than $ N $ if one
 or more entries of $a^i$ are zero. Then, if $ a^j $ is a nearest
 neighbor of $ a^i $ in the forest, use the relationship between $
-a^j $ and $ a^i $ to compute $ y^j = a^j x $.  After this, take a
+a^j $ and $ a^i $ to compute $ y^j = a^j x $. After this, take a
 nearest neighbor of $ a^j $, and continue until all the entries of
 $ y $ have been computed.
 
 Additional improvements may be obtained by recognizing that the input
 tensor $ G_T \leftrightarrow x $ is symmetric for certain operators
-like the Laplacian. In two space dimensions, $ G_T $ for the Laplacian
-is $ 2 \times 2 $ with only 3 unique entries, and in three space
-dimensions it is $ 3 \times 3 $ with only 6 unique entries.  This fact
+like the Laplacian. In two spatial dimensions, $ G_T $ for the Laplacian
+is $ 2 \times 2 $ with only 3 unique entries, and in three spatial
+dimensions it is $ 3 \times 3 $ with only 6 unique entries. This fact
 may be used to construct a modified reference tensor $ A^0 $ with
-fewer columns.  For other operators, it might have symmetry along some
+fewer columns. For other operators, it might have symmetry along some
 but not all of the axes.
 
 Heath and Wolf proposed a slight variation on this algorithm. Rather
 than picking an arbitrary starting row $ a^i $, they enrich the graph
 with an extra vertex labeled \textit{IP} for ``inner product.''  Each
 $ a^i $ is a distance $ N - z $ from IP, where $ z $ is the number of
-vanishing entries in $ a^i $.  The IP vertex is always selected as the
-root of the minimum spanning tree.  It allows for a more robust
+vanishing entries in $ a^i $. The IP vertex is always selected as the
+root of the minimum spanning tree. It allows for a more robust
 treatment of unary relations such as sparsity, and detection of
 partial collinearity relations.
 
@@ -292,14 +289,14 @@ partial collinearity relations.
 \label{sec:kirby-4:geom}
 
 When relations between more than two rows are considered, the
-optimization problem no longer may be phrased in terms of a graph, but
-requires some other structure.  In these cases, proving that one has
+optimization problem may no longer be phrased in terms of a graph, but
+requires some other structure. In these cases, proving that one has
 found an optimal solution is typically difficult, and it is suspected
 that the associated combinatorial problems are $ NP $-hard.
 
 As a first attempt, one can work purely from linear dependencies among
-the data as follows.  Let $ B=\{ b^i \}_i \subseteq \{ a^i \}_{i=1}^N
-$ be a maximal set of nonzero rows of $ A $ such that no two rows are
+the data as follows. Let $ B=\{ b^i \}_i \subseteq \{ a^i \}_{i=1}^N
+$ be a maximal set of nonzero rows of $ A $, such that no two rows are
 collinear. Then enumerate all triples which are linearly dependent,
 \begin{equation}
   S= \left\{ \left\{ b^i , b^j , b^k \right\} \subseteq B:
@@ -311,22 +308,22 @@ to recursively construct the rest of the rows in $ B $ using the
 relationships in $ S $.
 
 Given some $ C \subset B $, we may define the \emph{closure} of $
-C $, denoted by $ \bar{C} $, as follows.  First of all, if $ b
-\in C $, then $ b \in \bar{C} $.  Second, if $ b \in B $ and
+C $, denoted by $ \bar{C} $, as follows. First of all, if $ b
+\in C $, then $ b \in \bar{C} $. Second, if $ b \in B $ and
 there exist $ c,d \in \bar{C} $ such that $ \{b,c,d\} \in S $, then $
-b \in \bar{C} $ as well.  If $ \bar{C} = B$, we say that $ C $ is
+b \in \bar{C} $ as well. If $ \bar{C} = B$, we say that $ C $ is
 a \emph{generator} for $ B $ or that $ C $
 \emph{generates} $ B $.
 
 The recursive definition suggests a greedy process for constructing
-the closure of any set $ C $.  Each vector in $B$ is put in a priority
-queue with a initial value of the cost to compute independent of other
+the closure of any set $ C $. Each vector in $B$ is put in a priority
+queue with an initial value of the cost to compute independent of other
 vectors. While $C \ne B$, a vector from $B \backslash C$ with the
 minimum cost to compute is added to $C$ and the priorities of $B$ are
-updated according to $S$.  This process constructs a directed, acyclic
-graph that indicates the linear dependence being used.  Each $ b \in C
+updated according to $S$. This process constructs a directed, acyclic
+graph that indicates the linear dependence being used. Each $ b \in C
 $ will have no out-neighbors, while each $ b \in \bar{C} \backslash C
-$ will point to two other members of $ \bar{C} $.  This graph is
+$ will point to two other members of $ \bar{C} $. This graph is
 called a \emph{generating graph}. Using \eqref{eq:kirby-4:Aflat}, we
 have the following sets $B$, $S$, and $C$, with the generating graph
 shown in Figure~\ref{fig:kirby-4:gg}:
@@ -351,8 +348,8 @@ shown in Figure~\ref{fig:kirby-4:gg}:
 If $C$ generates $B$, then the generating graph indicates an optimized
 (but perhaps not optimal) process for computing $\{ y^i = b^i x \}_i$.
 Take a topological ordering of the vectors $b^i$ according to this
-graph.  Then, for each $b^i$ in the topological ordering, if $b^i$ has
-no out neighbors, then $b^i x$ is computed explicitly.  Otherwise,
+graph. Then, for each $b^i$ in the topological ordering, if $b^i$ has
+no out-neighbors, then $b^i x$ is computed explicitly. Otherwise,
 $b^i$ will point to two other vectors $b^j$ and $b^k$ for which the
 dot products with $x$ will already be known. Since the generating
 graph has been built from the set of linearly dependent triples~$S$,
@@ -365,11 +362,11 @@ y^i = b^i x = \beta_1 b^j x
 which requires only two multiply--add pairs instead of $ N $.
 
 To make best use of the linear dependence information, one would like
-to find a generator $C$ that has as few members as possible.  We
+to find a generator $C$ that has as few members as possible. We
 say that a generator $C$ is \emph{minimal} for $B$ if no $C'
 \subset C$ also generates $B$. A stronger requirement is for a
 generator to be \emph{minimum}. A generator $C$ is minimum if no other
-generator $C'$ has lower cardinality.  More complete details and
+generator $C'$ has lower cardinality. More complete details and
 heuristics for constructing minimal generators are considered
 in \citet{KirbyScott2007}; it is not currently known whether such
 heuristics construct minimum generators or how hard the problem of
@@ -377,17 +374,17 @@ finding minimum generators is.
 
 Given a minimal generator $C$ for $B$, one may consider searching for
 higher order linear relations among the elements of $C$, such as sets
-of four items that have a three-dimensional span.  The discussion of
+of four items that have a three-dimensional span. The discussion of
 generating graphs and their utilization is the same in this case.
 
-In \citet{WolfHeath2009}, a combination is studied of the binary and
-higher-order relations between the rows of $A$ in a hypergraph model.
+In \citet{WolfHeath2009}, a combination of the binary and
+higher-order relations between the rows of $A$ in a hypergraph model is studied.
 While greedy algorithms provide optimal solutions for a graph model,
 it is demonstrated that the obvious generalizations to hypergraphs can
 be suboptimal. While the hypergraph problems are most likely very
 hard, heuristics perform well and provide additional optimizations
 beyond the graph models. So, even if a non-optimal solution is found,
-it still provides improved reduction in arithmetic requirements.
+it still provides an improved reduction in arithmetic requirements.
 
 \begin{table}
   \begin{center}
@@ -420,15 +417,15 @@ it still provides improved reduction in arithmetic requirements.
 \end{table}
 
 In Table~\ref{tab:kirby-4:geom}, topological and geometric
-optimization is compared for the Laplacian using quadratic through
-quartic polynomials on tetrahedra.  In the geometric case, the vectors
+optimization are compared for the Laplacian using quadratic through
+quartic polynomials on tetrahedra. In the geometric case, the vectors
 $a^i$ were filtered for unique direction; that is, only one vector for
 each class of collinear vectors was retained. Then, a generating graph
 was constructed for the remaining vectors using pairwise linear
 dependence. The generator for this set was then searched for linear
 dependence among sets of four vectors, and a generating graph
-constructed.  Perhaps surprisingly, the geometric optimization found
-flop reductions competitive with or better than graph-based binary
+constructed. Perhaps surprisingly, the geometric optimization found
+flop reductions comparable to or better than graph-based binary
 relations. These are shown in Table~\ref{tab:kirby-4:geom}.
 
 \begin{table}
@@ -460,7 +457,7 @@ relations. These are shown in Table~\ref{tab:kirby-4:geom}.
 
 As an alternative to optimizations that try to find a reduced arithmetic
 for computing the element tensor~$A_T$, one may consider computing
-the element tensor by efficient dense linear algebra.  As above, we
+the element tensor by efficient dense linear algebra. As above, we
 note that the entries of the element tensor $A_T$ may be computed by
 the matrix--vector product $\tilde{A}^0 \tilde{g}_T$. Although zeros
 may appear in $\tilde{A}^0$, this is typically a dense matrix and so
@@ -481,13 +478,13 @@ multiplication:
 \end{equation}
 This matrix--matrix product may be computed efficiently using a single
 Level~3 BLAS call (\texttt{dgemm}) instead of a sequence of Level~2
-BLAS calls, which typically leads to better floating-point
+BLAS calls, and typically leads to better floating-point
 performance.
 
 \section{Notes on implementation}
 
 A subset of the optimizations discussed in this chapter are available
-as part of the FErari Python module. The current version of FErari
+as part of the FErari Python module. FErari
 (0.2.0) implements optimization based on finding binary relations
 between the entries of the element tensor. With optimizations turned
 on, FFC calls FErari at compile-time to generate optimized
@@ -499,5 +496,5 @@ interface. Note that the FErari optimizations are only used when FFC
 generates code based on the tensor representation described in
 Chapter~\ref{chap:kirby-8}. When FFC generates code based on
 quadrature, optimization is handled differently, as described in
-Chapter~\ref{chap:oelgaard-2}.  Improved run-times for several
+Chapter~\ref{chap:oelgaard-2}. Improved run-times for several
 problems are detailed in \citet{KirbyLogg2008}.
