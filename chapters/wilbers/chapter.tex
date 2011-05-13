@@ -103,21 +103,21 @@ pressure by using a \index{Windkessel model}Windkessel model. The ODE
 is as follows:
 \begin{align}
 \frac{d}{dt}p(t) &= B Q(t) - A p(t), \quad t \in (0,1), \\
-p(0) &= p0.
+p(0) &= p_0.
 \end{align}
 Here $p(t)$ is the blood pressure, $Q(t)$ is the volume flux of blood,
 while $A$ and $B$ are real numbers representing resistance and compliance, respectively.
 An explicit scheme is:
 \begin{align}
-p_i &= p_{i-1} + \Delta t (B Q_i - A p_{i-1}), \quad \mbox{for}\quad i=1,\ldots,N-1, \\
-p_0 &= p0.
+p_i &= p_{i-1} + \Delta t (B Q_{i-1} - A p_{i-1}), \quad \mbox{for}\quad i=1,\ldots,N-1, \\
+p_0 &= p_0.
 \end{align}
 The scheme can be implemented in Python as follows using NumPy arrays:
 \begin{python}
 def time_loop_py(p, Q, A, B, dt, N, p0):
     p[0] = p0
     for i in range(1, N):
-        p[i] = p[i-1] + dt*(B*Q[i] - A*p[i-1])
+        p[i] = p[i-1] + dt*(B*Q[i-1] - A*p[i-1])
 \end{python}
 The corresponding C code is:
 \begin{c++}
@@ -135,7 +135,7 @@ void time_loop_c(int n, double* p,
     p[0] = p0;
     for (int i=1; i<n; i++)
     {
-        p[i] = p[i-1] + dt*(B*Q[i] - A*p[i-1]);
+        p[i] = p[i-1] + dt*(B*Q[i-1] - A*p[i-1]);
     }
 }
 \end{c++}
@@ -154,7 +154,8 @@ time_loop_c = inline_with_numpy(c_code,
 \end{python}
 Here, we tell Instant that \emp{(int n, double* p)} and
 \emp{(int m, double* Q)} are NumPy arrays (and Instant then generates the
-proper typemaps).
+proper typemaps). Notice that the order of the elements in the array specification is: 1) the length of the array and 2) the array pointer. The order
+of the arguments in the $C$ code may differ from the order in the \emp{array} specification.   
 We may then call the \emp{time\_\-loop}
 function as follows:
 \begin{python}
@@ -304,7 +305,7 @@ CPU time with Instant 2 CPU & 0.42  & 0.81  \\ \hline
 CPU time with Instant 3 CPU & 0.37  & 0.75  \\ \hline
 CPU time with Instant 4 CPU & 0.34  & 0.67  \\ \hline
 \end{tabular}
-\caption{CPU times (in seconds) for the implementation of the solution of a wave-equation
+\caption{CPU times (in seconds) for the implementation of the solution of a wave equation
 using Instant and OpenMP on different numbers of CPUs/threads.}
 \label{speed-up2}
 \end{center}
@@ -391,7 +392,7 @@ Traceback (most recent call last):
   File "/usr/local/lib/python2.6/dist-packages/instant/output.py", line 55, in instant_assert
     raise AssertionError(text)
 \end{progoutput}
-In this case it is advantageous to make a local cache, using the  \emp{cache\_dir="test\_cache"}, and go
+In this case it is advantageous to make a local cache in the current working directory, using \emp{cache\_dir="test\_cache"}, and go
 to the local cache to find the error.
 
 \section{Instant explained}
@@ -465,7 +466,7 @@ three strings, two for the length in each dimension, and one for the
 array pointer. This following example illustrate the array
 specification:
 \begin{python}
-arrays = [['len', 'a'],                        # a 1D array / vector
+arrays = [['len_a', 'a'],                        # a 1D array / vector
           ['len_bx', 'len_by', 'b'],           # a matrix
           ['len_cx', 'len_cy', 'len_cz', 'c']] # a 3D tensor
 \end{python}
@@ -484,12 +485,13 @@ long}, \emp{unsigned short}, \emp{unsigned int}, \emp{unsigned long},
 and \emp{unsigned long long}. The type can be specified by adding an
 additional value to the list describing the array, e.g.
 \begin{python}
-arrays = [['len', 'a', 'long']]
+arrays = [['len_a', 'a', 'long']]
 \end{python}
 It is important that there is correspondence between the type of the
 NumPy array and the type in the signature of the C function. For
-arrays that are changed in-place, the types have to match exactly. For
-arrays that are input or output (see next section), one has to make
+arrays that are changed in-place (the arrays are both
+input and output) the types have to match exactly. For
+arrays that are input or output (see next paragraph), one has to make
 sure that the implicit casting is done to a type with higher
 precision. For input arrays, the C type must be of the same or higher
 precision as the NumPy array, while for output arrays the NumPy array
@@ -500,7 +502,8 @@ type \emp{float} is the same as \emp{float64}. For integer arrays, the
 mapping between NumPy types and C types depends on your
 system. Using \emp{long} as the C type will work in most cases.
 
-Instant supports both input, output and in-place arrays.  The default
+Instant supports both input, output and in-place (input-output) arrays.  
+The default
 behavior is to treat the arrays as in-place arrays, provided that the
 input are NumPy arrays. Python lists and sequences are converted to
 NumPy arrays automatically.  The following code shows an example where
@@ -508,34 +511,31 @@ we calculate the matrix-vector multiplication $x = Ab$. The integer
 matrix $A$ and double vector $b$ are marked as input, while the double
 vector $x$ is output. The code can be found in: \emp{ex5.py}.
 \begin{python}
-from instant import inline_with_numpy
-from numpy import arange, dot
-
 c_code = '''
-void dot_c(int Am, int An, long* A, int bn, int* b,
-           int xn, double* x)
+void dot_c(int Am, int An, long* A, int bn, long* b, int xn, double* x)
 {
-  for (int i=0; i<Am; i++)
-  {
-    x[i] = 0;
-    for (int j=0; j<An; j++)
+    for (int i=0; i<Am; i++)
     {
-      x[i] += A[i*Am + j]*b[j];
+        x[i] = 0;
+        for (int j=0; j<An; j++)
+        {
+            x[i] += A[i*Am + j]*b[j];
+        }
     }
-  }
 }
 '''
-dot_c = \
-  inline_with_numpy(c_code,
-                    arrays = [['Am', 'An', 'A', 'in', 'long'],
-                              ['bn', 'b', 'in'],
-                              ['xn', 'x', 'out']])
+dot = inline_with_numpy(c_code,
+                          arrays = [['Am', 'An', 'A', 'in', 'long'],
+                                    ['bn', 'b', 'in', 'long'],
+                                    ['xn', 'x', 'out', 'double']])
 a = arange(9)
 a.shape = (3, 3)
 b = arange(3)
 
-c = dot_c(a, b, a.shape[1])
+x1 = dot(a, b, a.shape[1])
 \end{python}
+Notice that we obtain the desired behavior, namely that \emp{b} is 
+input and \emp{x} is output that should have dimension \emp{a.shape[1]}.  
 
 Finally, it is possible to work with arrays that are more than
 3-dimensional.  However, the typemaps used for this employ less error
@@ -840,7 +840,7 @@ single function.
 
 The difference between this function and the \emp{inline} function is
 that C arrays can be used. This means that the necessary arguments
-(\emp{init\_\-code}, \emp{system\_\-headers},
+(\emp{init\_\-code} (\emp{import\_array}), \emp{system\_\-headers},
 and \emp{include\_\-dirs}) for converting NumPy arrays to C arrays are
 set by the function.
 
@@ -935,7 +935,7 @@ examples of Weave and the other mentioned packages, we refer
 to~\citep{WilbersLangtangenOdegaard2009}. F2PY, which is part of NumPy, is
 primarily intended for wrapping Fortran code although it can be used
 for wrapping C code.  Cython is a rather new project, branched from
-the more well-known
-\citet{Ewing2009}. Cython is attractive because of  its integration
+the \citet{Ewing2009}. Cython is attractive because of  its integration
 with NumPy arrays. Cython differs from the other projects by being a programming
-language of its own, which extends Python with static typing.
+language of its own, which extends Python with static typing. 
+Cython can be used to wrap C code and to transform Python code to C, and is currently gaining a lot of momentum.

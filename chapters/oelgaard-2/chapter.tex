@@ -50,20 +50,20 @@ functions will come from
     \foralls T \in \mathcal{T}},
   \label{oelgaard-2:eq:space_H1}
 \end{equation}
-
-where $P_{q}\brac{T}$ denotes the space of Lagrange polynomials of
-degree $q$ on the element $T$ of the standard triangulation of
-$\Omega$, which is denoted by~$\mathcal{T}$.  If we let
-$\bracc{\phi^{T}_{i}}$ denote the local finite element basis that span
-the discrete function space $V_{h}$ on $T$, the local element tensor
-for an element $T$ can be computed as
+%
+where $P_{q}\brac{T}$ denotes the space of Lagrange
+polynomials of degree $q$ on the element $T$ of the standard
+triangulation of $\Omega$, which is denoted by~$\mathcal{T}$.  If we
+let $\bracc{\phi^{T}_{i}}$ denote the local finite element basis that
+span the discrete function space $V_{h}$ on $T$, the local element
+tensor for an element $T$ can be computed as
 
 \begin{equation}
   A_{T,i} = \int_{T} w \nabla \phi^{T}_{i_1} \cdot \nabla
   \phi^{T}_{i_2} \dx,
   \label{oelgaard-2:eq:localtensor}
 \end{equation}
-
+%
 where $i = (i_{1}, i_{2})$.
 
 The expression for the local element tensor
@@ -92,19 +92,20 @@ $T \in \mathcal{T}$, this intermediate representation reads
   W^q,
 \label{oelgaard-2:eq:weightedlaplacian_quadraturerepresentation}
 \end{equation}
-
-where a change of variables from the reference coordinates $X$ to the
-real coordinates $x = F_T(X)$ has been used. In the above equation,
-$N$ denotes the number of integration points, $d$ is the dimension of
-$\Omega$, $n$ is the number of degrees of freedom for the local basis
-of~$w$, $\Phi_{i}$ denotes basis functions on the reference element,
-$\det F_T'$ is the determinant of the Jacobian, and $W^q$ is the
-quadrature weight at integration point~$X^q$.  By default, \ffc{}
-applies a quadrature scheme that will integrate the variational form
-exactly.  It calls FIAT (see Chapter~\ref{chap:kirby-2}) to compute
-the quadrature scheme.  FIAT supplies schemes that are based on the
-Gauss-Legendre-Jacobi rule mapped onto simplices
-(see~\citet{KarniadakisSherwin2005} for details of such schemes).
+%
+where a change of variables from the reference coordinates
+$X$ to the real coordinates $x = F_T(X)$ has been used. In the above
+equation, $N$ denotes the number of integration points, $d$ is the
+dimension of $\Omega$, $n$ is the number of degrees of freedom for the
+local basis of~$w$, $\Phi_{i}$ denotes basis functions on the
+reference element, $\det F_T'$ is the determinant of the Jacobian, and
+$W^q$ is the quadrature weight at integration point~$X^q$.  By
+default, \ffc{} applies a quadrature scheme that will integrate the
+variational form exactly.  It calls FIAT (see
+Chapter~\ref{chap:kirby-2}) to compute the quadrature scheme.  FIAT
+supplies schemes that are based on the Gauss-Legendre-Jacobi rule
+mapped onto simplices (see~\citet{KarniadakisSherwin2005} for details
+of such schemes).
 
 From the representation
 in~\eqref{oelgaard-2:eq:weightedlaplacian_quadraturerepresentation},
@@ -202,29 +203,28 @@ the generated code.  The underlying philosophy of the optimization
 strategies implemented in \ffc{} is to manipulate the representation
 in such a way that the number of operations to compute the local
 element tensor decreases.  Each strategy described in the following
-sections, with the exception of eliminating operations on zero terms
-as described in Section~\ref{oelgaard-2:sec:eliminate_zeros}, share
-some common features which can be categorized as:
+sections, with the exception of eliminating operations on zero terms,
+share some common features which can be categorized as:
 
 \begin{description}
 \item[Loop invariant code motion] In short, this procedure seeks to
-  identify terms that are independent of one or more of the summation
-  indices and to move them outside the loop over those particular
-  indices.  For instance, in
-  equation~\eqref{oelgaard-2:eq:weightedlaplacian_quadraturerepresentation}
-  the terms regarding the coefficient $w$, the quadrature weight $W^q$
-  and the determinant $\det F_T'$ are all independent of the basis
-  function indices $i_1$ and $i_2$ and therefore only need to be
-  computed once for each integration point.  A generic discussion of
-  this technique, which is also known as `loop hoisting' \index{loop
-    hoisting}, can be found in~\citet{AhoSethiUllman1986}.
+identify terms that are independent of one or more of the summation
+indices and to move them outside the loop over those particular
+indices.  For instance, in equation~\eqref{oelgaard-2:eq:%
+weightedlaplacian_quadraturerepresentation} the terms regarding the
+coefficient $w$, the quadrature weight $W^q$ and the determinant $\det
+F_T'$ are all independent of the basis function indices $i_1$ and
+$i_2$ and therefore only need to be computed once for each integration
+point.  A generic discussion of this technique, which is also known as
+`loop hoisting', can be found in~\citet{AhoSethiUllman1986}.
+\index{loop hoisting}
 
 \item[Reuse common terms] Terms that appear multiple times in an
   expression can be identified, computed once, stored as temporary
   values and then reused in all occurrences in the expression.  This can
   have a great impact on the operation count since the expression to
   compute an entry in $A_T$ is located inside loops over the basis
-  function indices as shown in code for the standard quadrature
+  function indices as shown in the code for the standard quadrature
   representation in Figure~\ref{oelgaard-2:fig:standard_code}.
 \end{description}
 
@@ -334,7 +334,7 @@ weighted Laplace equation, the terms
     \frac{\partial X_{\alpha_2}}{\partial x_{\beta}}
     \frac{\partial \Phi_{i_2}(X^q)}{\partial X_{\alpha_2}}
 \end{equation}
-
+%
 will be expanded into
 
 \begin{equation}
@@ -346,7 +346,7 @@ will be expanded into
   \frac{\partial \Phi_{i_1}(X^q)}{\partial X_{\alpha_1}}
   \frac{\partial \Phi_{i_2}(X^q)}{\partial X_{\alpha_2}},
 \end{equation}
-
+%
 where $\brac{\partial X_{\alpha_1} / \partial x_{\beta}}
 \brac{\partial X_{\alpha_2} / \partial x_{\beta}}$ is independent of
 the indices $i_1$ and $i_2$ and can therefore be moved outside these
@@ -406,7 +406,8 @@ expected.
 
 The optimization described above is the most expensive of the
 quadrature optimizations to perform in terms of \ffc{} code generation
-time and memory consumption as it involves creating new terms.  The
+time and memory consumption as it involves creating new terms when
+expanding the expressions.  The
 procedure does not scale well for complex expressions, but it is in
 many cases the most effective approach in terms of reducing the number
 of operations.  This particular optimization strategy, in combination
@@ -655,8 +656,9 @@ operation count alone since the type of \ffc{} optimization must be
 taken into account as well as the intended use of g++ compiler
 options.  The optimal combination of optimizations for this form is
 \ffc{} option \emp{-ip} or \emp{-basis} combined with g++ option
-\emp{-O2}, in which case the runtime has improved by a factor of 7.23
-compared to standard quadrature code with no g++ optimizations.
+\emp{-O2 -funroll-loops}, in which case the runtime has improved by a
+factor of 7.23 compared to standard quadrature code with no g++
+optimizations.
 
 The operation counts and \ffc{} compile time for the bilinear form for
 hyperelasticity with different \ffc{} optimizations are presented in
@@ -727,7 +729,7 @@ of a few different variables (components of the inverse of the
 Jacobian and basis function values) which makes the \emp{-simplify}
 option very efficient since many terms are common and can be
 precomputed and hoisted.  For the hyperelasticity form, the optimal
-combination of optimizations is \ffc{} option \emp{-basis -zeros} and
+combination of optimizations is \ffc{} option \emp{-simplify -zeros} and
 g++ option \emp{-O2 -funroll-loops} which improves the runtime
 performance of the code by a factor of 3149 when compared to the case
 where no optimization is used by either \ffc{} or~g++.
@@ -762,16 +764,16 @@ premultiplied by a number of scalar coefficients~$f_{i}$:
   : \nabla^s v \dx,
   \label{oelgaard-2:eq:elasticity_form}
 \end{equation}
-
-where $n_f$ is the number of premultiplying coefficients.  The test
-and trial functions are denoted by $v, u \in V_{h}$, with
+%
+where $n_f$ is the number of premultiplying coefficients.
+The test and trial functions are denoted by $v, u \in V_{h}$, with
 
 \begin{equation}
   V_{h} = \bracc{v \in \brac{H^{1}\brac{\Omega}}^2: \ v\vert_T \in
     \brac{P_{q}\brac{T}}^2 \foralls T \in \mathcal{T}}
  \label{oelgaard-2:eq:elastictity_H1_vector_space}
 \end{equation}
-
+%
 and the coefficient functions $f_{i} \in W_{h}$ with
 
 \begin{equation}
@@ -779,29 +781,29 @@ and the coefficient functions $f_{i} \in W_{h}$ with
     P_{p}\brac{T} \foralls T \in \mathcal{T}},
  \label{oelgaard-2:eq:elasticity_H1_space}
 \end{equation}
-
-where $q$ and $p$ denote the polynomial order of the Lagrange basis
-functions.  The number of coefficients and the polynomial orders are
-varied and the number of flops needed to compute the local element
-tensor is recorded for both tensor and quadrature representations.
-The results were obtained by using the optimization options \emp{-f
-eliminate\_zeros -f simplify\_expressions} for the quadrature
-representation.  In
-Table~\ref{oelgaard-2:tab:elasticity2D_complex_comparison} the flops
-for the tensor representation is presented together with the ratio
-given by the flops for quadrature representation divided by the flops
-for tensor representation, denoted by $q/t$.  In terms of flops, a
-ratio $q/t > 1$ indicates that the tensor representation is more
-efficient while $q/t < 1$ indicates that the quadrature representation
-is more efficient.  It was found that when comparing the runtime
-performance of the two representations for this problem that the
-number of flops is a good indicator of performance.  However, as we
-have shown in the previous section, the quadrature code with the
-lowest number of flops does not always perform best for a given
-form. Furthermore, the runtime performance even depends on which g++
-options are used.  This begs the question of whether or not it is
-possible to make a sound selection between representations based only
-on an estimation of flops, as suggested in~\citet{OelgaardWells2010}.
+%
+where $q$ and $p$ denote the polynomial order of the
+Lagrange basis functions.  The number of coefficients and the
+polynomial orders are varied and the number of flops needed to compute
+the local element tensor is recorded for both tensor and quadrature
+representations.  The results were obtained by using the optimization
+options \emp{-f eliminate\_zeros -f simplify\_expressions} for the
+quadrature representation.  In Table~\ref{oelgaard-2:tab:%
+elasticity2D_complex_comparison} the flops for the tensor
+representation is presented together with the ratio given by the flops
+for quadrature representation divided by the flops for tensor
+representation, denoted by $q/t$.  In terms of flops, a ratio $q/t >
+1$ indicates that the tensor representation is more efficient while
+$q/t < 1$ indicates that the quadrature representation is more
+efficient.  It was found that when comparing the runtime performance
+of the two representations for this problem that the number of flops
+is a good indicator of performance.  However, as we have shown in the
+previous section, the quadrature code with the lowest number of flops
+does not always perform best for a given form. Furthermore, the
+runtime performance even depends on which g++ options are used.  This
+begs the question of whether or not it is possible to make a sound
+selection between representations based only on an estimation of
+flops, as suggested in~\citet{OelgaardWells2010}.
 
 \begin{table}
   \caption{The number of operations and the ratio between number of
@@ -842,8 +844,8 @@ Nevertheless, some general trends can still be read from the table.
 Increasing the number of coefficient functions $n_f$ in the form
 clearly works in favor of quadrature representation.  For $n_{f}=3$
 the quadrature representation can be expected to perform best for all
-values of $q$ and~$p$.  Similarly, the difference in flops decreases
-when the polynomial order of the coefficients, $p$, is increased
+values of $q$ and~$p$.  Increasing the polynomial order of
+the coefficients, $p$, also works in favor of quadrature representation
 although the effect is less pronounced compared to the effect of
 increasing the number of coefficients.  The tensor representation
 appears to perform better when the polynomial order of the test and

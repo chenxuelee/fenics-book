@@ -1,6 +1,6 @@
 \newcommand{\mathbfx}[1]{{\mbox{\boldmath $#1$}}}
-\renewcommand{\P}{{\mathbb P}}
-\renewcommand{\H}{{\mathbb H}}
+%\renewcommand{\P}[1]{\Poly}{#1}
+\renewcommand{\H}{{\mathcal{H}}}
 \newcommand{\GG}{\mathbf{G}}
 
 \fenicschapter{Constructing general reference finite elements}
@@ -9,9 +9,9 @@
               {kirby-1}
 
 This chapter describes the mathematical framework for constructing a
-general class finite elements on reference domains. This framework is used
+general class of finite elements on reference domains. This framework is used
 by both the FIAT and SyFi projects, see the Chapters~\ref{chap:kirby-2}
-and ~\ref{chap:alnes-3}, respectively.  Our goal is to provide a framework
+and~\ref{chap:alnes-3}, respectively.  Our goal is to provide a framework
 by which simplicial finite elements with very complicated bases can be
 constructed automatically.  We work from the classic Ciarlet definition
 of the finite element and its ``nodal'' basis (an abstract notion far more
@@ -23,7 +23,7 @@ analysis~\citep{HughesCottrellBazilevs2005}, nor does it entirely
 address XFEM~\citep{ChessaSmolinskiBelytschko2002} or {\em hp}-type
 methods~\citep{Schwab1998}.  However, in isogeometric analysis, the
 basis functions are readily defined by simple recurrence relations
-from from the theory of splines, so a tool like FIAT or SyFi is not
+from the theory of splines, so a tool like FIAT or SyFi is not
 necessary.  XFEM typically works by enriching existing finite element
 spaces with special basis functions to capture singular behavior -- our
 approach can provide the regular basis but not the ``extra'' functions.
@@ -42,7 +42,7 @@ vector fields discretized by piecewise polynomial functions with only
 normal components continuous across cell boundaries.  Many problems
 in electromagnetism call for the tangentially continuous vector fields
 obtained by using \nedelec\ elements~\citep{Nedelec1980,Nedelec1986}.
-Many elements are carefully designed to satisfy a \emph{inf-sup}
+Many elements are carefully designed to satisfy an \emph{inf-sup}
 condition~\citep{BrezziFortin1991,GiraultRaviart1986}, originally
 developed to explain stability of discretizations of incompressible flow
 problems.  Additionally, some problems call for low-order discretizations,
@@ -56,7 +56,8 @@ Ideally, one would like to describe the diverse finite element spaces
 at an abstract level, whence a computer code discerns how to evaluate
 and differentiate their basis functions.  Such goals are in large part
 accomplished by the FIAT and SyFi projects, whose implementations are
-described in later chapters.
+described in the chapters~\ref{chap:kirby-2}
+and~\ref{chap:alnes-3}.
 
 Projects like FIAT and SyFi may ultimately remain mysterious to the end
 user of a finite element system, as interactions with finite element
@@ -74,7 +75,7 @@ and Brezzi--Douglas--Marini families, development of new families
 slowed considerably.  Then, more recent work lead forth by Arnold,
 Falk, and Winther in the context of exterior calculus has not only led
 to improved understanding of existing element families, but has also
-brought a new wave of elements with improved properties.  A generative
+brought a new wave of elements with improved properties, see~\citet{ArnoldFalkWinther2006} for an overview.  A generative
 system for finite element bases can far more readily assimilate these
 and future developments.  Automation also provides generality with
 respect to the order of approximation that standard libraries might
@@ -91,7 +92,7 @@ for an abstract finite element in terms of polynomials that are easy to
 implement and well-behaved in floating point arithmetic.  We focus on
 constructing nodal bases for a single, fixed reference element.  As we
 will see in the Chapters~\ref{chap:alnes-3} and ~\ref{chap:logg-1},
-form compilers such as \texttt{ffc} and \texttt{sfc} will work in terms
+form compilers such as FFC and SFC will work in terms
 of this single reference element.
 
 Other approaches exist in the literature, such as the hierarchical
@@ -117,7 +118,7 @@ definition of a finite element introduced by Ciarlet.
   \label{chap:kirby-1:fedef}
 \end{definition}
 In this definition, the term ``finite element'' refers not only to a
-particular cell in a mesh, but also to the associated function space
+particular cell in a mesh, but also to the associate function space
 and degrees of freedom.  Typically, the domain $T$ is some simple
 polygonal or polyhedral shape and the function space $\mathcal{V}$
 consists of polynomials.
@@ -130,8 +131,9 @@ The \emph{nodal basis} for a finite element $(T,\mathcal{V},\mathcal{L})$
 is the set of functions $\{ \phi_i \}_{i=1}^{n}$ such
 that for all $1 \leqslant i,j \leqslant n$,
 \begin{equation}
-l_i(\phi_j) = \delta_{ij}.
+l_i(\phi_j) = \delta_{ij},
 \end{equation}
+where $\delta_{ij}$ denotes the Kronecker delta function.
 \label{chap:kirby-1:nodaldef}
 \end{definition}
 
@@ -157,8 +159,8 @@ here simplifies software for the following tasks:
 \begin{enumerate}
 \item Evaluate the basis functions and their derivatives at points.
 
-\item Associate the basis functions (or degree of freedom) with
-topological facets of $K$ such as its vertices, edges and its
+\item Associate the basis functions (or degrees of freedom) with
+topological facets of $T$ such as its vertices, edges and its
 placement on the edges.
 
 \item Associate each basis function with additional meta-data that
@@ -181,7 +183,7 @@ as the form of a sum over points and weights, much like a quadrature rule.
 \section{Mathematical framework}
 \subsection{Change of basis}
 
-The fundamental idea in constructing nodal basis is from elementary
+The fundamental idea in constructing a nodal basis is from elementary
 linear algebra: one constructs the desired (nodal) basis as a linear
 combination of another available basis.  We will start with some basis
 $\left\{ \psi_i \right\}_{i=1}^{n} \mbox{that spans} \ \mathcal{V}$.
@@ -230,14 +232,14 @@ terms of a finite dimensional function space $\mathcal{V}$. Although it
 is not strictly necessary, the functions used in finite elements are
 typically polynomials.  While our general strategy will in principle
 accommodate non-polynomial bases, we only deal with polynomials
-in this chapter.  The most common space is $\P_q^d$, the space of
+in this chapter.  The most common space is $\Poly{q}^d$, the space of
 polynomials of degree $q$ in $\R^d$. There are many different ways
-to represent $\P^d_q$. We will discuss the power and Bernstein bases,
+to represent $\Poly{q}^d$. We will discuss the power and Bernstein bases,
 and orthogonal bases such as Dubiner, Jacobi, and Legendre.  Each of
 these bases has explicit representations or recurrence relations making
 them easy to evaluate and differentiate. In contrast, most finite
 element bases are determined by solving the linear system in Definition
-\ref{chap:kirby-1:nodaldef}.  In addition to $\P^d_q$ we will also for
+\ref{chap:kirby-1:nodaldef}.  In addition to $\Poly{q}^d$ we will also for
 some elements need $\H^d_q$, the space of homogeneous polynomials of
 degree $q$ in $d$ variables.
 
@@ -247,19 +249,19 @@ however, have support for rectangular domains, while FIAT does not.
 
 \paragraph{Power basis.}
 On a line segment, the monomial or power basis $\{ x^i \}_{i=0}^{q}$
-spans $\P^1_q$, so that any $\psi \in \P^1_q$ can be written as
+spans $\Poly{q}^1$, so that any $\psi \in \Poly{q}^1$ can be written as
 \begin{equation}
 \label{pn1d}
 \psi = a_0 + a_1 x + \ldots a_q x^q = \sum^q_{i=0} a_i x^i.
 \end{equation}
-In 2D on triangles, $\P_q$ is spanned by functions on the form $\{
+In 2D on triangles, $\Poly{q}^2$ is spanned by functions on the form $\{
 x^i y^j \}_{i,j=0}^{i+j\leqslant q}$, with a similar definition in three
 dimensions.
 
 This basis is quite easy to evaluate, differentiate, and integrate. But
 the basis is very ill-conditioned in numerical calculations.
 For instance, the condition number of the mass matrix using the power
-basis in $\P^1_{10}$ gives a condition number of $5\cdot10^{14}$, while
+basis in $\Poly{10}^1$ gives a condition number of $5\cdot10^{14}$, while
 corresponding condition numbers are $4\cdot 10^6$ and $2\cdot 10^3$
 for the Bernstein and Lagrange polynomials, respectively.
 
@@ -306,11 +308,11 @@ P_1^{\alpha,\beta} &
 x \right),
 \end{split}
 \end{equation}
-with a three-term recurrence for $i\geqslant2$:
+with a three-term recurrence for $i\geqslant1$:
 \begin{equation}
 \label{eq:recur}
 P_{i+1}^{\alpha,\beta}(x)
-= (a^{\alpha,\beta}_i x + b^{\alpha,\beta}_i) P_i^{\alpha,\beta}(x) - c^{\alpha,\beta}_i P_{i-1}^{\alpha,\beta}(x),
+= (a^{\alpha,\beta}_i x + b^{\alpha,\beta}_i) P_i^{\alpha,\beta}(x) - c^{\alpha,\beta}_i P_{i-1}^{\alpha,\beta}(x).
 \end{equation}
 General Jacobi polynomials are used in 1d and tensor-product domains far
 less frequently than Legendre polynomials, but they play an important role
@@ -334,8 +336,10 @@ denote the $n^\mathrm{th}$ Jacobi polynomial with weights $\alpha,
 \eta_2 & = y,
 \end{split}
 \end{equation}
-which map the square $[-1,1]^2$ to the triangle with vertices
-$(-1,-1),(-1,1),(1,-1)$ as shown in Figure~\ref{fig:tricoord}.  This is
+which map 
+the triangle with vertices $(-1,-1),(-1,1),(1,-1)$ 
+to the square $[-1,1]^2$  
+as shown in Figure~\ref{fig:tricoord}.  This is
 the natural domain for defining the Dubiner polynomials, but they may
 easily be mapped to other domains like the triangle with vertices
 $(0,0) , (0,1) , (1,0)$ by an affine mapping.
@@ -361,18 +365,18 @@ $\psi_{pq}$.
 While this basis is more complicated than the power basis, it is
 very well-conditioned for numerical calculations even with high degree
 polynomials.  The polynomials can also be ordered hierarchically so that
-$\{ \psi_i \}_{i=1}^{n}$ forms a basis for $\P_{n-1}$ for each $n >
+$\{ \psi_i \}_{i=1}^{n}$ forms a basis for $\Poly{n-1}$ for each $n >
 1$.  As a possible disadvantage, the basis lacks rotational symmetry
 that can be found in other bases.
 
 \paragraph{Bernstein basis.}
 The Bernstein basis is another well-conditioned basis that can be used
-in generating finite element bases.  In 1D, the basis functions in $\P_q$
+in generating finite element bases.  In 1D, the basis functions in $\Poly{q}$
 take the form,
 \begin{equation}
 \psi_i^q = \binom{q}{i} x^i (1-x)^{q-i}, \quad i=0,\ldots,q,
 \end{equation}
-and then $\P_q$ is spanned by $\{ \psi_i^q \}_{i=0}^q$.
+and then $\Poly{q}$ is spanned by $\{ \psi_i^q \}_{i=0}^q$.
 
 Notice that the Bernstein basis consists of powers of $x$ and
 $1-x$, which are the barycentric coordinates for $[0,1]$,
@@ -381,9 +385,9 @@ in higher dimensions.  Let $b_1$, $b_2$, and $b_3$ be the barycentric
 coordinates for the reference triangle; that is, $b_1=1-x-y$, $b_2=x$,
 and $b_3=y$. Then the basis is of the form,
 \begin{equation}
-\psi_{ijk}^q = \frac{q!}{i!j!k!} b_1^i b_2^j b_3^k, \quad  \mbox{for} \ i+j+k=q .
+\psi_{ijk}^q = \frac{q!}{i!j!k!} b_1^i b_2^j b_3^k, \quad  \mbox{for} \ i+j+k=q,
 \end{equation}
-and a basis for $\P_q$ is simply.
+and a basis for $\Poly{q}$ is simply.
 \begin{equation}
 \{ \psi_{ijk}^q \}_{i,j,k\geqslant 0}^{i+j+k = q} .
 \end{equation}
@@ -403,17 +407,17 @@ element operators with complexity comparable to spectral elements.
 \paragraph{Homogeneous polynomials.}
 \label{sec:homo:pol}
 Another set of polynomials which sometimes is useful is the set of
-homogeneous polynomials $\H^q$. These are polynomials where all terms
-have the same degree. $\H^q$ is in 2D spanned by polynomials on the form:
+homogeneous polynomials $\H_q$. These are polynomials where all terms
+have the same degree. $\H_q$ is in 2D spanned by polynomials on the form:
 \begin{equation}
 \{ x^i y^j \}_{i+j=q}
 \end{equation}
 with a similar definition in $d$D.
 
-\paragraph{Vector or tensor valued polynomials.}
-It is straightforward to generalize the scalar valued polynomials
-discussed earlier to vector or tensor valued polynomials. Let $\{e_i\}$
-be canonical basis in $\R^d$. Then a basis for the vector valued
+\paragraph{Vector or tensor-valued polynomials.}
+It is straightforward to generalize the scalar-valued polynomials
+discussed earlier to vector or tensor-valued polynomials. Let $\{e_i\}$
+be canonical basis in $\R^d$. Then a basis for the vector-valued
 polynomials is
 \begin{equation}
 \phi_{ij} = \phi_j \mathbf{e}_i,
@@ -424,7 +428,7 @@ with a similar definition extending the basis to tensors.
 \section{Examples of elements}
 
 We include some standard finite elements to illustrate the concepts.
-We refer the reader to Chapter~\ref{chap:kirby-7} for a more thorough
+We refer the reader to Chapter~\ref{chap:kirby-6} for a more thorough
 review of elements and their properties.
 
 \begin{figure}
@@ -446,18 +450,18 @@ in each of the vertices.  That is, the degrees of freedom $\ell_i :
 \begin{equation}
 \ell_i ( v) = \int_{T} v \, \delta_{x_i} \dx = v(x_i),
 \end{equation}
-where $x_i$ are the vertices (0,0), (1,0), (0,1).  The corresponding basis
+where $x_i$ are the vertices (0,0), (1,0), (0,1) and $\delta$ is the Dirac delta function.  The corresponding basis
 functions are $1-x-y$, $x$, and $y$.  The second order element is shown
 in right triangle. It has six degrees of freedom, three at the vertices
 and three at the edges, all are point evaluations.  The Lagrange element
 produces piecewise continuous polynomials and they are therefore well
 suited for approximation in $H^1$.  The Lagrange element of order $q$
-spans $\P_q$ on simplices in any dimension.
+spans $\Poly{q}$ on simplices in any dimension.
 \end{example}
 
 \begin{figure}
   \begin{center}
-    \includegraphics[height=3cm]{chapters/kirby-6/pdf/HER3.pdf}
+    \includegraphics[height=3cm]{chapters/kirby-6/png/HER_2d.png}
     \caption{Hermite elements of order 3.}
     \label{Hermite}
   \end{center}
@@ -476,7 +480,7 @@ That is, the degrees of freedom $\ell_{i_k} : \mathcal{V} \rightarrow
 \end{align}
 In addition, there is one internal point evaluation, which in total gives
 ten degrees of freedom, which is the same number of degrees of freedom as
-in $\P^2_3$.  One feature of the Hermite element is that it has continuous
+in $\Poly{3}$.  One feature of the Hermite element is that it has continuous
 derivatives at the vertices (it will however not necessarily result in
 a $H^2$-conforming approximation).
 \end{example}
@@ -484,7 +488,7 @@ a $H^2$-conforming approximation).
 \begin{figure}
   \begin{center}
     \includegraphics[height=3.5cm]{chapters/kirby-6/pdf/RT0.pdf}
-    \caption{Triangular Raviart--Thomas elements of order 0}
+    \caption{Triangular Raviart--Thomas elements of order one.}
     \label{RaviartThomas}
   \end{center}
 \end{figure}
@@ -493,15 +497,15 @@ a $H^2$-conforming approximation).
 In Figure \ref{RaviartThomas} we illustrate the lowest order
 Raviart--Thomas element.  In contrast to the previous elements, this
 element has a vector-valued function space.  The arrows represent normal
-vector; that is, the degrees of freedom $\ell_i : \mathcal{V} \rightarrow
+vectors; that is, the degrees of freedom $\ell_i : \mathcal{V} \rightarrow
 \mathbb{R}$ are
 \begin{equation}
 \ell_i ( v) = \int_{T} v \cdot n_i  \dx ,
 \end{equation}
 where $n_i$ is the outward normal vector on edge $i$.  The Raviart--Thomas
 element is a vector space with three degrees of freedom. Hence, the
-standard basis $\P^d_q$ is not a suitable starting point and we use
-$\mathcal{V} = \P_0^2 \oplus x \H_0$ instead.  The Raviart--Thomas
+standard basis $(\Poly{q}^d)^d$ is not a suitable starting point and we use
+$\mathcal{V} = (\Poly{0}^2)^2 \oplus x \H_0$ instead.  The Raviart--Thomas
 element is typically used for approximations in $\Hdiv$.  We remark
 that this element may also be defined in terms of point evaluations of
 normal components.
@@ -512,21 +516,23 @@ The basis presented above are suitable for constructing many finite
 elements, but as we have just seen, they do not work in all cases.
 The Raviart--Thomas function space in 2D is spanned by
 \begin{equation}
-\left( \P^2_n \right)^2 \oplus
-\left(\begin{array}{c} x \\y \end{array} \right) \, \H^2_n,
+\left( \Poly{n}^2 \right)^2 \oplus
+\left(\begin{array}{c} x \\y \end{array} \right) \, \H^2_n.
 \end{equation}
 Hence, this element requires a basis for vectors of polynomials
-$(\P^2_n)^2$ enriched with $\left(\begin{array}{c} x \\y \end{array}
+$(\Poly{n}^2)^2$ enriched with $\left(\begin{array}{c} x \\y \end{array}
 \right) \, \H^2_n$.  On the other hand, the Brezzi--Douglas--Fortin--Marini
 on triangle is defined as
 \begin{equation}
 \left\{
-u \in (\P^2_n (T) )^2 : u \cdot n \in \P^1_{n-1}(\gamma), \gamma \in \mathcal{E}(T)
-\right\}.
+u \in (\P{n}^2 (T) )^2 : u \cdot n \in \Poly{n-1}^1(E_i), \quad E_i \in \mathcal{E}(T)
+\right\},
 \end{equation}
+where $\mathcal{E}(T)$ denotes the facets of $T$. 
+
 Hence, this element requires that some functions are removed from
-$\P^2_n (T)$. The removal is expressed by the constraint $u \cdot n
-\in \P^1_{n-1}(\gamma)$.
+$\Poly{n}^2 (T)$. The removal is expressed by the constraint $u \cdot n
+\in \Poly{n-1}^1(E_i)$.
 
 Obtaining a basis for this space is somewhat more subtle.  FIAT and
 SyFi have developed different but mathematically equivalent solutions.
@@ -534,8 +540,8 @@ In SyFi, since it uses a symbolic representation, the polynomial may be
 easily expressed in the power basis and the coefficients corresponding to
 second order polynomials normal to the edges are set to zero. In a similar
 fashion, FIAT utilizes the orthogonality of the Legendre polynomials
-to express the constraints the edges. That is, on the edges $E_i$
-the functionals (or constraints)
+to express the constraints the edges. That is, on the edge $E_i$
+the following constraints apply:
 \begin{equation}
 \ell^C_i( u ) = \int_{E_i} (u \cdot n) \mu_n^i = 0,
 \end{equation}
@@ -545,20 +551,13 @@ In general, assume that we have $m$ constraints and $n-m$ degrees
 of freedom.  Let
 \begin{align}
 V^1_{ij} &= \ell_i( \phi_j ), \quad  1\le i \le n-m, \  1\le j \le n,  \\
-V^2_{ij} &= \ell^C_i( \phi_j ), \quad  n-m  < i \le n, \  1\le j \le n,
+V^2_{ij} &= \ell^C_i( \phi_j ), \quad  n-m  < i \le n, \  1\le j \le n.
 \end{align}
-Then,
+and
+,
 \begin{equation}
 V = \left( \begin{array}{c} V^1 \\ V^2 \end{array} \right).
 \end{equation}
-Here, $V^1 \in \mathbb{R}^{n-m, n}$ and $V^2 \in \mathbb{R}^{m, n}$
-are defined by
-\begin{align}
-V^1_{ij} &= \ell_i( \phi_j ),
-\\
-V^2_{ij} &= \ell^C_i( \phi_j ),
-\end{align}
-where $\{ \phi_j \}_{j=1}^{2 \kappa}$ is a basis for $(\P^2_n)^2$.
 
 Consider now the matrix equation
 \begin{equation}
@@ -572,7 +571,7 @@ Moreover, $V_2 A = 0$, which implies that the nodal basis functions
 fulfill the constraint.
 
 Other examples than the Brezzi--Douglas--Fortin--Marini element
-that are defined in terms of constrained polynomials are
+that are defined in terms of constrained polynomials are the
 \nedelec~\citep{Nedelec1980}, Arnold-Winther~\citep{ArnoldWinther2002},
 Mardal-Tai-Winther~\citep{MardalTaiWinther2002},
 Tai-Winther~\citep{TaiWinther2006}, and Bell~\citep{Ciarlet2002}
@@ -591,7 +590,7 @@ given point $x \in T$, one simply computes the vector
 \end{equation}
 followed by the product
 \begin{equation}
-\phi_i(x) \equiv \Phi_i = \alpha_{ij} \Psi_j.
+\phi_i(x) \equiv \Phi_i = \sum_j \alpha_{ij} \Psi_j.
 \end{equation}
 Generally, the nodal basis functions are required at an array of points
 $\{ x_j \}_{j=1}^{m} \subset T$.  For performance reasons, performing
@@ -599,7 +598,7 @@ matrix-matrix products may be advantageous.  So, define $\Psi_{ij} =
 \Psi_i(x_j)$ and $\Phi_{ij} = \Phi_i(x_j)$.  Then all of the nodal
 basis functions may be evaluated by the product
 \begin{equation}
-\Phi_{ij} = \alpha_{ik} \Psi_{kj}.
+\Phi_{ij} = \sum_k \alpha_{ik} \Psi_{kj}.
 \end{equation}
 \subsection{Differentiation}
 Differentiation is more complicated and presents more options.
@@ -623,13 +622,13 @@ original basis functions $\{ \psi_i \}$ to produce an array
 \end{equation}
 whence
 \begin{equation}
-\Phi^\alpha_i = \alpha_{ij} \Psi^\alpha_i.
+\Phi^\alpha_i = \sum_j \alpha_{ij} \Psi^\alpha_{ji}.
 \end{equation}
 This presupposes that one may conveniently compute all derivatives of
 the $\{ \psi_i \}$.  This is typically true in symbolic computation
-or when using the the power basis.  For the Bernstein, Jacobi,
+or when using the power basis.  For the Bernstein, Jacobi,
 and Legendre polynomials recurrence relations are available, see
-\citep{KarniadakisSherwin2005,Kirby2010}.  The Dubiner basis, as
+\citet{KarniadakisSherwin2005,Kirby2010}.  The Dubiner basis, as
 typically formulated, contains a coordinate singularity that prevents
 automatic differentiation from working at the top vertex.  Recent work
 by \citet{Kirby} has reformulated recurrence relations to allow for
@@ -644,7 +643,7 @@ coordinate direction $x_k$, a matrix $\mathrm{D}^k$ is constructed so that
 D^k_{ij} \phi_j.
 \end{equation}
 How to do this depends on which bases are chosen.  For particular details
-on the Dubiner basis, see~\citep{Dubiner1991}.
+on the Dubiner basis, see~\citet{Dubiner1991}.
 
 
 \subsection{Integration}
@@ -702,7 +701,7 @@ corresponding basis function on the reference element as
 The integral can then be performed on the reference polygon,
 \begin{equation}
 \label{eq:integration2}
-\int_T \, \phi (x) \dx = \int_{\hat{T}} \, \hat \phi (\hat x) \, detJ d\hat x ,
+\int_T \, \phi (x) \dx = \int_{\hat{T}} \, \hat \phi (\hat x) \, detJ \dxhat ,
 \end{equation}
 and the spatial derivatives are defined by the derivatives on the
 reference element and the geometry mapping by using the chain rule,
@@ -726,7 +725,7 @@ instead of $\frac{1}{|detJ|}$ since the sign of the determinant relates
 to the sign of the normal vector, see \citet{RognesKirbyLogg2009} for more
 details on the Piola mapping and its implementation in FFC.  Some elements
 like the Rannacher-Turek element~\citep{Turek1999,RannacherTurek1992}
-has far better properties when defined globally compared its analogous
+has far better properties when defined globally compared to its analogous
 definition in terms of a reference element.
 
 
@@ -735,11 +734,11 @@ definition in terms of a reference element.
 As shown in Figure~\ref{fig:kirby-1:patch}, finite elements are
 patched together with a continuity depending on the degrees of freedom.
 To obtain the desired patching, the elements should provide identifiers
-that determining whether the degrees of freedom of some neighboring
+that determine whether the degrees of freedom of some neighboring
 elements should be shared or not.  One alternative is to relate each
 degree of freedom on the reference cell to a point in the reference
 cell. The geometry mapping then gives a global point in the mesh, by
-\eqref{eq:geometry}, that identifies the degree of freedom, that is, the
+\eqref{eq:geometry}, that identifies the degree of freedom; that is, the
 degrees of freedom in different elements are shared if they correspond to
 the same global point in the mesh.  Alternatively, each degree of freedom
 may be related to a local mesh entity, like a vertex, edge or face, on the
