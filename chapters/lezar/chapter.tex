@@ -28,7 +28,7 @@ field distribution (which may both be a function of frequency). The
 formulation adopted in this work is that of~\citet{LeeSunCendes1991}
 for lossless materials, with an extension to the lossy case presented
 in~\citet{Lee1994}. An overview of the state-of-the-art in the field is
-presented in~\citet{Davidson2011}. Alternate formulation are discussed
+presented in~\citet{Davidson2011}. Alternate formulations are discussed
 subsequently.
 
 Since waveguides are some of the most common structures in microwave
@@ -47,7 +47,7 @@ followed in implementing solvers for various electromagnetic problems
 with both cutoff and dispersion analysis considered in depth. To
 this end a brief introduction to electromagnetic waveguide theory,
 the mathematical formulation of these problems, and the specifics
-of their solution using the finite element method are presented in
+of their solutions using the finite element method are presented in
 \ref{lezar:sec:formulation}. This lays the groundwork for a discussion of
 the details pertaining to the \fenics{} implementation of these solvers,
 covered in~\ref{lezar:sec:Implementation}. The translation of the finite
@@ -188,7 +188,7 @@ the waveguide cross section -- indicated by the domain $\Omega$ in
 \eqref{eq:lezar:functional} -- for an arbitrary $z$ position. Functionals
 similar to the one shown in \eqref{eq:lezar:functional}
 are employed in~\citet{LeeSunCendes1991}, \citet{Jin2002},
-and\citet{PelosiCoccioliSelleri1998}, although in the latter case,
+and~\citet{PelosiCoccioliSelleri1998}, although in the latter case,
 this is derived by substituting~\eqref{eq:lezar:field_components} into
 the original Helmholtz equation of~\eqref{eq:lezar:vector_helmholtz}.
 
@@ -293,8 +293,8 @@ or simply
 The matrix equation of \eqref{eq:lezar:matrix_equation_cutoff}
 is in the form of a generalized eigenvalue problem with the
 square of the cutoff wavenumber the (unknown) eigenvalue. The
-sub-matrices $S_{oo}$ and $T_{oo}$ (with $oo = tt$ or $oo = zz$)
-represent the stiffness and mass matrices common in finite element
+sub-matrices $S_{oo}$ and $T_{oo}$ (with $oo = tt, zz$)
+represent the stiffness and mass matrices common in the finite element
 literature~\citep{Davidson2011, Jin2002}. The subscripts $tt$ and $zz$
 indicate transverse and axial components respectively. The entries of
 the matrices of \eqref{eq:lezar:matrix_equation_cutoff} are defined
@@ -403,8 +403,8 @@ One of the strengths of the curl-conforming vector basis functions
 (edge elements) used in the discretization of the transverse component
 of the field, is that they allow for a better representation of the
 null-space in question and improve the modelling of singularities when
-compared to nodal basis functions \citet{Webb1993}. This means that the
-null-space modes can be more readily identified~\citet{Davidson2011,
+compared to nodal basis functions \citep{Webb1993}. This means that the
+null-space modes can be more readily identified \citep{Davidson2011,
 Jin2002}. A number of other solutions to the problem have
 been proposed. These include the use of Lagrange multipliers as
 in~\citet{VardapetyanDemkowicz2002}, the use of a divergence term to
@@ -419,15 +419,17 @@ this chapter.
 
 This section considers the details of the implementation of a
 \fenics-based solver for waveguide cutoff mode and dispersion
-curve problems as described in~\ref{lezar:sec:cutoff_formulation}
-and~\ref{lezar:sec:propagation_curves}. A number of code snippets
+curve problems, as described in the preceding section.
+%~\ref{lezar:sec:cutoff_formulation}
+%and~\ref{lezar:sec:propagation_curves}.
+A number of code snippets
 illustrate some of the finer points of the implementation.
 
 \subsection{Formulation}
 
 The code listing that follows shows the definitions of the function
 spaces used in the solution of the cutoff and dispersion problems
-considered here. As already discussed, \nedelec{} basis functions of
+considered here. As already discussed, the \nedelec{} basis functions of
 the first kind are used to approximate the transverse component of the
 electric field. This ensures the tangential continuity of the discrete
 transverse field~\citep{Jin2002}.  The axial component of the field is
@@ -459,7 +461,7 @@ combined_space = V_N * V_L
 \end{figure}
 
 In order to deal with material properties, the \emp{Expression} class
-is subclassed and the \emp{eval} method overridden. This is illustrated
+is subclassed and the \emp{eval} method is overridden. This is illustrated
 in the next listing, which shows the implementation of the dielectric
 properties of a half-filled rectangular guide defined as follows
 \begin{equation}
@@ -475,7 +477,7 @@ This class is then instantiated for the relative permittivity
 permeability (or more specifically its inverse ($\frac{1}{\mu_r}
 = 1$)). The listing also shows the Expression class used for the
 square of the operating wavenumber ($k_o^2$), which is frequency
-dependent. Note that although it is shown set to zero, this value can
+dependent. Note that although it is set to zero, this value can
 be set for each frequency step as part of the dispersion analysis of a
 waveguide structure.
 
@@ -502,7 +504,7 @@ implementations of the forms are shown in the listing below,
 and the matrices of \eqref{eq:lezar:matrix_equation_cutoff} and
 \eqref{eq:lezar:matrix_equation_dispersion} can be assembled using the
 required combinations of these forms. It should be noted that the use of
-an Expression for the representation of $k_o^2$ means that the forms need
+the \emp{Expression} class for the representation of $k_o^2$ means that the forms need
 not be recompiled each time the operating frequency is changed. This
 is especially beneficial when the calculation of dispersion curves
 is considered since the same calculation is performed for a range of
@@ -559,7 +561,7 @@ detail in Chapter~\ref{chap:rognes} -- through the \fenics{} package.
 
 \subsection{Post-processing}
 
-After the eigenvalue system has been solved and the an eigenpair can
+After the eigenvalue system has been solved, an eigenpair can
 be post-processed to obtain various quantities of interest. For the
 cutoff wavenumber\index{wavenumber!cutoff}, this is a relatively
 straight-forward process and only involves simple operations on the
@@ -623,15 +625,15 @@ electromagnetic solver for solving waveguide problems.
 The second and third examples are a partially filled rectangular guide
 and a shielded microstrip line on a dielectric substrate,
 respectively. In each case results are compared to published results
-from the literature as a means of validation.
+from the literature for validation.
 
 \subsection{Hollow rectangular waveguide}
 \index{waveguide!hollow rectangular|(}
 
 Figure~\ref{fig:lezar:hollow_rectangular_guide} shows the cross
-section of a hollow rectangular waveguide. For the purpose of this
-chapter a guide with dimensions $a = 1\text{m}$ and $b = 0.5\text{m}$
-is considered. The analytical expressions for the electric field
+section of a hollow rectangular waveguide with dimensions 
+$a = 1\text{m}$ and $b = 0.5\text{m}$. 
+The analytical expressions for the electric field
 components of a hollow rectangular guide with width $a$ and height $b$
 are given by~\citep{Pozar2005}
 \begin{align}
@@ -655,9 +657,9 @@ direction of propagation~\citep{Pozar2005}.
     \def\svgwidth{\smallfig}
     \import{chapters/lezar/svg/}{hollow_rectangular_waveguide.pdf_tex}
     \caption{A diagram showing the cross section ($\Omega$) and dimensions
-    of a $1\text{m}\times~0.5\text{m}$ hollow rectangular waveguide. Also
-    shown is the electric wall $\Gamma_e$ where the zero Dirichlet
-    boundary condition of \eqref{eq:lezar:electric_wall_BC} is applied.}
+    of a $1\text{m}\times~0.5\text{m}$ hollow rectangular waveguide. 
+    The electric wall $\Gamma_e$, where the zero Dirichlet
+    boundary condition of \eqref{eq:lezar:electric_wall_BC} is applied, is also shown.}
     \label{fig:lezar:hollow_rectangular_guide}
 \end{figure}
 
@@ -670,9 +672,9 @@ The $z$-directed (axial) electric field corresponds to the $TM_{mn}$
 Once again the subscript $mn$ is used to identify the mode, but in
 this case neither $m$ nor $n$ may be zero. Such a TM mode has
 components of the magnetic field in the $xy$-plane, while the electric
-field has only a axial component. In \eqref{eq:lezar:rect:E_x
+field has only an axial component. In \eqref{eq:lezar:rect:E_x
 analytical}, \eqref{eq:lezar:rect:E_y analytical},
-and \eqref{eq:lezar:rect_E_z_analytical}, $A_{mn}$ and $B_{mn}$
+and \eqref{eq:lezar:rect_E_z_analytical}, $A_{mn}$ and $B_{mn}$ are
 constants for a given mode.
 
 For a hollow rectangular guide, the propagation constant, $\gamma$,
@@ -749,7 +751,7 @@ agreement between the values.
 
 When considering the calculation of the dispersion curves for the
 hollow rectangular waveguide, the mixed formulation as discussed in
-\ref{lezar:sec:propagation_curves} is used.  The calculated dispersion
+\ref{lezar:sec:propagation_curves} is used. The calculated dispersion
 curves for the first 5 modes of the hollow rectangular guide are shown
 in Figure~\ref{fig:lezar:hollow_rectangular_dispersion_curves}
 along with the analytical results. For the rectangular
@@ -800,9 +802,9 @@ its lower half is filled with an $\epsilon_r = 4$ dielectric material.
     \caption{A diagram showing the cross section ($\Omega$)
     and dimensions of a $1\text{m}\times~0.5\text{m}$ half-loaded
     rectangular waveguide. The lower half of the guide is filled with
-    an $\epsilon_r = 4$ dielectric material. Also shown is the electric
-    wall $\Gamma_e$ where the zero Dirichlet boundary condition of
-    \eqref{eq:lezar:electric_wall_BC} is applied.}
+    an $\epsilon_r = 4$ dielectric material. The electric
+    wall $\Gamma_e$, where the zero Dirichlet boundary condition of
+    \eqref{eq:lezar:electric_wall_BC} is applied, is also shown.}
     \label{fig:lezar:half_filled_rectangular_guide}
 \end{figure}
 
@@ -876,8 +878,8 @@ addition, the strip may be shielded by enclosing it in a PEC box to reduce
 electromagnetic interference. A cross section of a lossless shielded
 microstrip line is shown in Figure~\ref{fig:lezar:shielded_microstrip}
 with the thickness of the strip, $t$, exaggerated for clarity. The
-dimensions used to obtain the results discussed here the same as
-in \citet{PelosiCoccioliSelleri1998} and are indicated in the figure.
+dimensions used to obtain the results discussed here, are the same as
+those in \citet{PelosiCoccioliSelleri1998}, and are indicated in the figure.
 \begin{figure}
     \centering
     \def\svgwidth{\smallfig}
@@ -907,12 +909,12 @@ curves by the intersection of a curve with the $f_o$-axis.
 \index{waveguide!dispersion analysis}
 
 The dispersion analysis presented in~\citet{PelosiCoccioliSelleri1998}
-is repeated here for validation with the resultant curves shown in
+is repeated here for validation, with the resultant curves shown in
 Figure~\ref{fig:lezar:shielded_microstrip_dispersion_curves}. As is the
 case with the half-loaded guide, the results calculated with \fenics{}
-agree well with previously published results. In the figure it is shown
-that for certain parts of the frequency range of interest, modes six
-and seven have complex propagation constants. Since the matrices in the
+agree well with previously published results. In this figure, it is shown
+that for certain parts of the frequency range of interest, mode six
+and mode seven have complex propagation constants. Since the matrices in the
 eigenvalue problem are real valued, the complex eigenvalues -- and thus
 the propagation constants -- must occur in complex conjugate pairs as
 is the case here and reported earlier in~\citet{HuangItoh1988}. It
