@@ -3,41 +3,42 @@
               {Nuno D. Lopes, Pedro J. S. Pereira and Lu{\'\i}s Trabucho}
               {lopes}
 
-The main motivation of this work is the implementation of a
-general finite element solver for some of the improved Boussinesq
-models\index{Boussinesq models}. Here, we use an extension of the model
-proposed by~\citet{ZhaoTengCheng2004} to investigate the behavior
-of surface water waves. The equations in this model do not contain
-spatial derivatives with an order higher than 2. Some effects like
-energy dissipation and wave generation by natural phenomena or external
-physical mechanisms are also included.  As a consequence, some modified
-dispersion relations are derived for this extended model. A matrix-based
-linear stability analysis of the proposed model is presented.  It is
-shown that this model is robust with respect to instabilities related
-to steep bottom gradients.
+The main motivation of this work is the implementation of a general
+finite element solver for some of the improved Boussinesq
+models\index{Boussinesq models}. Here, we use an extension of the
+model proposed by~\citet{ZhaoTengCheng2004} to investigate the
+behavior of surface water waves. The equations in this model do not
+contain spatial derivatives with an order higher than 2. Some effects
+like energy dissipation and wave generation by natural phenomena or
+external physical mechanisms are also included.  As a consequence,
+some modified dispersion relations are derived for this extended
+model. A matrix-based linear stability analysis of the proposed model
+is presented.  It is shown that this model is robust with respect to
+instabilities related to steep bottom gradients.
 
 \section{Overview}
 
-The \fenics project, via \dolfin, \ufl and \ffc, provides good technical
-and scientific support for the implementation of large scale industrial
-models based on the finite element method. Specifically, all the finite
-element matrices and vectors are automatically generated and assembled
-by \dolfin\ and \ffc, directly from the variational formulation of the
-problem which is declared using \ufl. Moreover, \dolfin\ provides a user
-friendly interface for the libraries needed to solve the finite element
-system of equations.
+The \fenics project, via \dolfin, \ufl and \ffc, provides good
+technical and scientific support for the implementation of large scale
+industrial models based on the finite element method. Specifically,
+all the finite element matrices and vectors are automatically
+generated and assembled by \dolfin\ and \ffc, directly from the
+variational formulation of the problem which is declared using
+\ufl. Moreover, \dolfin\ provides a user friendly interface for the
+libraries needed to solve the finite element system of equations.
 
-Numerical implementation of Boussinesq equations goes back to
-the works of \citet{Peregrine1967} and \citet{Wu1981}, and later
-by the development of improved dispersion characteristics (see,
-e.g., \citet{MadsenEtAl1991,Nwogu1993,ChenLiu1994} as well as
+Numerical implementation of Boussinesq equations goes back to the
+works of \citet{Peregrine1967} and \citet{Wu1981}, and later by the
+development of improved dispersion characteristics (see, e.g.,
+\citet{MadsenEtAl1991,Nwogu1993,ChenLiu1994} as well as
 \citet{BejiNadaoka1996}).
 
-We implement a solver for some of the Boussinesq type systems to model the
-evolution of surface water waves\index{water waves} in a variable depth
-seabed.  This type of model is used, for instance, in harbor simulation
-(see Figure~\ref{fig:lopes:harbor} for an example of a standard harbor),
-tsunami generation and wave propagation as well as in coastal dynamics.
+We implement a solver for some of the Boussinesq type systems to model
+the evolution of surface water waves\index{water waves} in a variable
+depth seabed.  This type of model is used, for instance, in harbor
+simulation (see Figure~\ref{fig:lopes:harbor} for an example of a
+standard harbor), tsunami generation and wave propagation as well as
+in coastal dynamics.
 
 \begin{figure}
   \begin{center}
@@ -47,26 +48,28 @@ tsunami generation and wave propagation as well as in coastal dynamics.
   \label{fig:lopes:harbor}
 \end{figure}
 
-In Section~\ref{sec:lopes:dolfwave}, we begin by describing the DOLFWAVE
-application which is a \fenics based application for the simulation of
-surface water waves (see \url{http://ptmat.fc.ul.pt/~ndl/}).
+In Section~\ref{sec:lopes:dolfwave}, we begin by describing the
+DOLFWAVE application which is a \fenics based application for the
+simulation of surface water waves (see
+\url{http://ptmat.fc.ul.pt/~ndl/}).
 
 \editornote{URL should be archival.}
 
-The governing equations for surface water waves are presented
-in Section~\ref{sec:lopes:modelderivation}. From these equations
+The governing equations for surface water waves are presented in
+Section~\ref{sec:lopes:modelderivation}. From these equations
 different types of models can be derived. There are several Boussinesq
 models and some of the most widely used are those based on the wave
 surface Elevation and horizontal Velocities formulation (BEV) (see,
 e.g., \citet{WalkleyBerzins2002}, \citet{WooLiu2004a} as well as
 \citet{WooLiu2004b} for finite element discretizations of BEV models).
 However, we only consider the wave surface Elevation and velocity
-Potential (BEP) formulation (see, e.g., ~\citet{LangtangenPedersen1998}
-for a finite element discretization of a BEP model).  Thus, the number
-of unknowns is reduced from five (the three velocity components, the
-pressure and the wave surface elevation) in the BEV models to three (the
-velocity potential, the pressure and the wave surface elevation) in the
-BEP models. Two different types of BEP models are taken into account:
+Potential (BEP) formulation (see, e.g.,
+~\citet{LangtangenPedersen1998} for a finite element discretization of
+a BEP model).  Thus, the number of unknowns is reduced from five (the
+three velocity components, the pressure and the wave surface
+elevation) in the BEV models to three (the velocity potential, the
+pressure and the wave surface elevation) in the BEP models. Two
+different types of BEP models are taken into account:
 %%
 \begin{enumerate}
 \item \label{lopes:i}  a standard  model containing sixth-order
@@ -76,14 +79,14 @@ BEP models. Two different types of BEP models are taken into account:
 \end{enumerate}
 
 A standard technique is used in order to derive the Boussinesq-type
-model mentioned in~\ref{lopes:i}.  In the subsequent sections, only the
-ZTC-type model is considered.  Note that these two models are
+model mentioned in~\ref{lopes:i}.  In the subsequent sections, only
+the ZTC-type model is considered.  Note that these two models are
 complemented with some extra terms, due to the inclusion of effects
 like energy dissipation and wave generation by moving an impermeable
 bottom or using a source function.
 
-An important characteristic of the extended ZTC
-model, including dissipative effects, is presented in
+An important characteristic of the extended ZTC model, including
+dissipative effects, is presented in
 Section~\ref{sec:lopes:dispersionproperties}, namely, the dispersion
 relation.
 
@@ -165,7 +168,6 @@ considered and finite differences methods are used to discretize the
 model, specifically C-grid is implemented for the spatial
 discretization and a leap-frog scheme is used for the time stepping.
 
-
 \section{DOLFWAVE}
 \label{sec:lopes:dolfwave}
 
@@ -179,8 +181,8 @@ future implementation.
 We have already implemented solvers for the following cases:
 %%
 \begin{enumerate}
-\item \label{lopes:list_i} Shallow water wave models for unidirectional
-  long waves in one horizontal dimension;
+\item \label{lopes:list_i} Shallow water wave models for
+  unidirectional long waves in one horizontal dimension;
 \item  Boussinesq-type models for moderately long
   waves with small amplitude in shallow water.
 \end{enumerate}
@@ -230,7 +232,7 @@ steps.
 We use \ufl\ for the declaration of the finite element discretization
 of the variational forms related to the models mentioned above (see
 the \ufl\ form files in the following directories of the DOLFWAVE code
-tree: \emp{dolfwave/src/1hd1sforms}, \emp{dolfwave/src/1hdforms} and
+tree: \emp{dolfwave/src/1hd1sforms}, \emp{dolfwave/src/1hdforms} and\\
 \emp{dolfwave/src/2hdforms}).  These files are compiled using \ffc to
 generate the C++ code of the finite element discretization of the
 variational forms (see Chapter~\ref{chap:alnes-1}).  DOLFWAVE is based
@@ -242,11 +244,10 @@ All the DOLFWAVE code is available for download at
 the C++ code for boundary conditions and source functions are
 included. Scripts for visualization and data analysis are also part of
 the application. The Xd3d post-processor is used in some cases (see
-\url{http://www.cmap.polytechnique.fr/~jouve/xd3d/}).  DOLFWAVE
-has a large number of demos covering all the implemented models (see
+\url{http://www.cmap.polytechnique.fr/~jouve/xd3d/}).  DOLFWAVE has a
+large number of demos covering all the implemented models (see
 \emp{dolfwave/demo}). Different physical effects are illustrated.  All
 the numerical examples in this work are included in the demos.
-
 
 \section{Model derivation}
 \label{sec:lopes:modelderivation}
@@ -387,7 +388,7 @@ $\varepsilon$ is related with the nonlinear terms and $\mu$ with the
 dispersive terms.  For simplicity, in what follows, we drop the prime
 notation.
 
-The Boussinesq approach consists in reducing a $3$D problem to a $2$D
+The Boussinesq approach consists of reducing a $3$D problem to a $2$D
 one.  This may be accomplished by expanding the velocity potential in
 a Taylor power series in terms of $z$.  Using Laplace's equation, in a
 dimensionless form, we can obtain the following expression for the
@@ -419,19 +420,19 @@ related by the following equation:
     and}\ \varepsilon<1.
 \end{equation}
 %%
-Note that the Ursell number is defined by
-$U_r = \varepsilon/\mu^2$ and plays a central role in deciding
-the choice of approximations which correspond to very different
-physics.  The regime of weakly nonlinear, small amplitude and
-moderately long waves in shallow water is characterized by
-\eqref{eq:lopes:ursell} $\left(O(\mu^2)=O(\varepsilon)\right.$; that
-is, $\left.\frac{H^2}{L^2}\sim\frac{A}{H} \right)$. Boussinesq
-equations account for the effects of nonlinearity $\varepsilon$ and
-dispersion $\mu^2$ to the leading order.  When $\varepsilon\gg \mu^2$
-, they reduce to the Airy equations.  When $\varepsilon\ll \mu^2$ they
-reduce to the linearized approximation with weak dispersion.  Finally,
-if we assume that $\varepsilon\rightarrow 0$ and $\mu^2\rightarrow 0$,
-the classical linearized wave equation is obtained.
+Note that the Ursell number is defined by $U_r = \varepsilon/\mu^2$
+and plays a central role in deciding the choice of approximations
+which correspond to very different physics.  The regime of weakly
+nonlinear, small amplitude and moderately long waves in shallow water
+is characterized by \eqref{eq:lopes:ursell}
+$\left(O(\mu^2)=O(\varepsilon)\right.$; that is,
+$\left.\frac{H^2}{L^2}\sim\frac{A}{H} \right)$. Boussinesq equations
+account for the effects of nonlinearity $\varepsilon$ and dispersion
+$\mu^2$ to the leading order.  When $\varepsilon\gg \mu^2$ , they
+reduce to the Airy equations.  When $\varepsilon\ll \mu^2$ they reduce
+to the linearized approximation with weak dispersion.  Finally, if we
+assume that $\varepsilon\rightarrow 0$ and $\mu^2\rightarrow 0$, the
+classical linearized wave equation is obtained.
 
 A sixth-order spatial derivative model is obtained if $\phi_1$ is
 expanded in terms of $\phi_0$ and all terms up to $O(\mu^8)$ are
@@ -667,7 +668,7 @@ ZTC model with the dissipative term (ZTC\_D).
     several models.}
   \label{fig:lopes:dispersion}
 \end{figure}
-%%
+
 From Figure~\ref{fig:lopes:dispersion}, we can also see that
 these two dissipative models admit critical wave numbers $k_1$ and
 $k_2$, such that the positive part of $\displaystyle
@@ -1074,7 +1075,7 @@ investigated by~\citet{LovholtPedersen2009} is also used here as a
 reference for comparison.  For both models, full reflective boundary
 conditions are considered.
 
-We start by assuming  a separated  solution of the form
+We start by assuming a separated solution of the form
 %%
 \begin{equation}
 \label{eq:lopes:exp}
