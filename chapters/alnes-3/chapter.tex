@@ -6,31 +6,34 @@
 \renewcommand{\AA}{A}
 \newcommand{\LL}{L}
 \newcommand{\JJ}{J}
+\newcommand{\syfi}{SyFi}
+%\newcommand{\sfc}{\texttt{sfc}}
 
 \section{Introduction}
 
-This chapter concerns the finite element library SyFi and its form
-compiler SFC.  SyFi is a framework for defining finite elements
+
+This chapter concerns the finite element library \syfi{} and its form
+compiler \sfc{}.  \syfi{} is a framework for defining finite elements
 symbolically, using the C++ library GiNaC~\citep{BauerFrinkKreckel2000}
 and its Python interface Swiginac~\citep{SkavhaugCertik2009}.  In many
-respects, SyFi is the equivalent of \fiat, Chapter~\ref{chap:kirby-2},
-whereas SFC corresponds to \ffc, see Chapter~\ref{chap:logg-1}. SyFi
-and SFC comes with an extensive manual \citep{AlnaesMardal2009a}
-and can be found on the \fenics{} web page.  SFC can be used in
-\fenics{} as a form compiler. Similar to \ffc\ it translates
-\ufl\ code (see Chapter~\ref{chap:alnes-1}) into UFC code (see
-Chapter~\ref{chap:alnes-2}), which can be used by the \dolfin assembler
+respects, \syfi{} is the equivalent of \fiat, Chapter~\ref{chap:kirby-2},
+whereas \sfc{} corresponds to \ffc{}, see Chapter~\ref{chap:logg-1}. \syfi{}
+and \sfc{} comes with an extensive manual \citep{AlnaesMardal2009a}
+and can be found on the \fenics{} web page.  \sfc{} can be used in
+\fenics{} as a form compiler. Similar to \ffc{} it translates
+\ufl{} code (see Chapter~\ref{chap:alnes-1}) into UFC code (see
+Chapter~\ref{chap:alnes-2}), which can be used by the \dolfin{} assembler
 described in Chapter~\ref{chap:logg-3}. The UFC code is JIT compiled
 using Instant, see Chapter~\ref{chap:wilbers}.
 
 This chapter is deliberately short and only gives the reader a taste of
-the capabilities of SyFi and SFC.  However, most features are covered by
+the capabilities of \syfi{} and \sfc{}.  However, most features are covered by
 the more comprehensive manual.  This chapter is organized as follows:
 We begin with a short description of GiNaC and Swiginac, before we
-present how finite elements are used and defined using SyFi.  Then, we
-present how to use SFC in the \dolfin environment, and end with a short
-description of the basic structure of SFC. SyFi is implemented in C++,
-but has a Python interface. SFC is implemented in Python because code
+present how finite elements are used and defined using \syfi{}.  Then, we
+present how to use \sfc{} in the \dolfin{} environment, and end with a short
+description of the basic structure of \sfc{}. \syfi{} is implemented in C++,
+but has a Python interface. \sfc{} is implemented in Python because code
 generation is much more convenient in this language.
 %The code examples accompanying this chapter can be found in
 %\emp{\$FENICSBOOK/src/syfi-sfc}.
@@ -104,11 +107,11 @@ intf = integral(x,0,1,f).eval_integ()
 print "integral of f from 0 to 1 is:", intf
 \end{python}
 
-\section{SyFi: symbolic finite elements}
+\section{\syfi{}: symbolic finite elements}
 
-GiNaC provides the basic utilities for SyFi in the sense that it provides
+GiNaC provides the basic utilities for \syfi{} in the sense that it provides
 manipulation of polynomials, as well as differentiation and integration
-with respect to one variable. SyFi extends GiNaC with polynomial
+with respect to one variable. \syfi{} extends GiNaC with polynomial
 spaces and differentiation operators like $\nabla$, $\nabla\cdot$, and
 $\nabla\times$, in addition to integration over a number of polygonal
 domains.  With these utilities it is easy to define finite elements.
@@ -122,7 +125,7 @@ the user manual. The mentioned elements are defined for arbitrary order,
 except for the Crouzeix--Raviart and Hermite elements. Not all of these
 elements are, however, supported by the form compiler.
 
-The following example illustrates how to use SyFi to do finite element
+The following example illustrates how to use \syfi{} to do finite element
 calculations in Python.  Here, we create a Lagrange element of second
 order and use the basis functions to compute a element stiffness matrix
 on a reference triangle. We also print both the integrand and the element
@@ -165,7 +168,7 @@ and this can be very useful during debugging.  We remark that also
 Python and LaTeX output can be generated using the \emp{printpython}
 and \emp{printlatex} functions.
 
-All elements in SyFi are implemented in C++. Here, however, for
+All elements in \syfi{} are implemented in C++. Here, however, for
 simplicity we list a definition of the Crouzeix--Raviart element in Python.
 The following code is the complete finite element definition:
 \begin{python}
@@ -208,7 +211,7 @@ class CrouzeixRaviart(object):
     def dof(self,i): return self.dofs[i]
     def nbf(self): return len(self.Ns)
 \end{python}
-The process of defining a finite element in SyFi is similar for all
+The process of defining a finite element in \syfi{} is similar for all
 elements.  As the above code shows, it resembles the Ciarlet definition
 closely, see also the Chapters~\ref{chap:kirby-1} and \ref{chap:kirby-6}.
 First, we construct a polynomial space. In the code above, this is
@@ -253,9 +256,9 @@ grad(N(1)) =  [[-2],[0],[-1/3]]
 ...
 \end{c++}
 
-\section{SFC: SyFi form compiler}
+\section{\sfc{}: SyFi form compiler}
 
-As mentioned earlier, SFC translates UFL code to UFC code. Consider the
+As mentioned earlier, \sfc{} translates UFL code to UFC code. Consider the
 following UFL code for defining the variational problem for solving the
 Poisson problem, implemented in a file \emp{Poisson.ufl}:
 \begin{python}
@@ -271,17 +274,17 @@ g = Coefficient(element)
 a = c*dot(grad(u),grad(v))*dx
 L = -f*v*dx + g*v*ds
 \end{python}
-SFC translates this UFL form to UFC code as follows:
+\sfc{} translates this UFL form to UFC code as follows:
 \begin{bash}
 sfc -w1  -ogenerated_code Poisson.ufl
 \end{bash}
-Here, \emp{-w1} means that \dolfin wrappers are generated, while
+Here, \emp{-w1} means that \dolfin{} wrappers are generated, while
 \emp{-ogenerate\_code} means that the generated code should be
 located in the directory \emp{generate\_code}. Notice that the flags
 and corresponding options are not separated by spaces. A complete
 list of options is obtained with \emp{sfc -h}.  The generated code can be
 utilized in DOLFIN in a standard fashion.  For a complete example consider
-the demo \emp{demo/Poisson2D/cpp} that comes with the SyFi package.
+the demo \emp{demo/Poisson2D/cpp} that comes with the \syfi{} package.
 
 In DOLFIN, the form compiler may be chosen at run time by setting:
 \begin{python}
@@ -303,10 +306,10 @@ sfc_options.code.integral.integration_method = "symbolic" # default is "quadratu
 A = assemble(a, form_compiler_parameters=sfc_options)
 \end{python}
 
-Earlier versions of SFC produced slow code for complicated nonlinear
+Earlier versions of \sfc{} produced slow code for complicated nonlinear
 equations as shown in \citet{AlnaesMardal2009b}. Furthermore, the code
 generation was expensive both in terms of memory and the number of
-operations required in the computations, because the SFC implementation
+operations required in the computations, because the \sfc{} implementation
 did not scale linearly with the complexity of the equations.  However, a
 significant speed-up came with the introduction of UFL with its expression
 tree traversal algorithms.  Now, quite complicated equations can be
@@ -395,7 +398,7 @@ and nonlinear variational formulations.
 
 Finally, we briefly describe the overall design of the code
 generation software.  UFC defines the interface of the code produced
-by SFC.  In SFC, each UFC class is mirrored by subclasses of the
+by \sfc{}.  In \sfc{}, each UFC class is mirrored by subclasses of the
 class \emp{CodeGenerator} called \emp{FormCG}, \emp{DofMapCG},
 \emp{FiniteElementCG}, and \emp{CellIntegralCG}, etc.  These classes
 are used to generate code for the corresponding UFC classes, \emp{form},
@@ -431,7 +434,7 @@ void %(classname)s::tabulate_tensor(double* A,
 }
 """
 \end{python}
-Using this template, the code generation in SFC is then performed
+Using this template, the code generation in \sfc{} is then performed
 as follows:
 \begin{python}
 def generate_cell_integral_code(integrals, formrep):
@@ -490,12 +493,12 @@ using quadrature where the generated code involves multiple loops and
 quite a few temporary variables. To generate quadrature based code,
 the computational graph algorithms from UFL (in particular the class
 \emp{ufl.Graph}) are used to split the expression tree into smaller
-sub-expressions.  SFC makes GiNaC symbols that represent temporary
+sub-expressions.  \sfc{} makes GiNaC symbols that represent temporary
 variables for all sub-expressions.  To place the temporary variables
 inside the correct loops in the generated code, the computational
 graph is partitioned based on the dependencies of subexpressions. See
 Chapter~\ref{chap:alnes-1} for an explanation of the partitioning
 algorithm provided by UFL.  The sub-expression associated with
 each temporary variable is then translated to a C/C++ string using
-GiNaC. Finally, SFC puts it all together into a tabulate tensor
+GiNaC. Finally, \sfc{} puts it all together into a tabulate tensor
 implementation in the code generation classes (\emp{*CG}).
