@@ -85,7 +85,7 @@ linearized kinematics, the domains $\Omega$ and $\Omega_{0}$ are both
 fixed and coincide at all times~$t$.  A triangulation of the domain
 $\Omega$ will be denoted by~$\mathcal{T}$, and a triangulation of the
 domain $\Omega_{0}$ will be denoted by~$\mathcal{T}_{0}$.  A finite
-element cell will be denoted by $K \in \mathcal{T}$.
+element cell will be denoted by $T \in \mathcal{T}$.
 
 The governing equations for the different models will be formulated in
 the common framework of: find $u \in V$ such that
@@ -180,8 +180,8 @@ considering a weight function that depends on space and time, and then
 integrating over $\Omega \times I$. However, it is far more common in
 solid mechanics applications to consider a weight function that depends
 on spatial position only and to apply finite difference methods to deal
-with time derivatives.  Following this approach, at a time $t \in (0,
-T]$ we multiply \eqref{eq:oelgaard-1:gov_balance_momentum} by a function
+with time derivatives.  Following this approach, at a time $t \in I$
+we multiply \eqref{eq:oelgaard-1:gov_balance_momentum} by a function
 $w$ ($w$ is assumed to satisfy $w = 0$ on $\Gamma_{D}$) and integrate
 over~$\Omega$:
 %
@@ -192,7 +192,7 @@ over~$\Omega$:
 \end{equation}
 %
 Applying integration by parts, using the divergence theorem and inserting
-the boundary condition in \eqref{eq:oelgaard-1:gov_neumann_bc}, we obtain:
+the boundary condition \eqref{eq:oelgaard-1:gov_neumann_bc}, we obtain:
 %
 \begin{equation}
 F := \int_{\Omega} \rho \ddot{u} \cdot w \dx
@@ -370,7 +370,7 @@ with linear isotropic hardening, $\phi$ and $q_{\rm iso}$ read:
 where $s_{ij} = \sigma_{ij} - \sigma_{kk}\delta_{ij}/3$ is the deviatoric
 stress and the constant scalar $H > 0$ is a hardening parameter.
 
-In the flow theory of plasticity, plastic strain rate is given by:
+In the flow theory of plasticity, the plastic strain rate is given by:
 %
 \begin{equation}
   \dot{\varepsilon}^{\rm p} = \Dot{\lambda}\frac{\partial g}{\partial\sigma},
@@ -392,7 +392,7 @@ which for associative von Mises plasticity implies that $\dot{\kappa}
 
 A feature of the flow theory of plasticity is that the constitutive
 model is postulated in a rate form. This requires the application
-algorithms for to compute the stress from increments of the total strain.
+algorithms to compute the stress from increments of the total strain.
 A discussion of algorithmic aspects on how the stress tensor can be
 computed from the equations presented in this section is postponed to
 Section~\ref{sec:oelgaard-1:examples_plasticity}.
@@ -402,7 +402,7 @@ Section~\ref{sec:oelgaard-1:examples_plasticity}.
 \label{sec:oelgaard-1:hyperelasticity}
 
 Hyperelastic models are characterized by the existence of a stored
-strain energy function $\Psi_{0}$. The linearized model presented at
+strain energy density function $\Psi_{0}$. The linearized model presented at
 the start of this section falls with the class of hyperelastic models.
 Assuming linearized kinematics, the stored energy function
 %
@@ -450,7 +450,7 @@ expression for the strain energy density function:
   \Psi_{0} = \frac{\lambda}{2} \brac{{\rm tr} \, E}^{2} + \mu E:E,
 \end{equation}
 %
-which is known as the St Venant--Kirchhoff model.  Unlike the linearized
+which is known as the St. Venant--Kirchhoff model.  Unlike the linearized
 case, this energy density function is not linear in~$u$ (or spatial
 derivatives of $u$), which means that when minimizing the total potential
 energy~$\Pi$, the resulting equations are nonlinear.  Another example
@@ -467,7 +467,8 @@ In most presentations of hyperelastic models, one would proceed from the
 definition of the stored energy function to the derivation of a stress
 tensor, and then often to a linearization of the stress for use in a
 Newton method.  This process can be lengthy and tedious. For a range of
-models, features of \ufl{} will permit problems to be posed as energy
+models, features of the Unified Form Language (UFL, Chapter~\ref{chap:alnes-1})
+will permit problems to be posed as energy
 minimization problems, and it will not be necessary to compute expression
 for a stress tensor, or its linearization, explicitly. A particular model
 can then be posed in terms of a particular expression for~$\Psi_{0}$. It
@@ -555,7 +556,8 @@ space, sub-optimal convergence of a Newton method will be observed.
 \subsection{Consistency of linearization}
 
 To illustrate the second issue raised in the preceding paragraph, we
-consider the representation that FFC would generate for a simple model
+consider the representation that the FEniCS Form Compiler (FFC,
+Chapter~\ref{chap:logg-1}) would generate for a simple model
 problem, and linearize this representation. We then consider how FFC
 would represent a linearization of the original problem, which turns out
 not to be consistent with the linearization of the FFC representation
@@ -585,7 +587,7 @@ f_{T,i_{1}} := \sum_{q=1}^2 \sum_{\alpha=1}^2 \psi^{T}_{\alpha}\brac{x_{q}} \sig
 \phi^{T}_{i_{1},x}\brac{x_q} W_{q},
 \end{equation}
 %
-where $q$ is integration point index, $\alpha$ is the degree of freedom
+where $q$ is the integration point index, $\alpha$ is the degree of freedom
 index for the local basis of $\sigma$, $\psi^{T}$ and $\phi^{T}$ denotes
 the linear and quadratic basis functions on the element $T$, respectively,
 and $W_{q}$ is the quadrature weight at integration point~$x_{q}$.
@@ -683,10 +685,10 @@ model problem that will be used in numerical examples. Given the finite
 element space
 %
 \begin{equation}
-  V = \left\{ w \in H^{1}_{0}(\Omega), \ w \in P_{k}(K) \ \foralls K \ \in \mathcal{T} \right\},
+  V = \left\{ w \in H^{1}_{0}(\Omega), \ w \in P_{q}(T) \ \foralls T \ \in \mathcal{T} \right\},
 \end{equation}
 %
-where $\Omega \subset \mathbb{R}$ and $k \ge 1$, the model problem of
+where $\Omega \subset \mathbb{R}$ and $q \ge 1$, the model problem of
 interest involves: given $f \in V$, find $u \in V$ such that
 %
 \begin{equation}
@@ -718,7 +720,7 @@ L\brac{w}
 \\
 a\brac{du_{n+1}, w}
    &:=  \int_{\Omega} C_{n} du_{n+1, x} w_{,x} \dx
-      + \int_{\Omega} 2u_{n}u_{n,,x} du_{n+1} w_{,x} \dx,
+      + \int_{\Omega} 2u_{n}u_{n,x} du_{n+1} w_{,x} \dx,
 \label{eq:oelgaard-1:plas_nonlinear_poisson_forms2}
 \end{align}
 %
@@ -737,29 +739,28 @@ to make $Q$ one polynomial order less that $V$ and discontinuous across
 cell facets.  However, following this approach leads to a convergence
 rate for a Newton solver that is less than the expected quadratic rate.
 The reason for this is that the linearization that follows from this
-process is not consistent with the problem being solved.
+process is not consistent with the problem being solved as explained in the
+previous section.
 
-To resolve this issue within the context of the Unified Form Language
-(UFL, Chapter~\ref{chap:alnes-1}), and the FeniCS Form Compiler (FFC,
-Chapter~\ref{chap:logg-1}), the concept of \emph{quadrature elements}
-\index{quadrature element} has been developed.  This special type of
-element is used to represent `functions' that can only be evaluated at
-particular points (quadrature points), and cannot be differentiated.
-In the remainder of this section we present some key features of the
-quadrature element and a demonstration of its use for the model problem
+To resolve this issue within the context of \ufl and \ffc, the concept
+of \emph{quadrature elements} \index{quadrature element} has been developed.
+This special type of element is used to represent `functions' that can only
+be evaluated at particular points (quadrature points), and cannot be
+differentiated. In the remainder of this section we present some key features
+of the quadrature element and a demonstration of its use for the model problem
 considered above.  A quadrature element is declared in UFL by:
 %
 \begin{python}
-element = FiniteElement("Quadrature", tetrahedron, k)
+element = FiniteElement("Quadrature", tetrahedron, q)
 \end{python}
 %
-where \emp{k} is the polynomial degree that the underlying quadrature
+where \emp{q} is the polynomial degree that the underlying quadrature
 rule will be able to integrate exactly.  The declaration of a quadrature
 element is similar to the declaration of any other element in \ufl
 and it can be used as such, with some limitations. Note, however,
 the subtle difference that the element order does not refer to the
 polynomial degree of the finite element shape functions, but instead
-relates to the quadrature scheme.  \ffc{} uses a Gauss-Legendre-Jacobi
+relates to the quadrature scheme.  \ffc{} uses a Gauss--Legendre--Jacobi
 quadrature scheme mapped onto simplices for the numerical integration of
 variational forms.  So for `sufficient' integration of a second-order
 polynomial in three dimensions, \ffc{} will use two quadrature points
@@ -774,20 +775,20 @@ to take derivatives of functions defined on a quadrature element.
 Before demonstrating the importance of quadrature elements when computing
 terms off-line, we illustrate a simple usage of a quadrature element.
 Consider the bilinear form for a mass matrix weighted by a coefficient
-$q$ that is defined on a quadrature element:
+$f$ that is defined on a quadrature element:
 %
 \begin{equation}
-  a\brac{u, w} = \int_{\Omega} q u w \dx.
+  a\brac{u, w} = \int_{\Omega} f u w \dx.
 \label{eq:oelgaard-1:quad_elem_mass_form}
 \end{equation}
 %
 If the test and trial functions $w$ and $u$ come from a space of linear
 Lagrange functions, the polynomial degree of their product is two.
-This means that the function $q$ should be defined as:
+This means that the coefficient $f$ should be defined as:
 %
 \begin{python}
 ElementQ = FiniteElement("Quadrature", tetrahedron, 2)
-q = Coefficient(ElementQ)
+f = Coefficient(ElementQ)
 \end{python}
 %
 to ensure appropriate integration of the form
@@ -801,11 +802,11 @@ integrated using only one integration point, since one point is enough
 to integrate a linear polynomial exactly, and as a result the form
 is under integrated.  If quadratic Lagrange elements are used for $w$
 and $u$, the polynomial degree of the integrand is four, therefore the
-declaration for the coefficient $q$ should be changed to:
+declaration for the coefficient $f$ should be changed to:
 %
 \begin{python}
 ElementQ = FiniteElement("Quadrature", tetrahedron, 4)
-q = Coefficient(ElementQ)
+f = Coefficient(ElementQ)
 \end{python}
 
 The DOLFIN code for solving the nonlinear model problem with a
@@ -816,8 +817,8 @@ Figure~\ref{fig:oelgaard-1:plas_nonlinear_poisson_code}.  The
 relative residual norm after each iteration of the Newton solver
 for four different combinations of spaces $V$ and $Q$ is shown
 in Table~\ref{tab:oelgaard-1:plas_nonlinear_poisson_convergence}.
-Continuous, discontinuous and quadrature elements are denoted by $CG_{k}$,
-$DG_{k}$ and $Q_{k}$ respectively where $k$ refers to the polynomial
+Continuous, discontinuous and quadrature elements are denoted by $CG_{q}$,
+$DG_{q}$ and $Q_{q}$ respectively where $q$ refers to the polynomial
 degree as discussed previously.  It is clear from the table that using
 quadratic elements for $V$ requires the use of quadrature elements in
 order to ensure quadratic convergence of the Newton solver.
@@ -939,12 +940,12 @@ a straightforward function of the displacement field, and the expression
 for the stress in~\eqref{eq:oelgaard-1:elas_stress_def} can be inserted
 directly into~\eqref{eqn:oelgaard-1:F}.  For the steady case (inertia
 terms are ignored), a complete solver for a linearized elasticity
-problem in presented in Figure~\ref{fig:oelgaard-1:elas_code}.
+problem is presented in Figure~\ref{fig:oelgaard-1:elas_code}.
 The solver in Figure~\ref{fig:oelgaard-1:elas_code} is for a
 simulation on a unit cube with a source term $b = (1, 0, 0)$ and
 $u = 0$ on $\partial \Omega$.  A continuous, piecewise quadratic
 finite element space is used.  The expressiveness of the UFL input
-means that that the expressions for \emp{sigma} and \emp{F} in
+means that the expressions for \emp{sigma} and \emp{F} in
 Figure~\ref{fig:oelgaard-1:elas_code} resemble closely the mathematical
 expressions used in the text for $\sigma$ and $F$. We have presented
 this problem in Figure~\ref{fig:oelgaard-1:elas_code} in terms of $F$
@@ -1005,7 +1006,7 @@ A method of computing point-wise a stress tensor that satisfies
 increment and history variables is known as a `return mapping
 algorithm'.  Return mapping strategies are discussed in detail in
 \citet{SimoHughes1998}.  A widely used return mapping approach, the
-`closest point projection', is summarized below for a plasticity model
+`closest-point projection', is summarized below for a plasticity model
 with linear isotropic hardening.
 
 From~\eqref{eq:oelgaard-1:plas_stress_def}
@@ -1105,7 +1106,7 @@ which is used when assembling the global Jacobian (stiffness matrix).
 The return mapping algorithm is applied at all quadrature points.
 
 The closest-point return mapping algorithm described above is common
-to range of plasticity models that are defined by the form of the
+to a range of plasticity models that are defined by the form of the
 functions $f$ and~$g$. The process can be generalized for models with
 more complicated hardening behavior.  To aid the implementation of
 different models, a return mapping algorithm and support for quadrature
@@ -1218,64 +1219,16 @@ plasticity expressed using \ufl syntax.}
 \label{fig:oelgaard-1:plas_ufl_code}
 \end{figure}
 
-In addition to the \ufl file, which defines the momentum balance
-equation for a plasticity problem, two auxiliary \ufl files
-are required. The first is used to compute the strain from
-the displacement field via an
-$L^2$-projection\footnote{It would be more efficient to compute
-the strain at quadrature points directly from the displacement
-field, but this is not presently supported. The projection approach works
-for elements for which it is possible to define a lower-dimensional
-space that coincides exactly with the derivative of the original
-space. This is the case for Lagrange basis functions on simplices.
-The cost of the projection operation is small relative to other
-operations in the solution process for the plasticity problem.}
-as shown in
-Figure~\ref{fig:oelgaard-1:plas_strain_code}, and the second defines
-the function space for the equivalent plastic strain field, and which
-is shown in Figure~\ref{fig:oelgaard-1:plas_eqstrain_code}.
-
-\begin{figure}
-\begin{python}
-elementS = VectorElement("Quadrature", tetrahedron, 2, 6)
-element  = VectorElement("Lagrange", tetrahedron, 2)
-
-s, w = TrialFunction(elementS), TestFunction(elementS)
-u = Coefficient(element)
-
-def eps(u):
-	return as_vector([u[i].dx(i) for i in range(3)] \
-+ [u[i].dx(j) + u[j].dx(i) for i, j in [(0, 1), (0, 2), (1, 2)]])
-
-a = inner(s, w)*dx
-L = inner(eps(u), w)*dx
-\end{python}
-\caption{Definition of the linear and bilinear variational forms to
-compute strains via an $L^2$-projection of the displacement field.
-Note that the \emp{eps} function returns engineering strain.}
-\label{fig:oelgaard-1:plas_strain_code}
-\end{figure}
-
-\begin{figure}
-\begin{python}
-element = FiniteElement("Quadrature", tetrahedron, 2)
-\end{python}
-\caption{Definition of the function space for the equivalent plastic strain
-field.}
-\label{fig:oelgaard-1:plas_eqstrain_code}
-\end{figure}
-
 The solver is implemented in C++, and
 Figure~\ref{fig:oelgaard-1:plas_cpp_code} shows an extract of the
 most relevant parts of the solver in the context of plasticity.
-First, the necessary function spaces are created.  \emp{Vps} and
-\emp{Veq} are used for the two history variables, the plastic strain
-and equivalent plastic strain.  \emp{Vt} and \emp{Vs} are used for
-the two coefficient spaces: the consistent tangent and the stress,
-which enter the bilinear and linear forms of the plasticity problem.
-The function space \emp{Vs} is also used for the strains.  The forms
-defining the plasticity problem and the forms to compute the strains
-are then created and the relevant functions are attached to the forms.
+First, the necessary function spaces are created. \emp{V} is used to define
+the bilinear and linear forms and the displacement field $u$, while \emp{Vt}
+and \emp{Vs} are used for the two coefficient spaces: the consistent tangent
+and the stress, which enter the bilinear and linear forms of the plasticity
+problem.
+The forms defining the plasticity problem are then created and the relevant
+functions are attached to the forms.
 Then the object defining the plasticity model is created.  The class
 \emp{VonMises} is a sub-class of the \emp{PlasticityModel} class shown
 in Figure~\ref{fig:oelgaard-1:plasticity_interface} and it implements
@@ -1283,7 +1236,7 @@ functions for $f$, $\partial_{\sigma} f$ and $\partial_{\sigma\sigma} g$.
 It is constructed with values for the Young's modulus, Poisson's ratio,
 yield stress and linear hardening parameter.  This object can then be
 passed to the constructor of the \emp{PlasticityProblem} class along
-with the other necessary forms, function spaces, coefficient functions
+with the forms, displacement field $u$, coefficient functions
 and boundary conditions.  \emp{PlasticityProblem} is a sub-class
 of the DOLFIN class \emp{NonlinearProblem}, which is described in
 Chapter~\ref{chap:logg-2}. The \emp{PlasticityProblem} class handles
@@ -1298,10 +1251,8 @@ function before proceeding with the next solution increment.
 // Create mesh and define function spaces
 UnitCube mesh(4, 4, 4);
 Plasticity::FunctionSpace V(mesh);
-Plasticity::LinearForm::CoefficientSpace_s Vps(mesh);
 Plasticity::BilinearForm::CoefficientSpace_t Vt(mesh);
-Strain::FunctionSpace Vs(mesh);
-EQPlasStrain::FunctionSpace Veq(mesh);
+Plasticity::LinearForm::CoefficientSpace_s Vs(mesh);
 
 // Create forms and attach functions
 Function tangent(Vt);
@@ -1312,10 +1263,8 @@ Function stress(Vs);
 Plasticity::LinearForm L(V);
 L.s = stress;
 
+// Displacements
 Function u(V);
-Strain::BilinearForm a_strain(Vs, Vs);
-Strain::LinearForm L_strain(Vs);
-L_strain.u = u;
 
 // Young's modulus and Poisson's ratio
 double E = 20000.0; double nu = 0.3;
@@ -1331,7 +1280,7 @@ double yield_stress = 200.0;
 fenicsplas::VonMises J2(E, nu, yield_stress, hardening_parameter);
 
 // Create PlasticityProblem
-fenicsplas::PlasticityProblem nonlinear_problem(a, L, a_strain, L_strain, Vps, Veq, tangent, stress, bcs, J2);
+fenicsplas::PlasticityProblem nonlinear_problem(a, L, u, tangent, stress, bcs, J2);
 
 // Create nonlinear solver
 NewtonSolver nonlinear_solver;
@@ -1366,7 +1315,7 @@ is adopted.  The automatic functional differentiation features of UFL
 permit the solver code to resemble closely the abstract mathematical
 presentation. Noteworthy in this approach is that it is not necessary to
 provide an explicit expression for the stress tensor.  Changing model is
-therefore as simple as redefining the stored energy function~$\Psi_{0}$.
+therefore as simple as redefining the stored energy density function~$\Psi_{0}$.
 
 A complete hyperelastic solver is presented
 in Figure~\ref{fig:oelgaard-1:hyperelastic_solver_code}.
@@ -1479,7 +1428,8 @@ for the acceleration, velocity and displacement at time $t_{n}$
 and velocity at time $t_{n+1}$ (\emp{a1}, \emp{v1}) in terms of the
 displacement at $t_{n+1}$ (\emp{u1}) and other fields at time $t_{n}$.
 For simplicity, the source term $b = (0, 0, 0)$.  The body is fixed such
-that $u=0$ at $x=0$ and the initial conditions are $u_{0} = v_{0} = 0$.
+that $u = (0, 0, 0)$ at $x=0$ and the initial conditions are
+$u_{0} = v_{0} = (0, 0, 0)$.
 A traction $h$ is applied at $x=1$ and is increased linearly from zero
 to one over the first five time steps.  Therefore, no forces are acting
 on the body at $t=0$ and the initial acceleration is zero.  Again, the
