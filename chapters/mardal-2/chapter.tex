@@ -342,18 +342,16 @@ underlying C++ object is not explicitly deleted when the reference
 count of the Python object reach zero, instead the reference count on
 the \emp{shared\_ptr} is decreased.
 
-Shared pointers are provided by the \emp{boost\_shared\_ptr.i} file.  This
-file declares two user macros: \emp{SWIG\_}\-\emp{SHARED\_}\-\emp{PTR}
-and \emp{SWIG\_}\-\emp{SHARED\_PTR\_}\-\emp{DERIVED}\footnote{In SWIG
-version 2.0 and above, these macros are super seeded by the single
-\emp{\%shared\_ptr} directive.}. These macros must be called for
-each class we want shared pointers.  In DOLFIN this is done in the
-\emp{shared\_ptr\_classes.i} file.  Note that the macros also declare
-typemaps for passing a \emp{shared\_ptr} stored object to method that
-expects a reference or a pointer. This means that the typemap pass
-a de-referenced \emp{shared\_ptr} to the function. This behavior can
-lead to unintentional trouble because the \emp{shared\_ptr} mechanism
-is circumvented.
+Shared pointers are provided by the \emp{boost\_shared\_ptr.i} file.
+This file declare the directive: \emp{\%shared\_ptr}. The directive
+must be used for each class we want shared pointers for. In DOLFIN
+this is done in the \emp{shared\_ptr\_classes.i} file. Note that the
+when the directive is called typemaps for passing a \emp{shared\_ptr}
+stored object to method that expects a reference or a pointer is
+declared. This means that the typemap pass a de-referenced
+\emp{shared\_ptr} to the function. This behavior can lead to
+unintentional trouble because the \emp{shared\_ptr} mechanism is
+circumvented.
 
 In \dolfin, instances of some crucial classes are stored internally
 with \emp{shared\_ptr}s. These classes also uses \emp{shared\_ptr}
@@ -400,25 +398,33 @@ are defined. In- and out-typemaps for \emp{dolfin::uint}, and
 \emp{dolfin::real}, an in-typemap for \emp{int}, and an out-typemap
 macro for \emp{std::pair<}\-\emp{dolfin::uint,}\-\emp{dolfin::uint>}.
 
-The simplest typemap is an out-typemap for \emp{dolfin::uint}, which is
-needed since Python does not have \emp{unsigned int}:
+The simplest typemap is an out-typemap for \emp{dolfin::uint} a
+typedef of \emp{unsigned int}. This typemap is needed since Python
+does not have an equivalent of an \emp{unsigned int} type:
 \begin{swigcode}
-%typemap(out) dolfin::uint = int;
+%typemap(out, fragment=SWIG_From_frag(unsigned int)) unsigned int
+{
+  // Typemap unsigned int
+  $result = SWIG_From(unsigned int)($1);
+}
 \end{swigcode}
-This typemap specifies that a function returning a \emp{dolfin::uint}
-should use the built-in out-typemap for \emp{int}. SWIG lets us reuse a
-typemap by simply copying it. We could have used the same feature for the
-corresponding in-typemap, however an unfortunate bug, explained below,
-forces us to implement the whole typemap from scratch. The typemap looks
-like this:
+This typemap specifies that a function returning a \emp{unsigned int}
+will use the SWIG provided type conversion macro:
+\emp{SWIG\_From(type)(arg)} to convert the unsigned int to a Python
+int. The macro is not provided by default in SWIG. We therefore need
+to specify that SWIG includes the definition of the macro in the
+wrapper file by using the \emp{fragment} argument to the \emp{typemap}
+directive.
+
+The next typemap is an in typemap for \emp{unsigned int}.
 \begin{swigcode}
-%typemap(in) dolfin::uint
+%typemap(in, fragment="PyInteger_Check") unsigned int
 {
   if (PyInteger_Check($input))
   {
     long tmp = static_cast<long>(PyInt_AsLong($input));
     if (tmp>=0)
-      $1 = static_cast<dolfin::uint>(tmp);
+      $1 = static_cast<unsigned int>(tmp);
     else
       SWIG_exception(SWIG_TypeError, "expected positive 'int' for argument $argnum");
   }
@@ -427,22 +433,25 @@ like this:
 }
 \end{swigcode}
 %$ to fool emacs highlight...
-The typemap has the same structure as the \numpy typemap
-above. We first check that the object is of integer type, with the
+The typemap has the same structure as the \numpy typemap above. We
+first check that the object is of integer type, with the
 \emp{PyInteger\_}\emp{Check} function. Here, we have implemented the
 \emp{PyInteger\_}\emp{Check} function ourselves instead of using the
-Python macro \emp{PyInt\_Check}. The reason is that \emp{PyInt\_Check} in
-Python2.6 can not be combined with \numpy, which is the above mentioned
-bug. Next, we convert the Python integer to a \emp{long} and check
-whether it is positive. Finally, we assign the input argument \$1 to a
-\emp{dolfin::uint} casted version of the value. If either of these checks
-fail, we use the built in SWIG function, \emp{SWIG\_exception} to raise
-a Python exception. These predefined SWIG exceptions are defined in the
-\emp{exception.i} file, included in \emp{dolfin.i}. Note that SWIG expands
-the \emp{\$argnum} variable to the number of the argument using the
-\emp{dolfin::uint} typemap. Including this number in the string creates
-more understandable error message.  Finally, we present the out-typemap
-for \emp{std::pair}\-\emp{<dolfin::uint,}\-\emp{dolfin::uint>}, which
+Python macro \emp{PyInt\_Check}. The reason is that \emp{PyInt\_Check}
+in Python2.6 can not be combined with \numpy, which is the above
+mentioned bug. Here we use the \emp{fragment} argument to the typemap
+to tell SWIG to include code that defines the
+\emp{PyInteger\_}\emp{Check} function. Next, we convert the Python
+integer to a \emp{long} and check whether it is positive. Finally, we
+assign the input argument \$1 to a \emp{dolfin::uint} casted version
+of the value. If either of these checks fail, we use the built in SWIG
+function, \emp{SWIG\_exception} to raise a Python exception. These
+predefined SWIG exceptions are defined in the \emp{exception.i} file,
+included in \emp{dolfin.i}. Note that SWIG expands the \emp{\$argnum}
+variable to the number of the argument using the \emp{dolfin::uint}
+typemap. Including this number in the string creates more
+understandable error message.  Finally, we present the out-typemap for
+\emp{std::pair}\-\emp{<dolfin::uint,}\-\emp{dolfin::uint>}, which
 returns a Python tuple of two integers:
 \begin{swigcode}
 %typemap(out) std::pair<dolfin::uint,dolfin::uint>
@@ -456,48 +465,52 @@ Python C-API function \emp{Py\_BuildValue} to build a tuple of the two
 values in the \emp{std::pair} object.
 
 In \emp{numpy\_typemaps.i}, typemaps for arrays of primitive types:
-\emp{double}, \emp{int} and \emp{dolfin::uint} are defined.
-As in the \emp{Array} example above, these typemaps are defined so a \numpy
-array of the corresponding type can be passed as the argument to functions,
-methods, and operators.
-Instead of writing one typemap for each primitive type, we defined a SWIG
-macro, which is called with different types as argument. Using macros may
-produce a lot of code as some of these typemaps are used frequently. To
-avoid code bloat, most of the typemap code is place in the function
-\emp{convert\_numpy\_to\_}\-\emp{ \#\# TYPE\_NAME \#\#}\-\emp{ \_array\_no\_check}\footnote{\emp{ \#\# TYPE\_NAME \#\# } is a SWIG macro directive that will be expanded to the value of the \emp{TYPE\_NAME} macro argument.}, which is called
-by the actual typemap. The entire macro reads:
+\emp{double}, \emp{int} and \emp{dolfin::uint} are defined.  As in the
+\emp{Array} example above, these typemaps are defined so a \numpy
+array of the corresponding type can be passed as the argument to
+functions, methods, and operators.  Instead of writing one typemap for
+each primitive type, we defined a SWIG macro, which is called with
+different types as argument. Using macros may produce a lot of code as
+some of these typemaps are used frequently. To avoid code bloat, most
+of the typemap code is place in the function
+\emp{convert\_numpy\_to\_}\-\emp{array\_no\_check(TYPE\_NAME)}\footnote{\emp{
+    \#\# TYPE\_NAME} is a SWIG macro directive that will be expanded
+  to the value of the \emp{TYPE\_NAME} macro argument.}, which is
+called by the actual typemap. The code is defined within a
+\emp{fragment} directive, which means that a typemap can make use of
+that code by adding the name of the fragment as an argument in the
+typemap definition. The entire macro reads:
 \begin{swigcode}
 %define UNSAFE_NUMPY_TYPEMAPS(TYPE,TYPE_UPPER,NUMPY_TYPE,TYPE_NAME,DESCR)
-%{
-SWIGINTERN bool convert_numpy_to_ ## TYPE_NAME ## _array_no_check(PyObject* input, TYPE*& ret)
-{
-  if PyArray_Check(input)
-  {
-    PyArrayObject *xa = reinterpret_cast<PyArrayObject*>(input);
-    if ( PyArray_TYPE(xa) == NUMPY_TYPE )
-    {
-      ret  = static_cast<TYPE*>(PyArray_DATA(xa));
-      return true;
-    }
-  }
-  PyErr_SetString(PyExc_TypeError,"numpy array of 'TYPE_NAME' expected. Make sure that the numpy array use dtype='DESCR'.");
-  return false;
-}
-%}
 
-%typecheck(SWIG_TYPECHECK_ ## TYPE_UPPER ## _ARRAY) TYPE *
-{
+%fragment(convert_numpy_to_array_no_check(TYPE_NAME), "header") {
+  // Typemap function (Reducing wrapper code size)
+  SWIGINTERN bool convert_numpy_to_array_no_check_ ## TYPE_NAME(PyObject* input, TYPE*& ret)
+  {
+    if (PyArray_Check(input)) 
+    {
+      PyArrayObject *xa = reinterpret_cast<PyArrayObject*>(input);
+      if ( PyArray_TYPE(xa) == NUMPY_TYPE )
+      {
+        ret  = static_cast<TYPE*>(PyArray_DATA(xa));
+        return true;
+      }
+    }
+    PyErr_SetString(PyExc_TypeError,"numpy array of 'TYPE_NAME' expected. Make sure that the numpy array use dtype='DESCR'.");
+    return false;
+  }
+}
+
+// The typecheck
+% typecheck(SWIG_TYPECHECK_ ## TYPE_UPPER ## _ARRAY) TYPE * {
     $1 = PyArray_Check($input) ? 1 : 0;
 }
 
-%typemap(in) TYPE *
-{
-if (!convert_numpy_to_ ## TYPE_NAME ## _array_no_check($input,$1))
+// The typemap
+%typemap(in, fragment=convert_numpy_to_array_no_check(TYPE_NAME)) TYPE * {
+if (!convert_numpy_to_array_no_check_ ## TYPE_NAME($input,$1))
     return NULL;
 }
-
-%apply TYPE* {TYPE* _array}
-%enddef
 \end{swigcode}
 The first line defines the signature of the macro. The macro is called
 using 5 arguments:
@@ -524,11 +537,11 @@ UNSAFE_NUMPY_TYPEMAPS(double,DOUBLE,NPY_DOUBLE,double,d)
 \end{swigcode}
 Here, we have instantiated the typemap for a \emp{dolfin::uint} and a
 \emp{double} array. The above typemap does not check the length of the
-handed \numpy array and is therefore unsafe. Corresponding safe typemaps
-can also be found in \emp{numpy\_typemaps.i}.  The typemap function in
-the third line of the typemap
+handed \numpy array and is therefore unsafe. Corresponding safe
+typemaps can also be found in \emp{numpy\_typemaps.i}. The conversion
+function included in the fragment declaration
 \begin{swigcode}
-  SWIGINTERN bool convert_numpy_to_ ## TYPE_NAME ## _array_no_check(PyObject* input, TYPE*& ret)
+  SWIGINTERN bool convert_numpy_to_array_no_check_ ## TYPE_NAME(PyObject* input, TYPE*& ret)
 \end{swigcode}
 takes a pointer to a \emp{PyObject} as input. This function returns
 \emp{true} if the conversion is successful and \emp{false} otherwise. The
@@ -591,13 +604,13 @@ IN_TYPEMAP_STD_VECTOR_OF_POINTERS(TYPE,const,const)
       if (SWIG_IsOK(res)) {
           tmp_vec.push_back(reinterpret_cast<dolfin::TYPE *>(itemp));
       }
-      else
-      {
+      else {
         // If failed with normal pointer conversion then
         // try with shared_ptr conversion
         newmem = 0;
         res = SWIG_ConvertPtrAndOwn(py_item, &itemp,
-                 $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< dolfin::TYPE > *), 0, &newmem);
+                   $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< dolfin::TYPE > *),
+                   0, &newmem);
 	if (SWIG_IsOK(res)){
 	  // If we need to release memory
 	  if (newmem & SWIG_CAST_NEW_MEMORY){
@@ -610,16 +623,14 @@ IN_TYPEMAP_STD_VECTOR_OF_POINTERS(TYPE,const,const)
 	  }
 	  tmp_vec.push_back(arg);
 	}
-        else
-        {
+        else {
            SWIG_exception(SWIG_TypeError, "list of TYPE expected (Bad conversion)");
         }
-       }
+      }
     }
     $1 = &tmp_vec;
   }
-  else
-  {
+  else {
     SWIG_exception(SWIG_TypeError, "list of TYPE expected");
   }
 }
