@@ -4,33 +4,33 @@
               {kirby-4}
 
 The tensor contraction structure for the computation of the element
-tensor~$A_T$ obtained in Chapter~\ref{chap:kirby-8}, enables not only
-the construction of a compiler for variational forms, but an
-\emph{optimizing} compiler. For typical variational forms, the
-reference tensor~$A^0$ has significant structure that allows the
-element tensor~$A_T$ to be computed on an arbitrary cell~$T$ at a lower
-computational cost. Reducing the number of operations by making use of
-this structure, leads naturally to several problems in discrete
-mathematics. This chapter introduces some of the optimizations that
-are possible, and discusses compile-time combinatorial optimization
-problems that form the core of the FErari
+tensor~$A_T$ obtained in Chapter~\ref{chap:kirby-8}, enables not only the
+construction of a compiler for variational forms, but an \emph{optimizing}
+compiler. For typical variational forms, the reference tensor~$A^0$ has
+significant structure that allows the element tensor~$A_T$ to be computed
+on an arbitrary cell~$T$ at a lower computational cost. Reducing the
+number of operations by making use of this structure, leads naturally
+to several problems in discrete mathematics. This chapter introduces
+some of the optimizations that are possible, and discusses compile-time
+combinatorial optimization problems that form the core of the FErari
 project \citep{KirbyLoggScottEtAl2006,KirbyScott2007,KirbyLogg2008},
 which is the subject of Chapter~\ref{chap:kirby-3}.
 
 We consider two basic kinds of optimizations in this chapter. First,
 we consider relations between pairs of rows in the reference tensor.
-This naturally leads to a graph that models proximity among these
-pairs.  If two rows are ``close'' together, then one may reuse results
-computed with the first row to compute a desired quantity with the second.
-The proximity of two such rows is computed using a Hamming distance and
-linearity relations. This approach gives rise to a weighted graph that is
-(almost) a metric space, so we designate such optimizations as ``topological''.
-Second, we consider relations between more than two rows of the reference
-tensor. Such relations typically rely on sets of rows, considered as vectors in
-Euclidean space. Because we are using planes and hyperplanes to reduce
-the amount of computation, we describe these optimizations as
-``geometric''. For comparison, we briefly discuss optimizations using
-more traditional optimized dense linear algebra packages.
+This naturally leads to a graph that models proximity among these pairs.
+If two rows are ``close'' together, then one may reuse results computed
+with the first row to compute a desired quantity with the second.
+The proximity of two such rows is computed using a Hamming distance
+and linearity relations. This approach gives rise to a weighted graph
+that is (almost) a metric space, so we designate such optimizations
+as ``topological''.  Second, we consider relations between more than
+two rows of the reference tensor. Such relations typically rely on
+sets of rows, considered as vectors in Euclidean space. Because we
+are using planes and hyperplanes to reduce the amount of computation,
+we describe these optimizations as ``geometric''. For comparison, we
+briefly discuss optimizations using more traditional optimized dense
+linear algebra packages.
 
 \section{Optimization framework}
 
@@ -44,15 +44,15 @@ or simply
 \begin{equation} \label{eq:kirby-4:contract}
   A_T = A^0 : G_T,
 \end{equation}
-where $\mathcal{I}$ is the set of admissible multi-indices for the
-element tensor $A_T$ and $\mathcal{A}$ is the set of admissible
-multi-indices for the geometry tensor $G_T$. The reference tensor $
-A^0 $ can be computed at compile-time, and may then be contracted with
-a $ G_T $ to obtain the element tensor $A_T$ for each cell $T$ in
-the finite element mesh at run-time. The case of computing local finite
-element stiffness matrices of size $n_T \times n_T$ corresponds to
-$\mathcal{I}$ consisting of $|\mathcal{I}| = n_T^2$ multi-indices of
-length~two, where $n_T$ is the dimension of the local finite element space on $T$.
+where $\mathcal{I}$ is the set of admissible multi-indices for the element
+tensor $A_T$ and $\mathcal{A}$ is the set of admissible multi-indices
+for the geometry tensor $G_T$. The reference tensor $ A^0 $ can be
+computed at compile-time, and may then be contracted with a $ G_T $ to
+obtain the element tensor $A_T$ for each cell $T$ in the finite element
+mesh at run-time. The case of computing local finite element stiffness
+matrices of size $n_T \times n_T$ corresponds to $\mathcal{I}$ consisting
+of $|\mathcal{I}| = n_T^2$ multi-indices of length two, where $n_T$
+is the dimension of the local finite element space on~$T$.
 
 It is convenient to recast~\eqref{eq:kirby-4:contract} in terms of a
 matrix--vector product:
@@ -67,26 +67,26 @@ must occur for each cell $T$ in a finite element mesh, it makes
 sense to try to make this operation as efficient as possible.
 
 In the following, we will drop the subscripts and superscripts
-of~\eqref{eq:kirby-4:tildeag} and consider the problem of computing
-a general matrix--vector product
+of~\eqref{eq:kirby-4:tildeag} and consider the problem of computing a
+general matrix--vector product
 \begin{equation}
 y = A x,
 \end{equation}
-efficiently, where $ A = \tilde{A}^0 $ is a constant matrix known \apriori{},
-and $ x = \tilde{g}_T $ is an arbitrary vector. We will study
-structure of $ A $ that allows for a reduction in the number of
-arithmetic operations required to form these products. With this structure, we
-are able to produce a routine that computes the action of the system
-in less operations than would be performed using general sparse or
-dense linear algebra routines.
+efficiently, where $ A = \tilde{A}^0 $ is a constant matrix known \emph{a
+priori}, and $x = \tilde{g}_T $is an arbitrary vector. We will study
+structure of $ A $ that allows for a reduction in the number of arithmetic
+operations required to form these products. With this structure, we are
+able to produce a routine that computes the action of the system in less
+operations than would be performed using general sparse or dense linear
+algebra routines.
 
-Before proceeding with the mathematical formulation, we give an
-example of a matrix $ A $ that we would like to
-optimize. In~\eqref{eq:kirby-4:ALap}, we display the reference tensor
-$A^0$ for computing a standard stiffness matrix discretizing a two--dimensional
-Laplacian with quadratic Lagrange elements on triangles. The rank
-four tensor is depicted here as a $6 \times 6$ matrix of $2 \times 2$ matrices.
-Full analysis would use a corresponding flattened $36 \times 4$ matrix $A$.
+Before proceeding with the mathematical formulation, we give an example of
+a matrix $ A $ that we would like to optimize. In~\eqref{eq:kirby-4:ALap},
+we display the reference tensor $A^0$ for computing a standard stiffness
+matrix discretizing a two--dimensional Laplacian with quadratic Lagrange
+elements on triangles. The rank four tensor is depicted here as a $6
+\times 6$ matrix of $2 \times 2$ matrices.  Full analysis would use a
+corresponding flattened $36 \times 4$ matrix $A$.
 
 % Laplacian with quadratic triangular Lagrange elements
 \begin{equation} \label{eq:kirby-4:ALap}
@@ -126,7 +126,6 @@ computation of the matrix--vector product.
 For the purpose of illustration, we consider the following subset
 of~\eqref{eq:kirby-4:ALap}, which would only cost $40$ multiply--add
 pairs but contains all the relations we use to optimize the larger version:
-
 \begin{equation} \label{eq:kirby-4:Aflat}
 A =
 \left(
@@ -179,11 +178,12 @@ In addition to equality and collinearity discussed above, one may also
 consider other relations between the rows of $A$. Further inspection
 of $A$ in~\eqref{eq:kirby-4:Aflat} reveals rows that have some entries
 in common but are neither equal nor collinear. Such rows have a small
-\emph{Hamming distance}, that is, the number of entries in which the
-two rows differ is small. This occurs frequently, as seen in, for example,
-rows five and six . We can write $ a^j = a^i + (a^j-a^i) $, where $ a^j -a^i $ has $ d_H \leqslant N $ nonzero entries and where $d_H$ is the Hamming distance
-between $a^i$ and $a^j$. Once $ y_i $ has been computed, one may thus
-compute $y_j$ as
+\emph{Hamming distance}, that is, the number of entries in which the two
+rows differ is small. This occurs frequently, as seen in, for example,
+rows five and six . We can write $ a^j = a^i + (a^j-a^i) $, where $ a^j
+-a^i $ has $ d_H \leqslant N $ nonzero entries and where $d_H$ is the
+Hamming distance between $a^i$ and $a^j$. Once $ y_i $ has been computed,
+one may thus compute $y_j$ as
 \begin{equation}
 y_j = y_i + \left( a^j - a^i \right) x,
 \end{equation}
