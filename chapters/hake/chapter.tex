@@ -22,16 +22,16 @@
               {Johan Hake}
               {hake}
 
-From the time we are children, we are told that we should drink milk
+From the time we are children we are told that we should drink milk
 because it is an important source of calcium (\Ca), and that \Ca is
 vital for a strong bone structure. What we do not hear as frequently
 is that \Ca is one of the most important cellular messengers in the
 human body \citep{AlbertsBrayLewisEtAl2002}. In particular, \Ca
 controls cell death, neural signaling, secretion of different chemical
-substances, and the focus of this chapter: the contraction of cells in
-the heart.
+substances, the contraction of cells in the heart. The latter
+is the focus of this chapter.
 
-In this chapter, we will present a computational model that can be
+In this chapter we will present a computational model that can be
 used to model \Ca dynamics in a small sub-cellular domain called the
 dyadic cleft. The model includes \Ca diffusion, which is described by
 an advection-diffusion partial differential equation, and discrete
@@ -51,7 +51,7 @@ above.
 \index{cell membrane} \index{excitation contraction coupling}
 \index{cytosol}
 
-In a healthy heart, every heart beat originates in the sinoatrial node
+In a healthy heart every heart beat originates in the sinoatrial node
 where pacemaker cells trigger an electric signal. This signal is a
 difference in electric potential between the interior and exterior of
 the heart cells; these two domains are separated by the cell
@@ -60,7 +60,7 @@ domains is called the membrane potential. The membrane potential
 propagates through the whole heart via electrical currents which move
 through the cell membrane using specific ion channels. The actively
 propagating membrane potential is called an action potential. When an
-action potential arrives at a specific heart cell, it triggers the
+action potential arrives at a specific heart cell it triggers the
 opening of L-type \Ca channels (LCCs), which bring \Ca into the
 cell. Some of the \Ca diffuses over a small distance, called the
 dyadic cleft, and causes further \Ca release from an intracellular \Ca
@@ -71,19 +71,19 @@ contractile proteins are situated. These proteins are responsible for
 generating contraction in the heart cell and \Ca serves as the
 trigger. The strength of the contraction is controlled by the strength
 of the \Ca concentration (\CaC) in cytosol. The contraction is
-succeeded by a period of relaxation, caused by the extraction of \Ca
+succeeded by a period of relaxation caused by the extraction of \Ca
 from the intracellular space by various proteins.
 
 This chain of events is known as the Excitation Contraction (EC)
 coupling \citep{Bers2001}. Several severe heart diseases can be related
-to impaired EC coupling. By broadening knowledge of the EC coupling,
+to impaired EC coupling. By broadening knowledge of the EC coupling
 it may be possible to develop better treatments for such
 diseases. Although grasping the big picture of EC coupling is
-straightforward, it actually involves the nonlinear action of hundreds
+straightforward it actually involves the nonlinear action of hundreds
 of different protein species. Computational methods have emerged as a
 natural complement to experimental studies to better understand this
-process. In this chapter, we focus on the initial phase of EC
-coupling, wherein \Ca flows into the cell and triggers further \Ca
+process. In this chapter we focus on the initial phase of EC
+coupling wherein \Ca flows into the cell and triggers further \Ca
 release.
 
 \begin{figure}
@@ -105,9 +105,9 @@ release.
 \section{Mathematical models}
 \label{sec:hake:mathematical-models}
 
-In this section, we describe the computational model for the early
+In this section we describe the computational model for the early
 phase of EC coupling. We first present the morphology of the dyadic
-cleft, and how we model this in our study. We then describe the
+cleft and how we model this in our study. We then describe the
 mathematical formulation for the diffusion of \Ca inside the cleft as
 well for the \Ca fluxes across the boundaries. Finally, we discuss
 stochastic models that govern discrete channel dynamics of the LCCs
@@ -122,12 +122,12 @@ The dyadic cleft is the volume in the interior of the heart cell
 between a structure called the t-tubule (TT) and the SR. The TT is a
 network of pipe-like invaginations of the cell membrane that perforate
 the heart cell \citep{SoellerCannell1999}. In
-Figure~\ref{fig:hake:morphology} (A), a sketch of a small part of
+Figure~\ref{fig:hake:morphology} (A) a sketch of a small part of
 a single TT together with a piece of SR is presented. Here we see that
 the junctional SR (jSR) is wrapped around the TT. The small volume
 between these two structures is the dyadic cleft. The space is not
-well defined, as it is crowded with channel proteins, and varies in
-size. In computational studies, it is commonly approximated as a disk
+well defined as it is crowded with channel proteins and varies in
+size. In computational studies it is commonly approximated as a disk
 or a rectangular slab
 \citep{PeskoffPostLanger1992,SoellerCannell1997,KohSrinivasanChingEtAl2006,
   TanskanenGreensteinChenEtAl2007}. In this study a disk with height
@@ -154,9 +154,9 @@ as screening. We will describe the electric potential using the
 Gouy--Chapman method \citep{Grahame1947}. This theory introduces an
 advection term to the standard diffusion equation, which makes the
 resulting equation more difficult to solve. To simplify the
-presentation, we will use a non-dimensional electric potential $\psi$,
+presentation we will use a non-dimensional electric potential $\psi$,
 which is the electric potential scaled by a factor of $e/kT$. Here $e$
-is electron charge, $k$ is Boltzmann's constant, and $T$ is the
+is the electron charge, $k$ is Boltzmann's constant, and $T$ is the
 temperature. We will also use a non-dimensional electric field which
 is given by:
 \begin{equation}
@@ -173,7 +173,7 @@ governed by the Nernst-Planck equation,
 where $c = c(x,t)$ is the \CaC ($x\in\Omega$ and $t\in$[0,T]),
 $\sigma$ the diffusion constant, $E = E(x)$ the non-dimensional
 electric field and 2 is the valence of \Ca. Assuming conservation of
-mass, we arrive at the advection-diffusion equation,
+mass we arrive at the advection-diffusion equation,
 \begin{equation}
   \label{eq:hake:advection-diffusion}
   \dot{c}=\sigma\left(\Delta c + \nabla\cdot\left(2\,cE\right)\right),
@@ -206,14 +206,13 @@ membrane. We will use $\psi_0=-2.2$ and $\kappa=1$ nm
 %\index{L-type Ca channels}
 \index{cytosol}
 
-The boundary, $\partial\Omega$, is divided into four disjoint boundaries,
-$\partial\Omega_k$, for $k=0,\ldots,3$; see
+The boundary $\partial\Omega$ is divided into four disjoint boundaries
+$\partial\Omega_k$ for $k=0,\ldots,3$; see
 Figure~\ref{fig:hake:morphology} (B). To each boundary we assign
 a flux, $J_{|\partial\Omega_k}=J_k$. The SR and TT membranes are
 impermeable to ions, effectively making
 $\partial\Omega_{\scriptscriptstyle\text{0}}$ in
-Figure~\ref{fig:hake:morphology} (B) a no-flux boundary, giving
-us,
+Figure~\ref{fig:hake:morphology} (B) a no-flux boundary, giving us
 \begin{equation}
   \label{eq:hake:no-flux}
   J_{\scriptscriptstyle 0}= 0.
@@ -225,12 +224,12 @@ channels then diffuses to the RyRs, triggering \Ca release from the
 SR. This additional \Ca flux will not be included in the simulations;
 however, the stochastic dynamics of the opening of the RyR channel
 will be considered. The \Ca that enters the dyadic cleft diffuses into
-the main compartment of cytosol, introducing a third flux. This flux
+the main compartment of cytosol introducing a third flux. This flux
 is included in the model at the
 $\partial\Omega_{\scriptscriptstyle\text{3}}$ boundary.
 
 The LCC is a stochastic channel that is either open or closed. When
-the channel is open, \Ca flows into the cleft. The current amplitude
+the channel is open \Ca flows into the cleft. The current amplitude
 of an open LCC channel is modeled to be -0.1 pA
 \citep{GuiaSternLakattaEtAl2001}. The LCC flux is then,
 \begin{equation}
@@ -296,19 +295,21 @@ defines its own propensity functions.
 \paragraph{L-type \Ca channel.}
 \label{sec:hake:lcc}
 
-%\index{L-type Ca channels} The LCC opens when an action potential
+%\index{L-type Ca channels}
+
+The LCC opens when an action potential
 arrives at the cell, and the channel inactivates when \Ca ions bind to
 binding sites on the intracellular side of the channel. An LCC is
 composed of a complex of four transmembrane subunits. Each of these
-can be permissive or non-permissive. For the whole channel to be open,
+can be permissive or non-permissive. For the whole channel to be open
 all four subunits must be permissive, and the channel must then
 undergo a last conformational change to the open state
-\citep{Hille2001}. In this chapter, we employ a Markov model of the LCC
+\citep{Hille2001}. In this chapter we employ a Markov model of the LCC
 that incorporates voltage-dependent activation together with a
 \Ca-dependent inactivation
 \citep{JafriRiceWinslow1998,GreensteinWinslow2002}. The state diagram
 of this model is presented in Figure~\ref{fig:hake:markov-models}
-(A). It consists of 12 states, where state 6 and 12 are the
+(A). It consists of 12 states where state 6 and 12 are the
 only conducting states and hence define the open states. The
 transition propensities are defined by a set of functions and
 constants, which are all described in \citet{GreensteinWinslow2002}.
@@ -326,14 +327,14 @@ side. We will use a modified version of a phenomenological RyR model
 that mimics the physiological functions of the channel
 \citep{SternSongEtAl1999}. The model consists of four states where only
 one, state 2, is conducting; see Figure~\ref{fig:hake:markov-models}
-(B). The $\alpha$ and $\gamma$ propensities are \Ca-dependent,
+(B). The $\alpha$ and $\gamma$ propensities are \Ca-dependent
 representing the activation and inactivation dependency of cytosolic
 \CaC. The $\beta$ and $\delta$ propensities are constants. For
 specific values of propensities; see \citet{SternSongEtAl1999}.
 
 \section{Numerical methods for the continuous system}
 
-In this section, we will describe the numerical methods used to solve
+In this section we will describe the numerical methods used to solve
 the continuous part of the computational model of \Ca dynamics in the
 dyadic cleft. We will provide DOLFIN code for each part of the
 presentation. The first part of the section describes the
@@ -346,10 +347,10 @@ optimal stabilization parameters.
 \subsection{Discretization}
 \label{sec:hake:discretization}
 
-The continuous problem is defined by
-Eqs.~(\ref{eq:hake:advection-diffusion}~-\ref{eq:hake:conc-dependent-flux})
+The continuous problem is defined
+by~(\ref{eq:hake:advection-diffusion}~-\ref{eq:hake:conc-dependent-flux})
 together with an initial condition. Given a bounded domain $\Omega
-\subset \Rset^3$ with the boundary $\partial\Omega$, we want to find
+\subset \Rset^3$ with the boundary $\partial\Omega$ we want to find
 $c = c(x,t) \in \Rset_+$, for $x\in \Omega$ and $t \in [0,T]$, such
 that:
 \begin{equation}
@@ -365,33 +366,32 @@ and $c(\cdot,0) = c_0(x)$. Here $a=a(x)=2\sigma E(x)$ and $J_k$ is the
 \kth flux at the \kth boundary $\partial\Omega_k$, where
 $\bigcup^4_{k=1}\partial\Omega_k=\partial\Omega$, $\partial_nc =
 \nabla c\cdot n$, where $n$ is the outward normal on the boundary. The
-$J_k$ are given by
-Eqs.~(\ref{eq:hake:no-flux})-(\ref{eq:hake:conc-dependent-flux}).
+$J_k$ are given by~(\ref{eq:hake:no-flux})-(\ref{eq:hake:conc-dependent-flux}).
 
 The continuous equations are discretized using a finite element method
-in space. Equation~(\ref{eq:hake:full_system}) is multiplied with a proper
+in space. (\ref{eq:hake:full_system}) is multiplied with a proper
 test function, $v$, and integrated over the spatial domain, thus
 obtaining:
 \begin{equation}
   \label{eq:hake:advection-diffusion-weak-form-0}
   \int_\Omega\dot{c}v \dx = \int_\Omega \left(\sigma\Delta c-\nabla(ca)\right) v \dx.
 \end{equation}
-Integration by parts, together with the boundary conditions
-in~(\ref{eq:hake:full_system}), yields:
+Integration by parts together with the boundary conditions
+in~(\ref{eq:hake:full_system}) yields:
 \begin{equation}
   \label{eq:hake:advection-diffusion-weak-form}
   \int_\Omega\dot{c}v \dx = -\int_\Omega \left(\sigma\nabla c-ca\right)\cdot\nabla v \dx + \sum_k\int_{\partial\Omega_k} J_kv \ds{}_k.
 \end{equation}
 Consider a mesh \T = $\left\{K\right\}$ of simplicial elements
-$K$. Let $V_h$ denote the space of piecewise linear polynomials,
+$K$. Let $V_h$ denote the space of piecewise linear polynomials
 defined relative to the mesh \T. Using the backward Euler methods in
 time, we seek an approximation of $c$: $c_h\in V_h$ with nodal basis
-$\left\{\phi_i\right\}^N_{i=1}$. Equation~(\ref{eq:hake:advection-diffusion-weak-form})
+$\left\{\phi_i\right\}^N_{i=1}$. (\ref{eq:hake:advection-diffusion-weak-form})
 can now be discretized as follows: Consider the \nth time step, then
 given $c_h^n$ find $c_h^{n+1} \in V_h$ such that
 \begin{equation}
   \label{eq:hake:advection-diffusion-weak-discrete-form}
-  \int_{\Omega} \frac{c_h^{n+1}-c_h^{n}}{\Dt}v \dx = -\int_{\Omega} \left(\sigma\nabla c_h^{n+1}-c_h^{n+1}a\right)\cdot\nabla v \dx + \sum_k\int_{\partial\Omega} J_kv\ds_{k}\quad\foralls v \in V_h,
+  \int_{\Omega} \frac{c_h^{n+1}-c_h^{n}}{\Dt}v \dx = -\int_{\Omega} \left(\sigma\nabla c_h^{n+1}-c_h^{n+1}a\right)\cdot\nabla v \dx + \sum_k\int_{\partial\Omega} J_kv\ds_{k},\quad\foralls v \in V_h,
 \end{equation}
 where \Dt is the size of the time step. The trial function $c^n_h(x)$
 is expressed as a weighted sum of basis functions,
@@ -400,8 +400,10 @@ is expressed as a weighted sum of basis functions,
   c^n_h(x) = \sum^N_j C_j^n\phi_j(x).
 \end{equation}
 where $C_j^n$ are the coefficients. Due to the choice of $V_h$, the
-number of unknowns, $N$, will coincide with the number of vertices of
+number of unknowns $N$ will coincide with the number of vertices of
 the mesh.
+
+% FIXME: Rephrase 'Taking test function, v=...' below
 
 Taking test function, $v=\phi_i$, $i\in\left\{1,\ldots,N\right\}$
 gives the following algebraic system of equations in terms of the
@@ -412,7 +414,7 @@ coefficients $\left\{ c^{n+1}_i\right\}^N_{i=1}$:
 \end{equation}
 Here $C^n\in \Rset^N$ is the vector of coefficients from the discrete
 solution, $c^n_h(x)$, $\alpha^k$ and $c_0^k$ are constant coefficients
-given byEqs.~(\ref{eq:hake:no-flux})-(\ref{eq:hake:conc-dependent-flux})
+given by (\ref{eq:hake:no-flux})-(\ref{eq:hake:conc-dependent-flux})
 and\\[-1.0em]
 \begin{equation}
   \renewcommand{\arraystretch}{1.7}
@@ -434,8 +436,8 @@ vector elements given by:
   f^k_{i}=\int_{\partial\Omega_k}\phi_i \ds.
 \end{equation}
 
-The following DOLFIN code assembles the matrices and vectors from
-Eqs.~(\ref{eq:hake:matrices})-(\ref{eq:hake:vector}):
+The following DOLFIN code assembles the matrices and vectors
+from~(\ref{eq:hake:matrices})-(\ref{eq:hake:vector}):
 \begin{python}
 import numpy as np
 from dolfin import *
@@ -466,10 +468,10 @@ unique_sub_domains.remove(0)
 
 # Assemble matrices and source vectors from exterior facets domains
 domain = MeshFunction("uint", mesh, 2)
-F = {};f = {};tmp = K.copy(); tmp.zero()
+F = {}; f = {}; tmp = K.copy(); tmp.zero()
 for k in unique_sub_domains:
     domain.values()[:] = (sub_domains.values() != k)
-    F[k] = assemble(u*v*ds, exterior_facet_domains = domain, \
+    F[k] = assemble(u*v*ds, exterior_facet_domains = domain,
                     tensor = tmp.copy(), reset_sparsity = False)
     f[k] = assemble(v*ds, exterior_facet_domains = domain)
 \end{python}
@@ -481,14 +483,14 @@ sub-domain. By passing sub-domain specific \texttt{MeshFunction}s to
 the assemble routine, we can assemble the correct boundary mass
 matrices and boundary source vectors. We collect the matrices and
 boundary source vectors; these are then added to form the linear
-system to be solved at each time step. If an LCC opens, the collected
+system to be solved at each time step. If an LCC opens the collected
 source vector from that boundary will contribute to the right hand
-side. If an LCC closes, the same source vector are removed from the
-right-hand side. When an LCC either opens or closes, a large flux is
+side. If an LCC closes the same source vector are removed from the
+right-hand side. When an LCC either opens or closes a large flux is
 either added to or removed from the system. To be able to resolve
-sharp time gradients correctly, we need to take smaller time steps
+sharp time gradients correctly we need to take smaller time steps
 following such an event. After the time step has been reset to a small
-number we can start expanding it, by multiplying the time step with a
+number we can start expanding it by multiplying the time step with a
 constant $>$ 1.
 
 The sparse linear system is solved using the \petsc linear algebra
@@ -532,16 +534,16 @@ where $\PEe$ is the element P\'eclet number:
   \label{eq:hake:peclet}
   \PEe = \frac{\|a\|h}{2\sigma}.
 \end{equation}
-When $\PEe$ is larger than 1, the system becomes unstable, and
+When $\PEe$ is larger than 1 the system becomes unstable, and
 oscillations are introduced.
 
-In the 1D case with a uniform mesh, the stabilization term defined by
-Eqs.~(\ref{eq:hake:element-tau})-(\ref{eq:hake:peclet}) can give exact
+In the 1D case with a uniform mesh the stabilization term defined by~(\ref{eq:hake:element-tau})-(\ref{eq:hake:peclet}) can give exact
 nodal solutions
 \citep{ChristieGriffithsMitchellEtAl1976,BrooksHughes1982}. Our choice
-of stabilization parameter is inspired by this. We have used the
-diameter of the sphere that circumscribes the local tetrahedron as
-$h$. This is what \dolfin implements in the function
+of stabilization parameter is inspired by this.
+We have used $h$ to denote the
+diameter of the sphere that circumscribes the local tetrahedron.
+This is what \dolfin implements in the function
 \texttt{Cell.diameter()}. We recognize that other choices exist, which
 might give improved stabilization \citep{JohnKnobloch2007}; for example
 \citet{TezduyarPark1986} use a length based on the size of the element
@@ -569,7 +571,8 @@ public:
     if (PE > DOLFIN_EPS)
       tau = 1/tanh(PE)-1/PE;
     for (uint i = 0;i < data.x.size(); ++i)
-      v[i] *= 0.5*h*tau/field_norm;}};
+      v[i] *= 0.5*h*tau/field_norm;
+}};
 '''
 stab = Expression(cppcode); stab.field = a
 
@@ -580,17 +583,17 @@ M_stab = assemble(u*inner(stab, grad(v))*dx)
 # Adding them to the A and M matrices, weighted by the global tau
 tau = 0.28; E.axpy(tau, E_stab, True); M.axpy(tau, M_stab,True)
 \end{python}
-In the above script, two matrices, \texttt{E\_stab} and
-\texttt{M\_stab}, are assembled. Both matrices are added to the
+In the above script two matrices \texttt{E\_stab} and
+\texttt{M\_stab} are assembled. Both matrices are added to the
 corresponding advection and mass matrices \texttt{E} and \texttt{M},
 weighted by the global parameter \texttt{tau}.
 
 A mesh with finer resolution close to the TT surface, at $z=0$ nm, is
 used to resolve the steep gradient of the solution in this area. It is
-here the electric field is at its strongest, yielding an element
-P\'eclet number larger than 1. However the field attenuate quickly: at
-$z=3$ nm, the field is down to 5\% of the maximum amplitude, and at
-$z=5$ nm, it is down to 0.7\%. The mesh can thus be fairly coarse in
+here the electric field is at its strongest yielding an element
+P\'eclet number larger than 1. However the field attenuates quickly: at
+$z=3$ nm the field is down to 5\% of the maximum amplitude, and at
+$z=5$ nm it is down to 0.7\%. The mesh can thus be fairly coarse in
 the interior of the domain. The mesh generator \texttt{tetgen} is used
 to to produce meshes with the required resolution \citep{Si2007}.
 
@@ -672,12 +675,12 @@ hundred of channels are included.
   \caption[Concentration traces 1]{The figure shows concentration
     results from numerical solutions from Mesh 1 (see legend of
     Figure~\ref{fig:hake:error_plot}), for three different $\tau$,
-    together with the analytic solution. The solutions were picked
+    together with the analytical solution. The solutions were picked
     from a line between the points (0,0,0) and (0,0,12). We see that
     the solution with $\tau=0.10$ oscillates. The solution with
     $\tau=0.22$ was the solution with smallest global error for this
     mesh (see Fig~\ref{fig:hake:error_plot}), and the solution with
-    $\tau=0.60$ undershoots the analytic solution at $z=0$ nm with
+    $\tau=0.60$ undershoots the analytical solution at $z=0$ nm with
     $\simeq$1.7 $\mu$M.}
 \end{figure}
 
@@ -688,7 +691,7 @@ hundred of channels are included.
     \caption[Concentration traces 2]{The figures show the
       concentration traces of the numerical solutions from Mesh 2 (see
       legend of Figure~\ref{fig:hake:error_plot}), for three different
-      $\tau$, together with the analytic solution. The solution traces
+      $\tau$, together with the analytical solution. The solution traces
       in the two panels are picked from a line between the points
       (0,0,0) and (0,0,1.5), for the left panel, and between spatial
       points (0,0,10.5) and (0,0,12) for the right panel. We see from
@@ -697,11 +700,11 @@ hundred of channels are included.
       with smallest global error for this mesh (see
       Fig~\ref{fig:hake:error_plot}), and this is reflected in the
       reasonable good fit seen in the left panel, especially at $z=0$
-      nm. The solution with $\tau=0.60$ undershoots the analytic
+      nm. The solution with $\tau=0.60$ undershoots the analytical
       solution at $z=0$ with $\simeq$1.2 $\mu$M. From the right panel
       we see that all numerical solutions undershoot at $z=12$ nm. We
       also see that the trace for $\tau=0.60$ comes the closest to the
-      analytic solution.}
+      analytical solution.}
 \end{figure}
 
 \subsection{Finding an optimal stabilization parameter}
@@ -711,7 +714,7 @@ system in~(\ref{eq:hake:algebraic-equation}) is solved to steady
 state, defined as $T = 1.0\,\mathrm{ms}$, using only homogeneous
 Neumann boundary conditions. A homogeneous concentration of $c_0=0.1$
 $\mu$M is used as the initial condition. The numerical solution is
-then compared with the analytic solution of the problem. This solution
+then compared with the analytical solution of the problem. This solution
 is acquired by setting $J=0$ in~(\ref{eq:hake:nernst-planck}) and
 solving for the $c$, with the following result:
 \begin{equation}
@@ -720,14 +723,14 @@ solving for the $c$, with the following result:
 \end{equation}
 Here $\psi$ is given by~(\ref{eq:hake:electric_potential}), and
 $c_b$ is the bulk concentration; that is, where $z$ is large. $c_b$ was
-chosen such that the integral of the analytic solution was equal to
+chosen such that the integral of the analytical solution was equal to
 $c_0\times V$, where $V$ is the volume of the domain.
 
 The error of the numerical solution for different values of $\tau$ and
 for three different mesh resolutions is plotted in
 Figure~\ref{fig:hake:error_plot}. The meshes are enumerated from 1-3,
 and a higher number corresponds to a better resolved boundary layer at
-z=0 nm. As expected, we see that the mesh that resolves the boundary
+z=0 nm. As expected we see that the mesh that resolves the boundary
 layer best produces the smallest error. The error is computed using
 the $L^2(\Omega)$ norm and is normalized by the $L^2(\Omega)$ norm of
 the analytical solution,
@@ -756,7 +759,7 @@ between the spatial points $p_0$=(0,0,0) and $p_1$=(0,0,12).
     \caption[Concentration traces 3]{The figure shows the
       concentration traces of the numerical solutions from Mesh 3 (see
       legend of Figure~\ref{fig:hake:error_plot}), for three different
-      $\tau$, together with the analytic solution. The traces in the
+      $\tau$, together with the analytical solution. The traces in the
       two panels were picked from the same lines for
       Figure~\ref{fig:hake:traces_mesh_2}. Again, we see from both
       panels that the solution with $\tau=0.10$ give the poorest
@@ -764,21 +767,21 @@ between the spatial points $p_0$=(0,0,0) and $p_1$=(0,0,12).
       smallest global error for this mesh (see
       Fig~\ref{fig:hake:error_plot}), and this is reflected in the
       good fit seen in the left panel, especially at $z=0$nm. The
-      solution with $\tau=0.60$ undershoots the analytic solution at
+      solution with $\tau=0.60$ undershoots the analytical solution at
       $z=0$ with $\simeq$0.7 $\mu$M. From the right panel, we see that
       all numerical solutions undershoot at $z=15$ nm, and the trace
-      with $\tau=0.60$ here also comes closest to the analytic
+      with $\tau=0.60$ here also comes closest to the analytical
       solution.}
 \end{figure}
 
 In Figure~\ref{fig:hake:traces_mesh_1} the traces from Mesh 1 are
-plotted. Here, we see that the numerical solutions are quite poor for
-some $\tau$. The solution with $\tau=0.10$ is not correct, as it
-produces negative concentrations, a physiological impossibility. The
+plotted. Here we see that the numerical solutions are quite poor for
+some $\tau$. The solution with $\tau=0.10$ is not correct as it
+produces negative concentrations; a physiological impossibility. The
 solution with $\tau=0.60$ seems more correct, but it undershoots the
-analytic solution at $z=0$, with $\simeq$1.7 $\mu$M. The solution with
+analytical solution at $z=0$ with $\simeq$1.7 $\mu$M. The solution with
 $\tau=0.22$ is the $L^2$-optimal solution for Mesh 1, and approximates
-the analytic solution at $z=0$ well.
+the analytical solution at $z=0$ well.
 
 In Figure~\ref{fig:hake:traces_mesh_2}, the traces from Mesh 2 are
 presented in two plots. The left plot shows the traces for $z<1.5$ nm,
@@ -786,7 +789,7 @@ and the right shows traces for $z>10.5$ nm. In the left plot, we see
 the same tendency as in Figure~\ref{fig:hake:traces_mesh_1}: an
 overshoot of the solution with $\tau=0.10$ and an undershoot of the
 solution with $\tau=0.60$. The $L^2$-optimal solution for $\tau=0.28$,
-overshoots the analytic solution for the shown interval in the left
+overshoots the analytical solution for the shown interval in the left
 plot, but undershoots for the rest of the trace.
 
 In the last figure, Figure~\ref{fig:hake:traces_mesh_3}, traces from
@@ -794,15 +797,15 @@ mesh 3 are presented. The results are also presented in two plots
 here, corresponding to the same $z$ interval as in
 Figure~\ref{fig:hake:traces_mesh_2}. We see that the solution with
 $\tau=0.10$ is again not acceptable in either interval. In the left
-plot, it clearly overshoots the analytic solution for most of the
-interval, and then undershoot the analytic solution for the rest of
+plot, it clearly overshoots the analytical solution for most of the
+interval, and then undershoot the analytical solution for the rest of
 the interval. The solution with $\tau=0.60$ is improved here compared
-to the two previous plots. It undershoots the analytic solution at
+to the two previous plots. It undershoots the analytical solution at
 $z=0$; but stays closer for the rest of the interval as compared to
 the $L^2$-optimal solution. The $L^2$ norm penalizes larger distances
 between two traces; that is, weighting the error close to $z=0$ more
 than the rest. The optimal solution measured in the Max norm is given
-when $\tau=50$; result not shown.
+when $\tau=50$ (result not shown).
 
 The numerical results tell us that the Streamline upwind
 Petrov-Galerkin method can be used to stabilize the Finite element
@@ -812,9 +815,9 @@ the boundary layer at $z=0\,\mathrm{nm}$ differently were used. For
 each mesh a global $\tau$, which produce an $L^2$ optimal solution,
 were obtained. To test convergence rate we also did simulations with
 homogeneously refined meshes. The largest mesh had $\simeq$180 000
-number of vertices. The error for the optimal $\tau$ for each mesh
-resolution were compared and linear convergence rate was obtained;
-result not shown.
+number of vertices. The errors for the optimal $\tau$ for each mesh
+resolution were compared and linear convergence rate was obtained
+(result not shown).
 
 The largest mesh in our test problems, the one that resolves the
 boundary layer best, is not large: $\simeq$ 24 000 vertices. The
@@ -846,18 +849,18 @@ parallel solvers.
 \index{time stepping} \index{\texttt{diffsim}} \index{FEniCS Apps} In
 the DOLFIN scripts above, we show how a simple continuous solver can
 be built with DOLFIN. By pre-assembling the matrices
-from~(\ref{eq:hake:matrices}), a flexible system for adding and
+from~(\ref{eq:hake:matrices}) a flexible system for adding and
 removing boundary fluxes corresponding to the state of the channels
 can be constructed. The solving script uses fixed time points for the
-channel state transitions. At these time points, we minimize \Dt so we
+channel state transitions. At these time points we minimize \Dt so we
 can resolve the sharp time gradient. In between the channel
-transitions, we expand \Dt. This simplistic time stepping scheme has
+transitions we expand \Dt. This simplistic time stepping scheme has
 been sufficient to solve the presented example. However, it would be
 difficult to extend this to incorporate the time stepping involved
 with the solution of stochastic Markov models and other discrete
-variables. For such scenarios, an event-driven simulator called
+variables. For such scenarios an event-driven simulator called
 \texttt{diffsim} has been developed. In the final subsections in this
-chapter, the algorithm underlying the time stepping scheme in
+chapter the algorithm underlying the time stepping scheme in
 \texttt{diffsim} will be presented. An example of how one can use
 \texttt{diffsim} to describe and solve a model of \Ca dynamics in the
 dyadic cleft is also demonstrated.
@@ -875,7 +878,7 @@ but rather focus on the part of the method that has importance for the
 overall time stepping algorithm.
 
 The solution of the included stochastic Markov chain models is stored
-in a state vector, \texttt{S}. Each element in \texttt{S} corresponds
+in a state vector \texttt{S}. Each element in \texttt{S} corresponds
 to one Markov model, and the value reflects which state each model is
 in. The transitions between these states are modeled stochastically
 and are computed using a modified Gillespie method. Basically this
@@ -888,16 +891,16 @@ channel (channel transitions), will be recognized. The modified
 Gillespie method assumes that any continuous variables on which a
 certain propensity function depends are constant during a time
 step. The error incurred by this assumption is reduced by taking
-smaller time steps right after a channel transition, as the continuous
+smaller time steps right after a channel transition as the continuous
 field is indeed changing dramatically during this time period.
 
 \subsection{Time stepping algorithm}
 
 \label{sec:hake:event-driven-simulator}
 To simplify the presentation of the time stepping algorithm, we only
-consider one continuous variable, here for example, the \Ca field. A
+consider one continuous variable, the \Ca field. A
 \packagefont{Python}-like pseudo code for the time stepping algorithm
-is presented by the following script:
+is shown in the following script:
 \begin{python}
 # Python-like pseudo code for the time stepping algorithm used in diffsim
 while not stop_sim:
@@ -927,9 +930,9 @@ handle several continuous variables. We define a base class called
 objects. A key function of a discrete object is to know when its
 \textit{next event} is due. The \texttt{DiscreteObject} that has the
 smallest next event time gets to define the size of the next \Dt. In
-\packagefont{Python}, this is easily achieved by making the
+\packagefont{Python} this is easily achieved by making the
 \texttt{DiscreteObject}s sortable with respect to their next event
-time. All \texttt{DiscreteObject}s are then collected in a list,
+time. All \texttt{DiscreteObject}s are then collected in a list
 \texttt{discrete\_objects} (see script below). The
 \texttt{DiscreteObject} with the smallest next event time is then
 simply \texttt{min(discrete\_objects)}. An event from a
@@ -938,17 +941,17 @@ solution will be ignored; for example, a Markov chain model transition
 that is not a channel transition as noted above. A transition needs to
 be realized before we can tell if it is a channel transition or
 not. This is done by \textit{stepping} the \texttt{DiscreteObject};
-that is, calling the object's \texttt{step()} method. If the method
-returns \texttt{False}, it will not affect the \Ca field, and we enter
-a while loop, and a new \texttt{DiscreteObject} is picked. If the
-object returns \texttt{True} when stepped, we exit the loop and
+that is calling the object's \texttt{step()} method. If the method
+returns \texttt{False} it will not affect the \Ca field. We then enter
+a while loop and a new \texttt{DiscreteObject} is picked. If the
+object returns \texttt{True} when stepped we exit the loop and
 continue. Next, we have to update the other discrete objects with the
-chosen \Dt, solve for the \Ca field, broadcast the solution, and, last
+chosen \Dt, solve for the \Ca field, broadcast the solution, and last
 but not least, execute the discrete event that is scheduled to happen
 at \Dt.
 
-In Figure~\ref{fig:hake:time-line}, we show an example of a possible
-realization of this algorithm. In (A), we have realized a
+In Figure~\ref{fig:hake:time-line} we show an example of a possible
+realization of this algorithm. In (A) we have realized a
 time event at $t=2.0\,\mathrm{ms}$. The next event to be realized is a
 stochastic transition, the one with smallest value below the ticks. In
 (B) this event is realized, and the \texttt{StochasticHandler}
@@ -956,16 +959,16 @@ now shows a new next event time. The event is a channel transition
 forcing the dt, controlled by the \texttt{DtExpander}, to be
 minimized. \texttt{DtExpander} now has the smallest next event time,
 and is realized in (C). The channel transition that was
-realized in (B) raised the \CaC in the cleft, which, in turn,
+realized in (B) raised the \CaC in the cleft, which in turn,
 increased the \Ca-dependent propensity functions in the included
 Markov models. The time to next event time of the
 \texttt{StochasticHandler} has therefore been updated, and moved
 forward in (C). Also note that the \texttt{DtExpander} has
-expanded its next event time. In (D), the stochastic transition
+expanded its next event time. In (D) the stochastic transition
 is realized and updated with a new next event time, but it is ignored
 as it is not a channel transition. The smallest time step is now the
 \texttt{DtExpander}, and this is realized in (E). In this
-example, we do not realize the \texttt{TStop} event, as it is too far
+example we do not realize the \texttt{TStop} event, as it is too far
 away.
 
 
@@ -982,7 +985,7 @@ implements some published Markov models that can be used to simulate
 the stochastic behavior of a dyad and some convenient boundary
 fluxes. It also implements the field flux from the lipid bi-layer
 discussed in Section~\ref{sec:hake:ca-diffusion}. The following script
-runs 10 simulation to collect the time to release, also called the
+runs 10 simulations to collect the time to release, also called the
 latency, for a dyad:
 \begin{python}
 # An example of how diffsim can be used to simulate the time to RyR release latency, from
@@ -1047,8 +1050,8 @@ continuous system. We have showed how one can use DOLFIN to discretise
 and solve the continuous system using a finite element method. Because
 the continuous system is an advection-diffusion equation that produces
 unstable discretizations, we investigate how one can use the
-streamline upwind/Petrov-Galerkin method for stability. We employ
-three different meshes, each with different resolutions at the
+Streamline upwind Petrov-Galerkin method for stability. We employ
+three different meshes each with different resolutions at the
 boundary layer of the electrical potential, and find an $L^2$-optimal
 global stabilization parameter $\tau$ for each mesh.
 
