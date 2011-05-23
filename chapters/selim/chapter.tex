@@ -87,7 +87,7 @@ expressed in local form as
 \end{align}
 where~\eqref{selim:eq:momentum} is the balance of linear momentum
 and~\eqref{selim:eq:continuity} is the conservation of mass.  Here,
-$\subdt(\cdot)$ denotes the total time derivative, $\rho$ the density,
+$\subdt(\cdot)$ denotes the material time derivative, $\rho$ the density,
 $u$ the velocity, $\sigma$ the stress, and $b$ represents a given body
 force per unit volume. In an FSI problem, the different physical
 quantities of the fluid and the structure, denoted with subscripts
@@ -125,7 +125,7 @@ map $\phi$ that maps the point $x_0$ at time $t$ to the point $x(t)=
 \phi(x_0,t)$. The \emph{structure displacement} is defined as
 $\uS(x_0,t) = \phi(x_0, t) - x_0$ with the corresponding non-singular
 Jacobi matrix $f = \textrm{grad}\;\phi$ and Jacobi determinant $j =
-\textrm{det}\; f$. Thus, the total time derivative of a function $y$
+\textrm{det}\; f$. Thus, the material time derivative of a function $y$
 in the Lagrangian framework is given by $\subdt(y) = \dot{y}$.
 
 Constitutive laws for hyperelastic materials express the stress tensor
@@ -164,7 +164,7 @@ motion are the \emph{fluid velocity} $\uF$ and the \emph{fluid pressure}
 $\pF$. These variables are naturally posed in the Eulerian framework
 where the motion of a body is related to a fixed spatial point $x$ and the
 motion of the body is defined as $\uF(x,t) = \uF(\phi(x_0,t),t)$. Thus,
-the total time derivative of a function $y$ in the Eulerian framework
+the material time derivative of a function $y$ in the Eulerian framework
 is given by $\subdt(y) = \dot{y} + \textrm{grad}\;y\cdot\uF$.
 
 The most common constitutive law for fluids is the Newtonian fluid.
@@ -239,6 +239,7 @@ t):\Omega\mapsto \omega(t)$.  For any fixed time $t\in[0,T]$, $\Phi$
 maps a reference point $X\in\Omega$ to the corresponding current point
 $x\in\omega(t)$; that is, $X \mapsto x = \Phi(X,t)$, see
 Figure~\ref{selim:fig:mapping}.
+
 \begin{figure}
 \begin{center}
   \includegraphics[width=\smallfig]{chapters/selim/pdf/mapping.pdf}
@@ -249,6 +250,7 @@ Figure~\ref{selim:fig:mapping}.
  \label{selim:fig:mapping}
 \end{center}
 \end{figure}
+
 Since we allow the fluid and structure portions of the domain to
 deform independently (only enforcing that these deformations are
 identical on the common boundary), the map is split up as follows:
@@ -293,27 +295,35 @@ the fully coupled FSI problem:
 The corresponding set of equations for the triplet
 $(f),(S),(M)$ is given by:
 \begin{align}
-\label{selim:eq:FSIsystem}
-   &(f):&\quad \rhoF(\dotuF + \graduF\cdot\uF) -
-      \divv\sigmaF(\uF,\pF) =\;& \bff \quad
-      \textrm{in}\;\oF(t)\\ &&\divv\uF =\;&
-      0\:\:\quad\textrm{in}\;\oF(t)&
-\\ &(S):&\quad  \rhoS \ddotUS -
-      \Divv \SigmaS(\US) = \BS \quad \textrm{in}\; &\OS\times
-      (0,T]&
-\\ &(M):&\quad \dot{U}_{_{M}} - \Divv \SigmaM(\UM) = 0
-  \;\:\quad\textrm{in}\; &\OF\times (0,T]&
+  \label{selim:eq:FSIsystem}
+  &(f):&\quad
+  \rhoF(\dotuF + \graduF\cdot\uF) - \divv\sigmaF(\uF,\pF) &= \bff
+  \quad&&\textrm{in}\;\oF(t),
+  \\
+  &&
+  \divv\uF &= 0
+  \quad&&\textrm{in}\;\oF(t),
+  \\
+  &(S):&\quad
+  \rhoS \ddotUS - \Divv \SigmaS(\US) &= \BS
+  \quad&&\textrm{in}\;\OS\times(0,T],
+  \\
+  &(M):&\quad
+  \dot{U}_{_{M}} - \Divv \SigmaM(\UM) &= 0
+  \quad&&\textrm{in}\;\OF\times(0,T],
 \end{align}
 together with initial and boundary conditions. We note that, with the
 proposed notation, the stress from the fluid is transferred to the
 structure and the movement of the structure is tracked in the fluid
 domain at the common fluid--structure boundary such that:
 \begin{align}
-\label{selim:eq:ALEtraction}
+  \label{selim:eq:ALEtraction}
   (J_{_{M}}\;(\sigmaF\circ\PhiM) \cdot F_{_{M}}^{-\top})\cdot
-      N_{_{F}} &=  - \SigmaS\cdot N_{_{S}} \quad &\textrm{on}\; \Gamma_{_{FS}}
-\\
-      \uF\circ\PhiM &= \dot{\Phi}_{_{S}} \quad &\textrm{on}\; \Gamma_{_{FS}}
+  N_{_{F}} &= - \SigmaS\cdot N_{_{S}}
+  \quad &&\textrm{on}\;\Gamma_{_{FS}},
+  \\
+  \uF\circ\PhiM &= \dot{\Phi}_{_{S}}
+  \quad &&\textrm{on}\;\Gamma_{_{FS}}.
 \end{align}
 Thus, \eqref{selim:eq:ALEtraction} transfers data between all the
 equations in the FSI system~\eqref{selim:eq:FSIsystem} at the common
@@ -352,7 +362,7 @@ reads as follows and is illustrated in Figure~\ref{selim:fig:fp}.
   \item Move on to the next time step.
 \end{enumerate}
 %%
-We note that one may alternatively start each time step with an
+We note that one may, alternatively, start each time step with an
 extrapolation of the motion of the structure domain, followed by a
 solution of the mesh problem, then the fluid problem etc. This might
 lead to fewer iterations. However, for this work, we have adopted the
@@ -395,12 +405,10 @@ FSI problem~\eqref{selim:eq:FSIsystem}.
 \subsection{Fluid subproblem}
 
 The fluid subproblem in~\eqref{selim:eq:FSIsystem} is solved using the
-\emp{CBC.Solve} module \emp{CBC.Flow}. Currently, the solver
-handles incompressible Newtonian fluids only, but its overall goal is
-to implement a solver that can solve a larger class of fluid problems.
-The fluid problem can be solved in an Eulerian coordinate system or in
-an ALE coordinate system, and the solver is based on the stress
-formulation of the so-called Incremental Pressure Correction Scheme
+\emp{CBC.Solve} module \emp{CBC.Flow}. The fluid problem can be
+solved in an Eulerian coordinate system or in an ALE coordinate
+system, and the solver is based on the stress formulation of the
+so-called Incremental Pressure Correction Scheme
 (IPCS)~\citep{Goda1979}. The fluid velocity $\uF$ and the fluid
 pressure $\pF$ are discretized in space using Taylor--Hood
 elements. The resulting nonlinear variational problem is solved in
@@ -410,10 +418,10 @@ pressure. After this step, the pressure at the current time step is
 computed and corrected using the continuity equation. Finally, in the
 third step, the velocity is corrected using the corrected pressure.
 The implementation is illustrated with a code segment from the class
-\emp{NavierStokesSolver} in Figure~\ref{selim:fig:fluidsolver}. For
-a more comprehensive discussion on how to solve and implement different
-solvers for the incompressible Navier--Stokes equations in FEniCS,
-see Chapter~\ref{chap:kvs-1}.
+\emp{NavierStokesSolver} in Figure~\ref{selim:fig:fluidsolver}. For a
+more comprehensive discussion on how to solve and implement different
+solvers for the incompressible Navier--Stokes equations in FEniCS, see
+Chapter~\ref{chap:kvs-1}.
 \begin{figure}
 \begin{python}
 class NavierStokesSolver(CBCSolver):
@@ -591,7 +599,7 @@ in space $(h)$ and time $(k)$, and $\mathrm{TOL}>0$ is a user-defined
 tolerance.  To define the dual problem for the FSI
 problem~\eqref{selim:eq:FSIsystem}, we pull the fluid subproblem
 $(f)$ back from the current fluid domain $\oF(t)$ to the fluid reference
-domain $\OF$ using the map $\PhiM$,
+domain $\OF$ using the map $\PhiM$:
 \begin{equation}
   \label{selim:eq:pullback}
   \begin{CD}
@@ -659,7 +667,7 @@ we obtain the following computable error representation:
 \\
   &= L(Z) - a(U_{hk}; Z)
 \\
-  &= r(Z),
+  &= r(Z);
 \end{split}
 \end{equation}
 that is, the error is the (weak) residual of the dual solution.  The
@@ -722,9 +730,9 @@ E_k + E_c$, where
 \begin{split}
 E_h &\equiv \sum_{n=1}^{N}\int_{I_n} \sum_{T\in\mathcal{T}_h}| \langle
 R_T,\; Z - \pi_h Z \rangle_T |+ | \langle \tfrac{1}{2}\llbracket R_{\partial T}
-\rrbracket,\; Z - \pi_h Z \rangle _{\partial T}|\dt\\\\ E_k &\equiv
-\;\mathcal{S}(T)\max_{I_n}\;\{k_n | r_k ^n|\}\\\\ E_c &\equiv
-|r(\pi_{hk}Z)|
+\rrbracket,\; Z - \pi_h Z \rangle _{\partial T}|\dt,\\\\ E_k &\equiv
+\;\mathcal{S}(T)\max_{[0,T]}\;\{k_n | r_k ^n|\},\\\\ E_c &\equiv
+|r(\pi_{hk}Z)|.
 \end{split}
 \end{equation}
 Here, $E_h$ estimates the space discretization error which on each
@@ -792,10 +800,9 @@ posteriori estimate see \citet{SelimLogg2011a}.
 With the a posteriori error estimate presented
 in~\eqref{selim:eq:aposteriori}, we construct an algorithm based on a
 feedback process that provides an adaptive space-time discretization
-such that~\eqref{selim:eq:goalTOL} holds.
-In order to determine the stopping criteria for the space
-discretization and for the time discretization, the user defined
-tolerance $\mathrm{TOL}$ needs to be weighted such that
+such that~\eqref{selim:eq:goalTOL} holds. In order to determine the
+stopping criteria for the space and time discretizations, the user
+defined tolerance $\mathrm{TOL}$ needs to be weighted such that
 \begin{equation}
 \mathrm{TOL} = \mathrm{TOL}_h + \mathrm{TOL}_k + \mathrm{TOL}_c,
 \end{equation}
@@ -984,7 +991,7 @@ $\Omega = (0, 1)\times (0,4)$, with the structure domain $\OS = (1.4,
 \OS)^{\circ}$. For boundary conditions, we consider a pressure driven
 flow and the flap is attached at the channel wall. As goal functional,
 we have used the average displacement of the structure in the positive
-$x_1$-direction, that is,
+$x_1$-direction; that is,
 \begin{equation}
 \label{selim:eq:goalfunctional_channel}
 \M_{_{S}}(v_{_{S}}) = \int_0^T \langle \psi^t_{_{S}},\;
@@ -1065,7 +1072,7 @@ $x_1$-direction
 \end{equation}
 for all $t \in [0,5]$. The structure is attached at the bottom and the
 goal functional is set as the average structure displacement in the positive
-$x_2$-direction, that is,
+$x_2$-direction; that is,
 \begin{equation}
 \label{selim:eq:goalfunctional_cavity}
 \M_{_{S}}(v_{_{S}}) = \int_0^T \langle \psi^t_{_{S}},\; v_{_{S}}\rangle \dt,
