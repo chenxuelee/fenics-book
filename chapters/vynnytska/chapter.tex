@@ -246,9 +246,11 @@ the velocity and pressure simultaneously.
 
 \subsection{Mixed finite element formulation of the Stokes equations}
 
-Let $\mathcal{T}_h$ be a mesh of the domain $\Omega$. Let $V_h$ and
-$Q_h$ be finite dimensional spaces, defined relative to the mesh
-$\mathcal{T}_h$, for the velocity and pressure fields,
+Let $\mathcal{T}_h = \{T\}$ be a mesh\footnote{Note that $T$ is used
+for an element (cell) in a mesh in this section, in addition to for
+the continuous temperature field $T$.} of the domain $\Omega$. Let
+$V_h$ and $Q_h$ be finite dimensional spaces, defined relative to the
+mesh $\mathcal{T}_h$, for the velocity and pressure fields,
 respectively. The standard discrete mixed finite element formulation
 with independent approximation of the (continuous) velocity field $u$
 and the pressure field $p$ for the incompressible Stokes
@@ -302,7 +304,7 @@ spatial, discontinuous finite element discretization
 of~\eqref{vynnytska:eq:trans} with a given $u_h$ reads
 as~\citep{PietroLoForteParolini2006}: find $\phi_h \in P_h$ such that
 \begin{equation}
-  \sum_{K \in \Omega_h} \int_K \frac{\partial \phi_h}{\partial t} \psi_h
+  \sum_{T \in \mathcal{T}_h} \int_T \frac{\partial \phi_h}{\partial t} \psi_h
   \dx + a_{A} (u_h; \phi_h, \psi_h) = 0,
 \end{equation}
 for all $\psi_h \in P_h$, where
@@ -310,8 +312,8 @@ for all $\psi_h \in P_h$, where
   \label{vynnytska:eq:dgadv}
    a_{A} (u_h; \phi_h, \psi_h )
    =
-   - \sum_{K \in \mathcal{K}_h} \int_K \phi_h u_h \cdot \Grad \psi_h \dx
-   + \sum_{K_e \in \Gamma_i} \int_{K_e} \left (
+   - \sum_{T \in \mathcal{T}_h} \int_T \phi_h u_h \cdot \Grad \psi_h \dx
+   + \sum_{e \in \Gamma_i} \int_{e} \left (
    u_h \cdot \jump{\psi_h} \avg{\phi_h} + \frac{1}{2}
    | u_h \cdot n | \jump{\psi_h} \jump{\phi_h} \right ) \ds,
 \end{equation}
@@ -337,11 +339,11 @@ penalty term is given by~\citep{Arnold1982}
   \label{vynnytska:eq:dgdiff}
     a_D(\phi_h, \psi_h)
     =
-    \sum_{K \in \mathcal{T}_h} \int_T k_c \Grad \phi_h \cdot \Grad \psi_h \dx
-    + \sum_{K_e \in \Gamma_i }
-    \int_{K_e} - \avg{k_c \Grad \phi_h} \cdot \jump{\psi_h} \ds
+    \sum_{T \in \mathcal{T}_h} \int_T k_c \Grad \phi_h \cdot \Grad \psi_h \dx
+    + \sum_{e \in \Gamma_i }
+    \int_{e} - \avg{k_c \Grad \phi_h} \cdot \jump{\psi_h} \ds
 \\
-    + \sum_{K_e \in \Gamma_i} \int_{e} \left(
+    + \sum_{e \in \Gamma_i} \int_{e} \left(
     - \{ k_c \Grad \psi_h\} \cdot \jump{\phi_h}
     + \frac{\alpha_h k_c}{h_T} \jump{\phi_h} \cdot \jump{\psi_h}
     \right) \ds,
@@ -353,7 +355,7 @@ spatially discrete variational formulation of the transport
 equation~\eqref{vynnytska:eq:transdif}: find $\phi_h \in P_h$ such that
 \begin{equation}
   \label{vynnytska:eq:semi_composition}
-  \sum_{K \in \mathcal{T}_h} \int_K \frac{\partial \phi_h}{\partial t}\psi_h\dx
+  \sum_{T \in \mathcal{T}_h} \int_T \frac{\partial \phi_h}{\partial t}\psi_h \dx
   + a_{A} (u_h; \phi_h, \psi_h) + a_D(\phi_h, \psi_h) = 0
 \end{equation}
 for all $\psi_h \in P_h$, where $P_h$ is a finite element space of
@@ -390,8 +392,8 @@ $r^k$ with time step $\Delta t_k$ reads:
   \frac{r^k - r^{k-1}}{\Delta t_k} = \theta W^k + (1 - \theta) W^{k-1}.
 \end{equation}
 The choice $\theta = 1$ corresponds to the backward Euler scheme
-while $\theta = 0.5$ corresponds to the Crank--Nicholson scheme. The
-predictor--corrector scheme draws on the Crank--Nicholson scheme in using a
+while $\theta = 0.5$ corresponds to the Crank--Nicolson scheme. The
+predictor--corrector scheme draws on the Crank--Nicolson scheme in using a
 two-step procedure. Taking the energy equation for the temperature as an
 example, assuming that the temperature at the previous time $T_h^{k-1}$
 and the previous velocity $u_h^{k-1}$ are known, the predictor step
@@ -405,7 +407,7 @@ Euler equations for all $\psi_h \in P_h$:
 \end{equation}
 where $a_A$ and $a_D$ are defined by~\eqref{vynnytska:eq:dgadv}
 and~\eqref{vynnytska:eq:dgdiff}, respectively. Later, the corrector
-step computes the corrected temperature $T_h^k$ by a Crank--Nicholson
+step computes the corrected temperature $T_h^k$ by a Crank--Nicolson
 scheme
 \begin{multline}
   \label{vynnytska:eq:corrector}
@@ -495,15 +497,15 @@ on this aspect. Below, we make some general observations and comments.
   predicted temperature is computed based on the velocity and the
   temperature from the previous time step. Next, a tentative
   composition is computed based on the velocity and the composition
-  from the previous time step; then filtered using
-  as described by Algorithm~\ref{vynnytska:alg:filtering}. With the filtered
-  composition and the predicted temperature, the velocity and pressure are predicted.
-  The corrected temperature is then calculated by the
-  Crank--Nicholson system using the predicted velocity, and
-  the velocity and the temperature from the previous time step. The
-  Stokes system is then solved again, this time with the filtered
-  composition and the corrected temperature as input to yield the
-  corrected velocity and pressure at this time step.
+  from the previous time step; then filtered using as described by
+  Algorithm~\ref{vynnytska:alg:filtering}. With the filtered
+  composition and the predicted temperature, the velocity and pressure
+  are predicted.  The corrected temperature is then calculated by the
+  Crank--Nicolson system using the predicted velocity, and the
+  velocity and the temperature from the previous time step. The Stokes
+  system is then solved again, this time with the filtered composition
+  and the corrected temperature as input to yield the corrected
+  velocity and pressure at this time step.
 \item
   The advection-diffusion problems for calculating the predicted
   composition and the predicted and corrected temperature depend on
