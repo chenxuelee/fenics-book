@@ -139,20 +139,19 @@ Python brings the benefits of a high-level scripting language, the
 strength of an object-oriented language and a wealth of libraries for
 numerical computation.
 
-The bulk of the DOLFIN Python interface is automatically generated from
-the C++ interface using SWIG. As a consequence, users may implement
-DOLFIN-based solvers that appear very similar in C++ and Python. Since
-the functionality of both the C++ and Python interfaces are implemented
-as part of the DOLFIN C++ library, DOLFIN is equally efficient via the
-C++ and Python interfaces for most operations.
+The bulk of the DOLFIN Python interface is automatically generated
+from the C++ interface using SWIG \citep{Beazley2006,www:swig}. Since
+the functionality of both the C++ and Python interfaces are
+implemented as part of the DOLFIN C++ library, DOLFIN is equally
+efficient via the C++ and Python interfaces for most operations.
 
-Python offers possibilities that are not available in C++. The Python
-interface can therefore provide some functionality that is not available
-from the C++ interface. In particular, the UFL form language is seamlessly
-integrated into the Python interface and code generation is automatically
-handled at run-time.  To use DOLFIN from Python, users need to import
-functionality from the DOLFIN Python module. In the simplest case,
-one includes all functionality from the Python module named \emp{dolfin}:
+The DOLFIN Python interface offers some functionality that is not
+available from the C++ interface. In particular, the UFL form language
+is seamlessly integrated into the Python interface and code generation
+is automatically handled at run-time.  To use DOLFIN from Python,
+users need to import functionality from the DOLFIN Python module. In
+the simplest case, one includes all functionality from the Python
+module named \emp{dolfin}:
 
 \begin{python}
 from dolfin import *
@@ -313,9 +312,10 @@ This can be useful when passing a linear solver via a function
 interface and setting the operator inside a function.
 
 In some cases, the system $Ax = b$ may be solved a number of times for
-a given $A$, or for different $A$ but with the same non-zero structure.
+a given $A$, or for different $A$ but with the same nonzero structure.
 If the nonzero structure of $A$ does not change, then some efficiency
-gains for repeated solves can be achieved by informing the LU solver:
+gains for repeated solves can be achieved by informing the LU solver
+of this fact:
 
 \begin{c++}
 solver.parameters["same_nonzero_pattern"] = true;
@@ -330,7 +330,7 @@ of~$A$.  Re-use of the factorization is controlled by the parameter
 \emp{"reuse\_factorization"}.
 
 It is possible for some backends to prescribe the specific LU solver
-to be used. This depends on the backend, which solvers have been
+to be used. This depends on the backend, which solvers that have been
 configured by DOLFIN and how third-party linear algebra backends have
 been configured.
 
@@ -489,11 +489,10 @@ M = PETScMatrix()
 
 eigensolver = SLEPcEigenSolver(A, M)
 \end{python}
-There are a wide number of options that a user can set via the
-parameter system to control the eigenproblem solution process. To
-print a list of available parameters, call
-\emp{info(eigensolver.parameters, true)} and
-\emp{info(eigensolver.parameters, True)} from C++ and Python,
+There are many options that a user can set via the parameter system to
+control the eigenproblem solution process. To print a list of
+available parameters, call \emp{info(eigensolver.parameters, true)}
+and \emp{info(eigensolver.parameters, True)} from C++ and Python,
 respectively.
 
 \paragraph{Selecting a linear algebra backend.}
@@ -641,7 +640,7 @@ newton_solver.parameter["error_on_nonconvergence"] = False
 %%
 The parameters may be set similarly from~C++.  When testing for
 convergence, usually a norm of the residual $F$ is checked.  Sometimes it
-is useful instead to check a norm of the the iterative correction~$dx$.
+is useful instead to check a norm of the iterative correction~$dx$.
 This is controlled by the parameter \emp{"convergence\_criterion"}, which
 can be set to \emp{"residual"}, for checking the size of the residual $F$,
 or \emp{"incremental"}, for checking the size of the increment~$dx$.
@@ -741,7 +740,7 @@ mesh = Mesh("mesh.xml")
 \end{python}
 %%
 Meshes must be stored in the DOLFIN XML format. The following example
-illustrates how to store a $2 \times 2$ mesh of the unit square:
+illustrates the XML format for a $2 \times 2$ mesh of the unit square:
 
 \begin{xml}
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1281,7 +1280,7 @@ through a separate \emp{.ufl} file, but is instead generated as part
 of the code generation for a variational problem.
 
 From the Python interface, one may create a \emp{FunctionSpace}
-directly, as illustrated by the following code, that creates the same
+directly, as illustrated by the following code which creates the same
 function space as the above example (piecewise linear Lagrange
 polynomials on triangles):
 
@@ -1294,25 +1293,25 @@ V = FunctionSpace(mesh, "Lagrange", 1)
 
 Mixed function spaces may be created from arbitrary combinations of
 function spaces. As an example, we consider here the creation of the
-\emph{Taylor--Hood} function space for the discretization of the Stokes
-or incompressible Navier--Stokes equations. This mixed function space
-consists of a vector-valued continuous piecewise quadratic function space
-for the velocity field and a scalar continuous piecewise linear function
-space for the pressure field. This may be easily defined in either a
-UFL form file (for code generation and subsequent inclusion in a C++
-program) or directly in a Python script as illustrated in the following
-code examples:
+\emph{Taylor--Hood} function space for the discretization of the
+Stokes or incompressible Navier--Stokes equations. This mixed function
+space is the tensor product of a vector-valued continuous piecewise
+quadratic function space for the velocity field and a scalar
+continuous piecewise linear function space for the pressure
+field. This may be easily defined in either a UFL form file (for code
+generation and subsequent inclusion in a C++ program) or directly in a
+Python script as illustrated in the following code examples:
 %%
 \begin{uflcode}
 V = VectorElement("CG", triangle, 2)
 Q = FiniteElement("CG", triangle, 1)
-W = V * Q
+W = V*Q
 \end{uflcode}
 %%
 \begin{python}
 V = VectorFunctionSpace("CG", triangle, 2)
 Q = FunctionSpace("CG", triangle, 1)
-W = V * Q
+W = V*Q
 \end{python}
 
 DOLFIN allows the generation of arbitrarily nested mixed function
@@ -1321,13 +1320,12 @@ construction of a larger mixed space. When a mixed function space is
 created from more than two function spaces (nested on the same level),
 then one must use the \emp{MixedElement} constructor (in UFL/C++) or
 the \emp{MixedFunctionSpace} constructor (in Python). This is because
-Python will interpret the expression \emp{V * Q * P} as \emp{(V *
-  Q) * P}, which will create a mixed function space consisting of two
-subspaces: the mixed space \emp{V * Q} and the space \emp{P}. If that is
-not the intention, one must instead define the mixed function space using
-\emp{MixedElement([V, Q, P])} in UFL/C++ or \emp{MixedFunctionSpace([V,
-Q, P])} in Python.
-
+Python will interpret the expression \emp{V*Q*P} as \emp{(V*Q)*P},
+which will create a mixed function space consisting of two subspaces:
+the mixed space \emp{V*Q} and the space \emp{P}. If that is not the
+intention, one must instead define the mixed function space using
+\emp{MixedElement([V, Q, P])} in UFL/C++ or
+\emp{MixedFunctionSpace([V, Q, P])} in Python.
 
 \paragraph{Subspaces.}
 
@@ -1415,12 +1413,12 @@ discussed in more detail below.
 \paragraph{Function evaluation.}
 
 A \emp{Function} may be evaluated at arbitrary points inside the
-computational domain.\footnote{One may also evaluate a \emp{Function}
+computational domain\footnote{One may also evaluate a \emp{Function}
   outside of the computational domain by setting the global parameter value
   \emp{"allow\_extrapolation"} to true. This may sometimes be
   necessary when evaluating a \emp{Function} on the boundary of a
   domain since round-off errors may result in points slightly outside
-  of the domain.} The value of a \emp{Function} is computed by first
+  of the domain.}. The value of a \emp{Function} is computed by first
 locating the cell of the mesh containing the given point, and then
 evaluating the linear combination of basis functions on that cell. Finding
 the cell exploits an efficient search tree
@@ -1573,15 +1571,15 @@ class MyExpression(Expression):
 g = MyExpression()
 \end{python}
 
-The above \emph{functor} construct for the definition of expressions is
-powerful and allows a user to define complex expressions, the evaluation
-of which may involve arbitrary operations as part of the \emp{eval}
-function. For simple expressions like $f(x, y) = \sin x \, \cos y$ and
-$g(x, y) = (\sin x, \cos y)$, users of the Python interface may use a
-simple syntax to define expressions:
+The above \emph{functor} construct for the definition of expressions
+is powerful and allows a user to define complex expressions, the
+evaluation of which may involve arbitrary operations as part of the
+\emp{eval} function. For simple expressions like $f(x, y) = \sin x \,
+\cos y$ and $g(x, y) = (\sin x, \cos y)$, users of the Python
+interface may, alternatively, use a simpler syntax:
 %%
 \begin{python}
-f = Expression("sin(x[0]) * cos(x[1])")
+f = Expression("sin(x[0])*cos(x[1])")
 g = Expression(("sin(x[0])", "cos(x[1])"))
 \end{python}
 %%
@@ -1595,7 +1593,7 @@ in the Python interface is to use a variable name in an \emp{Expression}
 string.  For example, one may use the variable \emp{t} to denote time:
 %%
 \begin{python}
-h = Expression("t * sin(x[0]) * cos(x[1])")
+h = Expression("t*sin(x[0])*cos(x[1])")
 while t < T:
     h.t = t
     ...
@@ -1812,9 +1810,10 @@ DOLFIN handles the application of both Neumann (natural) and Dirichlet
 (essential) boundary conditions.\footnote{As noted in
   Chapter~\ref{chap:kirby-7}, Dirichlet boundary conditions may
   sometimes be \emph{natural} and Neumann boundary conditions may
-  sometimes be \emph{essential}.} Natural boundary are usually applied
-via the variational statement of a problem, whereas essential boundary
-conditions are usually applied to the discrete system of equations.
+  sometimes be \emph{essential}.} Natural boundary conditions are
+usually applied via the variational statement of a problem, whereas
+essential boundary conditions are usually applied to the discrete
+system of equations.
 
 \paragraph{Natural boundary conditions.}
 
@@ -1881,15 +1880,15 @@ each facet on the Neumann boundary by~\emp{0} and all other facets
 accomplished in a number of different ways. One simple way to do this
 is to use the program \citet{www:meshbuilder} and graphically mark the
 facets of the \emp{Mesh}. Another option is through the DOLFIN class
-\emp{SubDomain}. The following code illustrates how to mark all facets
-to the left of $x = 0.5$ as the Neumann boundary. Note the use of the
-\emp{on\_boundary} argument supplied by DOLFIN to the \emp{inside}
-function. This argument informs whether a point is located on the
-boundary $\partial\Omega$ of $\Omega$, and this allows us to mark only
-facets that are on the boundary and to the left of~$x = 0.5$. Also
-note the use of \emp{DOLFIN\_EPS} which makes sure that we include
-points that, as a result of finite precision arithmetic, may be located
-just to the right of $x = 0.5$.
+\emp{SubDomain}. The following code illustrates how to mark all
+boundary facets to the left of $x = 0.5$ as the Neumann boundary. Note
+the use of the \emp{on\_boundary} argument supplied by DOLFIN to the
+\emp{inside} function. This argument informs whether a point is
+located on the boundary $\partial\Omega$ of $\Omega$, and this allows
+us to mark only facets that are on the boundary and to the left of~$x
+= 0.5$. Also note the use of \emp{DOLFIN\_EPS} which makes sure that
+we include points that, as a result of finite precision arithmetic,
+may be located just to the right of $x = 0.5$.
 %%
 \begin{c++}
 class NeumannBoundary : public SubDomain
@@ -1901,7 +1900,8 @@ class NeumannBoundary : public SubDomain
 };
 
 NeumannBoundary neumann_boundary;
-FacetFunction<uint> exterior_facet_domains(mesh, 1);
+FacetFunction<uint> exterior_facet_domains(mesh);
+exterior_facet_domains.set_all(1);
 neumann_boundary.mark(exterior_facet_domains, 0);
 \end{c++}
 %%
@@ -1911,7 +1911,8 @@ class NeumannBoundary(SubDomain):
         return x[0] < 0.5 + DOLFIN_EPS and on_boundary
 
 neumann_boundary = NeumannBoundary()
-exterior_facet_domains = FacetFunction("uint", mesh, 1)
+exterior_facet_domains = FacetFunction("uint", mesh)
+exterior_facet_domains.set_all(1)
 neumann_boundary.mark(exterior_facet_domains, 0)
 \end{python}
 %%
@@ -1990,17 +1991,13 @@ bc = DirichletBC(V, u_0, Gamma_D)
 Python users may also use the following compact syntax:
 %%
 \begin{python}
-def Gamma_D(x, on_boundary):
-    return x[0] > 0.5 and on_boundary
-
 u_0 = Expression("sin(x[0])")
-
-bc = DirichletBC(V, u_0, Gamma_D)
+bc = DirichletBC(V, u_0, "x[0] > 0.5 and on_boundary")
 \end{python}
 %%
 To speed up the application of Dirichlet boundary conditions, users of the
 Python interface may also use the function \emp{compile\_subdomains}. For
-details of this, we refer to the DOLFIN Programmer's reference.
+details of this, we refer to the DOLFIN Programmer's Reference.
 
 A Dirichlet boundary condition can be applied to a linear system or to
 a vector of degrees of freedom associated with a \emp{Function}, as
@@ -2332,8 +2329,7 @@ DOLFIN automatically handles \emph{reading} of gzipped XML files. Thus,
 one may save space by storing meshes and other data in gzipped XML files
 (with suffix \emp{.xml.gz}).
 
-
-\paragraph{Time-series.}
+\paragraph{Time series.}
 
 For time-dependent problems, it may be useful to store a
 sequence of solutions or meshes in a format that enables fast
@@ -2365,13 +2361,13 @@ while t < T:
     t += dt
 \end{python}
 %%
-Data in a \emp{TimeSeries} are stored in a binary format with one
-file for each stored dataset (\emp{Vector} or \emp{Mesh}) and a common
+Data in a \emp{TimeSeries} are stored in a binary format with one file
+for each stored dataset (\emp{Vector} or \emp{Mesh}) and a common
 index. Data may be retrieved from a \emp{TimeSeries} by calling the
 \emp{retrieve} member function as illustrated in the code examples
-below. If a dataset is not stored at the requested time, then the data
-is interpolated linearly for \emp{Vector}s. For \emp{Mesh}es, the
-closest data point will be used.
+below. If a dataset is not stored at the requested time, then the
+values are interpolated linearly for \emp{Vector}s. For \emp{Mesh}es,
+the closest data point will be used.
 %%
 \begin{c++}
 time_series.retrieve(u.vector(), t);
@@ -2412,11 +2408,12 @@ info("Assembling system of size %d x %d." % (M, N))
 \end{python}
 %%
 The \emp{info} command and the \emp{dolfin::cout/endl} objects differ
-from the standard C \emp{printf} command and the C++ \emp{std::cout/endl}
-objects in that the output is directed into a special stream, the output
-of which may be redirected to destinations other than standard out. In
-particular, one may completely disable output from DOLFIN, or select
-the verbosity of printed messages, as explained below.
+from the standard C \emp{printf} command and the C++
+\emp{std::cout/endl} objects in that the output is directed into a
+special stream, the output of which may be redirected to destinations
+other than standard output. In particular, one may completely disable
+output from DOLFIN, or select the verbosity of printed messages, as
+explained below.
 
 \paragraph{Warnings and errors.}
 
@@ -2428,7 +2425,6 @@ will prepend the given message with \emp{"Warning: "} and the
 \emp{error} command will raise an exception that can be caught, from
 both C++ and Python. Both commands will also print the message at a
 \emph{log level} higher than messages printed using \emp{info}.
-
 
 \paragraph{Setting the log level.}
 
@@ -2733,7 +2729,7 @@ for key, value in parameters.items():
     print key, value
 \end{python}
 %%
-A Python \emp{dict} can also be used to recursively update a Parameter
+A Python \emp{dict} can also be used to update a Parameter
 database:
 %%
 \begin{python}
@@ -2984,7 +2980,7 @@ logic of a particular method or function. Parts of the actual code may
 be intentionally excluded. A reader can examine particular classes or
 functions in the code for a full understanding of the implementation.
 
-\paragraph{Construction of function spaces}
+\paragraph{Construction of function spaces.}
 
 In the Python interface, \emp{ufl.FiniteElement} and
 \emp{dolfin::FunctionSpace} are integrated. The declaration of a
@@ -3027,7 +3023,7 @@ class FunctionSpace(cpp.FunctionSpace):
         cpp.FunctionSpace.__init__(self, mesh, dolfin_element, dolfin_dofmap)
 \end{python}
 
-\paragraph{Constructing arguments (trial and test functions)}
+\paragraph{Constructing arguments (trial and test functions).}
 
 The \emp{ufl.Argument} class (the base class of \emp{ufl.TrialFunction}
 and \emp{ufl.TestFunction}) is subclassed in the Python interface. Instead
@@ -3183,25 +3179,26 @@ class Expression(object):
 \end{python}
 %%
 The \emp{\_\_new\_\_} method is called when a JIT compiled
-\emp{Expression} is instantiated. However, it will also be called
-when a pure Python subclass of \emp{Expression} is instantiated during
+\emp{Expression} is instantiated. However, it will also be called when
+a pure Python subclass of \emp{Expression} is instantiated during
 initialization of the base-class. We handle the two different cases by
-checking the name of the instantiated class. If the name of the class is
-not \emp{"Expression"} then the call originates from the instantiation
-of a subclass of \emp{Expression}. When a pure Python \emp{Expression}
-is instantiated, like the \emp{Source} instance in the code example
-above, the \emp{\_\_new\_\_} method of \emp{object} is called and the
-instantiated object is returned.  In the other case, when a JIT compiled
-\emp{Expression} is instantiated, we need to generate the JIT compiled
-base class from the passed Python string, as explained above. This
-is done by calling the function \emp{compile\_expressions}. Before
-\emp{type} is called to generate the final class, an \emp{\_\_init\_\_}
-method for the class is defined. This method initiates the new object
-by automatically selecting the element type and setting dimensions
-for the created \emp{Expression}. This procedure is similar to what is
-done for the Python derived \emp{Expression} class, see above. Finally,
-we construct the new class which inherits the JIT compiled class and
-\emp{ufl.Coefficient} by calling \emp{type}.
+checking the name of the instantiated class. If the name of the class
+is not \emp{"Expression"}, then the call originates from the
+instantiation of a subclass of \emp{Expression}. When a pure Python
+\emp{Expression} is instantiated, like the \emp{Source} instance in
+the code example above, the \emp{\_\_new\_\_} method of \emp{object}
+is called and the instantiated object is returned.  In the other case,
+when a JIT compiled \emp{Expression} is instantiated, we need to
+generate the JIT compiled base class from the passed Python string, as
+explained above. This is done by calling the function
+\emp{compile\_expressions}. Before \emp{type} is called to generate
+the final class, an \emp{\_\_init\_\_} method for the class is
+defined. This method initiates the new object by automatically
+selecting the element type and setting dimensions for the created
+\emp{Expression}. This procedure is similar to what is done for the
+Python derived \emp{Expression} class. Finally, we construct the new
+class which inherits the JIT compiled class and \emp{ufl.Coefficient}
+by calling \emp{type}.
 
 The \emp{type} function takes three arguments: the name of the class
 (\emp{"CompiledExpression"}), the bases of the class (\emp{Expression,
@@ -3210,7 +3207,6 @@ interface (methods and attributes) of the class. The only new method or
 attribute we provide to the generated class is the \emp{\_\_init\_\_}
 method. After the class is generated, we instantiate it and the object
 is returned to the user.
-
 
 \paragraph{Assembly of UFL forms.}
 
@@ -3278,13 +3274,13 @@ compiler can be chosen by setting:
 parameters["form_compiler"]["name"] = "sfc"
 \end{python}
 %%
-The default form compiler is \emp{"ffc"}. The \emp{jit} function
-of the form compiler returns the JIT compiled \emp{ufc::form}
-together with a \emp{ufl.FormData} object. The latter is a data
-structure containing meta data for the \emp{ufl.form}, which is used
-to extract the function spaces and coefficients that are needed to
-instantiate a \emp{cpp.Form}. The extraction of this data is handled by
-the \emp{extract\_function\_spaces} and the \emp{extract\_coefficients}
+The default form compiler is \emp{"ffc"}. The \emp{jit} function of
+the form compiler returns the JIT compiled \emp{ufc::form} together
+with a \emp{ufl.FormData} object. The latter is a data structure
+containing meta data for the \emp{ufl.form}, which is used to extract
+the function spaces and coefficients that are needed to instantiate a
+\emp{cpp.Form}. The extraction of these data is handled by the
+\emp{extract\_function\_spaces} and the \emp{extract\_coefficients}
 functions.
 
 %------------------------------------------------------------------------------
