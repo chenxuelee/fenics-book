@@ -66,14 +66,15 @@ GiNaC tutorial and reference which can be found on its web page. There
 are, however, a few issues we need to address to explain basic GiNaC
 usage. First of all, GiNaC contains many different types like
 \emp{symbol}, \emp{matrix}, \emp{function}, etc.  Normally, one does not
-need to worry about these types since the type \emp{ex}, which was used
-above, can represent any mathematical object (\emp{ex} is basically a
-place-holder for the underlying object). Still, there are mathematical
-operations that can only be applied on particular types. For instance,
-functions can only be differentiated with respect to symbols, as shown
-above.  Notice also that GiNaC overloads operators like \emp{==} to
-enable creation of equations and inequalities, which may be represented
-as expressions of type \emp{relations} (or \emp{ex}).
+need to worry about these types since the type \emp{ex}, which was
+used above, can represent any mathematical object (\emp{ex} is
+basically a place-holder for the underlying object). Still, there are
+mathematical operations that can only be applied to particular
+types. For instance, functions can only be differentiated with respect
+to symbols, as shown above.  Notice also that GiNaC overloads
+operators like \emp{==} to enable creation of equations and
+inequalities, which may be represented as expressions of
+type \emp{relations} (or \emp{ex}).
 
 Symbolic calculations can be computationally demanding. Therefore, GiNaC
 separates between the construction and evaluation of expressions. This is
@@ -226,13 +227,13 @@ Out : [-a0_2*(-1+y+x)+y*a0_0+x*a0_1, [a0_0, a0_1, a0_2], [y, x, 1-y-x]]
 \end{python}
 In the above code, we used a triangle and the order of the polynomial
 was one. The next task is to define a set of degrees of freedom; that is,
-a set of functionals $L_j : P \rightarrow \R$.  For the Crouzeix--Raviart
+a set of functionals $L_i : P \rightarrow \R$.  For the Crouzeix--Raviart
 element, the degrees of freedom are simply the integrals over an edge;
-that is, $L_j(P) = \int_{E_i} P \dx$, where $E_i$ for $i=(0,1,2)$ are the
+that is, $L_i(P) = \int_{E_i} P \dx$, where $E_i$ for $i=(0,1,2)$ are the
 edges of the triangle. Alternatively we could have used the value at
 the midpoint of the edges since the polynomial $P$ is linear.  Finally,
 the different basis functions $\{N_i\}$ are determined by the set of
-equations $L_j(N_i) = \delta_{ij}$.  These equations are then solved,
+equations $L_i(N_j) = \delta_{ij}$.  These equations are then solved,
 using \emp{lsolve}, to compute the basis functions of the elements;
 that is, the coefficients \emp{[a0\_0, a0\_1, a0\_2]} are determined for
 each specific basis function.
@@ -364,7 +365,7 @@ A = assemble(J)
 \end{python}
 
 To test the computational efficiency of the generated code for this
-problem, we compare the assembly of $\JJ_F$ with the assembly a
+problem, we compare the assembly of $\JJ_F$ with the assembly of a
 corresponding linear elasticity problem with the following matrix $\JJ_L$:
 \begin{equation}
 \JJ_L = \int_\Omega \lambda \nabla \cdot u \nabla \cdot v + (\lambda + \mu)\nabla u:\nabla v \dx.
@@ -493,12 +494,12 @@ using quadrature where the generated code involves multiple loops and
 quite a few temporary variables. To generate quadrature based code,
 the computational graph algorithms from UFL (in particular the class
 \emp{ufl.Graph}) are used to split the expression tree into smaller
-sub-expressions.  \sfc{} makes GiNaC symbols that represent temporary
-variables for all sub-expressions.  To place the temporary variables
+subexpressions.  \sfc{} makes GiNaC symbols that represent temporary
+variables for all subexpressions.  To place the temporary variables
 inside the correct loops in the generated code, the computational
 graph is partitioned based on the dependencies of subexpressions. See
 Chapter~\ref{chap:alnes-1} for an explanation of the partitioning
-algorithm provided by UFL.  The sub-expression associated with
+algorithm provided by UFL.  The subexpression associated with
 each temporary variable is then translated to a C/C++ string using
 GiNaC. Finally, \sfc{} puts it all together into a tabulate tensor
 implementation in the code generation classes (\emp{*CG}).
