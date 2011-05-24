@@ -42,7 +42,7 @@ come from a finite element space (using interpolation if necessary).
 Therefore, to ensure a proper performance comparison between the
 representations we assume that all functions in a form, including
 coefficient functions, come from a finite element function space. In
-the case of equation~\eqref{oelgaard-2:eq:weightedlaplacian}, all
+the case of~\eqref{oelgaard-2:eq:weightedlaplacian}, all
 functions will come from
 
 \begin{equation}
@@ -51,12 +51,12 @@ functions will come from
   \label{oelgaard-2:eq:space_H1}
 \end{equation}
 %
-where $P_{q}\brac{T}$ denotes the space of Lagrange
-polynomials of degree $q$ on the element $T$ of the standard
-triangulation of $\Omega$, which is denoted by~$\mathcal{T}$.  If we
-let $\bracc{\phi^{T}_{i}}$ denote the local finite element basis that
-span the discrete function space $V_{h}$ on $T$, the local element
-tensor for an element $T$ can be computed as
+where $P_{q}\brac{T}$ denotes the space of Lagrange polynomials of
+degree $q$ on the element $T$ of the standard triangulation of
+$\Omega$, which is denoted by~$\mathcal{T}$.  If we let
+$\bracc{\phi^{T}_{i}}$ denote the local finite element basis that span
+the discrete function space $V_{h}$ on $T$, the local element tensor
+for an element $T$ can be computed as
 
 \begin{equation}
   A_{T,i} = \int_{T} w \nabla \phi^{T}_{i_1} \cdot \nabla
@@ -93,19 +93,18 @@ $T \in \mathcal{T}$, this intermediate representation reads
 \label{oelgaard-2:eq:weightedlaplacian_quadraturerepresentation}
 \end{equation}
 %
-where a change of variables from the reference coordinates
-$X$ to the real coordinates $x = F_T(X)$ has been used. In the above
-equation, $N$ denotes the number of integration points, $d$ is the
-dimension of $\Omega$, $n$ is the number of degrees of freedom for the
-local basis of~$w$, $\Phi_{i}$ denotes basis functions on the
-reference element, $\det F_T'$ is the determinant of the Jacobian, and
-$W^q$ is the quadrature weight at integration point~$X^q$.  By
-default, \ffc{} applies a quadrature scheme that will integrate the
-variational form exactly.  It calls FIAT (see
-Chapter~\ref{chap:kirby-2}) to compute the quadrature scheme.  FIAT
-supplies schemes that are based on the Gauss--Legendre--Jacobi rule
-mapped onto simplices (see~\citet{KarniadakisSherwin2005} for details
-of such schemes).
+where a change of variables from the reference coordinates $X$ to the
+real coordinates $x = F_T(X)$ has been used. In the above equation,
+$N$ denotes the number of integration points, $d$ is the dimension of
+$\Omega$, $n$ is the number of degrees of freedom for the local basis
+of~$w$, $\Phi_{i}$ denotes basis functions on the reference element,
+$\det F_T'$ is the determinant of the Jacobian, and $W^q$ is the
+quadrature weight at integration point~$X^q$.  By default, \ffc{}
+applies a quadrature scheme that will integrate the variational form
+exactly.  It calls FIAT (see Chapter~\ref{chap:kirby-2}) to compute
+the quadrature scheme.  FIAT supplies schemes that are based on the
+Gauss--Legendre--Jacobi rule mapped onto simplices
+(see~\citet{KarniadakisSherwin2005} for details of such schemes).
 
 From the representation
 in~\eqref{oelgaard-2:eq:weightedlaplacian_quadraturerepresentation},
@@ -129,12 +128,12 @@ stored in the tables \emp{Psi\_w}, \emp{Psi\_vu\_D01} and
 \emp{Psi\_vu\_D10} in Figure~\ref{oelgaard-2:fig:standard_code}.
 After the tabulation of basis functions values, the loop over
 integration points begins.  In the example we are considering linear
-elements have been used, and only one integration point is necessary
-for exact integration. The loop over integration points has therefore
-been omitted.  The first task inside a loop over integration points is
-to compute the values of coefficients at the current integration
-point.  For the considered problem, this involves computing the value
-of the coefficient $w$.  The code for evaluating \emp{F0} in
+elements, and only one integration point is necessary for exact
+integration. The loop over integration points has therefore been
+omitted.  The first task inside a loop over integration points is to
+compute the values of coefficients at the current integration point.
+For the considered problem, this involves computing the value of the
+coefficient $w$.  The code for evaluating \emp{F0} in
 Figure~\ref{oelgaard-2:fig:standard_code} is an exact translation of
 the representation $\sum_{\alpha_{3}=1}^n \Phi_{\alpha_{3}}(X^q)
 w_{\alpha_{3}}$.  The last part of the code in
@@ -210,7 +209,7 @@ share some common features which can be categorized as:
 \item[Loop invariant code motion] In short, this procedure seeks to
 identify terms that are independent of one or more of the summation
 indices and to move them outside the loop over those particular
-indices.  For instance, in equation~\eqref{oelgaard-2:eq:%
+indices.  For instance, in~\eqref{oelgaard-2:eq:%
 weightedlaplacian_quadraturerepresentation} the terms regarding the
 coefficient $w$, the quadrature weight $W^q$ and the determinant $\det
 F_T'$ are all independent of the basis function indices $i_1$ and
@@ -392,6 +391,8 @@ for (unsigned int j = 0; j < 3; j++)
 \label{oelgaard-2:fig:O_simplify_code}
 \end{figure}
 
+\editornote{Explain what \emp{FE0} etc. mean in Figure~\ref{oelgaard-2:fig:O_simplify_code}!}
+
 Due to expansion of the expression, many terms related to the geometry
 have been moved outside of the loops over the basis function indices
 \emp{j} and \emp{k} and stored in the array~\emp{G}.  Also, note how
@@ -471,7 +472,7 @@ significantly, leading to improved runtime performance.
 
 This optimization strategy is an extension of the strategy described
 in the previous section. In addition to hoisting terms related to the
-geometry and the integration point, values that depends on the basis
+geometry and the integration points, values that depends on the basis
 indices are precomputed inside the loops.  This will result in a
 reduction in operations for cases in which some terms appear
 frequently inside the loop such that a given value can be reused once
@@ -558,10 +559,10 @@ In this section we investigate the impact of the optimization
 strategies outlined in the previous section on the runtime
 performance. The point is not to present a rigorous analysis of the
 optimizations, but to provide indications as to when the different
-strategies will be most effective.  We also compare the runtime
+strategies will be most effective. We also compare the runtime
 performance of quadrature representation to the tensor representation,
 which is described in Chapter~\ref{chap:kirby-8}, to illustrate the
-strength and weaknesses of the two approaches.
+strengths and weaknesses of the two approaches.
 
 \subsection{Performance of quadrature optimizations}
 \label{oelgaard-2:sec:quad_performance}
@@ -599,7 +600,7 @@ The operation counts for the weighted Laplace equation with different
 Table~\ref{oelgaard-2:tab:laplace_stats_1}, while
 Figure~\ref{oelgaard-2:fig:laplace_stats_2} shows the runtime
 performance for different compiler options for $N = 1 \times 10^7$.
-The \ffc{} compiler options can be seen on the x-axis in the figure
+The \ffc{} compiler options can be seen on the $x$-axis in the figure
 and the four g++ compiler options are shown with different colors.
 
 \begin{table}
@@ -625,11 +626,13 @@ and the four g++ compiler options are shown with different colors.
 \begin{figure}
   \center\includegraphics[width=\largefig]{chapters/oelgaard-2/pdf/runtime_laplace.pdf}
   \caption{Runtime performance for the weighted Laplace equation for
-    different compiler options.  The x-axis shows the \ffc{}
+    different compiler options.  The $x$-axis shows the \ffc{}
     compiler options, and the colors denote the g++ compiler
     options.}
   \label{oelgaard-2:fig:laplace_stats_2}
 \end{figure}
+
+\editornote{Very hard to read legends and axes in Figure~\label{oelgaard-2:fig:laplace_stats_2}, please fix!}
 
 The \ffc{} and g++ compile times were less than one second for all
 optimization options.  It is clear from
@@ -690,10 +693,12 @@ performance for different compiler options for $N = 1 \times 10^4$.
 \begin{figure}
   \center\includegraphics[width=\largefig]{chapters/oelgaard-2/pdf/runtime_hyperelasticity.pdf}
   \caption{Runtime performance for the hyperelasticity example for
-    different compiler options.  The x-axis shows the \ffc{} compiler
+    different compiler options. The $x$-axis shows the \ffc{} compiler
     options, and the colors denote the g++ compiler options.}
   \label{oelgaard-2:fig:hyper_stats_2}
 \end{figure}
+
+\editornote{Mismatch between Figure~\ref{fig:oelgaard-2:fig:hyper_stats_2} and text which claims that \emp{-basis -zeros} is the best option.}
 
 Comparing the number of flops involved to compute the element tensor
 to the weighted Laplace example, it is clear that this problem is
@@ -701,10 +706,11 @@ considerably more complex.  The \ffc{} compile times in
 Table~\ref{oelgaard-2:tab:hyper_stats_1} show that the \emp{-simplify}
 optimization, as anticipated, is the most expensive to perform.  The
 g++ compile times for all test cases were in the range two to six
-seconds for all optimization options.  A point to note is that scope
-for reducing the flop count is considerably greater for this problem
-than for the weighted Laplace problem, with a difference in the number
-of flops spanning several orders of magnitude between the different
+seconds for all optimization options.  A point to note is that the
+scope for reducing the flop count is considerably greater for this
+problem than for the weighted Laplace problem, with a difference in
+the number of flops spanning several orders of magnitude between the
+different
 \ffc{} optimizations.  This compares to a difference in flops of
 roughly a factor two between the non-optimized and the most effective
 optimization strategy for the weighted Laplace problem.  In the case
@@ -714,7 +720,7 @@ point operations.  When the g++ optimization \emp{-O2} is switched on,
 this effect becomes less pronounced.  Another point to note, in
 connection with the g++ optimizations, is that switching on additional
 optimizations beyond \emp{-O2} does not seem to provide any further
-improvements in run time.  For the hyperelasticity example, the option
+improvements in run-time.  For the hyperelasticity example, the option
 \emp{-zeros} has a positive effect on the performance, not only when
 used alone but in particular when combined with the other \ffc{}
 optimizations.  This is in contrast with the weighted Laplace
@@ -769,8 +775,8 @@ where $n_f$ is the number of premultiplying coefficients.
 The test and trial functions are denoted by $v, u \in V_{h}$, with
 
 \begin{equation}
-  V_{h} = \bracc{v \in \brac{H^{1}\brac{\Omega}}^2: \ v\vert_T \in
-    \brac{P_{q}\brac{T}}^2 \foralls T \in \mathcal{T}}
+  V_{h} = \bracc{v \in [H^{1}\brac{\Omega}]^2: \ v\vert_T \in
+    [P_{q}\brac{T}]^2 \foralls T \in \mathcal{T}}
  \label{oelgaard-2:eq:elastictity_H1_vector_space}
 \end{equation}
 %
