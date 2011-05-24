@@ -17,27 +17,27 @@ expressed in terms of numerical linear algebra and performed using the
 widely distributed \texttt{numpy} package.
 
 FIAT is one of the first FEniCS projects, providing the basis function
-back-end for \texttt{ffc} and enabling high-order \( H^1 \), \(
+back-end for FFC and enabling high-order \( H^1 \), \(
 H(\mathrm{div}) \) and \( H(\mathrm{curl}) \) elements. It is widely
 distributed, with downloads on every inhabited continent and in over
 sixty countries, averaging about 100 downloads per month.
 
-This chapter works in the context of a Ciarlet triple \( (T,P,\mathcal{L})
+This chapter works in the context of a Ciarlet triple \( (T,\CiarletSpace,\mathcal{L})
 \)~\citep{Ciarlet2002}, where \( T \) is a fixed reference domain,
-typically a triangle or tetrahedron.  \( P \) is a finite-dimensional
+typically a triangle or tetrahedron.  \( \CiarletSpace \) is a finite-dimensional
 polynomial space, though perhaps vector- or tensor-valued and not
 coincident with polynomials of some fixed degree.  \( \mathcal{L} =
-\{ \ell_i \}_{i=1}^{|P|} \) is a set of linear functionals spanning \(
-P^\prime \).  Recalling Chapter~\ref{chap:kirby-1}, the goal is first
-to enumerate a convenient basis \( \{ \phi_i \}_{i=1}^{|P|} \) for \(
-P \) and then to form a generalized Vandermonde system
+\{ \ell_i \}_{i=1}^{|\CiarletSpace|} \) is a set of linear functionals spanning \(
+\CiarletSpace^\prime \).  Recalling Chapter~\ref{chap:kirby-1}, the goal is first
+to enumerate a convenient basis \( \{ \phi_i \}_{i=1}^{|\CiarletSpace|} \) for \(
+\CiarletSpace \) and then to form a generalized Vandermonde system
 \begin{equation}
   V A = I,
 \end{equation}
 where $V_{ij} = \ell_i( \phi_j)$.  Of course, forming this matrix
 requires some calculations, and we will discuss this further in a later
 section.  The columns of $A = V^{-1}$ store the expansion coefficients
-of the nodal basis for \( (T,P,\mathcal{L}) \) in terms of some basis
+of the nodal basis for \( (T,\CiarletSpace,\mathcal{L}) \) in terms of some basis
 $\{ \phi_i \}$.
 
 \section{Prime basis: collapsed-coordinate polynomials}
@@ -137,7 +137,7 @@ D^{p-1,0}(x,y)$
 
 \section{Representing polynomials and functionals}
 
-Even using recurrence relations and \texttt{numpy} vectorization for
+Even using recurrence relations and NumPy vectorization for
 arithmetic, further care is required to optimize performance.  In this
 section, standard operations on polynomials will be translated into
 vector operations, and then batches of such operations cast as matrix
@@ -149,12 +149,12 @@ since \texttt{numpy.dot} wraps level 3 BLAS and other functions such as
 Since polynomials and functionals over polynomials both form vector
 spaces, it is natural to represent each of them as vectors representing
 expansion coefficients in some basis.  So, let \( \{ \phi_i \} \) be the
-Dubiner polynomials polynomials described above, where we have assumed
+Dubiner polynomials described above, where we have assumed
 some linear indexing of the Dubiner polynomials.
 
-Now, any \( p \in P \) is written as a linear combination of the basis
+Now, any \( p \in \CiarletSpace \) is written as a linear combination of the basis
 functions \( \{ \phi_i \} \).  Introduce a mapping \( \mathcal{R} \) from
-\( P \) into \( \mathbb{R}^{|P|} \) by taking the expansion coefficients
+\( \CiarletSpace \) into \( \mathbb{R}^{|\CiarletSpace|} \) by taking the expansion coefficients
 of \( p \) in terms of \( \{ \phi_i \} \).  That is,
 \[
 p = \mathcal{R}(p)_i \phi_i,
@@ -222,8 +222,7 @@ The formulae in Algorithm~\ref{dubalg} and their tetrahedral counterpart
 are fairly easy to differentiate, but derivatives may also be obtained
 through automatic differentiation.  Some experimental support for
 this using the AD tools in Scientific Python has been developed in an
-unreleased version of FIAT.  Either of these techniques may be used
-to obtain
+unreleased version of FIAT.
 
 The released version of FIAT currently evaluates derivatives in terms
 of linear operators, which allows the coordinate singularity in the
@@ -255,7 +254,7 @@ collections of points is naturally extended to this context.  If \( \{ p_i
 \} \) is a set of members of \( (P)^m \), then their coefficients may be
 stored in an array \( C_{ijk} \), where \( C_i \) is the two-dimensional
 array \( \mathcal{R}(p)_{jk} \) of coefficients for \( p_i \).  As before,
-\( \Phi_{ij} = \phi_i(x_j) \) contains the of basis functions at a set
+\( \Phi_{ij} = \phi_i(x_j) \) contains the values of the basis functions at a set
 of points.  Then, the \( j^\mathrm{th} \) component of \( p \) at the
 point \( x_k \) is naturally given by a three-dimensional array
 \[
@@ -302,13 +301,13 @@ computed by the matrix product
 \begin{equation}
 A_{ij} = L_{ik}C_{jk},
 \end{equation}
-or \( A = L C^t \).  This is especially useful in the setting of the
+or \( A = L C^{\top} \).  This is especially useful in the setting of the
 next section, where the basis for the finite element space needs to be
 expressed as a linear combination of orthogonal polynomials.
 
 Also, the formalism of \( \mathcal{R}^\prime \) may be generalized
 to functionals over vector-valued spaces.  As before, let \( P \)
-be a space of degree \( n \) with basis \( \{ \phi_i \}_{i=1}^{|P|}
+be a polynomial space of degree \( n \) with basis \( \{ \phi_i \}_{i=1}^{|P|}
 \) and to each \( v \in (P)^m \) associate the representation \(
 v^i = \mathcal{R}(v)_{ij}\phi_j \).  In this notation, \( v^i =
 \mathcal{R}(v)_{ij} \phi_j \) is the vector indexed over \( i \).
@@ -321,7 +320,7 @@ such that
 with summation implied over \(i\) and \( j\).  To determine the
 representation of \( \mathcal{R}^\prime(\ell) \), let \( e^j \) be the
 canonical basis vector with \( (e^j)_i = \delta_{ij} \) and write
-\begin{equation}
+\begin{equation} \label{eq:strange}
 \begin{split}
 \ell(v) & = \ell( \mathcal{R}_{ij}\phi_j ) \\
 & = \ell( \mathcal{R}(v)_{ij} \delta_{ik} e^k \phi^j ) \\
@@ -331,6 +330,8 @@ canonical basis vector with \( (e^j)_i = \delta_{ij} \) and write
 \end{equation}
 From this, it is seen that \( \mathcal{R}^\prime(\ell)_{ij} = \ell(
 e^i \phi_j ) \).
+
+\editornote{Something is wrong in \eqref{eq:strange}.}
 
 Now, let \( \{ v_i \}_{i=1}^N \) be a set of vector-valued polynomials
 and \( \{ \ell_i \}_{i=1}^M \) a set of linear functionals acting on
@@ -344,7 +345,7 @@ A_{ij} = L_{ikl} C_{jkl}.
 Despite having three indices, this calculation may still be performed by
 matrix multiplication.  Since \texttt{numpy} stores arrays in row-major
 format, a simple reshaping may be performed without data motion so that
-\( A = \tilde{L} \tilde{C}^t \), for \( \tilde{L} \) and \( \tilde{C} \)
+\( A = \tilde{L} \tilde{C}^{\top} \), for \( \tilde{L} \) and \( \tilde{C} \)
 reshaped to two-dimensional arrays by combining the second and third axes.
 
 
@@ -360,25 +361,25 @@ some linear functionals.  We describe such techniques in this section.
 \subsection{Supplemented polynomial spaces}
 
 A classic example of the first case is the Raviart--Thomas element,
-where the function space of order \(r \) is
+where the function space of order \(q \) is
 \[
-RT_r = \left( P_r(T) \right)^d \oplus \left( \tilde{P}_r(T) \right) x,
+RT_q = \left( \Poly{q-1}(T) \right)^d \oplus \left( \tilde{P}_{q-1}(T) \right) x,
 \]
-where \( x \in \mathbb{R}^d \) is the coordinate vector and \( \tilde{P}_r
-\) is the space of homogeneous polynomials of degree \( r \).  Given any
-basis \( \{ \phi_i \} \) for \( P_r(T) \) such as the Dubiner basis, it
-is easy to obtain a basis for \( (P_r(T))^d \) by taking vectors where
+where \( x \in \mathbb{R}^d \) is the coordinate vector and \( \tilde{\Poly{q}}
+\) is the space of homogeneous polynomials of degree \( q \).  Given any
+basis \( \{ \phi_i \} \) for \( \Poly{q}(T) \) such as the Dubiner basis, it
+is easy to obtain a basis for \( (\Poly{q}(T))^d \) by taking vectors where
 one component is some \( \phi_i \) and the rest are zero.  The issue is
 obtaining a basis for the entire space.
 
 Consider the case \( d = 2 \) (triangles).  While monomials of the form
-\( x^i y^{r-i} \) span the space of homogeneous polynomials, they are
+\( x^i y^{q-i} \) span the space of homogeneous polynomials, they are
 subject to ill-conditioning in numerical computations.  On the other
-hand, the Dubiner basis of order \( r \), \( \{ \phi_i \}_{i=1}^{|P_r|}
-\) may be ordered so that the last \( r + 1 \) functions, \( \{ \phi_i
-\}_{i=|P_r|-r}^{|P_r|} \), have degree exactly \( r \).  While they do not
-span \( \tilde{P}_r \), the span of \( \{ x \phi_i \}_{i=|P_r|-r}^{|P_r|}
-\) together with a basis for \( (P_r(T))^2 \) does span \( RT_r \).
+hand, the Dubiner basis of order \( q \), \( \{ \phi_i \}_{i=1}^{|\Poly{q}|}
+\) may be ordered so that the last \( q + 1 \) functions, \( \{ \phi_i
+\}_{i=|\Poly{q}|-q}^{|\Poly{q}|} \), have degree exactly \( q \).  While they do not
+span \( \tilde{\Poly{q}} \), the span of \( \{ x \phi_i \}_{i=|\Poly{q}|-q}^{|\Poly{q}|}
+\) together with a basis for \( (\Poly{q}(T))^2 \) does span \( RT_{q-1} \).
 
 So, this gives a basis for the Raviart--Thomas space that can be
 evaluated and differentiated using the recurrence relations in
@@ -394,31 +395,31 @@ element~\citep{BrezziFortin1991}.  Let \( \mathcal{E}(T) \) be the set of
 facets of \( T \) (edges in 2d, faces in 3d). Then the function
 space is
 \[
-BDFM_r(T) = \{ u \in (P_r(T))^d : u\cdot n|_{\gamma} \in
-P_{r-1}(\gamma), \, \, \, \gamma \in \mathcal{E}(T) \}
+BDFM_q(T) = \{ u \in (\Poly{q}(T))^d : u\cdot n|_{\gamma} \in
+\Poly{q-1}(\gamma), \, \, \, \gamma \in \mathcal{E}(T) \}
 \]
 
 This space is naturally interpreted as taking a function space, \(
-(P_r(T))^d \), and imposing linear constraints.  For the case \( d =
+(\Poly{q}(T))^d \), and imposing linear constraints.  For the case \( d =
 2 \), there are exactly three such constraints.  For \( \gamma \in
 \mathcal{E}(T) \), let \( \mu^\gamma \) be the Legendre polynomial of
-degree \( r \) mapped to \( \gamma \).  Then, if a function \( u \in
-(P_r(T))^d \), it is in \( BDFM_r(T) \) if and only if
+degree \( q \) mapped to \( \gamma \).  Then, if a function \( u \in
+(\Poly{q}(T))^d \), it is in \( BDFM_q(T) \) if and only if
 \[
 \int_{\gamma} ( u \cdot n ) \mu^\gamma \ds = 0
 \]
 for each \( \gamma \in \mathcal{E}(T) \).
 
 Number the edges by \( \{ \gamma_i \}_{i=1}^3 \) and introduce linear
-functionals \\ \( \ell_i(u) = \int_{\gamma_i} (u \cdot n) \mu^{\gamma_i}
+functionals \( \ell_i(u) = \int_{\gamma_i} (u \cdot n) \mu^{\gamma_i}
 \ds \).  Then,
 \[
-BDFM_r(T) = \cap_{i=1}^3 \mathrm{null}(\ell_i).
+BDFM_q(T) = \cap_{i=1}^3 \mathrm{null}(\ell_i).
 \]
 This may naturally be cast into linear algebra and so evaluated with
 LAPACK.  Following the techniques for constructing Vandermonde matrices,
 a \emph{constraint matrix} may be constructed.  Let \( \{ \bar{\phi}_i \}
-\) be a basis for \( (P_r(T))^2 \).  Define the \( 3 \times |(P_r)|^2
+\) be a basis for \( (\Poly{q}(T))^2 \).  Define the \( 3 \times |(\Poly{q})|^2
 \) matrix
 \[
 C_{ij} = \ell_i( \phi_j ).
@@ -426,8 +427,8 @@ C_{ij} = \ell_i( \phi_j ).
 Then, a basis for the null space of this matrix is constructed using
 the singular value decomposition~\citep{GolubVan1996}.  The vectors of this
 null-space basis are readily seen to contain the expansion coefficients
-of a basis for \( BDFM_r \) in terms of a basis for \( P_r(T)^2 \).
-With this basis in hand, the nodal basis for \( BDFM_r(T) \) is obtained
+of a basis for \( BDFM_q \) in terms of a basis for \( \Poly{q}(T)^2 \).
+With this basis in hand, the nodal basis for \( BDFM_q(T) \) is obtained
 by constructing the generalized Vandermonde matrix.
 
 This technique may be generalized to three dimensions,
@@ -435,14 +436,13 @@ and it also applies to \nedelec{}~\citep{Nedelec1980},
 Arnold-Winther~\citep{ArnoldWinther2002},
 Mardal-Tai-Winther~\citep{MardalTaiWinther2002}, and many other elements.
 
-
 \section{Conveying topological information to clients}
 
 Most of this chapter has provided techniques for constructing finite
 element bases and evaluating and differentiating them.  FIAT must also
 indicate which degrees of freedom are associated with which entities of
 the reference element.  This information is required when local-global
-mappings are generated by a form compiler such as \texttt{ffc}.
+mappings are generated by a form compiler such as FFC.
 
 The topological information is provided by a ``graded incidence
 relation''~\citep{Kirby2006a,KnepleyKarpeev2009} and is similar to the
@@ -524,7 +524,7 @@ partial derivative.
 \section{Overview of fundamental class structure}
 
 Many FEniCS users will never directly use FIAT; for them, interaction
-will be moderated through a form compiler such as \texttt{ffc}.
+will be moderated through a form compiler such as FFC.
 Others will want to use the FIAT basis functions in other contexts.
 At a basic level, a user will access FIAT through top-level classes
 such as \( \texttt{Lagrange} \) and \( \texttt{RaviartThomas} \) that
@@ -539,6 +539,8 @@ as a flag indicating the simplex dimension, although a development
 version provides an actual class describing reference element geometry
 and topology.  This will allow future releases of FIAT to be parametrized
 over the particular reference element shape and topology.
+
+\editornote{Is the above note still valid? If so, provide version number instead of ``currently release''.}
 
 The function space \( P \) is modelled by the base class
 \texttt{PolynomialSet}, which contains a rule for constructing the base
