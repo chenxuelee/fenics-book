@@ -46,8 +46,8 @@ vectors. In addition to reduced development time, performance may be
 improved by using code generation since the form compiler can generate
 efficient code for the computation of $A_T$ by using optimization
 techniques that are not readily applicable if the code is developed by
-hand. In Chapters~\ref{chap:kirby-8}, \ref{chap:kirby-4} and
-\ref{chap:oelgaard-2}, two different approaches to the optimized
+hand. In Chapters~\ref{chap:oelgaard-2}, \ref{chap:kirby-8}
+and~\ref{chap:kirby-4}, two different approaches to the optimized
 computation of the element tensor~$A_T$ are presented.
 
 From an input describing a finite element variational problem in
@@ -427,7 +427,12 @@ similar (but simpler) set of stages is used.
     \caption{Form compilation broken into six sequential stages:
       Language, Analysis, Representation, Optimization, Code
       generation and Code Formatting. Each stage generates output
-      based on input from the previous stage.}
+      based on input from the previous stage. The input/output data
+      consist of a UFL form file (in the case of calling FFC from the
+      command-line), a UFL object, a UFL object and metadata computed
+      from the UFL object, an intermediate representation (IR), an
+      optimized intermediate representation (OIR), C++ code and,
+      finally, C++ code files.}
     \label{fig:logg-1:compilerstages}
   \end{center}
 \end{figure}
@@ -654,26 +659,26 @@ return Python modules. Calling the JIT compiler involves calling the
 \emp{jit} function available as part of the FFC Python module:
 %
 \begin{python}
-(compiled_object, compiled_module, form_data) \
+(compiled_object, compiled_module, form_data, prefix) \
     = jit(ufl_object, parameters=None, common_cell=None)
 \end{python}
 where \emp{ufl\_object} is either a \ufl{} form or finite element
 object, \emp{parameters} is an optional dictionary containing form
-compiler parameters and \emp{common\_cell} is an optional argument
-that may be used to specify the cell (interval, triangle or
-tetrahedron) for a form where the cell is not specified as part of the
-form\footnote{This is used by DOLFIN to allow simple specification of
-  expressions such as \emp{f = Expression("sin(x[0])")} where the
-  choice of cell type is not specified as part of the
-  expression.}. The \emp{jit} function returns a tuple, where
-\emp{compiled\_form} is a Python object which wraps either
-\emp{ufc::form} or \emp{ufc::finite\_element} (depending on the type
-of \ufl{} object passed to the form compiler), \emp{compiled\_module}
-is a Python module which wraps all the generated \ufc{} code (this
-includes finite elements, degree of freedom maps, etc.) and
-\emp{form\_data} is a \ufl{} object that contains details of the form
-which has been computed during the code generation, such as the number
-of coefficient functions in a form.
+compiler parameters and \emp{common\_cell} is an optional argument.
+The \emp{common\_cell} argument may be used to specify the cell
+(interval, triangle or tetrahedron) when the cell is not specified as
+part of the form\footnote{This is used by DOLFIN to allow simple
+  specification of expressions such as \emp{f =
+    Expression("sin(x[0])")} where the choice of cell type is not
+  specified as part of the expression.}. The \emp{jit} function
+returns a tuple, where \emp{compiled\_form} is a Python object which
+wraps either \emp{ufc::form} or \emp{ufc::finite\_element} (depending
+on the type of \ufl{} object passed to the form compiler),
+\emp{compiled\_module} is a Python module which wraps all the
+generated \ufc{} code (this includes finite elements, degree of
+freedom maps, etc.), \emp{form\_data} is a \ufl{} object that contains
+form metadata such as the number of coefficient functions in a form,
+and \emp{prefix} is a string identifier for the form.
 
 When the JIT compiler is called, internally \ffc{} generates \ufc{}
 code for the given form or finite element, compiles the generated code
@@ -718,8 +723,7 @@ functions\footnote{The functions are made virtual, but non-abstract to
   ensure backwards compatibility with old generated code.} to the UFC
 interface, which may later be proposed to be included in the next
 stable specification of the UFC interface. Extensions to other
-languages are also possible, but they require that another code
-generation template be used in place of the UFC code generation
+languages are also possible by replacing the UFC code generation
 templates.
 
 %------------------------------------------------------------------------------
