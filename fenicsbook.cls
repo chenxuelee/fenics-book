@@ -1,18 +1,19 @@
 % Basic setup
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{fenicsbook}
-\LoadClass[a4paper,10pt,openright]{book}
-
+\LoadClass[a4paper,10pt,twosize,openright]{book}
 % Page size
 \usepackage[%
   a4paper,
-  layoutsize={193mm,260mm},
-  layoutoffset={8mm},
-  total={157mm,235mm},
-  outer=18mm,top=13mm,
-  includeheadfoot=true,
-  headheight=25pt,
-  showcrop]{geometry}
+  layoutsize={193mm,260mm}, % trim size for T2 book format
+  layouthoffset={8.5mm},    % center on 210 x 297 A4 paper: 0.5*(210 - 193)
+  layoutvoffset={18.5mm},   % center on 210 x 297 A4 paper: 0.5*(297 - 260)
+  includeheadfoot=true,     % include header and footer in body size
+  outer=18mm,               % outer margin
+  top=13mm,                 % top margin
+  bottom=13mm,              % bottom margin
+  showcrop                  % show crop of page
+  ]{geometry}
 
 % Section numbering depth
 \setcounter{secnumdepth}{2}
