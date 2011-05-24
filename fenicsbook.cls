@@ -1,8 +1,18 @@
-% FEniCS book specific setup
+% Basic setup
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesClass{fenicsbook}
+\LoadClass[a4paper,10pt,openright]{book}
 
 % Page size
-\usepackage[a4paper,layoutsize={193mm,260mm},layoutoffset={8mm},total={157mm,235mm},%
-            outer=18mm,top=13mm,includeheadfoot=true,headheight=25pt,showcrop]{geometry}
+\usepackage[%
+  a4paper,
+  layoutsize={193mm,260mm},
+  layoutoffset={8mm},
+  total={157mm,235mm},
+  outer=18mm,top=13mm,
+  includeheadfoot=true,
+  headheight=25pt,
+  showcrop]{geometry}
 
 % Section numbering depth
 \setcounter{secnumdepth}{2}
@@ -24,9 +34,7 @@
 \usepackage[scaled=0.85]{beramono}
 \usepackage[T1]{fontenc}
 \usepackage{textcomp}
-
 \DeclareTextFontCommand{\textsmallcaps}{\scshape}
-
 \RequirePackage{textcase} % provides \MakeTextUppercase and \MakeTextLowercase
 \newcommand{\allcaps}[1]{\allcapsspacing{\MakeTextUppercase{#1}}}
 \newcommand{\smallcaps}[1]{\smallcapsspacing{\MakeTextLowercase{#1}}}
@@ -44,6 +52,7 @@
 
 % Misc packages
 \usepackage{multicol}
+\usepackage{makeidx}
 
 % Bibliography packages
 \usepackage{natbib}
@@ -118,7 +127,6 @@ facing=yes,capbesideposition={top,inside},floatwidth=0.62\textwidth}
 \newcommand{\largefig}{10cm}
 \newcommand{\smallfig}{5cm}
 \newcommand{\fullfig}{14.8cm}
-
 
 % Typesetting macros
 \newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage}
