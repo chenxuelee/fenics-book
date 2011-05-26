@@ -99,9 +99,9 @@ explains briefly how to install the necessary tools.
 Our first example regards the Poisson problem,
 \begin{equation} \label{langtangen:poisson1}
   \begin{split}
-    - \Delta u &= f \quad \mbox{in} \ \Omega,
-\\
-    u &= u_0 \quad \mbox{on} \ \partial \Omega.
+    - \Delta u &= f \quad \mbox{in } \Omega,
+    \\
+    u &= u_0 \quad \mbox{on} \  \partial \Omega.
   \end{split}
 \end{equation}
 Here, $u = u(\langtangenxpoint)$ is the unknown function, $f =
@@ -185,7 +185,7 @@ In the present case, we first multiply the Poisson equation by the test
 function $v$ and integrate:
 \begin{equation}
 \label{langtangen:poisson1:multbyv}
- -\int_\Omega (\Delta u)v \dx = \int_\Omega fv\dx\langtangenep\end{equation}
+ -\int_\Omega (\Delta u)v \dx = \int_\Omega fv\dx.\end{equation}
 Then we apply integration by parts to the integrand with
 second-order derivatives:
 \begin{equation}
@@ -203,7 +203,7 @@ right-hand side of \eqref{langtangen:poisson1:eqbyparts} therefore
 vanishes.  From \eqref{langtangen:poisson1:multbyv} and
 \eqref{langtangen:poisson1:eqbyparts} it follows that
 \begin{equation}
-  \int_\Omega\nabla u\cdot\nabla v\dx = \int_\Omega fv\dx\langtangenep
+  \int_\Omega\nabla u\cdot\nabla v\dx = \int_\Omega fv\dx.
 \label{langtangen:poisson1:weak1}
 \end{equation}
 This equation is supposed to hold for all $v$ in some function space
@@ -247,7 +247,7 @@ problem reads: find $u_h \in V_h \subset V$ such that
 \begin{equation} \label{langtangen:poisson1:vard}
   \int_{\Omega} \nabla u_h \cdot \nabla v \dx =
   \int_{\Omega} fv \dx
-  \quad \foralls v \in \hat{V}_h \subset \hat{V}\langtangenep
+  \quad \foralls v \in \hat{V}_h \subset \hat{V}.
 \end{equation}
 The choice of $V_h$ and $\hat{V}_h$ follows directly from the kind of
 finite elements we want to apply in our problem. For example, choosing
@@ -287,7 +287,7 @@ In the present problem we have that
 \label{langtangen:poisson1:vard:L}
 \end{align}
 From the mathematics literature, $a(u,v)$ is known as a \emph{bilinear
-form} and $L(u)$ as a \emph{linear form}.  We shall in every problem
+form} and $L(v)$ as a \emph{linear form}.  We shall in every problem
 we solve identify the terms with the unknown $u$ and collect them in
 $a(u,v)$, and similarly collect all terms with only known functions
 in $L(v)$. The formulas for $a$ and $L$ are then coded directly in
@@ -376,12 +376,7 @@ quick look at a Python tutorial \citep{PythonTutorial} to pick up the
 basics of Python if you are unfamiliar with the language, or you may
 learn enough Python as you go along with the examples in the present
 tutorial. The latter strategy has proven to work for many newcomers
-to \fenics\footnote{The requirement of using Python and an abstract
-mathematical formulation of the finite element problem may seem difficult
-for those who are unfamiliar with these topics.  However, the amount of
-mathematics and Python that is really demanded to get you productive with
-\fenics{} is quited limited.  And Python is an easy-to-learn language
-that you certainly will love and use far beyond \fenics{} programming.}.
+to \fenics.
 Section~\ref{langtangen:appendix:pybooks} lists some relevant Python
 books.
 
@@ -403,7 +398,8 @@ C++ classes for finite element computing, and \emp{dolfin} is a Python
 package providing access to this C++ library from Python programs.
 You can think of \fenics{} as an umbrella, or project name, for a set
 of computational components, where DOLFIN is one important component for
-writing finite element programs. DOLFIN applies other components in the
+writing finite element programs. The \emp{dolfin} package
+applies other components in the
 \fenics{} suite under the hood, but newcomers to \fenics{} programming
 do not need to care about this.
 
@@ -419,7 +415,8 @@ into two triangles. The total number of triangles then becomes 48. The
 total number of vertices in this mesh is $7\cdot 5=35$.  DOLFIN offers
 some classes for creating meshes over very simple geometries. For domains
 of more complicated shape one needs to use a separate \emph{preprocessor}
-program to create the mesh.  The \fenics{} program will then read the
+program to create the mesh (see Section~\ref{langtangen:prepro}).
+The \fenics{} program will then read the
 mesh from file.
 %We shall come back to this point later in Section~\ref{langtangen:possion:nD:nmat:prepro}.
 
@@ -431,10 +428,10 @@ mesh: \langtangenidx{FunctionSpace}
 The second argument reflects the type of element, while the third
 argument is the degree of the basis functions on the element.
 \index{finite element specifications}\index{CG finite element
-  family}\index{Lagrange finite element family} Here, \emp{"CG"}
-stands for Continuous Galerkin, implying the standard Lagrange family
-of elements.  Instead of \emp{"CG"} we could have written
-\emp{"Lagrange"}.  With degree 1, we simply get the standard linear
+  family}\index{Lagrange finite element family}
+The type of element is here "Lagrange", implying the
+standard Lagrange family of elements (some \fenics{} programs use \emp{'CG'}, for Continuous Galerkin, as a synonym for \emp{'Lagrange'}).
+With degree 1, we simply get the standard linear
 Lagrange element, which is a triangle with nodes at the three
 vertices.  Some finite element practitioners refer to this element as
 the ``linear triangle''.  The computed $u$ will be continuous and
@@ -479,7 +476,8 @@ u0 = Expression(formula)
 where \emp{formula} is a string containing the mathematical
 expression.  This formula is written with C++ syntax (the expression
 is automatically turned into an efficient, compiled C++ function, see
-Section~\ref{langtangen:app:cpp:functions} for details on the syntax). The
+Section~\ref{langtangen:app:cpp:functions} and Chapter~\ref{chap:logg-2}
+for details on the syntax). The
 independent variables in the function expression are supposed to be
 available as a point vector \emp{x}, where the first element \emp{x[0]}
 corresponds to the $x$ coordinate, the second element \emp{x[1]} to
@@ -491,17 +489,20 @@ u0 = Expression("1 + x[0]*x[0] + 2*x[1]*x[1]")
 \end{python}
 
 The information about where to apply the \emp{u0} function as boundary
-condition is coded in a function \emp{boundary}: \index{boundary
+condition is coded in a function \emp{u0\_boundary}: \index{boundary
 specification (function)}
 \begin{python}
 def u0_boundary(x, on_boundary):
     return on_boundary
 \end{python}
 A function like \emp{u0\_boundary} for marking the boundary must return
-a boolean value: \emp{True} if the point \emp{x} lies on the Dirichlet
+a boolean value: \emp{True} if the given point \emp{x} lies on the Dirichlet
 boundary and \emp{False} otherwise.  The argument \emp{on\_boundary}
-is \emp{True} if \emp{x} is on the physical boundary of the mesh,
-so in the present case we can just return \emp{on\_boundary}.  The
+is supplied by DOLFIN and equals
+\emp{True} if \emp{x} is on the physical boundary of the mesh.
+In the present case, where we are supposed to return \emp{True} for all
+points on the boundary, we can just return the supplied value of
+\emp{on\_boundary}.  The
 \emp{u0\_boundary} function will be called for every discrete point in
 the mesh, which allows us to have boundaries where $u$ are known also
 inside the domain, if desired.
@@ -558,7 +559,7 @@ Having \emp{a} and \emp{L} defined, and information about essential
 \begin{python}
 problem = VariationalProblem(a, L, bc)
 \end{python}
-Solving the variational problem for the solution \emp{u} is just a matter
+Solving the variational problem for the unknown \emp{u} is just a matter
 of writing
 \begin{python}
 u = problem.solve()
@@ -578,7 +579,7 @@ simply a \emp{Function} in \fenics{} terminology.  Note that we first
 defined \emp{u} as a \emp{TrialFunction} and used it to specify \emp{a}.
 Thereafter, we redefined \emp{u} to be a \emp{Function} representing the
 computed solution. This redefinition of the variable \emp{u} is possible
-in Python and a programming practice in \fenics{} applications.
+in Python and often done in \fenics{} applications.
 
 The simplest way of quickly looking at \emp{u} and the mesh is to say
 \begin{python}
@@ -636,7 +637,7 @@ extension of our first program is therefore to examine the computed
 values of the solution, which is the focus of the present section.
 
 A finite element function like $u$ is expressed as a linear combination
-of basis functions $\phi_i$, spanning the space $V$:
+of basis functions $\phi_j$, spanning the space $V$:
 \begin{equation}
   \sum_{j=1}^N U_j \phi_j.
 \label{langtangen:poisson1:ufem}
@@ -773,8 +774,8 @@ documentation).
 
 We have seen how to extract the nodal values in a \emp{numpy} array.
 If desired, we can adjust the nodal values too. Say we want to normalize
-the solution such that $\max_j U_j = 1$. Then we must divide all $U_j$
-values by $\max_j U_j$. The following snippet performs the task:
+the solution such that the maximum value is 1. Then we must divide all $U_j$
+values by $\max\{U_1,\ldots,U_N\}$. The following snippet performs the task:
 \begin{python}
 max_u = u_array.max()
 u_array /= max_u
@@ -911,7 +912,7 @@ pressure = "4*exp(-0.5*(pow((%g*x[0] - %g)/%g, 2)) "\
 
 n = 40   # approx no of elements in radial direction
 mesh = UnitCircle(n)
-V = FunctionSpace(mesh, "CG", 1)
+V = FunctionSpace(mesh, "Lagrange", 1)
 
 # Define boundary condition w=0
 
@@ -988,7 +989,7 @@ u/\partial x$ of the gradient, we project the (discrete) derivative
 $\sum_jU_j{\partial \phi_j/\partial x}$ onto another function space
 with basis $\bar\phi_1,\bar\phi_2,\ldots$ such that the derivative in
 this space is expressed by the standard sum $\sum_j\bar U_j\bar \phi_j$,
-for suitable (new) coefficients $\bar U_j$.}, using the the same elements
+for suitable (new) coefficients $\bar U_j$.}, using the same elements
 for the components of $w$ as we used for $u$.
 
 The variational problem for $w$ reads: find $w\in \Vg$ such that
@@ -1013,7 +1014,7 @@ piecewise linear functions.
 The variational problem for the vector field $w$, called \emp{gradu}
 in the code, is easy to solve in \fenics:
 \begin{python}
-V_g = VectorFunctionSpace(mesh, "CG", 1)
+V_g = VectorFunctionSpace(mesh, "Lagrange", 1)
 w = TrialFunction(V_g)
 v = TestFunction(V_g)
 
@@ -1039,7 +1040,7 @@ can visualize such a vector field.
   \end{center}
 \end{figure}
 
-The scalar component fields of the gradient can be extracted as separated
+The scalar component fields of the gradient can be extracted as separate
 fields and, e.g., visualized:
 \begin{python}
 gradu_x, gradu_y = gradu.split(deepcopy=True)  # extract components
@@ -1085,7 +1086,7 @@ is a very common step in finite element programs, so the formation and
 solution of a variational problem for $w$ as shown above can be replaced
 by a one-line call:\langtangenidx{project}\index{projection}
 \begin{python}
-gradu = project(grad(u), VectorFunctionSpace(mesh, "CG", 1))
+gradu = project(grad(u), VectorFunctionSpace(mesh, "Lagrange", 1))
 \end{python}
 The \emp{project} function can take an expression involving some finite
 element function in some space and project the expression onto another
@@ -1105,7 +1106,7 @@ functionals of $u$, for example,
   \frac{1}{2} ||\nabla u||^2 \equiv \frac{1}{2}\int_\Omega \nabla u\cdot \nabla u\dx,
 \label{langtangen:poisson1:functionals:energy}
 \end{equation}
-which often reflects the some energy quantity.  Another frequently
+which often reflects some energy quantity.  Another frequently
 occurring functional is the error
 \begin{equation}
   ||u_e-u|| = \left(\int_\Omega (u_e-u)^2\dx\right)^{1/2},
@@ -1134,8 +1135,9 @@ E = assemble(energy)
 \end{python}
 The \emp{assemble} call performs the integration.  It is possible to
 restrict the integration to subdomains, or parts of the boundary,
-by using a mesh function to mark the subdomains as explained
-in Section~\ref{langtangen:poisson:mat:neumann}.  The program
+by using a mesh function to mark the subdomains (this technique will be
+explained
+in Section~\ref{langtangen:poisson:mat:neumann}).  The program
 \emp{membrane2.py} carries out the computation of the elastic energy
 \begin{equation}
    \frac{1}{2}||T\nabla D||^2 = \frac{1}{2}\left(\frac{AR}{8\pi\sigma}\right)^2
@@ -1184,7 +1186,7 @@ More accurate representation of the exact solution is easily achieved by
 interpolating the formula onto a space defined by higher-order elements,
 say of third degree:
 \begin{python}
-Ve = FunctionSpace(mesh, "CG", degree=3)
+Ve = FunctionSpace(mesh, "Lagrange", degree=3)
 u_e = interpolate(u_exact, Ve)
 error = (u - u_e)**2*dx
 E = sqrt(assemble(error))
@@ -1239,9 +1241,9 @@ the original program, and collect the computations in a function:
 \begin{python}
 def compute(nx, ny, polynomial_degree):
     mesh = UnitSquare(nx, ny)
-    V = FunctionSpace(mesh, "CG", degree=polynomial_degree)
+    V = FunctionSpace(mesh, "Lagrange", degree=polynomial_degree)
     ...
-    Ve = FunctionSpace(mesh, "CG", degree=3)
+    Ve = FunctionSpace(mesh, "Lagrange", degree=3)
     E = errornorm(u_exact, u, Ve)
     return E
 \end{python}
@@ -1306,11 +1308,12 @@ implies interpolating \emp{u\_exact} onto the same space as \emp{u},
 results in $r=4$ (!). This is an example where it is important to
 interpolate \emp{u\_exact} to a higher-order space (polynomials of
 degree 3 are sufficient here) to avoid computing a too optimistic
-convergence rate. Looking at the error in the degrees of freedom
-(\emp{u.vector().array()}) reveals a convergence rate of $r=4$ for
-second-degree elements. For elements of polynomial degree 3 all the rates
-are $r=4$, regardless of whether we choose a ``fine'' space \emp{Ve}
-with polynomials of degree 3 or~5.
+convergence rate.
+%Looking at the error in the degrees of freedom
+%(\emp{u.vector().array()}) reveals a convergence rate of $r=4$ for
+%second-degree elements. For elements of polynomial degree 3 all the rates
+%are $r=4$, regardless of whether we choose a ``fine'' space \emp{Ve}
+%with polynomials of degree 3 or~5.
 
 Running the program for third-degree elements results in the expected
 value~$r=4$:
@@ -1450,7 +1453,7 @@ boundary-value problem can be written as
 \\
   u &= u_0 \mbox{ on } \Gamma_D,
 \\
-  -\frac{\partial u}{\partial n} &=& g \mbox{ on } \Gamma_N.
+  -\frac{\partial u}{\partial n} &= g \mbox{ on } \Gamma_N.
 \end{align}
 Again we choose $u=1+x^2 + 2y^2$ as the exact solution and adjust $f$,
 $g$, and $u_0$ accordingly:
@@ -1473,7 +1476,7 @@ and $y=1$. One possible extension is
 
 The first task is to derive the variational problem. This time we cannot
 omit the boundary term arising from the integration by parts, because $v$
-is only zero at the $\Gamma_D$. We have
+is only zero on $\Gamma_D$. We have
 \begin{equation}
  -\int_\Omega (\Delta u)v \dx
 = \int_\Omega\nabla u\cdot\nabla v\dx
@@ -1486,12 +1489,12 @@ and since $v=0$ on $\Gamma_D$,
 - \int_{\Gamma_N} \frac{\partial u}{\partial n}v\ds
 = \int_{\Gamma_N}gv\ds,
 \end{equation}
-by applying the boundary condition at $\Gamma_N$.  The resulting weak
+by applying the boundary condition on $\Gamma_N$.  The resulting weak
 form reads
 \begin{equation}
 \int_{\Omega} \nabla u \cdot \nabla v \dx +
 \int_{\Gamma_N} gv\ds
-= \int_{\Omega} fv \dx\langtangenep
+= \int_{\Omega} fv \dx.
 \label{langtangen:poisson:2D:DN:weak}
 \end{equation}
 Expressing \eqref{langtangen:poisson:2D:DN:weak} in the standard notation
@@ -1573,7 +1576,7 @@ The PDE problem from the previous section applies a function $u_0(x,y)$
 for setting Dirichlet conditions at two parts of the boundary.
 Having a single function to set multiple Dirichlet conditions is seldom
 possible. The more general case is to have $m$ functions for setting
-Dirichlet conditions at $m$ parts of the boundary. The purpose of this
+Dirichlet conditions on $m$ parts of the boundary. The purpose of this
 section is to explain how such multiple conditions are treated in FEniCS
 programs.
 
@@ -1730,24 +1733,34 @@ if mesh.num_cells() < 16:
     print b.array()
 \end{python}
 
-Sometimes it can be handy to transfer the linear system to MATLAB or
-Octave for further analysis, e.g., computation of eigenvalues of $A$.
-This is easily done by opening a \emp{File} object with a filename
-extension \emp{.m} and dump the \emp{Matrix} and \emp{Vector} objects
-as follows:\langtangenidx{File}
+With access to the elements in \emp{A} as a \emp{numpy} array we can easily
+do computations on this matrix, such as computing the eigenvalues
+(using the \emp{numpy.linalg.eig} function). We can alternatively dump
+the matrix to file in MATLAB format and invoke MATLAB or Octave to
+perform computations:
+\langtangenidx{File}
 \begin{python}
 mfile = File("A.m"); mfile << A
-mfile = File("b.m"); mfile << b
 \end{python}
 The data files \emp{A.m} and \emp{b.m} can be loaded directly into MATLAB
-or Octave.
+or Octave. The file extension \emp{.m} ensures that \emp{A}
+is dumped to file in MATLAB format.
+
+Matrix processing in Python or MATLAB/Octave is only feasible for
+small PDE problems since the \emp{numpy} arrays or matrices in MATLAB
+file format are dense matrices. DOLFIN also has an interface to the
+eigensolver package SLEPc, which is a preferred tool for computing the
+eigenvalues of large, sparse matrices of the type encountered in PDE
+problems (see \emp{demo/la/eigenvalue} in the DOLFIN source code tree for
+a demo).
+
 
 The complete code where our Poisson problem is solved by forming
 the linear system $AU=b$ explicitly, is stored in the files
 \emp{Poisson2D\_DN\_la1.py} (one common Dirichlet condition) and
 \emp{Poisson2D\_DN\_la2.py} (two separate Dirichlet conditions).
 
-Creating the linear system explicitly in the user's program, as an
+Creating the linear system explicitly in a program, as an
 alternative to using a \emp{VariationalProblem} object, can have some
 advantages in more advanced problem settings. For example, $A$ may
 be constant throughout a time-dependent simulation, so we can avoid
@@ -1774,9 +1787,9 @@ as in the boundary-value problem
 \begin{equation} \label{langtangen:poisson:2D:varcoeff}
   \begin{split}
     - \nabla\cdot \left\lbrack
-p(x,y)\nabla u(x,y)\right\rbrack &= f(x,y)  \quad \mbox{in } \Omega,
-\\
-    u(x,y) &= u_0(x,y) \quad \mbox{on} \  \partial\Omega\langtangenep
+p(x,y)\nabla u(x,y)\right\rbrack &= f(x,y) \quad \mbox{in } \Omega,
+    \\
+    u(x,y) &= u_0(x,y) \quad \mbox{on}\  \partial\Omega.
   \end{split}
 \end{equation}
 We shall quickly demonstrate that this simple extension of our model
@@ -1854,7 +1867,7 @@ except that $p$ enters the integral in $L$.
 
 The relevant Python statements for computing the flux field take the form
 \begin{python}
-V_g = VectorFunctionSpace(mesh, "CG", 1)
+V_g = VectorFunctionSpace(mesh, "Lagrange", 1)
 w = TrialFunction(V_g)
 v = TestFunction(V_g)
 
@@ -1863,11 +1876,12 @@ L = inner(-p*grad(u), v)*dx
 problem = VariationalProblem(a, L)
 flux = problem.solve()
 \end{python}
-The convenience function \emp{project} was made to condense the frequently
+The convenience function \emp{project} was implemented
+to condense the frequently
 occurring statements above:
 \begin{python}
 flux = project(-p*grad(u),
-               VectorFunctionSpace(mesh, "CG", 1))
+               VectorFunctionSpace(mesh, "Lagrange", 1))
 \end{python}
 
 Plotting the flux vector field is naturally as easy as plotting
@@ -1933,7 +1947,7 @@ Section~\ref{langtangen:possion:2D:varcoeff} and map \emp{u} onto a
 \begin{python}
 from scitools.BoxField import *
 u2 = u if u.ufl_element().degree() == 1 else \
-     interpolate(u, FunctionSpace(mesh, "CG", 1))
+     interpolate(u, FunctionSpace(mesh, "Lagrange", 1))
 u_box = dolfin_function2BoxField(u2, mesh, (nx,ny), uniform_mesh=True)
 \end{python}
 Note that the function
@@ -2082,7 +2096,7 @@ line $y=1/2$ with the exact flux:
 \begin{python}
 ev.figure()
 flux2_x = flux_x if flux_x.ufl_element().degree() == 1 else \
-    interpolate(flux_x, FunctionSpace(mesh, "CG", 1))
+    interpolate(flux_x, FunctionSpace(mesh, "Lagrange", 1))
 flux_x_box = dolfin_function2BoxField(flux2_x, mesh, (nx,ny),
                                       uniform_mesh=True)
 x, fluxval, y_fixed, snapped = \
@@ -2191,7 +2205,7 @@ divisions = [int(arg) for arg in sys.argv[2:]]
 d = len(divisions)
 domain_type = [UnitInterval, UnitSquare, UnitCube]
 mesh = domain_type[d-1](*divisions)
-V = FunctionSpace(mesh, "CG", degree)
+V = FunctionSpace(mesh, "Lagrange", degree)
 \end{python}
 First note that although \emp{sys.argv[2:]} holds the divisions of
 the mesh, all elements of the list \emp{sys.argv[2:]} are string objects,
@@ -2261,7 +2275,7 @@ Now we shall address how to solve nonlinear PDEs in \fenics. Our
 sample PDE for implementation is taken as a nonlinear Poisson
 equation:
 \begin{equation}
--\nabla\cdot\left( q(u)\nabla u\right) = f\langtangenep
+-\nabla\cdot\left( q(u)\nabla u\right) = f.
 \end{equation}
 The coefficient $q(u)$ makes the equation nonlinear (unless $q(u)$
 is a constant).
@@ -2274,7 +2288,7 @@ $x_0=1$, and $\partial u/\partial n=0$ at all other boundaries $x_i=0$
 and $x_i=1$, $i=1,\ldots,d-1$. The coordinates are now represented by
 the symbols $x_0,\ldots,x_{d-1}$. The exact solution is then
 \begin{equation}
-u(x_0,\ldots,x_d) = \left((2^{m+1}-1)x_0 + 1\right)^{1/(m+1)} - 1\langtangenep
+u(x_0,\ldots,x_d) = \left((2^{m+1}-1)x_0 + 1\right)^{1/(m+1)} - 1.
 \end{equation}
 
 The variational formulation of our model problem reads:
@@ -2308,7 +2322,7 @@ of $u$, \eqref{langtangen:poisson:nonlinear:d} gives rise to a system
 of nonlinear algebraic equations.  From now on the interest is only in
 the discrete problem, and as mentioned in
 Section~\ref{langtangen:poisson1:varform}, we simply write $u$ instead
-of $u_h$ to get a closer notation between the mathematics and the
+of $u_h$ to get a closer resemblance in notation between the mathematics and the
 Python code. When the exact solution needs to be distinguished, we
 denote it by $u_e$.
 
@@ -2362,7 +2376,7 @@ with
 \begin{equation}
 \label{langtangen:poisson:nonlinear:picard3}
 \tilde F(u^{k+1}; v) = \int_\Omega q(u^k)\nabla u^{k+1}\cdot \nabla v\dx
-\langtangenep
+.
 \end{equation}
 Since this is a linear problem in the unknown $u^{k+1}$, we can equivalently
 use the formulation
@@ -2456,7 +2470,7 @@ and $v=\hat\phi_i$ in \eqref{langtangen:poisson:nonlinear:d}):
 F_i(U_1,\ldots,U_N) \equiv
 \sum_{j=1}^N
 \int_\Omega \left( q\left(\sum_{\ell=1}^NU_\ell\phi_\ell\right)
-\nabla \phi_j U_j\right)\cdot \nabla \hat\phi_i\dx = 0,\quad i=1,\ldots,N\langtangenep
+\nabla \phi_j U_j\right)\cdot \nabla \hat\phi_i\dx = 0,\quad i=1,\ldots,N.
 \end{equation}
 Newton's method for the system $F_i(U_1,\ldots,U_j)=0$, $i=1,\ldots,N$
 can be formulated as
@@ -2486,14 +2500,14 @@ The derivative $\partial F_i/\partial U_j$ becomes
 q\left(\sum_{\ell=1}^NU_\ell^k\phi_\ell\right)
 \nabla \phi_j \cdot \nabla \hat\phi_i
 \right\rbrack
-\dx\langtangenep
+\dx.
 \label{langtangen:poisson:nonlinear:dFdU}
 \end{equation}
 The following results were used to obtain \eqref{langtangen:poisson:nonlinear:dFdU}:
 \begin{equation}
 \frac{\partial u}{\partial U_j} = \frac{\partial}{\partial U_j}
 \sum_{j=1}^NU_j\phi_j = \phi_j,\quad \frac{\partial}{\partial U_j}\nabla u
-      = \nabla\phi_j,\quad \frac{\partial}{\partial U_j}q(u) = q'(u)\phi_j\langtangenep
+      = \nabla\phi_j,\quad \frac{\partial}{\partial U_j}q(u) = q'(u)\phi_j.
 \end{equation}
 We can reformulate the Jacobian matrix
 in \eqref{langtangen:poisson:nonlinear:dFdU} by introducing the short
@@ -2507,7 +2521,7 @@ q'(u^k)\phi_j
 q(u^k)
 \nabla \phi_j \cdot \nabla \hat\phi_i
 \right\rbrack
-\dx\langtangenep
+\dx.
 \end{equation}
 In order to make \fenics{} compute this matrix, we need to formulate a
 corresponding variational problem. Looking at the
@@ -2529,7 +2543,7 @@ q(u^k)
 \nabla \delta u\cdot \nabla v
 \right\rbrack
 \dx = - \int_\Omega q(u^k)
-\nabla u^k\cdot \nabla v \dx\langtangenep
+\nabla u^k\cdot \nabla v \dx.
 \end{equation}
 Equation \eqref{langtangen:nonlinear:Newton:aLF} fits the standard form
 $a(\delta u,v)=L(v)$ with
@@ -2673,7 +2687,7 @@ we get
 \[
 \nabla\cdot\left( q(u^k)\nabla u^k\right) +
 \nabla\cdot\left( q(u^k)\nabla\delta u\right) +
-\nabla\cdot\left( q'(u^k)\delta u\nabla u^k\right) = 0\langtangenep
+\nabla\cdot\left( q'(u^k)\delta u\nabla u^k\right) = 0.
 \]
 We may collect the terms with the unknown $\delta u$ on the left-hand side,
 \begin{equation}
@@ -2688,7 +2702,7 @@ by parts:
 \int_\Omega \left(
 q(u^k)\nabla\delta u\cdot \nabla v
 + q'(u^k)\delta u\nabla u^k\cdot \nabla v\right)\dx
-= -\int_\Omega q(u^k)\nabla u^k\cdot \nabla v\dx\langtangenep
+= -\int_\Omega q(u^k)\nabla u^k\cdot \nabla v\dx.
 \end{equation}
 The variational problem reads: find $\delta u\in V$ such that
 $a(\delta u,v) = L(v)$ for all $v\in \hat V$, where
@@ -2746,7 +2760,7 @@ computation of nonlinear, stationary boundary-value problems.
 The automation is demonstrated next. A nonlinear variational
 problem \eqref{langtangen:poisson:nonlinear1} can be solved by
 \begin{python}
-VariationalProblem(J, F, bc, nonlinear=True)
+VariationalProblem(J, F, bc)
 \end{python}
 where \emp{F} corresponds to the nonlinear form $F(u;v)$ and
 \emp{J} is a form for the derivative of \emp{F}.
@@ -2837,7 +2851,7 @@ implies lengthy calculations.
 The solution of the nonlinear problem is now a question of two statements:
 \index{nonlinear variational problems}
 \begin{python}
-problem = VariationalProblem(J, F, bc, nonlinear=True)
+problem = VariationalProblem(J, F, bc)
 u = problem.solve(u)
 \end{python}
 The \emp{u} we feed to \emp{problem.solve} is filled with the solution
@@ -2907,7 +2921,7 @@ integer counting time levels. For example, $u^k$ means $u$ at time
 level $k$.  A finite difference discretization in time first consists
 in sampling the PDE at some time level, say $k$:
 \begin{equation}
-  \frac{\partial}{\partial t}u^k = \Delta u^k + f^k\langtangenep
+  \frac{\partial}{\partial t}u^k = \Delta u^k + f^k.
 \label{langtangen:diffusion:pde1:tk}
 \end{equation}
 The time-derivative can be approximated by a finite difference.
@@ -2922,7 +2936,7 @@ where ${\dt}$ is the time discretization parameter.
 Inserting \eqref{langtangen:diffusion:BE} in \eqref{langtangen:diffusion:pde1:tk}
 yields
 \begin{equation}
-  \frac{u^k - u^{k-1}}{\dt} = \Delta u^k + f^k\langtangenep
+  \frac{u^k - u^{k-1}}{\dt} = \Delta u^k + f^k.
 \label{langtangen:diffusion:pde1:BE}
 \end{equation}
 This is our time-discrete version of the diffusion PDE \eqref{langtangen:diffusion:pde1}.
@@ -2977,7 +2991,7 @@ at time $t_{k-1}$.
 
 Note that the forms $a_0$ and $L_0$ are identical to the forms met in
 Section~\ref{langtangen:poisson:gradu}, except that the test and trial
-functions are now scalar fields and not a vector fields.  Instead of
+functions are now scalar fields and not vector fields.  Instead of
 solving \eqref{langtangen:diffusion:pde1:u0} by a finite element method;
 that is, projecting $I$ onto $V$ via the problem $a_0(u,v)=L_0(v)$, we
 could simply interpolate $u^0$ from $I$. That is, if $u^0=\sum_{j=1}^N
@@ -3332,7 +3346,7 @@ $\partial P/\partial t=Q(t)$ is discretized as
 \end{equation}
 where $\theta\in[0,1]$ is a weighting factor: $\theta =1$
 corresponds to the backward difference scheme, $\theta =1/2$ to the
-Crank-Nicolson scheme, and $\theta =0$ to a forward difference scheme.
+Crank--Nicolson scheme, and $\theta =0$ to a forward difference scheme.
 The $\theta$-scheme applied to our PDE results in
 \begin{equation}
 \varrho c \frac{T^k-T^{k-1}}{\dt} =
@@ -3373,7 +3387,7 @@ elif d == 2:
 elif d == 3:
     mesh = Box(-W/2, -W/2, -D, W/2, W/2, 0,
                divisions[0], divisions[1], divisions[2])
-V = FunctionSpace(mesh, "CG", degree)
+V = FunctionSpace(mesh, "Lagrange", degree)
 \end{python}
 The \emp{Rectangle} and \emp{Box} objects are defined by the coordinates
 of the ``minimum'' and ``maximum'' corners.
@@ -3614,7 +3628,7 @@ When direct solver is chosen, there is similarly a submenu
 parameter is available (since direct solvers very seldom have any
 adjustable parameters). For nonlinear problems there is also submenu
 \emp{"newton\_solver"} where tolerances, maximum iterations, and so on,
-for a the Newton solver in \emp{VariationalProblem} can be set.
+for the Newton solver in \emp{VariationalProblem} can be set.
 
 A complete list of all parameters and their default values is printed
 to the screen by\langtangenidx{info}
@@ -3625,7 +3639,7 @@ info(problem.parameters, True)
 \subsection{Solve function}
 \langtangenidx{solve(A, x, b)}
 
-For the \emp{solve(A, U, b)} approach, a 4th argument to \emp{solve}
+For the \emp{solve(A, U, b)} approach, a fourth argument to \emp{solve}
 determines the type of method:
 \begin{itemize}
 \item \emp{"lu"} for a sparse direct (LU decomposition) method,
@@ -3639,7 +3653,7 @@ the GMRES iterative method, which is applicable when \emp{A} is nonsymmetric,
 The default solver is \emp{"lu"}.
 
 Good performance of an iterative method requires preconditioning of
-the linear system. The 5th argument to \emp{solve} determines the
+the linear system. The fifth argument to \emp{solve} determines the
 preconditioner:
 \begin{itemize}
 \item \emp{"none"} for no preconditioning.
@@ -3655,7 +3669,7 @@ with the ML package from Trilinos (if available),
 \item \emp{"default\_pc"} for a default preconditioner, which depends
 on the linear algebra backend (\emp{"ilu"} for PETSc).
 \end{itemize}
-If the 5th argument is not provided, \emp{"ilu"} is taken as the default
+If the fifth argument is not provided, \emp{"ilu"} is taken as the default
 preconditioner.
 
 Here are some sample calls to \emp{solve} demonstrating the choice of
@@ -3905,7 +3919,7 @@ in a pure rectangle.
 \index{heterogeneous media}\index{multi-material domain}
 
 Solving PDEs in domains made up of different materials is a frequently
-encountered task. In \fenics, this kind of problems are handled by
+encountered task. In \fenics, these kind of problems are handled by
 defining subdomains inside the domain. The subdomains may represent
 the various materials. We can thereafter define material properties
 through functions, known in \fenics{} as \emph{mesh functions}, that are
@@ -3992,7 +4006,7 @@ differs by a factor of 10.
 \subsection{Implementation}
 \label{langtangen:possion:2D:2mat:impl}
 
-The new functionality in this subsection regards how to to define
+The new functionality in this subsection regards how to define
 the subdomains $\Omega_0$ and $\Omega_1$. For this purpose we need to
 use subclasses of class \emp{SubDomain}, \index{boundary specification
 (class)} not only plain functions as we have used so far for specifying
@@ -4021,8 +4035,8 @@ boundary = Boundary()
 bc = DirichletBC(V, Constant(0), boundary)
 \end{python}
 
-A subclass of \emp{SubDomain} with an \emp{inside} method gives access to
-more functionality for marking parts of the domain or the boundary. Now
+A subclass of \emp{SubDomain} with an \emp{inside} method offers
+functionality for marking parts of the domain or the boundary. Now
 we need to define one class for the subdomain $\Omega_0$ where $y\leqslant
 1/2$ and another for the subdomain $\Omega_1$ where $y\geqslant 1/2$:
 \begin{python}
@@ -4051,7 +4065,7 @@ as $0,1,2,\ldots$.
 %as \emph{enum} types).}.
 
 A \emp{MeshFunction} is a discrete function that can be evaluated at a
-set of so-called \emph{mesh entities}. Three mesh entities are cells,
+set of so-called \emph{mesh entities}. Examples on mesh entities are cells,
 facets, and vertices. A \emp{MeshFunction} over cells is suitable
 to represent subdomains (materials), while a \emp{MeshFunction} over
 facets is used to represent pieces of external or internal boundaries.
@@ -4355,43 +4369,48 @@ Many more topics could be treated in a \fenics{} tutorial, e.g., how to
 solve systems of PDEs, how to work with mixed finite element methods,
 how to create more complicated meshes and mark boundaries, and how to
 create more advanced visualizations.  However, to limit the size of this
-tutorial, the examples end here.  There are, fortunately, a rich set of
-examples coming with the DOLFIN source code. Go to \emp{dolfin/demo}. The
-subdirectory \emp{pde} contains many examples on solving PDEs:
-\begin{itemize}
-  \item the advection-diffusion equation (\emp{advection-diffusion}),
+tutorial, the examples end here.
+There are, fortunately, a rich set of FEniCS demos.
+The FEniCS documentation explains a collection of PDE solvers in detail:
+the Poisson equation, the mixed formulation for the Poission equation,
+the Biharmonic equation, the equations of hyperelasticity, the
+Cahn-Hilliard equation, and the incompressible Navier-Stokes equations.
+Both Python and C++ versions of these solvers are explained.
+An eigenvalue solver is also documented.
+In the \emp{dolfin/demo} directory of the DOLFIN source code tree you can
+find programs for these and many other examples, including
+the advection-diffusion equation,
+the equations of elastodynamics,
+a reaction-diffusion equation,
+various finite element methods for the Stokes problem,
+discontinuous Galerkin methods for
+the Poisson and advection-diffusion equations,
+and an eigenvalue problem arising from electromagnetic waveguide
+problem with \nedelec{} elements.
+There are also numerous demos on how to apply various functionality in
+FEniCS, e.g., mesh refinement and error control,
+moving meshes (for ALE methods),
+computing functionals over subsets of the mesh (such as
+lift and drag on bodies in flow), and
+creating separate subdomain meshes from a parent mesh.
 
-  \item the Cahn-Hilliard equation (\emp{cahn-hilliard}),
+The project cbc.solve (\emp{https://launchpad.net/cbc.solve})
+offers more complete PDE solvers for the Navier-Stokes equations
+(Chapter~\ref{chap:selim}),
+the equations of hyperelasticity (Chapter~\ref{chap:narayanan}),
+fluid-structure interaction (Chapter~\ref{chap:selim}),
+viscous mantle flow (Chapter~\ref{vynnytska}), and the
+bidomain model of electrophysiology.
+Another project,
+cbc.rans (\emp{https://launchpad.net/cbc.rans}), offers an
+environment for very flexible and easy implementation of
+systems of nonlinear PDEs in general, and
+a collection of Navier-Stokes solvers and turbulence models in particular
+\cite{Mortensen2011,Mortensen2011b}. For example, cbc.rans contains
+an elliptic relaxation model for turbulent flow involving 18 nonlinear PDEs.
+FEniCS proved to be
+an ideal environment for implementing such complicated PDE models.
 
-  \item the equation of linear elasticity (\emp{elasticity}) and
-  hyperelasticity (\emp{hyperelasticity}),
-
-  \item the Poisson equation with a variable tensor coefficient
-  (\emp{tensor-weighted-poisson}),
-
-  \item mixed finite elements for the Poisson
-  equation (\emp{mixed-poisson}),
-
-  \item the Stokes problem of fluid flow (\emp{stokes}),
-
-  \item an eigenvalue problem arising from electromagnetic waveguide
-  problem with \nedelec{} elements.
-\end{itemize}
-Moreover, the \emp{dg} subdirectory contains demonstrations of applying
-discontinuous Galerkin methods to the advection-diffusion, Poisson, and
-Biharmonic equations.  There also exists an example on how to compute
-functionals over subsets of the mesh (\emp{lift-drag}).
-
-The \emp{demo/mesh} directory contains examples on moving a mesh
-(\emp{ale}), computing intersections (\emp{intersection}), mesh refinement
-(\emp{refinement}), and creating separate subdomain meshes from a common
-parent mesh (\emp{submesh}).
-
-The \emp{cbc.solve} suite of applications is under development and
-will contain Navier--Stokes solvers and large-strain elasticity solvers.
-The \emp{cbc.rans} suite will in particular contain several Navier--Stokes
-solvers in combination with a range of PDEs arising in various turbulence
-models.
 
 \section{Miscellaneous topics}
 
@@ -4468,7 +4487,7 @@ cells of triangular shape.\gln
 of simple geometric shape, see Section~\ref{langtangen:prepro}.\gln
 
 \emp{FunctionSpace(mesh, element\_type, degree)}: a function space defined
-over a mesh, with a given element type (e.g., \emp{"CG"} or \emp{"DG"}),
+over a mesh, with a given element type (e.g., \emp{"Lagrange"} or \emp{"DG"}),
 with basis functions as polynomials of a specified degree.\gln
 
 \emp{Expression(formula)}: a scalar- or vector-valued function, given as a
@@ -4521,9 +4540,7 @@ objects.\gln
 \emp{VariationalProblem(a, L, bc)}: define and solve a variational
 problem, given a bilinear (\emp{a}) and linear (\emp{L}) form,
 written with UFL syntax, and one or more \emp{DirichletBC} objects
-stored in \emp{bc}.  A 4th argument, \emp{nonlinear=True}, can
-be given to define and solve nonlinear variational problems (see
-Section~\ref{langtangen:nonlinear:Newton:auto}).\gln
+stored in \emp{bc}.  \gln
 
 \emp{solve(A, U, b)}: solve a linear system with \emp{A} as coefficient
 matrix (\emp{Matrix} object), \emp{U} as unknown (\emp{Vector} object),
