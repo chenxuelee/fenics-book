@@ -6,9 +6,10 @@
 \newcommand{\rognesc}{c}
 \newcommand{\rognestriang}{\mathcal{T}}
 
-\newcommand{\rognescg}{\mathrm{CG}}
-\newcommand{\rognesrt}{\mathrm{RT}}
-\newcommand{\rognesdg}{\mathrm{DG}}
+\newcommand{\rognesvectorcg}[2]{[\mathrm{CG}_{#1}]^{#2}}
+\newcommand{\rognescg}[1]{\mathrm{CG}_{#1}}
+\newcommand{\rognesrt}[1]{\mathrm{RT}_{#1}}
+\newcommand{\rognesdg}[1]{\mathrm{DG}_{#1}}
 \newcommand{\rognesascot}{ASCoT}
 \newcommand{\rognespython}{python}
 
@@ -34,19 +35,19 @@ saddle point problems on the other hand, stability may be a nontrivial
 affair. Indeed, the mixed finite element spaces must usually be
 carefully chosen. The stability theory for mixed finite element
 discretizations originates from the work of \citet{Babuvska1972/73}
-and \citet{Brezzi1974} in the early
-1970's. Brezzi established two conditions ensuring the stability of a
-mixed finite element discretization of a canonical saddle point
-problem.  Since then, many papers (and books) have been devoted to the
-identification and construction of specific stable mixed finite
-elements for specific saddle point
-problems~\citep{ArnoldFalkWinther2006, BrezziDouglasMarini1985,
-  BrezziFalk1991, BrezziFortin1991, RaviartThomas1977,
-  TaylorHood1973}. Some of the analytical results are well known, such
-as the stability of the Taylor--Hood elements for the Stokes
-equations~\citep{BrezziFalk1991, Stenberg1984, TaylorHood1973}.
-Others, such as the reduced stability of the $\rognescg_1^2 \times
-\rognesdg_0$ elements on criss-cross triangulations for the mixed
+and \citet{Brezzi1974} in the early 1970's. Brezzi established two
+conditions ensuring the stability of a mixed finite element
+discretization of a canonical saddle point problem.  Since then, many
+papers (and books) have been devoted to the identification and
+construction of specific stable mixed finite elements for specific
+saddle point problems~\citep{ArnoldFalkWinther2006,
+BrezziDouglasMarini1985, BrezziFalk1991, BrezziFortin1991,
+RaviartThomas1977, TaylorHood1973}. Some of the analytical results are
+well known, such as the stability of the Taylor--Hood elements for the
+Stokes equations~\citep{BrezziFalk1991, Stenberg1984, TaylorHood1973}.
+Others, such as the reduced stability of the
+$\rognesvectorcg{1}{2} \times
+\rognesdg{0}$ elements on criss-cross triangulations for the mixed
 Laplacian~\citep{BoffiBrezziGastaldi2000}, may be less so.
 
 The goal of this chapter is to demonstrate that the process of
@@ -55,15 +56,14 @@ automated. For a given discretization, the Brezzi constants are
 computable through a set of eigenvalue problems. These eigenvalue
 problems have previously been used to numerically study the stability
 of certain discretizations~\citep{ArnoldRognes2009, ChapelleBathe1993,
-  Qin1994}. However, automation of this task has not been previously
+Qin1994}. However, automation of this task has not been previously
 considered in the literature. A secondary aim is to show that the
 automation process is fairly easy given a software framework
 supporting the following components: a suitable range of different
 finite element spaces, easy support of bilinear forms defining
 equations and inner products, and finally, a linear algebra backend
 with support for generalized, possibly singular, eigenvalue
-problems. The components of the \fenics{} project
-provide these tools.
+problems. The components of the \fenics{} project provide these tools.
 
 An automated stability tester provides several advantages. First, the
 notion of saddle point stability goes from something rather abstract
@@ -75,7 +75,7 @@ properties depending on the tessellation structure. In particular,
 this framework has been used to study the stability properties of
 Lagrange elements for the mixed Laplacian~\citep{ArnoldRognes2009}.
 
-This paper is organized as follows. For motivational purposes, a
+This chapter is organized as follows. For motivational purposes, a
 simple example illustrating the importance of discrete stability is
 presented in Section~\ref{rognes:sec:motivation}. The subsequent two
 sections summarize the discrete stability theory of \babuska{} and
@@ -84,8 +84,8 @@ through a set of eigenvalue problems. In
 Section~\ref{rognes:sec:automation}, a strategy for the automation of
 numerical stability testing is presented. In particular, a
 light-weight python module, \rognesascot{}~\citep{Rognes2009},
-constructed on top of DOLFIN~\citep{LoggWells2010}, is
-described. This module is freely available as a \fenics{} Application
+constructed on top of DOLFIN~\citep{LoggWells2010}, is described. This
+module is freely available as a \fenics{} Application
 at \url{https://launchpad.net/ascot}. The use and capabilities of this
 framework are demonstrated when applied to two classical examples: the
 mixed Laplacian and the Stokes equations in
@@ -156,32 +156,28 @@ variable $u_h$ is highly oscillatory,
 see~Figure~\ref{rognes:fig:example}\subref{rognes:fig:cg}, and hence
 it is a poor approximation to the correct solution.
 \begin{figure}
-  \begin{center}
-    \subfloat[Bad approximation]{
-      \label{rognes:fig:cg}
-      \includegraphics[width=0.46\textwidth]{chapters/rognes/pdf/CG.pdf}
+  \begin{center} \subfloat[Bad
+    approximation]{ \label{rognes:fig:cg} \includegraphics[width=0.46\textwidth]{chapters/rognes/pdf/CG.pdf}
+    } \subfloat[Good
+    approximation]{ \label{rognes:fig:rt} \includegraphics[width=0.46\textwidth]{chapters/rognes/pdf/RT.pdf}
     }
-    \subfloat[Good approximation]{
-      \label{rognes:fig:rt}
-      \includegraphics[width=0.46\textwidth]{chapters/rognes/pdf/RT.pdf}
-      }
     \caption{The scalar variable approximation $u_h$ for two choices
-      of mixed finite element spaces for the mixed Laplacian. The data
-      are as defined immediately above~\eqref{rognes:eq:mixedlaplace}.
-      The element spaces are $\rognescg_1^2 \times \rognesdg_0$
-      in~\subref{rognes:fig:cg} and $\rognesrt_1 \times \rognesdg_0$
-      in~\subref{rognes:fig:rt}. (The scales are less relevant for the
-      current purpose and have therefore been omitted.)}
-    \label{rognes:fig:example}
-  \end{center}
+    of mixed finite element spaces for the mixed Laplacian. The data
+    are as defined immediately above~\eqref{rognes:eq:mixedlaplace}.
+    The element spaces are $\rognesvectorcg{1}{2} \times \rognesdg{0}$
+    in~\subref{rognes:fig:cg} and $\rognesrt{1} \times \rognesdg{0}$
+    in~\subref{rognes:fig:rt}. (The scales are less relevant for the
+    current purpose and have therefore been
+    omitted.)}  \label{rognes:fig:example} \end{center}
 \end{figure}
 
-The above two alternatives give unsatisfactory results because
-the discretizations defined by the element spaces are both
-unstable. A stable low order element pairing is the combination of
-the lowest order Raviart--Thomas elements and the space of piecewise
-constants~\citep{RaviartThomas1977}. The corresponding $u_h$ approximation
-is plotted in Figure~\ref{rognes:fig:example}\subref{rognes:fig:rt}. This
+The above two alternatives give unsatisfactory results because the
+discretizations defined by the element spaces are both unstable. A
+stable low order element pairing is the combination of the lowest
+order Raviart--Thomas elements and the space of piecewise
+constants~\citep{RaviartThomas1977}. The corresponding $u_h$
+approximation is plotted in
+Figure~\ref{rognes:fig:example}\subref{rognes:fig:rt}. This
 approximation looks qualitatively correct.
 
 The reason for the instabilities of the first two choices, and the
@@ -207,9 +203,9 @@ Brezzi1974, BrezziFortin1991}.
 For a Hilbert space $W$, we denote the norm on $W$ by
 $\|\cdot\|_{W}$ and the inner product by $\langle \cdot, \cdot
 \rangle_{W}$. Assume that $\rognesc$ is a symmetric, bilinear
-form on $W$ and that $L$ is a continuous, linear form on
-$W$. We will consider the following canonical variational
-problem: find $u \in W$ such that
+form on $W$ and that $L$ is a continuous, linear form on $W$. We will
+consider the following canonical variational problem: find $u \in W$
+such that
 \begin{equation}
   \label{rognes:eq:canonical}
   \rognesc(u, v) = L(v) \quad \foralls v \in W.
@@ -244,9 +240,9 @@ solving~\eqref{rognes:eq:canonical}~\citep{Babuvska1972/73}.
 \index{LBB conditions}
 
 Now, we turn to consider discretizations
-of~\eqref{rognes:eq:canonical}. Let $W_h \subset W$ be a
-finite dimensional subspace, and consider the discrete problem: find
-$u_h \in W_h$ such that
+of~\eqref{rognes:eq:canonical}. Let $W_h \subset W$ be a finite
+dimensional subspace, and consider the discrete problem: find $u_h \in
+W_h$ such that
 \begin{equation}
   \label{rognes:eq:discrete}
   \rognesc(u_h, v) = L(v) \quad \foralls v \in W_h.
@@ -270,8 +266,8 @@ of $h$~\citep{Babuvska1972/73}.
 
 The condition~\eqref{rognes:eq:infsup:discrete} has a simple
 interpretation in the linear algebra perspective. Taking a basis
-$\{\phi_i \}_{i=1}^n$ for $W_h$, in combination with the Ansatz
-$u_h = u_j \phi_j$, we obtain the standard matrix formulation
+$\{\phi_i \}_{i=1}^n$ for $W_h$, in combination with the Ansatz $u_h =
+u_j \phi_j$, we obtain the standard matrix formulation
 of~\eqref{rognes:eq:discrete}:
 \begin{equation}
   C_{ij} u_j = L(\phi_i) \quad i = 1, \dots, n,
@@ -311,8 +307,8 @@ q)\|_{W} = \|v\|_{V} + \|q\|_{Q}$, and label
 \begin{equation}
   c((u, p), (v, q)) = a(u, v) + b(v, p) + b(u, q).
 \end{equation}
-Assuming that the condition~\eqref{rognes:eq:infsup} is satisfied,
-the above system admits a unique solution $(u, p) \in V \times Q$.
+Assuming that the condition~\eqref{rognes:eq:infsup} is satisfied, the
+above system admits a unique solution $(u, p) \in V \times Q$.
 
 As in the general case, we aim to
 discretize~\eqref{rognes:eq:saddlepoint}, but now using a pair of
@@ -336,8 +332,8 @@ we define the \babuska{} constant $\gamma_h$:
     (\|v\|_{V} + \|q\|_{Q})}
 \end{equation}
 In particular, the discrete problem is well-posed if the \babuska{}
-stability condition holds; namely, if $\gamma_h \geqslant \gamma_0 > 0$ for
-any $h > 0$.
+stability condition holds; namely, if $\gamma_h \geqslant \gamma_0 >
+0$ for any $h > 0$.
 \index{\babuska{} condition}
 
 %%% --------------------------------------------------------------
@@ -377,11 +373,11 @@ In summary, these conditions enable a concise characterization of the
 stability of discretizations of saddle point problems.
 \begin{definition}
   \label{rognes:def:stable}
-  A family of finite element discretizations $\{V_h \times Q_h\}_h$ is
-  \emph{stable in $V \times Q$} if the Brezzi coercivity and inf-sup
-  constants $\{ \alpha_h \}_h $ and $\{ \beta_h \}_h$ (or equivalently
-  the \babuska{} inf-sup constants $\{ \gamma_h \}_h$) are bounded
-  from below by a positive constant independent of $h$.
+  A family of finite element discretizations $\{V_h \times Q_h\}_h$
+  is \emph{stable in $V \times Q$} if the Brezzi coercivity and
+  inf-sup constants $\{ \alpha_h \}_h $ and $\{ \beta_h \}_h$ (or
+  equivalently the \babuska{} inf-sup constants $\{ \gamma_h \}_h$)
+  are bounded from below by a positive constant independent of $h$.
 \end{definition}
 Throughout this chapter, the term \emph{a family of discretizations}
 refers to a collection of finite element discretizations parametrized
@@ -400,13 +396,12 @@ $V_h \times Q_h$, we can define the space of spurious modes $N_h
 \end{equation}
 It can be shown that the Brezzi inf-sup constant is positive if and
 only if there are no nontrivial spurious modes; that is, if $N_h = \{
-0 \}$~\citep{Qin1994}.  On the other hand, if $N_h$ is
-nontrivial, one may, loosely speaking, think of the space $Q_h$ as a
-bit too large.  In that case, it may be natural to replace $Q_h$ by
-the reduced space $N_h^{\perp}$, the orthogonal complement of $N_h$ in
-$Q_h$. This idea motivates the definition of the reduced Brezzi
-inf-sup constant, relating to the stability of $V_h \times
-N_h^{\perp}$:
+0 \}$~\citep{Qin1994}. On the other hand, if $N_h$ is nontrivial, one
+may, loosely speaking, think of the space $Q_h$ as a bit too large.
+In that case, it may be natural to replace $Q_h$ by the reduced space
+$N_h^{\perp}$, the orthogonal complement of $N_h$ in $Q_h$. This idea
+motivates the definition of the reduced Brezzi inf-sup constant,
+relating to the stability of $V_h \times N_h^{\perp}$:
 \begin{equation}
   \label{rognes:eq:reduced:infsup}
   \tilde \beta_h =
@@ -423,13 +418,12 @@ filtration of the spurious modes.
 \begin{definition}
   \label{rognes:def:reduced_stable}
   A family of discretizations $\{V_h \times Q_h\}_h$ is \emph{reduced
-    stable in $V \times Q$} if the Brezzi coercivity constants
-  $\{\alpha_h\}_h$ and the reduced Brezzi inf-sup constants $\{ \tilde
-  \beta_h \}_h$ are bounded from below by a positive constant
-  independent of $h$.
+  stable in $V \times Q$} if the Brezzi coercivity constants
+  $\{\alpha_h\}_h$ and the reduced Brezzi inf-sup constants
+  $\{ \tilde \beta_h \}_h$ are bounded from below by a positive
+  constant independent of $h$.
 \end{definition}
 \index{Reduced discrete stability}
-
 
 \section{Eigenvalue problems associated with saddle point stability}
 
@@ -471,8 +465,8 @@ satisfying
 For the spaces $V_h$ and $Q_h$, a basis is normally known. For $Z_h$
 however, this is usually not the case. (If it had been, the space
 $Z_h$ might have been better to compute with in the first place.)
-Therefore, the eigenvalue problem~\eqref{rognes:eq:eigenvalue:kernel} is not
-that easily constructed in practice.
+Therefore, the eigenvalue problem~\eqref{rognes:eq:eigenvalue:kernel}
+is not that easily constructed in practice.
 
 Instead, one may consider an alternative generalized eigenvalue
 problem: find $0 \not = (u_h, p_h) \in V_h \times Q_h$ and $\lambda
@@ -484,9 +478,9 @@ problem: find $0 \not = (u_h, p_h) \in V_h \times Q_h$ and $\lambda
 It can be shown that the smallest in modulus eigenvalue of the above
 eigenvalue problem and the smallest in modulus eigenvalue
 of~\eqref{rognes:eq:eigenvalue:kernel}
-agree~\citep{ArnoldRognes2009}. Therefore $\alpha_h = |\lambda_{\min}|$
-when $\lambda_{\min}$ is the smallest in modulus eigenvalue
-of~\eqref{rognes:eq:eigenvalue:coercivity}. The eigenvalue
+agree~\citep{ArnoldRognes2009}. Therefore $\alpha_h =
+|\lambda_{\min}|$ when $\lambda_{\min}$ is the smallest in modulus
+eigenvalue of~\eqref{rognes:eq:eigenvalue:coercivity}. The eigenvalue
 problem~\eqref{rognes:eq:eigenvalue:coercivity} involves the spaces
 $V_h$ and $Q_h$ and is therefore more tractable. One word of caution
 however: if there exists a $q \in Q_h$ such that $b(v, q) = 0$ for all
@@ -496,7 +490,7 @@ problem~\eqref{rognes:eq:eigenvalue:coercivity} is ill-posed if such
 $q$ exists. The case where such $q$ exists is precisely the case where
 the Brezzi inf-sup constant is zero.
 
-Finally, the Brezzi inf-sup constant $\beta_h$ is the square-root of
+Finally, the Brezzi inf-sup constant $\beta_h$ is the square root of
 the smallest eigenvalue $\lambda_{\min}$ of the following eigenvalue
 problem~\citep{Malkus1981, Qin1994}: find $0 \not = (u_h, p_h) \in V_h
 \times Q_h$ and $\lambda \in \R$ satisfying
@@ -505,10 +499,10 @@ problem~\citep{Malkus1981, Qin1994}: find $0 \not = (u_h, p_h) \in V_h
   \langle u_h, v \rangle_{V} + b(v, p_h) + b(u_h, q) = - \lambda
   \langle p_h, q \rangle_{Q}
 \end{equation}
-The eigenvalues of~\eqref{rognes:eq:eigenvalue:infsup} are all non-negative.
-Any eigenvector associated with a zero eigenvalue corresponds to a
-spurious mode. Further, the square-root of the smallest non-zero
-eigenvalue will be the reduced Brezzi inf-sup
+The eigenvalues of~\eqref{rognes:eq:eigenvalue:infsup} are all
+non-negative. Any eigenvector associated with a zero eigenvalue
+corresponds to a spurious mode. Further, the square root of the
+smallest non-zero eigenvalue will be the reduced Brezzi inf-sup
 constant~\citep{Qin1994}.
 
 \section{Automating the stability testing}
@@ -516,11 +510,12 @@ constant~\citep{Qin1994}.
 
 The mathematical framework is now in place. For a given variational
 formulation, given inner product(s), and a family of function spaces,
-the eigenvalue problem~\eqref{rognes:eq:eigenvalue:babuska}
-or the problems~\eqref{rognes:eq:eigenvalue:coercivity}
-and~\eqref{rognes:eq:eigenvalue:infsup} can be used to numerically check
-stability. The eigenvalue problem~\eqref{rognes:eq:eigenvalue:infsup}
-applied to the Stokes equations was used in this context by
+the eigenvalue problem~\eqref{rognes:eq:eigenvalue:babuska} or the
+problems~\eqref{rognes:eq:eigenvalue:coercivity}
+and~\eqref{rognes:eq:eigenvalue:infsup} can be used to numerically
+check stability. The eigenvalue
+problem~\eqref{rognes:eq:eigenvalue:infsup} applied to the Stokes
+equations was used in this context by
 \citet{Qin1994} and \citet{ChapelleBathe1993}. A fully automated approach
 has not been previously available though. This is perhaps not so strange,
 as an automated approach would be rather challenging to implement within
@@ -543,8 +538,9 @@ testing of stability relies on the following input.
 \item A family of finite element function spaces $\{W_h\}_h = \{V_h
   \times Q_h \}_h$ parametrized over the mesh size $h$.
 \end{itemize}
-We pause to remark that since~\eqref{rognes:eq:saddlepoint} is a special case
-of the canonical form~\eqref{rognes:eq:canonical}, one may consider the
+We pause to remark that since~\eqref{rognes:eq:saddlepoint} is a
+special case of the canonical form~\eqref{rognes:eq:canonical}, one
+may consider the
 \babuska{} constant only. However, for the analysis of saddle point
 problems, the separate behavior of the individual Brezzi constants
 may be interesting. For this reason, we focus on the Brezzi stability
@@ -560,7 +556,8 @@ above information, one can proceed in the following steps
   eigenvalues corresponding to the Brezzi constants.
 \item Based on the behavior of the Brezzi constants with respect to
   $h$, the discretization family should be classified,
-  see~Definitions~\ref{rognes:def:stable} and~\ref{rognes:def:reduced_stable}, as
+  see~Definitions~\ref{rognes:def:stable}
+  and~\ref{rognes:def:reduced_stable}, as
   \begin{enumerate}
   \item Stable
   \item Unstable
@@ -579,9 +576,10 @@ be imported as any \rognespython{} module:
   from ascot import *
 \end{python}
 The remainder of this section describes how the afore described
-strategy is implemented in \rognesascot{}. Emphasis is placed on the form of
-the input, the construction and solving of the eigenvalue problems,
-and the classification of stability based on the stability constants.
+strategy is implemented in \rognesascot{}. Emphasis is placed on the
+form of the input, the construction and solving of the eigenvalue
+problems, and the classification of stability based on the stability
+constants.
 
 Before continuing however, it is necessary to point out a limitation
 of the numerical testing. The mathematical definition of stability is
@@ -589,17 +587,16 @@ indeed based on taking the limit as $h \rightarrow 0$. However, it is
 hardly feasible to examine an infinite family of function spaces
 $\{W_h\}_{h \in \R^{+}}$ numerically. In practice, one can only
 consider a finite set of spaces $\{W_{h_i}\}_{i \in (0, \dots,
-  N)}$. Therefore, this strategy can only give numerical evidence,
-which must be interpreted using appropriate heuristics.
+N)}$. Therefore, this strategy can only give numerical evidence, which
+must be interpreted using appropriate heuristics.
 
 \subsection{Defining input}
 \label{rognes:subsec:input}
 
 \rognesascot{} relies on the variational form language defined by \ufl{} and
-DOLFIN for the specification of forms, inner products and
-function spaces.  In order to illustrate, we take the discrete mixed
-Laplacian introduced in~\eqref{rognes:eq:mixedlaplace:discrete} as an
-example.
+DOLFIN for the specification of forms, inner products and function
+spaces.  In order to illustrate, we take the discrete mixed Laplacian
+introduced in~\eqref{rognes:eq:mixedlaplace:discrete} as an example.
 
 First and foremost, consider the specification of the forms $a$ and
 $b$. Recall that discrete saddle point stability is not a property
@@ -619,8 +616,9 @@ $b$ read $a = a(u, v) = \langle u, v \rangle$ and $b = b(v, q) =
 \end{python}
 The above format is advantageous as it separates the definition of the
 forms from the function spaces. Hence, the user needs not specify
-basis functions on each of the separate function spaces: \rognesascot{}
-handles the initialization of the appropriate basis functions.
+basis functions on each of the separate function
+spaces: \rognesascot{} handles the initialization of the appropriate
+basis functions.
 
 Second, the inner products $\langle \cdot, \cdot \rangle_V$ and
 $\langle \cdot, \cdot \rangle_Q$ must be provided. The inner products
@@ -638,8 +636,8 @@ corresponding code reads
 Third, the function spaces have to be specified. In particular, a list
 of function spaces corresponding to a set of meshes should be defined.
 For the testing of the mixed function space consisting of continuous
-piecewise linear vector fields $\rognescg_1^2$, combined with
-continuous piecewise linears $\rognescg_1$, for a set of diagonal
+piecewise linear vector fields $\rognesvectorcg{1}{2}$, combined with
+continuous piecewise linears $\rognescg{1}$, for a set of diagonal
 triangulations of the unit square, one can do as follows:
 \begin{python}
   # Construct a family of mixed function spaces
@@ -653,14 +651,14 @@ increases with the number of meshes and their refinement level.
 
 The stability of the above can now be tested. The main entry point
 function provided by \rognesascot{} is \emp{test\_stability}. This
-function takes three arguments: a (list of) forms, a (list of) inner
+function takes three arguments: a list of forms, a list of inner
 products and a list of function spaces:
 \begin{python}
   result = test_stability((a, b), (Hdiv, L2), W_hs)
 \end{python}
-A \emp{StabilityResult} is returned.  The instructions carried out
-by this function and the properties of the \emp{StabilityResult}
-are described in the subsequent paragraphs.
+A \emp{StabilityResult} is returned.  The instructions carried out by
+this function and the properties of the \emp{StabilityResult} are
+described in the subsequent paragraphs.
 
 \subsection{Constructing and solving eigenvalue problems}
 
@@ -674,16 +672,15 @@ functionality for the computation of these constants: the functions
 \emp{compute\_brezzi\_infsup}.
 
 Let us take a closer look at the implementation
-of \emp{compute\_brezzi\_infsup}. The input consists of
-the form $b$, the inner products $(m, n)$, and a function space $W_h$
-(and optionally, an essential boundary
-condition \emp{bc}). The aim is to construct the
-eigenvalue problem given by~\eqref{rognes:eq:eigenvalue:infsup} and
-then solve this problem efficiently. To accomplish this, the basis
-functions on the function space $W_h$ are defined first. The left and
-right-hand sides of the eigenvalue problems are specified through the
-forms defined by~\eqref{rognes:eq:eigenvalue:infsup}. These forms are
-sent to an
+of \emp{compute\_brezzi\_infsup}. The input consists of the form $b$,
+the inner products $(m, n)$, and a function space $W_h$ (and
+optionally, an essential boundary condition \emp{bc}). The aim is to
+construct the eigenvalue problem given
+by~\eqref{rognes:eq:eigenvalue:infsup} and then solve this problem
+efficiently. To accomplish this, the basis functions on the function
+space $W_h$ are defined first. The left and right-hand sides of the
+eigenvalue problems are specified through the forms defined
+by~\eqref{rognes:eq:eigenvalue:infsup}. These forms are sent to an
 \emp{EigenProblem}, and the resulting eigenvalues are then
 used to initialize an \emp{InfSupConstant}. The
 \emp{InfSupConstant} class is a part of the
@@ -730,17 +727,18 @@ singular, however the left-hand side matrix may be.
 
 \slepc{} provides a collection of eigenvalue solvers that can handle
 generalized, possibly singular eigenvalue
-problems~\citep{HernandezRomanVidal2005, HernandezRomanRomeroEtAl2009}. The type
-of eigenvalue solver can be specified through the \dolfin{} parameter
-interface. For our purposes, two solver types are particularly
-relevant: the LAPACK and the Krylov-Schur solvers.  The LAPACK solver
-is a direct method. This solver is very robust. However, it computes
-all of the eigenvalues, and it is thus only suited for relatively
-small problems. In contrast, the Krylov-Schur method offers the
-possibility of only computing a given number of eigenvalues. Since the
-Brezzi constants are related to the eigenvalue closest to zero, it
-seems meaningful to only compute the eigenvalue of smallest
-magnitude. This solver is therefore set as the default solver type in
+problems~\citep{HernandezRomanVidal2005,
+HernandezRomanRomeroEtAl2009}. The type of eigenvalue solver can be
+specified through the \dolfin{} parameter interface. For our purposes,
+two solver types are particularly relevant: the LAPACK and the
+Krylov-Schur solvers.  The LAPACK solver is a direct method. This
+solver is very robust. However, it computes all of the eigenvalues,
+and it is thus only suited for relatively small problems. In contrast,
+the Krylov-Schur method offers the possibility of only computing a
+given number of eigenvalues. Since the Brezzi constants are related to
+the eigenvalue closest to zero, it seems meaningful to only compute
+the eigenvalue of smallest magnitude. This solver is therefore set as
+the default solver type in
 \rognesascot. Unfortunately, the Krylov-Schur solver is less robust
 for singular problems: it may fail to converge. A partial remedy may
 be to apply a shift-and-invert spectral transform with an appropriate
@@ -759,25 +757,25 @@ and interpret the behavior of the stability constants:
 \emp{InfSupConstant}, \emp{InfSupCollection} and
 \emp{StabilityResult}.
 
-An \emp{InfSupConstant} represents a single inf-sup
-constant. It is initialized using a mesh size $h$, a set of values,
-and an optional operator. The values typically correspond to the
-computed eigenvalues. If supplied, the operator is applied to the
-eigenvalues.  For instance, \rognesascot{} supplies a square-root operator
-when computing the Brezzi inf-sup constant. The object can return the
+An \emp{InfSupConstant} represents a single inf-sup constant. It is
+initialized using a mesh size $h$, a set of values, and an optional
+operator. The values typically correspond to the computed
+eigenvalues. If supplied, the operator is applied to the eigenvalues.
+For instance, \rognesascot{} supplies a square root operator when
+computing the Brezzi inf-sup constant. The object can return the
 inf-sup constant and, if computed, the reduced inf-sup constant and
 the number of zero eigenvalues. The latter two items are most useful
 for careful analysis purposes.
 
 A collection of \emp{InfSupConstant}s forms
-an \emp{InfSupCollection}. An \emp{InfSupCollection}'s
-main purpose is to identify whether or not the stability condition
-associated with the inf-sup constants holds. The
-method \emp{is\_stable} returns a boolean answer. The
-stability condition will not hold if any of the inf-sup constants is
-zero, and it will probably not hold if the inf-sup constants seem to
-decay with the mesh size $h$.  The rate of decay $r_i$ between two
-subsequent constants $c_i$ and $c_{i+1}$ is defined as:
+an \emp{InfSupCollection}. An \emp{InfSupCollection}'s main purpose is
+to identify whether or not the stability condition associated with the
+inf-sup constants holds. The method \emp{is\_stable} returns a boolean
+answer. The stability condition will not hold if any of the inf-sup
+constants is zero, and it will probably not hold if the inf-sup
+constants seem to decay with the mesh size $h$.  The rate of decay
+$r_i$ between two subsequent constants $c_i$ and $c_{i+1}$ is defined
+as:
 \begin{equation}
   r_i = \frac{\log_2(c_i) - \log_2(c_{i+1})}{\log_2(h_i) -
     \log_2(h_{i+1})}
@@ -788,13 +786,12 @@ classifies a discretization as stable if there are no singularities
 $1$ and consistently decrease, or the rate corresponding to the finest
 mesh is less than a heuristically chosen small number.
 
-Finally, the \emp{StabilityResult} class holds a list of
-possibly several \emp{InfSupCollections}, each
-corresponding to a separate inf-sup condition, such as the Brezzi
-coercivity and the Brezzi inf-sup condition. The
-\emp{StabilityResult} identifies a discretization as
-stable if all stability conditions are satisfied, and as unstable
-otherwise.
+Finally, the \emp{StabilityResult} class holds a list of possibly
+several \emp{InfSupCollections}, each corresponding to a separate
+inf-sup condition, such as the Brezzi coercivity and the Brezzi
+inf-sup condition. The \emp{StabilityResult} identifies a
+discretization as stable if all stability conditions are satisfied,
+and as unstable otherwise.
 
 \section{Examples}
 \label{rognes:sec:examples}
@@ -811,8 +808,8 @@ available from the demo directory of the \rognesascot{} module.
 We can now return to the mixed Laplacian example described in
 Section~\ref{rognes:sec:motivation} and inspect the Brezzi stability
 properties of the element spaces involved, namely
-$\rognescg_1^2 \times \rognescg_1$, $\rognescg_1^2
-\times \rognesdg_0$ and $\rognesrt_1 \times \rognesdg_0$. The
+$\rognesvectorcg{1}{2} \times \rognescg{1}$, $\rognesvectorcg{1}{2}
+\times \rognesdg{0}$ and $\rognesrt{1} \times \rognesdg{0}$. The
 example considered a family of diagonal triangulations of the unit
 square. The complete code required to test the stability of the first
 discretization family was presented piecewise in
@@ -907,8 +904,8 @@ rates  =         [5.6e-11, 1.39e-08, 1.64e-08, 2.24e-07]
 is indeed proven so \citep{RaviartThomas1977}. The Brezzi coercivity
 constant is equal to $1$ for all meshes tested and hence bounded from
 below. The Brezzi inf-sup constant definitely seems to be bounded from
-below. (The constant will actually converge to the value $\sqrt{2} \pi
-(1 + 2 \pi^2)^{-1/2}$, see \citep{ArnoldRognes2009}.)  The satisfactory
+below. The constant will actually converge to the value $\sqrt{2} \pi
+(1 + 2 \pi^2)^{-1/2}$, see \citep{ArnoldRognes2009}.  The satisfactory
 result observed in
 Figure~\ref{rognes:fig:example}\subref{rognes:fig:rt} is thus
 agreement with the general theory.
@@ -936,16 +933,17 @@ rates  =         [0.00288, 0.00106, 0.000543, 0.000328]
 \end{python}
 For this mesh family, the Brezzi inf-sup constants are zero and thus
 the method is singular. (In fact, there are $n^2$ spurious modes for
-this element on this mesh \citep{Qin1994}.) However, the reduced Brezzi
-inf-sup constants seem to be bounded from below, and so the method
-could theoretically be stabilized by a removal of the spurious
+this element on this mesh \citep{Qin1994}.) However, the reduced
+Brezzi inf-sup constants seem to be bounded from below, and so the
+method could theoretically be stabilized by a removal of the spurious
 modes. For a careful study of the stability of Lagrange elements for
-the mixed Laplacian on various mesh families, see \citet{ArnoldRognes2009}.
+the mixed Laplacian on various mesh families,
+see \citet{ArnoldRognes2009}.
 
 The results may be more different than illustrated above. A truly
 stable method will be stable for any admissible tessellation family,
-but there are methods that are stable on some mesh families, but not in
-general.  Therefore, if determining whether a mixed element is
+but there are methods that are stable on some mesh families, but not
+in general.  Therefore, if determining whether a mixed element is
 appropriate or not, the discretization should be tested on more than a
 single mesh family.
 
@@ -1018,23 +1016,23 @@ result in the list of mixed elements summarized in
 Figure~\ref{rognes:fig:stokeslist}. The first item on this list is the
 lowest order Taylor--Hood element, while the third and sixth items are
 the next elements of the Taylor--Hood family:
-$\rognescg_{k+1}^2 \times \rognescg_{k}$ for $k \geqslant
+$\rognesvectorcg{k+1}{2} \times \rognescg{k}$ for $k \geqslant
 1$. These mixed elements are indeed stable for any family of
 tessellations consisting of more than three
 triangles \citep{TaylorHood1973, Stenberg1984, BrezziFalk1991}. The
 seventh item on the list is the
-$\rognescg_2^2 \times \rognesdg_0$
+$\rognesvectorcg{2}{2} \times \rognesdg{0}$
 element \citep{CrouzeixRaviart1973}, while the 9'th and 12'th item are
-the next order elements of the $\rognescg_{k+1}^2 \times
-\rognesdg_{k-1}$ family, which again is truly stable for $k \geqslant
-1$. The 13'th item on this list, $\rognescg_4^2 \times
-\rognesdg_3$ is the lowest order Scott--Vogelius element. This element
+the next order elements of the $\rognesvectorcg{k+1}{2} \times
+\rognesdg{k-1}$ family, which again is truly stable for $k \geqslant
+1$. The 13'th item on this list, $\rognesvectorcg{4}{2} \times
+\rognesdg{3}$ is the lowest order Scott--Vogelius element. This element
 is the lowest order element of the Scott--Vogelius family
-$\rognescg_{k}^2 \times \rognesdg_{k-1}$ for $k \geqslant 4$. Note that
-these elements for $k = 1, 2, 3$ are not on the list --- as they
-should not: these lower order mixed elements are indeed unstable on
-this tessellation family \citep{Qin1994}. The stability of the
-remaining elements follow from the previous results: if the Brezzi
+$\rognesvectorcg{k}{2} \times \rognesdg{k-1}$ for $k \geqslant
+4$. Note that these elements for $k = 1, 2, 3$ are not on the list ---
+as they should not: these lower order mixed elements are indeed
+unstable on this tessellation family \citep{Qin1994}. The stability of
+the remaining elements follow from the previous results: if the Brezzi
 inf-sup condition holds for a family $\{V_h \times Q_h\}$, by
 definition it will also hold for the families $\{V_h \times P_h\}$ for
 $P_h \subseteq Q_h$.
@@ -1042,29 +1040,29 @@ $P_h \subseteq Q_h$.
   \begin{center}
     \begin{minipage}[t]{0.3\linewidth}
       \begin{enumerate}
-      \item $\rognescg_2^2 \times \rognescg_1$
-      \item $\rognescg_3^2 \times \rognescg_1$
-      \item $\rognescg_3^2 \times \rognescg_2$
-      \item $\rognescg_4^2 \times \rognescg_1$
-      \item $\rognescg_4^2 \times \rognescg_2$
+      \item $\rognesvectorcg{2}{2} \times \rognescg{1}$
+      \item $\rognesvectorcg{3}{2} \times \rognescg{1}$
+      \item $\rognesvectorcg{3}{2} \times \rognescg{2}$
+      \item $\rognesvectorcg{4}{2} \times \rognescg{1}$
+      \item $\rognesvectorcg{4}{2} \times \rognescg{2}$
       \end{enumerate}
     \end{minipage}
     \begin{minipage}[t]{0.3\linewidth}
       \begin{enumerate}
         \setcounter{enumi}{5}
-      \item $\rognescg_4^2 \times \rognescg_3$
-      \item $\rognescg_2^2 \times \rognesdg_0$
-      \item $\rognescg_3^2 \times \rognesdg_0$
-      \item $\rognescg_3^2 \times \rognesdg_1$
+      \item $\rognesvectorcg{4}{2} \times \rognescg{3}$
+      \item $\rognesvectorcg{2}{2} \times \rognesdg{0}$
+      \item $\rognesvectorcg{3}{2} \times \rognesdg{0}$
+      \item $\rognesvectorcg{3}{2} \times \rognesdg{1}$
       \end{enumerate}
       \end{minipage}
     \begin{minipage}[t]{0.3\linewidth}
       \begin{enumerate}
         \setcounter{enumi}{9}
-      \item $\rognescg_4^2 \times \rognesdg_0$
-      \item $\rognescg_4^2 \times \rognesdg_1$
-      \item $\rognescg_4^2 \times \rognesdg_2$
-      \item $\rognescg_4^2 \times \rognesdg_3$
+      \item $\rognesvectorcg{4}{2} \times \rognesdg{0}$
+      \item $\rognesvectorcg{4}{2} \times \rognesdg{1}$
+      \item $\rognesvectorcg{4}{2} \times \rognesdg{2}$
+      \item $\rognesvectorcg{4}{2} \times \rognesdg{3}$
       \end{enumerate}
     \end{minipage}
   \end{center}
