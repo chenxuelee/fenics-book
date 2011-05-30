@@ -9,6 +9,7 @@
   layouthoffset={8.5mm},    % center on 210 x 297 A4 paper: 0.5*(210 - 193)
   layoutvoffset={18.5mm},   % center on 210 x 297 A4 paper: 0.5*(297 - 260)
   includeheadfoot=true,     % include header and footer in body size
+  inner=18mm,               % inner margin (``gutter'')
   outer=18mm,               % outer margin
   top=13mm,                 % top margin
   bottom=13mm,              % bottom margin
