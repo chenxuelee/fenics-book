@@ -1,7 +1,7 @@
 % Basic setup
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{fenicsbook}
-\LoadClass[a4paper,10pt,twosize,openright]{book}
+\LoadClass[a4paper,10pt,twoside,openright]{book}
 % Page size
 \usepackage[%
   a4paper,
