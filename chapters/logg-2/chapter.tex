@@ -302,11 +302,11 @@ solver.set_operator(A);
 solver.solve(x, b);
 \end{c++}
 %
-\begin{c++}
+\begin{python}
 solver = LUSolver()
 solver.set_operator(A)
 solver.solve(x, b)
-\end{c++}
+\end{python}
 %
 This can be useful when passing a linear solver via a function
 interface and setting the operator inside a function.
@@ -1869,19 +1869,24 @@ L = dot(f, v)*dx + dot(g, v)*ds
 To specify that the boundary integral \emp{dot(g, v)*ds} should only
 be evaluated along the Neumann boundary $\Gamma_{\mathrm{N}}$, one
 must specify which part of the boundary is included in the \emp{ds}
-integral. An easy way to accomplish this is to specify~\emp{g} in such
-a way that it is zero on the Neumann boundary. In cases where this is
-not convenient, one must instead specify the Neumann boundary in terms
-of a \emp{FacetFunction}. This \emp{FacetFunction} must specify for
-each facet of the \emp{Mesh} to which part of the boundary it
-belongs. For the current example, an appropriate strategy is to mark
-each facet on the Neumann boundary by~\emp{0} and all other facets
-(including facets internal to the domain) by~\emp{1}. This can be
-accomplished in a number of different ways. One simple way to do this
-is to use the program \citet{www:meshbuilder} and graphically mark the
-facets of the \emp{Mesh}. Another option is through the DOLFIN class
+integral. If there is only one Neumann boundary, then one may simply
+write the \emp{ds} integral as an integral over the entire boundary,
+including the Dirichlet boundary as the test function \emp{v} will be
+set to zero along the Dirichlet boundary.
+
+In cases where there is more than one Neumann boundary condition, one
+must instead specify the Neumann boundary in terms of a
+\emp{FacetFunction}. This \emp{FacetFunction} must specify for each
+facet of the \emp{Mesh} to which part of the boundary it belongs. For
+the current example, an appropriate strategy is to mark each facet on
+the Neumann boundary by~\emp{0} and all other facets (including facets
+internal to the domain) by~\emp{1}. This can be accomplished in a
+number of different ways. One simple way to do this is to use the
+program \citet{www:meshbuilder} and graphically mark the facets of the
+\emp{Mesh}. Another option is through the DOLFIN class
 \emp{SubDomain}. The following code illustrates how to mark all
-boundary facets to the left of $x = 0.5$ as the Neumann boundary. Note
+boundary facets to the left of $x = 0.5$ as the first Neumann boundary and
+all other boundary facets as the second Neumann boundary. Note
 the use of the \emp{on\_boundary} argument supplied by DOLFIN to the
 \emp{inside} function. This argument informs whether a point is
 located on the boundary $\partial\Omega$ of $\Omega$, and this allows
@@ -1915,22 +1920,21 @@ exterior_facet_domains = FacetFunction("uint", mesh)
 exterior_facet_domains.set_all(1)
 neumann_boundary.mark(exterior_facet_domains, 0)
 \end{python}
-%%
+%
+When combined with integrals defined using \emp{ds(0)} and
+\emp{ds(1)}, those integrals will correspond to integration over the
+domain boundary to the left of $x = 0.5$ and to the right of $x =
+0.5$, respectively.
+
 The correct specification of boundaries is a common error source. For
 debugging the specification of boundary conditions, it can be helpful
 to plot the \emp{FacetFunction} that specifies the boundary markers by
-writing the \emp{FacetFunction} to a VTK file (see the file I/O section)
-or using the \emp{plot} command. When using the \emp{plot} command,
-the plot shows the facet values interpolated to the vertices of the
-\emp{Mesh}. As a result, care must be taken to interpret the plot close
-to domain boundaries (corners) in this case. The issue is not present
-in the VTK output.
-
-In the above example, we mark the Neumann boundary by~\emp{0}. This is
-appropriate since in the UFL form language, \emp{ds} is the same as
-\emp{ds(0)}. The default domain of integration is the domain marked
-by~\emp{0}. One could also have used \emp{ds(1)} and marked the
-Neumann boundary by~\emp{1}.
+writing the \emp{FacetFunction} to a VTK file (see the file I/O
+section) or using the \emp{plot} command. When using the \emp{plot}
+command, the plot shows the facet values interpolated to the vertices
+of the \emp{Mesh}. As a result, care must be taken to interpret the
+plot close to domain boundaries (corners) in this case. The issue is
+not present in the VTK output.
 
 \paragraph{Essential boundary conditions.}
 
