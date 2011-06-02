@@ -26,18 +26,18 @@ software) with the goal of automated simulation of realistic continuum
 mechanics applications, such as drag or lift computation for fixed or
 flexible objects (fluid--structure interaction) in turbulent
 incompressible or compressible flow. The basis for Unicorn is Unified
-Continuum (UC) modeling formulated in Euler (laboratory) coordinates,
-together with a G2 (General Galerkin) adaptive stabilized finite
-element discretization with a moving mesh for tracking the phase
-interfaces. The UC model consists of canonical conservation equations
-for mass, momentum, energy and phase over the whole domain as one
-continuum, together with a Cauchy stress and phase variable as data
-for defining material properties and constitutive equations. Unicorn
-formulates and implements the adaptive G2 method applied to the UC
-model, and interfaces to other components in the FEniCS chain (FIAT,
-FFC, DOLFIN) providing representation of finite element function
-spaces, weak forms and mesh, and algorithms such as automated parallel
-assembly and linear algebra.
+Continuum (UC) modeling \citep{HoffmanJanssonStockli2011} formulated
+in Euler (laboratory) coordinates, together with a G2 (General
+Galerkin) adaptive stabilized finite element discretization with a
+moving mesh for tracking the phase interfaces. The UC model consists
+of canonical conservation equations for mass, momentum, energy and
+phase over the whole domain as one continuum, together with a Cauchy
+stress and phase variable as data for defining material properties and
+constitutive equations. Unicorn formulates and implements the adaptive
+G2 method applied to the UC model, and interfaces to other components
+in the FEniCS chain (FIAT, FFC, DOLFIN) providing representation of
+finite element function spaces, weak forms and mesh, and algorithms
+such as automated parallel assembly and linear algebra.
 
 % Comment out until persistent URL can be found
 %A live CD with snapshots of Unicorn corresponding to the Unicorn
@@ -151,6 +151,11 @@ the incompressible UC equations as
   \\
   \frac{\partial\theta}{\partial t} + \frac{\partial}{\partial x_j} (u_j \theta) &= 0.
 \end{align}
+
+We note that to model a fluid-structure interaction problem, we can
+simply write the total stress $\sigma$ as a linear combination of
+fluid and solid stress using the $\theta$ phase function: $\sigma = \theta \sigma_f + (1 - \theta) \sigma_s$.
+
 The UC modeling framework is simple and compact, close to the
 formulation of the original conservation equations, and does not
 require mappings between different coordinate systems. This allows
@@ -302,24 +307,78 @@ solver class \emp{UCSolver} ties together the technology in the
 Unicorn library with other parts of FEniCS to expose an interface (see
 listing \ref{code:UCSolver}) for simulating applications in continuum
 mechanics. The main part of the solver implementation is the weak
-forms for the G2 discretization of the UC model, together with forms
-for the stress and residuals for the error estimation. Coefficients
-from the application are connected to the form, and then time-stepping
-is carried out by the class \emp{TimeDependentPDE}. Certain
-coefficients, such as the $\delta$ stabilization coefficients are also
-computed as part of the solver (not as forms). The solver computes one
-iteration of the adaptive algorithm (primal solve, dual solve and mesh
-refinement), where the adaptive loop is implemented by iteratively
-running the solver for a sequence of meshes.
+forms for the G2 discretization of the UC model (see figure
+Figure~\ref{code:FFC_UC}), together with forms for the stress and
+residuals for the error estimation. Coefficients from the application
+are connected to the form, and then time-stepping is carried out by
+the class \emp{TimeDependentPDE}. Certain coefficients, such as the
+$\delta$ stabilization coefficients are also computed as part of the
+solver (not as forms). The solver computes one iteration of the
+adaptive algorithm (primal solve, dual solve and mesh refinement),
+where the adaptive loop is implemented by iteratively running the
+solver for a sequence of meshes.
+
+\begin{figure}
+\begin{python}
+
+...
+
+v = TestFunction(V)
+U1 = TrialFunction(V) # Unknown velocity U
+UP = TrialFunction(V) # U from previous iteration
+U0 = Function(V)      # U from previous timestep
+P = Function(VS)      # Pressure
+
+UC = 0.5*(U0 + UP)
+
+def epsilon(u):
+    return sym(grad(u))
+
+def S(u, P):
+    return P*Identity(d) - nu*grad(u)
+
+def f(u, v):
+    return -inner(grad(u)*u, v) + \
+        inner(S(u, P), grad(v)) + \
+        -d1*inner(grad(u)*u, grad(v)*u) + \
+        -d2*inner(div(u), div(v)) + \
+        dot(fsource, v)
+
+def dfdu(u, k, v):
+    return -inner(grad(u)*UC, v) + \
+        -inner(nu*grad(u), grad(v)) + \
+        -d1*inner(grad(u)*UC, grad(v)*UC) + \
+        -d2*inner(div(u), div(v))
+
+# cG(1) in time
+def F(u, u0, k, v):
+    uc = 0.5 * (u + u0)
+    return (-dot(u, v) + dot(u0, v) + k*f(u, v))
+
+def dFdu(u, u0, k, v):
+    uc = 0.5 * u
+    return (-dot(u, v) + k*dfdu(uc, k, v))
+
+a = (dFdu(U1, U0, k, v)) * dx
+L = (dFdu(UP, U0, k, v) - F(UP, U0, k, v)) * dx
+
+
+\end{python}
+\caption{Source code for bilinear and linear forms for incompressible
+UC one time step with a Newton-type method (approximation of Jacobian).}
+\label{code:FFC_UC}
+\end{figure}
 
 The \emp{UCSolver} implementation is parallelized for distributed
 memory architectures using MPI, and we can show strong scaling for
 hundreds of cores on several platforms (see
 Figure~\ref{fig:hoffman-2:sp}). The entire adaptive algorithm is
-parallel (including Rivara mesh refinement and \emph{a priori} predictive
-load balancing). An example of a parallel adaptive simulation is shown
-in Figure~\ref{fig:parcyl3D}. Fluid--structure interaction is not yet
-enabled in parallel but this is work in progress.
+parallel (including Rivara mesh refinement and a priori predictive
+load balancing) and Unicorn can efficiently simulate massively
+parallel applications for turbulent incompressible
+flow \citep{JanssonHoffmanJansson2010, Jansson2011}, see an example
+plot of a parallel adaptive cylinder simulation in
+Figure~\ref{fig:parcyl3D}.
 
 \begin{figure}
   \centering
@@ -718,6 +777,27 @@ boundary conditions,we refer to \citet{Nazarov2009}.
 \subsection{\emp{ElasticSmoother}}
 
 \begin{figure}
+\begin{python}
+V = VectorFunctionSpace(mesh, "CG", 1)
+VT = TensorFunctionSpace(mesh, "CG", 1)
+
+v = TestFunction(VV)
+F = Function(VV)
+U = Function(V)
+
+def f(U, F, v):
+    return -inner(F*grad(U), v) - inner(grad(U).T*F, v)
+
+# icv is inverse cell volume
+L = (icv*(dot(F0m, vm) + k*f(U, Fm, vm)))*dx
+\end{python}
+\caption{Source code for the form representing one time step for the
+deformation gradient (F) evolution in the elastic smoother variant of
+the UC model.}
+\label{code:FFC_ElasticSmoother}
+\end{figure}
+
+\begin{figure}
 \begin{center}
 \begin{tabular}{cc}
 \includegraphics[height=0.24\linewidth]{chapters/hoffman-2/pdf/force_smooth01.pdf} &
@@ -771,8 +851,9 @@ the mesh velocity $\beta_h$ as the discrete velocity $U$ in the solid
 phase (specifically on the interface). The mesh velocity in the fluid
 can be chosen more arbitrarily, but has to satisfy mesh quality and
 size criteria. We construct a cell quality optimization/smoothing
-method based on a pure elastic variant of the UC. We define the
-following requirements for the mesh velocity~$\beta_h$:
+method based on a pure elastic variant of the UC (see the form in
+figure Figure~\ref{code:FFC_ElasticSmoother}). We define the following
+requirements for the mesh velocity~$\beta_h$:
 %%
 \begin{enumerate}
 \item $\beta_h = U$ in the solid phase part of the mesh.
@@ -933,7 +1014,7 @@ protected:
 In this section, we present some examples computed using Unicorn.  The
 first example is a fluid--structure interaction problem without
 adaptivity, where we cover modeling of geometry and subdomains,
-coefficients, dynamic allocation of PDE data for mesh adaptivity and
+coefficients (functions used in the form), parameters and
 specification of the main program (interface to running the
 solver). Next, we present an example of solving a turbulent pure fluid
 problem with adaptivity, where we cover modeling of data for the dual
@@ -942,35 +1023,67 @@ conditions for modeling turbulent boundary layers.
 
 \subsection{Fluid--structure interaction}
 
-\editornote{What's the point of this section? There is no code and no plots?}
+\begin{figure}
+  \centering
+  \includegraphics[width=11cm]{chapters/hoffman-2/pdf/fsi_plot.pdf}
+  \caption{Displacement of tip of structure over time for FSI benchmark and use case.}
+  \label{fig:fsi2D_plot1}
+\end{figure}
 
-We here present an example of solving a fluid--structure continuum
+\begin{figure}
+  \centering
+  \includegraphics[width=10cm]{chapters/hoffman-2/png/fsi3_vel_050.png}\\
+  \includegraphics[width=10cm]{chapters/hoffman-2/png/fsi3_theta_050.png}\\
+  \includegraphics[width=10cm]{chapters/hoffman-2/png/fsi3_vel_250.png}\\
+  \includegraphics[width=10cm]{chapters/hoffman-2/png/fsi3_theta_250.png}
+  \caption{Velocity and phase function (with mesh) for times t = 1 and t = 5 for FSI benchmark and use case. Solution computed in parallel on a distributed meshwith 12 cores (5415 mesh points).}
+  \label{fig:fsi2D_plot2}
+\end{figure}
+
+We here give a use case of solving a fluid--structure continuum
 mechanics problem, where the user specifies data for modeling the
-problem. We divide the presentation into four parts:
+problem, and illustrates interfaces and expected outcomes. The problem
+is the FLUSTRUK-A variant 3 benchmark given in \citep{HronTurek2005}
+and \citep{HoffmanJanssonStockli2011}. The displacement over time of
+the tip of the structure is plotted in
+figure \ref{fig:fsi2D_plot1}. The velocity field and phase function
+$\theta$ are plotted in figure \ref{fig:fsi2D_plot2} for times t = 1
+and t = 5. We divide the use case into four parts:
 
 \begin{description}
 \item[Geometry and subdomains] \ \\ The user specifies possible
   geometrical parameters and defines subdomains. We note that for
   complex geometries the user may omit geometry information and
   specify subdomain markers as data files.
-\item[Coefficients] \ \\ Known coefficients such as a force function
-  and boundary conditions are declared.
-\item[PDE data] \ \\ The user subclasses a \emp{PDEData} class and
-  specifies how the PDE data is constructed and destroyed. This
-  construction/destruction may happen during the simulation if the
-  mesh is adapted.
+\item[Coefficients] \ \\ Known coefficients (functions appearing in the form) 
+  such as a force function and boundary conditions are declared.
+\item[Parameters] \ \\ Simple parameters specifying material properties and i.e. numerical tolerances are given
+in a parameter file.
 \item[main program] \ \\ The user implements the main program and
   declares and passes data to to the solver.
 \end{description}
 
+The four parts are demonstrated in code examples in figures \ref{code:UseCasePart1} to \ref{code:UseCasePart4}.
+
 \subsection{Adaptivity}
 
-\editornote{Where is the solution?}
+\begin{figure}
+  \centering
+  \includegraphics[width=11cm]{chapters/hoffman-1/png/fig2b.png}
+  \medskip
+  \includegraphics[width=11cm]{chapters/hoffman-1/png/fig2c.png}
+  \caption{Flow around a cube: snapshots of velocity (upper) and pressure
+    (lower) for the finest mesh.}
+  \label{fig:cube2}
+\end{figure}
 
 We continue with a use case for adaptive solution of a pure fluid
-turbulent flow problem: flow around a 3D cylinder. The implementation
-of the problem is very similar to the fluid--structure case (just with
-pure fluid data), but with 3 important additions:
+turbulent flow problem: flow around a 3D cube corresponding to the
+cube problem description given in Chapter~\ref{chap:hoffman-1}. A
+snapshot of the solution can be seen in
+Figure~\ref{fig:cube2}. The implementation of the problem is
+very similar to the fluid--structure case (just with pure fluid data),
+but with 3 important additions:
 \begin{description}
 \item[Dual problem] \ \\ To compute the error estimate required by the
   adaptive algorithm, we must solve a dual problem generated by the
@@ -992,41 +1105,22 @@ Array <BoundaryCondition*> dual_bc_mom;
 dual_bc_mom.push_back(&dual_bc0);
 \end{c++}
 
-\item[Adaptive loop] \ \\ We construct the program to compute one
+\item[Adaptive loop] \ \\ We specify a {\tt solve()} function which computes one
   iteration of the adaptive loop: solve primal problem, solve dual
-  problem, compute error estimate and check if tolerance is satisfied,
-  compute adapted mesh. We can then run the adaptive loop simply by a
-  loop which runs the program (here in Python which we also use to
-  move data according to iteration number):
-%%
-\begin{python}
-offset = 0
-N = 20
-
-for i in range(offset, N):
-    dirname = ``iter_%2.2d'' % i
-    mkdir(dirname)
-
-    system(``./unicorn-cylinder > log'')
-    for file in glob(``./*.vtu''):
-    move(file, dirname)
-    for file in glob(``./*.pvd''):
-    move(file, dirname)
-\end{python}
+  problem, compute error estimate and check if tolerance is satisfied
+  and compute adapted mesh. This function is then called in an
+  adaptive loop by calling the {\tt unicorn\_solve()} function.
 
 \item[Slip boundary condition] \ \\ For turbulent flow we model the
   boundary layer as a friction boundary condition. We specify the
-  normal component as a string slip boundary condition used just as a
-  regular Dirichlet boundary condition. The \emp{xcomp} variable
-  denotes an offset for the first velocity component in a system (for
-  compressible Euler the system is [density, velocity, energy], and we
-  would thus give component 2 as offset).
+  normal component as a strong slip boundary condition used just as a
+  regular Dirichlet boundary condition.
 %%
 \begin{c++}
+NodeNormal node_normal(mesh);
 SlipBoundary sb;
-SubSystem xcomp(0);
 
-SlipBC slip_bc(mesh, sb, xcomp);
+SlipBC slip_bc(mesh, sb, node_normal);
 
 Array <BoundaryCondition*> primal_bc_mom;
 primal_bc_mom.push_back(&slip_bc);
@@ -1037,12 +1131,12 @@ primal_bc_mom.push_back(&slip_bc);
 \begin{figure}
 \begin{c++}
 #include <dolfin.h>
-#include <unicorn/FSIPDE.h>
+#include <unicorn/UCSolver.h>
 
 using namespace dolfin;
 using namespace dolfin::unicorn;
 
-real bmarg = 1.0e-3 + DOLFIN_EPS;
+real bmarg = 1.0e-6 + DOLFIN_EPS;
 
 namespace Geo
 {
@@ -1057,26 +1151,30 @@ namespace Geo
 }
 
 // Sub domain for inflow
-class InflowBoundary3D : public SubDomain
+class InflowBoundary : public SubDomain
 {
 public:
   bool inside(const real* p, bool on_boundary) const
   {
-    return on_boundary && (p[0] < Geo::xmax - bmarg);
+    return on_boundary && (p[0] < xmax - bmarg ||
+                           p[1] < ymin + bmarg || p[1] > ymax - bmarg);
   }
 };
 
 // Sub domain for outflow
-class OutflowBoundary3D : public SubDomain
+class OutflowBoundary : public SubDomain
 {
 public:
   bool inside(const real* p, bool on_boundary) const
   {
-    return on_boundary && (p[0] > Geo::xmax - bmarg);
+    InflowBoundary ib;
+
+    return on_boundary && !ib.inside(p, on_boundary);
   }
 };
 \end{c++}
 \caption{Part 1 of Unicorn solver FSI use case: geometry and subdomains.}
+\label{code:UseCasePart1}
 \end{figure}
 
 \begin{figure}
@@ -1100,11 +1198,11 @@ public:
 };
 
 // Boundary condition for momentum equation
-class BC_Momentum_3D : public Function
+class BC_Momentum : public Function
 {
 public:
-  BC_Momentum_3D(Mesh& mesh, TimeDependent& td) :
-    Function(mesh), td(td) {}
+  BC_Momentum(Mesh& mesh) :
+    Function(mesh) {}
   void eval(real* values, const real* x) const
   {
     int d = cell().dim();
@@ -1114,10 +1212,13 @@ public:
       values[i] = 0.0;
     }
     if (x[0] < (Geo::xmin + bmarg))
-      values[0] = 100.0;
-  }
+    {
+      real Um = 2.0;
 
-  TimeDependent& td;
+      values[0] =
+        ramp*1.5*Um*( (x[1]*(Geo::cont_H - x[1])) /
+          ((0.5*Geo::cont_H)*(0.5*Geo::cont_H)) );
+  }
 };
 
 // Initial condition for phase variable
@@ -1140,48 +1241,71 @@ public:
 };
 \end{c++}
 \caption{Part 2 of Unicorn solver FSI use case: coefficients.}
+\label{code:UseCasePart2}
 \end{figure}
 
 \begin{figure}
 \begin{c++}
+Parameters for Unicorn solver:
+
+0.0       beta - friction coefficient
+0.001     nu - viscosity
+2.0e3     mu - solid stiffness
+0.0e0     nu_s - solid damping
+1.0e0     rho_s - solid density
+
+10        n_samples - number of samples
+1         adapt_iter - number of adaptive iterations
+0.001     adapt_tol - adaptive tolerance
+10        adapt_percentage - adaptive percentage
+rivara    adapt_algorithm - adaptive refinement type
+
+10.0       T - final time, primal solver
+0.25      dual_T - final time, dual solver
+1.0       Ubar - free stream velocity
+
+gmres     krylov_method - krylov method
+amg       krylov_pc - preconditioner
+\end{c++}
+\caption{Part 3 of FSI use case: parameter file}
+\label{code:UseCasePart3}
+\end{figure}
+
+\begin{figure}
+\begin{c++}
+void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
+{
+  InflowBoundary iboundary;
+  BC_Momentum bcf_mom(mesh);
+
+  DirichletBC bc_mom0(bcf_mom, mesh, iboundary);
+
+  Array <BoundaryCondition*> bc_mom;
+  bc_mom.push_back(&bc_mom0);
+
+  ...
+
+  NSESolver psolver(mesh, node_normal, f, beta, aero_f, bc_mom, bc_con,
+                    T, nu, ubar, chkp, w_limit, td, ``primal'');
+  psolver.solve();
+}
+
 int main()
 {
-  Mesh mesh("flag.xml");
+  Mesh mesh;
+  ...
 
-  real nu = 0.0;
-  real nus = 0.5;
-  real rhof = 1.0;
-  real rhos = 1.0;
+  unicorn_init(argc, argv, mesh, chkp, w_limit, iter);
 
-  real E = 1.0e6;
-
-  real T = 0.2;
-
-  dolfin::set("ODE number of samples", 500);
-
-  Function U, U0;
-
-  real u_bar = 100.0;
-
-  FlagData pdedata;
-
-  ICNSPDE pde(U, U0, &(pdedata.bisect), mesh,
-	      pdedata.bc_mom, pdedata.bc_con,
-	      &(pdedata.f), T, nu, E, nus, rhof, rhos,
-	      u_bar, pdedata.td, &pdedata);
-
-  // Compute solution
-  pde.solve(U, U0);
-
+  unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve);
   return 0;
 }
 \end{c++}
-\caption{Part 4 of FSI use case: main program, passing data to solver.}
+\caption{Part 4 of FSI use case: structure of main program, passing data to solver.}
+\label{code:UseCasePart4}
 \end{figure}
 
 \subsection{Unicorn-HPC installation and basic test}
-
-\editornote{Where is the solution, the implementation and the problem definition?}
 
 Unicorn-HPC is the high-performance computing branch of Unicorn,
 showing strong linear scaling on massively parallel hardware as
@@ -1190,7 +1314,7 @@ described above.
 To verify the correct installation and functionality of Unicorn-HPC,
 follow the steps in the README file in the Unicorn-HPC distribution,
 under ``Testing''. The test represents the turbulent flow past a cube
-simulation described in Chapter~\ref{chap:hoffman-1}.
+simulation described in Chapter~\ref{chap:hoffman-1} and above.
 
 %------------------------------------------------------------------------------
 \section{Acknowledgments}
