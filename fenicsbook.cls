@@ -2,17 +2,17 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{fenicsbook}
 \LoadClass[a4paper,10pt,twoside,openright]{book}
-% Page size
+
+% Specify geometry for T2 book format
 \usepackage[%
   a4paper,
-  layoutsize={193mm,260mm}, % trim size for T2 book format
+  layoutsize={193mm,260mm}, % trim size
+  text={157mm,216mm},       % text area
+  hmargin={18mm,18mm},      % inner and outer margins
+  top=21mm,                 % top margin including header: 13mm + 8mm = 21mm
+  headsep=5mm,              % adjust total header to 8mm by trial and error
   layouthoffset={8.5mm},    % center on 210 x 297 A4 paper: 0.5*(210 - 193)
   layoutvoffset={18.5mm},   % center on 210 x 297 A4 paper: 0.5*(297 - 260)
-  includeheadfoot=true,     % include header and footer in body size
-  inner=18mm,               % inner margin (``gutter'')
-  outer=18mm,               % outer margin
-  top=13mm,                 % top margin
-  bottom=13mm,              % bottom margin
   showcrop                  % show crop of page
   ]{geometry}
 
