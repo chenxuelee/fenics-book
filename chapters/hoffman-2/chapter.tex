@@ -1021,14 +1021,11 @@ problem with adaptivity, where we cover modeling of data for the dual
 problem, the adaptive loop, and specifying slip/friction boundary
 conditions for modeling turbulent boundary layers.
 
-\subsection{Fluid--structure interaction}
+We present here illustrative pieces of the problem
+implementations. For the full details, see the Unicorn source code
+distribution.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=11cm]{chapters/hoffman-2/pdf/fsi_plot.pdf}
-  \caption{Displacement of tip of structure over time for FSI benchmark and use case.}
-  \label{fig:fsi2D_plot1}
-\end{figure}
+\subsection{Fluid--structure interaction}
 
 \begin{figure}
   \centering
@@ -1044,9 +1041,9 @@ We here give a use case of solving a fluid--structure continuum
 mechanics problem, where the user specifies data for modeling the
 problem, and illustrates interfaces and expected outcomes. The problem
 is the FLUSTRUK-A variant 3 benchmark given in \citep{HronTurek2005}
-and \citep{HoffmanJanssonStockli2011}. The displacement over time of
-the tip of the structure is plotted in
-figure \ref{fig:fsi2D_plot1}. The velocity field and phase function
+and used as verification of Unicorn
+in \citep{HoffmanJanssonStockli2011} and also in
+Chapter~\ref{chap:hoffman-1}. The velocity field and phase function
 $\theta$ are plotted in figure \ref{fig:fsi2D_plot2} for times t = 1
 and t = 5. We divide the use case into four parts:
 
@@ -1184,7 +1181,8 @@ public:
   bool inside(const real* p, bool on_boundary) const
   {
     return on_boundary && (p[0] < Geo::xmax - bmarg ||
-                           p[1] < Geo::ymin + bmarg || p[1] > Geo::ymax - bmarg);
+                           p[1] < Geo::ymin + bmarg ||
+                           p[1] > Geo::ymax - bmarg);
   }
 };
 
@@ -1210,7 +1208,8 @@ public:
 class ForceFunction : public Function
 {
 public:
-  ForceFunction(Mesh& mesh, TimeDependent& td) : Function(mesh), td(td) {}
+  ForceFunction(Mesh& mesh, TimeDependent& td) :
+    Function(mesh), td(td) {}
   void eval(real* values, const real* x) const
   {
     int d = cell().dim();
@@ -1256,8 +1255,10 @@ public:
   void eval(real* values, const real* p) const
   {
     bool condition =
-      (((flag_start_x - bmarg) < p[0] && p[0] < (flag_end_x + bmarg)) &&
-       ((flag_start_y - bmarg) < p[1] && p[1] < (flag_end_y + bmarg)));
+      (((flag_start_x - bmarg) < p[0] &&
+         p[0] < (flag_end_x + bmarg)) &&
+       ((flag_start_y - bmarg) < p[1] &&
+         p[1] < (flag_end_y + bmarg)));
 
     if(condition)
       values[0] = 0.0;
@@ -1299,7 +1300,8 @@ amg       krylov_pc - preconditioner
 
 \begin{figure}
 \begin{c++}
-void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
+void solve(Mesh& mesh, Checkpoint& chkp,
+  long& w_limit, timeval& s_time)
 {
   InflowBoundary iboundary;
   BC_Momentum bcf_mom(mesh);
@@ -1314,7 +1316,8 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
 
   ...
 
-  NSESolver psolver(mesh, node_normal, f, beta, aero_f, bc_mom, bc_con, chkp, w_limit, td, ``primal'');
+  NSESolver psolver(mesh, node_normal, f, beta, aero_f, bc_mom, bc_con,
+    chkp, w_limit, td, ``primal'');
   psolver.solve();
 }
 
