@@ -694,7 +694,7 @@ public:
 The error estimation algorithm requires, as part of solving the dual
 problem, the evaluation of space-time coefficients appearing in the
 definition of the dual problem. In particular, we must evaluate the
-primal solution $U$ at time $t = T - t$.  This requires storage and
+primal solution $U$ at time $s = T - t$.  This requires storage and
 evaluation of a space-time function, which is encapsulated in the
 \emp{SpaceTimeFunction} class (see listing
 \ref{code:SpaceTimeFunction}).
@@ -1094,22 +1094,51 @@ but with 3 important additions:
 In this case we are interested in computing drag, which gives $\psi$
 as a boundary condition for the dual problem:
 
-\begin{c++}
-CylinderBoundary cb;
-SubSystem xcomp(0);
-Function minus_one(mesh, -1.0);
-
-DirichletBC dual_bc0(minus_one, mesh, cb, xcomp);
-
-Array <BoundaryCondition*> dual_bc_mom;
-dual_bc_mom.push_back(&dual_bc0);
-\end{c++}
-
 \item[Adaptive loop] \ \\ We specify a {\tt solve()} function which computes one
   iteration of the adaptive loop: solve primal problem, solve dual
   problem, compute error estimate and check if tolerance is satisfied
   and compute adapted mesh. This function is then called in an
   adaptive loop by calling the {\tt unicorn\_solve()} function.
+
+\begin{c++}
+class Dual_BC_Momentum : public Function
+{
+public:
+  Dual_BC_Momentum(Mesh& mesh) : Function(mesh) {}
+  void eval(real* values, const real* x) const
+  {
+    values[0] = -1.0;
+    values[1] = 0.0;
+    values[2] = 0.0;
+  }
+};
+
+
+solve()
+{
+  // Boundary condition for dual problem
+  CubeBoundary cb;
+  Dual_BC_Momentum dual_bcf_mom(mesh);
+
+  DirichletBC dual_bc0(dual_bcf_mom, mesh, cb);
+
+  Array <BoundaryCondition*> dual_bc_mom;
+  dual_bc_mom.push_back(&dual_bc0);
+  ...
+
+
+  // Solve primal problem
+  NSESolver primal_solver(mesh, node_normal, f, beta, aero_f, primal_bc_mom, primal_bc_con,
+    chkp, w_limit, td, ``primal'');
+  primal_solver.solve();
+
+  // Solve dual problem (gives weight for error estimate)
+  NSESolver dual_solver(mesh, node_normal, f, beta, aero_f, dual_bc_mom, dual_bc_con,
+    chkp, w_limit, td, ``dual'');
+  dual_solver.solve();
+}
+
+\end{c++}
 
 \item[Slip boundary condition] \ \\ For turbulent flow we model the
   boundary layer as a friction boundary condition. We specify the
@@ -1141,13 +1170,11 @@ real bmarg = 1.0e-6 + DOLFIN_EPS;
 namespace Geo
 {
   // Geometry details
-  real box_L = 3.0;
-  real box_H = 2.0;
-  real box_W = 2.0;
+  real box_L = 2.5;
+  real box_H = 0.41;
 
   real xmin = 0.0; real xmax = box_L;
   real ymin = 0.0; real ymax = box_H;
-  real zmin = 0.0; real zmax = box_W;
 }
 
 // Sub domain for inflow
@@ -1156,8 +1183,8 @@ class InflowBoundary : public SubDomain
 public:
   bool inside(const real* p, bool on_boundary) const
   {
-    return on_boundary && (p[0] < xmax - bmarg ||
-                           p[1] < ymin + bmarg || p[1] > ymax - bmarg);
+    return on_boundary && (p[0] < Geo::xmax - bmarg ||
+                           p[1] < Geo::ymin + bmarg || p[1] > Geo::ymax - bmarg);
   }
 };
 
@@ -1213,8 +1240,8 @@ public:
     }
     if (x[0] < (Geo::xmin + bmarg))
     {
+      // Define a parabolic inflow profile
       real Um = 2.0;
-
       values[0] =
         ramp*1.5*Um*( (x[1]*(Geo::cont_H - x[1])) /
           ((0.5*Geo::cont_H)*(0.5*Geo::cont_H)) );
@@ -1228,12 +1255,11 @@ public:
   BisectionFunction(Mesh& mesh) : Function(mesh) {}
   void eval(real* values, const real* p) const
   {
-    // NB: We specify the phase variable as
-    // xml data so this function is not used
+    bool condition =
+      (((flag_start_x - bmarg) < p[0] && p[0] < (flag_end_x + bmarg)) &&
+       ((flag_start_y - bmarg) < p[1] && p[1] < (flag_end_y + bmarg)));
 
-    bool condition = true;
-
-    if (condition)
+    if(condition)
       values[0] = 0.0;
     else
       values[0] = 1.0;
@@ -1277,16 +1303,18 @@ void solve(Mesh& mesh, Checkpoint& chkp, long& w_limit, timeval& s_time)
 {
   InflowBoundary iboundary;
   BC_Momentum bcf_mom(mesh);
+  ForceFunction f(mesh);
 
   DirichletBC bc_mom0(bcf_mom, mesh, iboundary);
 
   Array <BoundaryCondition*> bc_mom;
   bc_mom.push_back(&bc_mom0);
 
+  Array<Function*> aero_f;
+
   ...
 
-  NSESolver psolver(mesh, node_normal, f, beta, aero_f, bc_mom, bc_con,
-                    T, nu, ubar, chkp, w_limit, td, ``primal'');
+  NSESolver psolver(mesh, node_normal, f, beta, aero_f, bc_mom, bc_con, chkp, w_limit, td, ``primal'');
   psolver.solve();
 }
 
