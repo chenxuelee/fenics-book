@@ -173,6 +173,10 @@ facing=yes,capbesideposition={top,inside},floatwidth=0.62\textwidth}
 \newcommand{\nedelec}{N\'ed\'elec}
 \newcommand{\babuska}{Babu\v{s}ka}
 
+% Misc macros
+\newcommand{\apriori}{\emph{a~priori}}
+\newcommand{\apost}{\emph{a~posteriori}}
+
 % Package names
 \newcommand{\packagefont}[1]{{#1}\xspace}
 \newcommand{\fenics}{\packagefont{FEniCS}}
