@@ -4,7 +4,7 @@
                 Niclas Jansson and Murtazo Nazarov}
               {hoffman-2}
 
-This chapter provides a description of the technology in Unicorn
+This chapter provides a description of the technology of Unicorn
 focusing on simple, efficient and general algorithms and software for
 the Unified Continuum (UC) concept and the adaptive General Galerkin
 (G2) discretization as a unified approach to continuum mechanics. We
@@ -45,10 +45,8 @@ such as automated parallel assembly and linear algebra.
 %at: \url{ftp://ftp.nada.kth.se/local/jjan/unicorn_fenics-book.iso}.
 
 \begin{figure}
-  \center{
-    \boxed{
-      \includegraphics[width=\largefig]{chapters/hoffman-2/pdf/cube556.pdf}
-  }}
+  \center
+  \includegraphics[width=\largefig]{chapters/hoffman-2/pdf/cube556.pdf}
   \caption{A fluid--structure interaction problem consisting of a flag
     mounted behind a cube in turbulent flow. The plot shows the
     fluid--structure interface, an isosurface of the pressure and a
@@ -64,35 +62,30 @@ The Unicorn software is organized into three parts:
 
 \item[Solver] The Unicorn solver implements the G2 adaptive
   discretization method for the UC model by formulating the relevant
-  weak forms. Currently there are two primary solvers: incompressible
+  weak forms. There are currently two primary solvers: incompressible
   fluids and solids (including fluid--structure interaction) and
-  compressible Euler (only fluid), where the long-term goal is a
-  unification of the incompressible and compressible formulations as
-  well.
+  compressible Euler (only fluid). The long-term goal is a
+  unification of the incompressible and compressible formulations.
 
 \item[Applications] Associated to the solver(s) are applications such
   as computational experiments and benchmarks with certain geometries,
   coefficients and parameters. These are represented as stand-alone
   programs built on top of the Unicorn solver/library, running in
-  either serial or parallel (currently restricted to adaptive
-  incompressible flow).
+  either serial or parallel (currently restricted to incompressible
+  flow).
 \end{description}
 
 \begin{figure}
-  \center{
-    \boxed{
-      \includegraphics[width=\largefig]{chapters/hoffman-2/pdf/compressible3D.pdf}
-  }}
+  \center
+  \includegraphics[width=\largefig]{chapters/hoffman-2/pdf/compressible3D.pdf}
   \caption{Example application of adaptive computation of 3D compressible
     flow around a sphere.}
   \label{fig:compr3D}
 \end{figure}
 
 \begin{figure}
-  \center{
-    \boxed{
-      \includegraphics[width=\largefig]{chapters/hoffman-2/pdf/Hoffman_fig3d.pdf}
-  }}
+  \center
+  \includegraphics[width=\largefig]{chapters/hoffman-2/pdf/Hoffman_fig3d.pdf}
   \caption{Example application of 3D turbulent incompressible flow around
     a cylinder with parallel adaptive computation.}
   \label{fig:parcyl3D}
@@ -127,10 +120,10 @@ where a future aim is to construct a unified
 incompressible/compressible model and solver. We focus here the
 presentation on the incompressible model.
 
-We start with a model for conservation of mass and momentum,
-together with a convection equation for a phase function $\theta$ over
-a space-time domain $Q = \Omega \times [0, T]$ with $\Omega$ an open
-domain in $\mathbb{R}^3$ with boundary~$\Gamma$:
+We start with a model for conservation of mass and momentum, together
+with a convection equation for a phase function $\theta$ over a
+space-time domain $Q = \Omega \times [0, T]$ with $\Omega$ a bounded
+open domain in $\mathbb{R}^3$ with boundary~$\Gamma$:
 \begin{align}
     \frac{\partial \rho}{\partial t} + \frac{\partial}{\partial x_j} (u_j \rho) &= 0, \quad &\text{(mass conservation)}
 \\
@@ -149,7 +142,7 @@ the incompressible UC equations as
   \\
   \frac{\partial u_j}{\partial x_j} &= 0,
   \\
-  \frac{\partial\theta}{\partial t} + \frac{\partial}{\partial x_j} (u_j \theta) &= 0.
+  \frac{\partial\theta}{\partial t} + u_j\frac{\partial\theta}{\partial x_j} &= 0.
 \end{align}
 
 We note that to model a fluid--structure interaction problem, we can
@@ -165,7 +158,7 @@ implementation.
 One key design choice of UC modeling is to define the Cauchy stress
 $\sigma$ as data, which means the conservation equations are fixed
 regardless of the choice of constitutive equation. This gives a
-generality in method and software design, where a modification of
+generality in method and software design, where a modification of the
 constitutive equation impacts the formulation and implementation of
 the constitutive equation, but not the formulation and implementation
 of the conservation equations.
@@ -205,7 +198,7 @@ To compute the solution, we enforce the Galerkin orthogonality
 \begin{equation}
   \inner{R(W)}{v} = 0
 \end{equation}
-for all functions $v$ in the test space $\hat{V}_h$ consisting of
+for all functions $v$ in the test space $\hat{V}_{hk}$ consisting of
 piecewise linear continuous functions in space and piecewise constant
 discontinuous functions in time. Here $\inner{\cdot}{\cdot}$ denotes
 the $L^2$-inner product in space and time.
@@ -215,8 +208,8 @@ convection-dominated problems and also suffers from instabilities as a
 result of equal order elements for the pressure and velocity. We
 therefore add streamline--diffusion stabilization as described below.
 
-The \cgone{}\cgone{} formulation with trapezoid quadrature in time is
-equivalent to Crank--Nicolson time-stepping with piecewise linear
+The \cgone{}\cgone{} formulation with trapezoidal quadrature in time
+is equivalent to Crank--Nicolson time-stepping with piecewise linear
 elements in space. This has the advantage of being a very simple,
 standard, and familiar discrete formulation.
 
@@ -277,13 +270,13 @@ swapping) on the mesh to maintain the quality
 
 The standard FEM formulation is unstable.  We therefore consider a
 weighted standard streamline--diffusion method of the form
-$\inner{R(W)}{v + \delta R(v)} = 0$ for all $v \in \hat{V}_h$ (see
+$\inner{R(W)}{v + \delta R(v)} = 0$ for all $v \in \hat{V}_{hk}$ (see
 \citet{ErikssonEstepHansboEtAl1996}) with $\delta > 0$ a stabilization
 parameter. We make further simplifications by only including necessary
 stabilization terms and dropping terms not contributing to
 stabilization. Although not fully consistent, this avoids unnecessary
 smearing of shear layers. For the UC model, the stabilized method thus
-looks like:
+takes the following form:
 %%
 \begin{align}
   \inner{R^u(W)}{v^u} &=
@@ -291,11 +284,11 @@ looks like:
   \inner{\Sigma_{ij}}{\frac{\partial}{\partial x_j} v^u_i} + SD^u(W, v^u) = 0, \\
   \inner{R^p(W)}{v^p} &= \inner{\frac{\partial U_j}{\partial x_j}}{v^p} + SD^p(W, v^p) = 0,
 \end{align}
-for all $v \in \hat{V}_h$, where
+for all $v \in \hat{V}_{hk}$, where
 \begin{align}
   SD^u(W, v^u) &=
   \delta_1 \inner{U_j \frac{\partial U_i}{\partial x_j}}{U_j \frac{\partial v^u_i}{\partial x_j} } +
-  \delta_2 \inner{\frac{\partial U_j}{\partial x_j}}{\frac{\partial v^u}{\partial x_j} }, \\
+  \delta_2 \inner{\frac{\partial U_j}{\partial x_j}}{\frac{\partial v^u_j}{\partial x_j} }, \\
   SD^p(W, v^p) &= \delta_1 \inner{\frac{\partial P}{\partial x_i}}{\frac{\partial v^p}{\partial x_i}}.
 \end{align}
 
@@ -361,8 +354,9 @@ def dFdu(u, u0, k, v):
 a = (dFdu(U1, U0, k, v)) * dx
 L = (dFdu(UP, U0, k, v) - F(UP, U0, k, v)) * dx
 \end{uflcode}
-\caption{Source code for bilinear and linear forms for incompressible
-UC one time step with a Newton-type method (approximation of Jacobian).}
+\caption{Source code for the bilinear and linear forms for a Newton
+  iteration (with approximate Jacobian) for solving the incompressible
+  UC model.}
 \label{code:FFC_UC}
 \end{figure}
 
@@ -370,11 +364,11 @@ The \emp{UCSolver} implementation is parallelized for distributed
 memory architectures using MPI, and we can show strong scaling for
 hundreds of cores on several platforms (see
 Figure~\ref{fig:hoffman-2:sp}). The entire adaptive algorithm is
-parallel (including Rivara mesh refinement and \apriori{} predictive
-load balancing) and Unicorn can efficiently simulate massively
-parallel applications for turbulent incompressible
-flow \citep{JanssonHoffmanJansson2010, Jansson2011}, see an example
-plot of a parallel adaptive cylinder simulation in
+parallel, including Rivara mesh refinement and \apriori{} predictive
+load balancing. Unicorn can efficiently simulate massively parallel
+applications for turbulent incompressible flow
+\citep{JanssonHoffmanJansson2010, Jansson2011}. An example of a
+parallel adaptive cylinder simulation is presented in
 Figure~\ref{fig:parcyl3D}.
 
 \begin{figure}
@@ -384,8 +378,8 @@ Figure~\ref{fig:parcyl3D}.
   \caption{\label{fig:hoffman-2:sp} Strong scaling results for mesh
     refinement and entire solver on several different architectures:
     \textit{Lindgren} (Cray XT6m), \textit{Hebb} (BlueGene/L) and
-    \textit{Neolith} (regular Linux cluster with InfiniBand). The dashed
-    line refers to ideal speedup}
+    \textit{Neolith} (regular Linux cluster with InfiniBand). The
+    dashed lines refer to ideal speedup.}
 \end{figure}
 
 A compressible variant of the \emp{UCSolver} exists as the
@@ -478,8 +472,8 @@ Key concepts are abstracted in the following classes/interfaces:
 \ \\
 In each time-step a nonlinear algebraic system is solved by
 fixed-point iteration.
-\item[\emp{ErrorEstimate}: \ adaptive error control] \ \\ The adaptive
-  algorithm is based on computing local {\em error indicators} of the
+\item[\emp{ErrorEstimate}: \ adaptive error control] \ \\ Adaptivity
+  is based on computing local {\em error indicators} of the
   form $\eta_K = \|h R(U)\|_T \|D Z\|_T$, where $Z$ is the so-called
   dual solution.
 
@@ -552,7 +546,6 @@ protected:
 \caption{C++ class interface for \emp{TimeDependentPDE}.}
 \label{code:TimeDependentPDE}
 \end{figure}
-
 The skeleton of the time-stepping with fixed-point iteration is
 implemented in listing \ref{code:time-stepping}.
 
@@ -737,7 +730,7 @@ layer. One possibility is then to model turbulent boundary layers by a
 friction model:
 %%
 \begin{align}
-u \cdot n &= 0
+u \cdot n &= 0,
 \\
 \beta u \cdot \tau_k + (\sigma n) \cdot \tau_k &= 0, k = 1, 2.
 \end{align}
@@ -1056,7 +1049,8 @@ in a parameter file.
 \item[main program] \ \\ The user implements the main program and
   declares and passes data to to the solver.
 \end{description}
-These four parts are demonstrated in code examples in Figures~\ref{code:UseCasePart1}--\ref{code:UseCasePart4}.
+These four parts are demonstrated by the code examples shown in
+Figures~\ref{code:UseCasePart1}--\ref{code:UseCasePart4}.
 
 \subsection{Adaptivity}
 
@@ -1133,7 +1127,7 @@ solve()
 
 \end{c++}
 
-\item[Slip boundary condition] \ \\ For turbulent flow we model the
+\item[Slip boundary condition] \ \\ For turbulent flow, we model the
   boundary layer as a friction boundary condition. We specify the
   normal component as a strong slip boundary condition used just as a
   regular Dirichlet boundary condition.
