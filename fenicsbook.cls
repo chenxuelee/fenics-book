@@ -19,7 +19,7 @@
 % Section numbering depth
 \setcounter{secnumdepth}{2}
 
-% TOC relates setting
+% TOC related setting
 \setcounter{tocdepth}{0} % Only show the chapter titles in the table of contents
 \renewcommand\bibname{References} % Name of references section
 
