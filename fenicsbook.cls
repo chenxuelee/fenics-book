@@ -9,8 +9,9 @@
   layoutsize={193mm,260mm}, % trim size
   text={157mm,216mm},       % text area
   hmargin={18mm,18mm},      % inner and outer margins
-  top=21mm,                 % top margin including header: 13mm + 8mm = 21mm
-  headsep=5.5mm,            % adjust total header to 8mm by trial and error
+  top=20mm,                 % top margin including header should be 13mm + 8mm = 21mm
+                            % but when measured it comes out as 22mm so we take 20mm
+  headsep=4.5mm,            % adjust top header to 13mm by trial and error
   layouthoffset={8.5mm},    % center on 210 x 297 A4 paper: 0.5*(210 - 193)
   layoutvoffset={18.5mm},   % center on 210 x 297 A4 paper: 0.5*(297 - 260)
   showcrop                  % show crop of page
