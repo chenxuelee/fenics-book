@@ -611,19 +611,17 @@ Figure~\ref{fig:nikbakht:poisson_contours}.  For this case, $f = 1$
 and $k = 1$.  Homogeneous Dirichlet boundary conditions are applied
 along the bottom edge ($y = 0$). The remaining boundaries are flux-free.
 The impact of the discontinuities on the computed solution contours can
-be seen clearly in Figure~\ref{fig:nikbakht:poisson_contours}(b).
+be seen clearly in Figure~\ref{fig:nikbakht:poisson_contours_b}.
 %
 \begin{figure}
-\begin{tabular}{cc}
-  \includegraphics[height=0.45\textwidth]{chapters/nikbakht/png/mesh.png}
-&
-   \includegraphics[height=0.45\textwidth]{chapters/nikbakht/png/result.png}
-\\
-(a) & (b)
-\end{tabular}
-\caption{Poisson problem in two dimensions: (a) mesh and discontinuity
-surfaces and (b) solution contours.}
-\label{fig:nikbakht:poisson_contours}
+  \subfloat[]{\includegraphics[height=0.35\textwidth]{chapters/nikbakht/png/mesh.png}
+    \label{fig:nikbakht:poisson_contours_a}}
+  \subfloat[]{\includegraphics[height=0.35\textwidth]{chapters/nikbakht/png/result.png}
+    \label{fig:nikbakht:poisson_contours_b}}
+  \caption{Poisson problem in two dimensions:
+  \subref{fig:nikbakht:poisson_contours_a} mesh and discontinuity surfaces
+  and \subref{fig:nikbakht:poisson_contours_b} solution contours.}
+  \label{fig:nikbakht:poisson_contours}
 \end{figure}
 %------------------------------------------------------------------------------
 \subsection{$H(\rm div)$-conforming mixed approach to Poisson's equation}
@@ -861,8 +859,21 @@ form in the linearized system.
 The \ufl{} input for the problem in
 equation~\eqref{eqn:nikbakht:nonlinear_poisson} is shown in
 Figure~\ref{fig:nikbakht:ufl_nonlinear_poisson}, where we have chosen
-to use quadratic Lagrange functions.
+to use quadratic Lagrange functions.  The trial function in this case is
+the iterative correction $du_{h}$, and the most recent approximation of
+$u_{h}$ is provided as a coefficient function to the forms.  Following
+from equation~\eqref{eqn:nikbakht:nonlinear_poisson_J}, the \ufl{}
+input the bilinear form (Jacobian) reads:
 %
+\begin{python}
+a = derivative(L, u, du)
+\end{python}
+%
+As with the other problems that we have presented, the generated code for
+the linear and bilinear forms can be used in a \dolfin{}-based solver.
+An extract of the DOLFIN/C++ code for solving this nonlinear problem is
+presented in Figure~\ref{fig:nikbakht:c++_nonlinear_poisson}.
+
 \begin{figure}
 \begin{python}
 # Define continuous and discontinuous spaces
@@ -885,20 +896,6 @@ form (Jacobian) follows from differentiation of the linear form~\emp{L}.}
 \label{fig:nikbakht:ufl_nonlinear_poisson}
 \end{figure}
 
-The trial function in this case is the iterative correction $du_{h}$,
-and the most recent approximation of $u_{h}$ is provided as a coefficient
-function to the forms.  Following from equation~\eqref{eqn:nikbakht:nonlinear_poisson_J},
-the \ufl{} input the bilinear form (Jacobian) reads:
-%
-\begin{python}
-a = derivative(L, u, du)
-\end{python}
-%
-As with the other problems that we have presented, the generated code for
-the linear and bilinear forms can be used in a \dolfin{}-based solver.
-An extract of the DOLFIN/C++ code for solving this nonlinear problem is
-presented in Figure~\ref{fig:nikbakht:c++_nonlinear_poisson}.
-%
 \begin{figure}
 \begin{c++}
 // Create function space
