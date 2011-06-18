@@ -83,9 +83,9 @@ boundaries, outward unit normal vectors, and other quantities relative
 to $\Omega_{0}$, the subscript `$0$' will be used.  When considering
 linearized kinematics, the domains $\Omega$ and $\Omega_{0}$ are both
 fixed and coincide at all times~$t$.  A triangulation of the domain
-$\Omega$ will be denoted by~$\mathcal{T}$, and a triangulation of the
+$\Omega$ will be denoted by~$\mathcal{T}_h$, and a triangulation of the
 domain $\Omega_{0}$ will be denoted by~$\mathcal{T}_{0}$.  A finite
-element cell will be denoted by $T \in \mathcal{T}$.
+element cell will be denoted by $T \in \mathcal{T}_h$.
 
 The governing equations for the different models will be formulated in
 the common framework of: find $u \in V$ such that
@@ -348,7 +348,7 @@ criterion:
 %
 \begin{equation}
   f\brac{\sigma, \varepsilon^{\rm p}, \kappa} :=
-  \phi\brac{\sigma, q_{\rm kin}\brac{\varepsilon^{\rm p}}} - q_{\rm iso}\brac{\kappa} - \sigma_{\rm y} \leq 0,
+  \phi\brac{\sigma, q_{\rm kin}\brac{\varepsilon^{\rm p}}} - q_{\rm iso}\brac{\kappa} - \sigma_{\rm y} \leqslant 0,
 \label{eq:oelgaard-1:plas_yield_function}
 \end{equation}
 %%
@@ -550,7 +550,7 @@ and has been extensively studied \citep{SimoTaylor1985}. The second issue
 is that the stress field, and its linearization, will not in general
 come from a finite element space.  Hence, if all functions are assumed
 to be in a finite element space, or are interpolated in a finite element
-space, sub-optimal convergence of a Newton method will be observed.
+space, suboptimal convergence of a Newton method will be observed.
 
 %------------------------------------------------------------------------------
 \subsection{Consistency of linearization}
@@ -579,7 +579,7 @@ elements (for the considered spaces, this is equivalent to a direct
 evaluation of the strain).  We also represent the stress $\sigma$ on the
 discontinuous, piecewise linear basis.  Since the polynomial degree of
 the integrand is two, \eqref{eq:oelgaard-1:lin_issue_F} can be integrated
-using two Gauss quadrature points on an element $T \in \mathcal{T}$:
+using two Gauss quadrature points on an element $T \in \mathcal{T}_h$:
 %
 \begin{equation}
 \label{eq:oelgaard-1:lin_issue_f}
@@ -663,7 +663,7 @@ and~\eqref{eq:oelgaard-1:lin_issue_k} are not identical since
 $x_{q} \neq x_{\alpha}$. As a consequence, the bilinear form in
 \eqref{eq:oelgaard-1:lin_issue_k} is not an exact linearization
 of~\eqref{eq:oelgaard-1:lin_issue_F}, and a Newton method will therefore
-exhibit sub-optimal convergence.  In general, the illustrated problem
+exhibit suboptimal convergence.  In general, the illustrated problem
 arises when some coefficients in a form are computed by a nonlinear
 operation elsewhere, and then interpolated and evaluated at a point
 that differs from where the coefficients were computed. This situation
@@ -685,7 +685,7 @@ model problem that will be used in numerical examples. Given the finite
 element space
 %
 \begin{equation}
-  V = \left\{ w \in H^{1}_{0}(\Omega), \ w \in P_{q}(T) \ \foralls T \ \in \mathcal{T} \right\},
+  V = \left\{ w \in H^{1}_{0}(\Omega), \ w \in P_{q}(T) \ \foralls T \ \in \mathcal{T}_h \right\},
 \end{equation}
 %
 where $\Omega \subset \mathbb{R}$ and $q \ge 1$, the model problem of
@@ -795,7 +795,7 @@ to ensure appropriate integration of the form
 in~\eqref{eq:oelgaard-1:quad_elem_mass_form}.  The reason for this is
 that the quadrature element in the form dictates the quadrature scheme
 that \ffc{} will use for the numerical integration since the quadrature
-element, as described above, only have non-zero values at points that
+element, as described above, only have nonzero values at points that
 coincide with the underlying quadrature scheme of the quadrature element.
 Thus, if the degree of \emp{ElementQ} is set to one, the form will be
 integrated using only one integration point, since one point is enough
@@ -1230,14 +1230,14 @@ problem.
 The forms defining the plasticity problem are then created and the relevant
 functions are attached to the forms.
 Then the object defining the plasticity model is created.  The class
-\emp{VonMises} is a sub-class of the \emp{PlasticityModel} class shown
+\emp{VonMises} is a subclass of the \emp{PlasticityModel} class shown
 in Figure~\ref{fig:oelgaard-1:plasticity_interface} and it implements
 functions for $f$, $\partial_{\sigma} f$ and $\partial_{\sigma\sigma} g$.
 It is constructed with values for the Young's modulus, Poisson's ratio,
 yield stress and linear hardening parameter.  This object can then be
 passed to the constructor of the \emp{PlasticityProblem} class along
 with the forms, displacement field $u$, coefficient functions
-and boundary conditions.  \emp{PlasticityProblem} is a sub-class
+and boundary conditions.  \emp{PlasticityProblem} is a subclass
 of the DOLFIN class \emp{NonlinearProblem}, which is described in
 Chapter~\ref{chap:logg-2}. The \emp{PlasticityProblem} class handles
 the assembly over cells, loops over cell quadrature points, and variable
