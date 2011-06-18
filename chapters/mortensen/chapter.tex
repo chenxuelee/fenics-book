@@ -329,7 +329,7 @@ allow Fourier components as solutions. More precisely, we have
 \end{equation}
 where $j$ denotes a grid point on the $x$ axis and $n$ denotes the time
 level.  The numerical wave velocity $\tilde c \neq v$ is a function of
-$k$, $\triangle t$, and $\Delta x$.  When $\tilde c$ is real, but deviates
+$k$, $\Delta t$, and $\Delta x$.  When $\tilde c$ is real, but deviates
 from the exact value $v$, the Fourier component moves with slightly the
 wrong velocity. This dispersion error gives rise to a change of shape
 of the solution when we sum all components.  If $\tilde c$ is complex,
@@ -340,7 +340,7 @@ unstable numerical scheme.  A decrease in amplitude can be tolerated
 physically, but the discrete energy $\sum_j |\phi_j^n|^2$ decreases
 in time and the wave is said to dissipate.  For this model problem,
 the error in $\tilde c$ usually depends on the non-dimensional Courant
-number $C\equiv v\triangle t/\Delta x$.
+number $C\equiv v\Delta t/\Delta x$.
 
 Using a central difference scheme in space and time for
 \eqref{eq:mortensen:phi:pde} results in a real $\tilde c$ if $C\leqslant
@@ -354,7 +354,7 @@ is, two asymmetric differences, the numerical wave velocity $\tilde c$
 becomes complex: $\tilde c = \tilde c_r + i\tilde c_i$.  The value
 of $c_r$ deviates from the exact velocity $v$, implying dispersion,
 while the imaginary value $c_i$ is positive, giving rise to a decreasing
-amplitude $A\exp{(-ikc_i n\triangle t)}$ in time.  This is a dissipative
+amplitude $A\exp{(-ikc_i n\Delta t)}$ in time.  This is a dissipative
 effect of the asymmetric difference(s).  With a decreasing amplitude of
 the various Fourier components, the integral of the squared numerical
 solution will naturally decrease, and energy is lost.
@@ -385,7 +385,7 @@ To this end we use the
 following general algorithm
 \begin{align}
 \label{eq:mortensen:NS_d}
-    \frac{\vec{u}_{n}-\vec{u}_{n-1}}{\triangle t}
+    \frac{\vec{u}_{n}-\vec{u}_{n-1}}{\Delta t}
       &= - B(\tilde{\vec{u}},\Bar{\vec{u}})
           + \nu \nabla^2 \vec{u}_{n-\alpha}
         -\nabla p_{n-1/2} + f_{n-\alpha}
@@ -399,7 +399,7 @@ where
 \end{equation}
 and $\alpha \in [0, 1]$.  The idea is to discretize all terms at the
 time level $n-\alpha$. The nature of the time difference over the interval
-$\triangle t = t_n - t_{n-1}$ then depends on $\alpha$. For $\alpha =1/2$
+$\Delta t = t_n - t_{n-1}$ then depends on $\alpha$. For $\alpha =1/2$
 we have a centered scheme
 in time, while $\alpha =1$ and $\alpha=0$ are fully explicit and fully
 implicit schemes, respectively. Note that at any time the pressure can be
@@ -468,7 +468,7 @@ this tentative, or intermediate, solution by $\vec{u}_I$ ($I$ for
 intermediate). Its equation is
 \begin{equation}
 \label{eq:mortensen:NS_FS}
-\frac{{\vec{u}}_{I}-\vec{u}_{n-1}}{\triangle t} =
+\frac{{\vec{u}}_{I}-\vec{u}_{n-1}}{\Delta t} =
 - B_I(\tilde{\vec{u}},\Bar{\vec{u}}) +
 \nu \nabla^2 ((1-\alpha) {\vec{u}}_{I} + \alpha \vec{u}_{n-1})
 -\nabla p_{n-3/2} + f_{n-\alpha}.
@@ -482,7 +482,7 @@ Subtracting the exact equation \eqref{eq:mortensen:NS_d} with $\alpha =
 0$ from \eqref{eq:mortensen:NS_FS} yields an estimate of the error:
 \begin{equation}
 \label{eq:mortensen:NS_FS:error}
-\frac{{\vec{u}}_{n}-\vec{u}_{I}}{\triangle t} =
+\frac{{\vec{u}}_{n}-\vec{u}_{I}}{\Delta t} =
 -\nabla\Phi + B - B_I + (1-\alpha )\nabla^2(\vec{u}_n-\vec{u}_I),
 \end{equation}
 where $\Phi = p_{n-1/2} - p_{n-3/2} $ is a pressure correction.  Note that
@@ -493,7 +493,7 @@ drop the terms $B - B_I + (1 - \alpha)\nabla^2(\vec{u}_n-\vec{u}_I)$.
 One therefore considers the simplified equation
 \begin{equation}
 \label{eq:mortensen:NS_FS:error2}
-\frac{{\vec{u}}_{n}-\vec{u}_{I}}{\triangle t} =
+\frac{{\vec{u}}_{n}-\vec{u}_{I}}{\Delta t} =
 -\nabla\Phi,
 \end{equation}
 coupled with the requirement that the new velocity must fulfill:
@@ -506,13 +506,13 @@ We can easily eliminate $\vec{u}_{n}$ from
 former and inserting in the latter. This procedure results in a
 Poisson equation for $\Phi$:
 \begin{equation}
- \label{eq:mortensen:PC} \nabla^2 \Phi = -\frac{1}{\triangle t} \nabla \cdot {\vec{u}}_{I} .
+ \label{eq:mortensen:PC} \nabla^2 \Phi = -\frac{1}{\Delta t} \nabla \cdot {\vec{u}}_{I} .
 \end{equation}
 After solving this equation for $\Phi$, we can finally update the
 velocity and pressure from \eqref{eq:mortensen:NS_FS:error2} and the
 definition of $\Phi$:
 \begin{align}
- \label{eq:mortensen:vel_update} \vec{u}_{n} &= {\vec{u}}_{I} - \triangle t \nabla \Phi, \\
+ \label{eq:mortensen:vel_update} \vec{u}_{n} &= {\vec{u}}_{I} - \Delta t \nabla \Phi, \\
   p_{n-1/2} &= p_{n-3/2} + \Phi .
 \label{eq:mortensen:update}
 \end{align}
@@ -848,7 +848,7 @@ The variational form of Burgers' equation is obtained by multiplying
 the domain, neglecting boundary terms due to the homogeneous Dirichlet boundary
 conditions. The resulting variational form is
 \begin{equation}
- \frac{1}{\triangle t}\inner{ u_{n} - u_{n-1}}{v}
+ \frac{1}{\Delta t}\inner{ u_{n} - u_{n-1}}{v}
       = - \inner{B(\tilde{u},\Bar{u})}{ v }
           - \nu \inner{ \nabla u_{n-\alpha}}{\nabla v }.
 \label{eq:mortensen:burgers_vf}
