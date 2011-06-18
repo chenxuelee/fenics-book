@@ -12,7 +12,6 @@
 
 %------------------------------------------------------------------------------
 
-
 The purpose of this work is to validate Navier--Stokes (NS) solvers
 implemented in FEniCS for unstable, transitional flows. Solvers for
 the NS equations have been discussed in Chapter~\ref{chap:kvs-1} for
@@ -271,7 +270,7 @@ total kinetic energy is obtained (see \citet{SimoArmero1994}):
  \vec{u} : \nabla \vec{u} \dx,
 \quad \Bar{K} = \int_{\Omega} K(\vec{u}) \dx .
 \end{equation}
-Evidently, since $\nu \ge 0$, energy should only decay and not be created 
+Evidently, since $\nu \ge 0$, energy should only decay and not be created
 within the domain. For
 inviscid flows (Euler equations) $\nu=0$, transport is merely through
 the convective term and $\text{d} \Bar{K}/\text{d} t = 0$. This means
@@ -397,15 +396,15 @@ where
    \vec{u}_{n-\alpha}=(1-\alpha) \vec{u}_{n} + \alpha \vec{u}_{n-1},
 \end{equation}
 and $\alpha \in [0, 1]$.  The idea is to discretize all terms at the
-time level $n-\alpha$. The nature of the time difference over the interval 
-$\triangle t = t_n - t_{n-1}$ then depends on $\alpha$. For $\alpha =1/2$ 
+time level $n-\alpha$. The nature of the time difference over the interval
+$\triangle t = t_n - t_{n-1}$ then depends on $\alpha$. For $\alpha =1/2$
 we have a centered scheme
 in time, while $\alpha =1$ and $\alpha=0$ are fully explicit and fully
 implicit schemes, respectively. Note that at any time the pressure can be
 determined from the velocity, and as such it is not directly a function
 of time. However, since it appears only on the right-hand side it is
-common to compute the pressure at discrete points located at the 
-midpoint between the timesteps where velocity is computed 
+common to compute the pressure at discrete points located at the
+midpoint between the time steps where velocity is computed
 $t_{n-1/2}, t_{n-3/2}, \ldots$.
 
 The convecting and convected velocity fields
@@ -536,8 +535,8 @@ to compute since $\nabla\Phi$ is a discontinuous field. Solving
 alternative. Also in this case, we can take advantage of the fact that
 \eqref{eq:mortensen:vel_update} are three decoupled scalar equations,
 and solve each scalar equation separately. The resulting linear system,
-involving a ``mass matrix'', then has the size corresponding to a 
-scalar partial differential equation and not the triple size 
+involving a ``mass matrix'', then has the size corresponding to a
+scalar partial differential equation and not the triple size
 corresponding to the vector formulation in \eqref{eq:mortensen:vel_update}.
 
 With $\alpha =1$ in \eqref{eq:mortensen:NS_FS} the three component
@@ -578,7 +577,7 @@ be implemented by switching convecting and convected velocities to
 $B(\Bar{\vec{u}},\tilde{\vec{u}})$, which in discretized form will
 differ from $B(\tilde{\vec{u}},\Bar{\vec{u}})$. Nevertheless, recall
 that it is only the first velocity field in $B$ that needs to be
-divergence-free for the convection to be energy conservative. 
+divergence-free for the convection to be energy conservative.
 Hence, since the velocity fields
 of previous time-steps are (nearly) divergence-free, it is preferable
 for fractional step methods to employ an explicit discretization (as
@@ -667,8 +666,8 @@ than the fully coupled, since there are more steps involved. The
 details of several fractional step solvers are given in
 Chapter~\ref{chap:kvs-1}, and thus not repeated here.
 
-\subsection{Speed-up of 'naive' Navier-Stokes solvers}
-\label{sec:mortensen:speed-up}
+\subsection{Speedup of 'naive' Navier--Stokes solvers}
+\label{sec:mortensen:speedup}
 
 The previous section presents the straightforward (or naive)
 implementation of a coupled vector and scalar equation in FEniCS, using
@@ -685,13 +684,13 @@ convection) terms, giving rise to three Laplacian ``stiffness matrix''
 blocks.  Moreover, these blocks are constant in time and do not have to
 be reassembled at each time step.
 
-We could gain a potentially significant speed-up by exploiting the
+We could gain a potentially significant speedup by exploiting the
 mentioned properties and thereby avoid computing and assembling large
 parts of the total coefficient matrix.
 This is perhaps not important for smaller two-dimensional problems,
 but for larger three-dimensional problems the naive implementation is
 much slower than an algorithm exploiting the special structure of the
-NS equations.  For CFD practitioners using FEniCS this speed--up is
+NS equations.  For CFD practitioners using FEniCS this speedup is
 significant and makes the efficiency of a fairly simple FEniCS-based NS
 solver compete with expensive, and much less flexible, state-of-the-art
 CFD software.  We shall therefore go through the relevant optimization
@@ -752,9 +751,9 @@ term $\nabla \vec{u} \, \vec{u}_{n-1}$ by \emp{assemble(conv(u\_1, u,
   solvers, which rely on efficient matrix-vector products for speed.
 
 \editornote{Can the assertion regarding the Krylov solver be supported?
-It could very well be the preconditioners operating on zeroes that are costly. 
+It could very well be the preconditioners operating on zeroes that are costly.
 MMO: It can very well be supported. The extra zeros makes the matrix-vector
-product slower by the observed factor. I have checked by comparing only 
+product slower by the observed factor. I have checked by comparing only
 the matrix-vector products of regular and compressed matrices. I have not
 done anything in particular for the preconditioners, but they rely on
 matrix-vector products as well. Right Kent?}
@@ -763,13 +762,13 @@ matrix-vector products as well. Right Kent?}
 In addition to these steps there are also some simple switches that can
 be turned on in the form compiler that optimize the assembly process.
 
-Table~\ref{tab:mortensen:speed-up} summarizes the effect of the
-speed-up routines on the CPU-time for the Taylor--Green problem (see
-Section~\ref{sec:mortensen:TG}) with $Re=100$ on a \emp{UnitCube} of size 
+Table~\ref{tab:mortensen:speedup} summarizes the effect of the
+speedup routines on the CPU-time for the Taylor--Green problem (see
+Section~\ref{sec:mortensen:TG}) with $Re=100$ on a \emp{UnitCube} of size
 $16^3$ using four time steps and a total integration time of~$0.5$.
-The naive implementations referenced in Table~\ref{tab:mortensen:speed-up}
-use one single form for the Navier-Stokes equations and lhs/rhs to extract 
-forms for the numerical schemes. This corresponds roughly to the code 
+The naive implementations referenced in Table~\ref{tab:mortensen:speedup}
+use one single form for the Navier--Stokes equations and lhs/rhs to extract
+forms for the numerical schemes. This corresponds roughly to the code
 presented at the beginning of
 Section~\ref{sec:mortensen:impl_fenics} for the coupled solver and similar
 for the segregated solver. The optimized versions have been implemented
@@ -778,8 +777,8 @@ time and the time spent inside the time integration loop; that is, the
 total time minus the time it takes to set up the problem for looping. The
 two numbers in parenthesis show the time spent in the Krylov solvers
 and the assemblers respectively. Evidently, with the implicit solvers
-we can for this problem obtain a speed-up factor of nearly 40 (662/17)
-for the coupled solver. Most of this speed--up follows from minimizing
+we can for this problem obtain a speedup factor of nearly 40 (662/17)
+for the coupled solver. Most of this speedup follows from minimizing
 the amount of code that needs to be reassembled every time step and by
 avoiding a direct assembly of a large $(n_vd+n_p)\times (n_vd+n_p)$
 matrix. As can be seen, the Krylov solvers are for the optimized
@@ -804,7 +803,7 @@ optimized solvers produce exactly the same results.
                               & 45/17 & 688/662  & 44/11 & 498/462 \\ [-1ex]
 \raisebox{1.5ex}{Implicit \ref{eq:mortensen:IM2}}& (4.4/3.5) & (10.5/628) & (3.1/2.5) & (8.5/434) \\ [1ex] \hline
 \end{tabular}
-\label{tab:mortensen:speed-up}
+\label{tab:mortensen:speedup}
 \end{table}
 
 
@@ -839,12 +838,12 @@ Burgers' equation reads:
 \label{eq:mortensen:burgers}
 \end{align}
 where $\xi$ is a random number between zero and one and is used to create
-a discrete ``white noise'' (uncorrelated) fluctuating velocity field 
+a discrete ``white noise'' (uncorrelated) fluctuating velocity field
 resembling turbulence, and $\kappa$ is the amplitude of the perturbation.
 
 The variational form of Burgers' equation is obtained by multiplying
 \eqref{eq:mortensen:burgers} with test function $v$ and integrating over
-the domain, neglecting boundary terms due to the homogeneous Dirichlet boundary 
+the domain, neglecting boundary terms due to the homogeneous Dirichlet boundary
 conditions. The resulting variational form is
 \begin{equation}
  \frac{1}{\triangle t}\inner{ u_{n} - u_{n-1}}{v}
@@ -852,7 +851,7 @@ conditions. The resulting variational form is
           - \nu \inner{ \nabla u_{n-\alpha}}{\nabla v }.
 \label{eq:mortensen:burgers_vf}
 \end{equation}
-\editornote{Above problem equation is very informal. What does one do with it? 
+\editornote{Above problem equation is very informal. What does one do with it?
 MMO: We write in the introduction to this section 'The inviscid form of Burgers'
 equation will be used to illustrate differences between convective
 terms described in Section~\ref{sec:mortensen:Convection}.'}
@@ -937,7 +936,7 @@ treated implicitly.
 
 The Orr--Sommerfeld equation (see \citet{Orzag1971}) is derived by
 assuming a wave-like disturbance (perturbation) that is proportional to
-$\text{exp}(i(\alpha x-\lambda t))$, where $\lambda$ is an eigenvalue 
+$\text{exp}(i(\alpha x-\lambda t))$, where $\lambda$ is an eigenvalue
 (the complex frequency), $\alpha$
 is a prescribed wavenumber (we use $\alpha=1$), $x$ is the streamwise
 direction and $t$ is time. The perturbation is applied to the stream
@@ -997,7 +996,7 @@ with Chebyshev polynomials, as described by \citet{Trefethen2006}. We
 consider a channel with Reynolds number $Re=1/\nu=8000$, where
 the mean pressure gradient is a constant equal to $2/Re$. Using 80
 Chebyshev points the eigenvalues for this problem are plotted in Figure
-\ref{fig:mortensen:OS_init}. Note the eigenvalue shown as an open 
+\ref{fig:mortensen:OS_init}. Note the eigenvalue shown as an open
 square ($\lambda =
 0.24707506 + 0.00266441 i$), which is the only eigenvalue with a positive
 imaginary part. Since the imaginary part is positive, it is evident that
@@ -1106,8 +1105,8 @@ error in the perturbation flow energy computed as
    forms, here represented with solid, dashed and dotted lines
    respectively. The fully coupled and fractional step solvers are
    represented with gray and black lines, respectively. All results
-   for a mesh size of $N=48$. The figures on top and bottom 
-   use explicit \eqref{eq:mortensen:EX} and implicit \eqref{eq:mortensen:IM2} 
+   for a mesh size of $N=48$. The figures on top and bottom
+   use explicit \eqref{eq:mortensen:EX} and implicit \eqref{eq:mortensen:IM2}
    convection respectively. Note that for the top figure the black and gray curves
    are practically identical (the error in the fully coupled solver is
    approximately 2\% less throughout). }
@@ -1122,8 +1121,8 @@ error in the perturbation flow energy computed as
    of convection are here represented with solid, dashed and dotted
    lines respectively. The fully coupled and fractional step solvers
    are represented with gray and black lines, respectively. For all
-   results the time step used is 0.005. The figures on top and bottom 
-   use explicit \eqref{eq:mortensen:EX} and implicit \eqref{eq:mortensen:IM2} 
+   results the time step used is 0.005. The figures on top and bottom
+   use explicit \eqref{eq:mortensen:EX} and implicit \eqref{eq:mortensen:IM2}
    convection respectively. Note that for the top figure the black and
    gray curves are practically identical (the error in the fully
    coupled solver is approximately 2\% less throughout). }
@@ -1168,7 +1167,7 @@ diffusion and convection terms are computed with the intermediate (not
 divergence-free) velocity field and the inconsistency with the superior
 fully coupled scheme becomes more profound.
 
-To validate the more interesting (from a turbulence instability point of 
+To validate the more interesting (from a turbulence instability point of
 view) long-term performance of the solvers,
 we integrate the equations as long as it takes for the perturbation to
 travel through the domain two times (end time $\approx$ 50). One single
@@ -1222,12 +1221,12 @@ instability have been reported by \citet{MalikZangHussaini1984} and
    correspond to the standard, divergence and skew forms of the
    convection respectively. The symbolic dots represent the solution
    from a low-order finite volume solver and the squares represent the
-   true solution. Figures 1 and 3 from the top use explicit convection, 
-   Eq.~\eqref{eq:mortensen:EX}, with CFL of 0.1 and 0.05 respectively.
-   Figures 2 and 4 from the top use implicit convection \eqref{eq:mortensen:IM2} and CFL =
-   0.1 and 0.05 respectively. Note that for explicit convection and the standard
-   implicit form the gray and black curves are practically
-   identical. }
+   true solution. Figures 1 and 3 from the top use explicit
+   convection as in~\eqref{eq:mortensen:EX}, with CFL of 0.1 and 0.05,
+   respectively.  Figures 2 and 4 from the top use implicit convection
+   \eqref{eq:mortensen:IM2} and CFL = 0.1 and 0.05, respectively. Note
+   that for explicit convection and the standard implicit form the
+   gray and black curves are practically identical. }
 \label{fig:mortensen:OS_long_time}
 \end{figure}
 
@@ -1274,7 +1273,7 @@ nodal Gauss--Lobatto--Legendre basis functions and Fourier expansions
 in one homogeneous direction. To validate the Taylor--Green case we
 use semtex with $30 \times 30$ homogeneous elements of order six in both $x$
 and $y$-directions and 144 planes in the $z$-direction that is solved
-using Fourier expansions. The time step used for the validation simulations 
+using Fourier expansions. The time step used for the validation simulations
 is set to 0.005.
 
 Figure~\ref{fig:mortensen:dissipation} shows the error in average
@@ -1322,7 +1321,7 @@ discretizations and solvers have been validated using Burgers' equation,
 the Orr--Sommerfeld perturbation to a plane channel flow in two dimensions
 and the three-dimensional unstable and transitional Taylor--Green
 vortex. We have briefly described the details of our NS solvers and
-outlined some optimizations that in our experience provide a speed-up
+outlined some optimizations that in our experience provide a speedup
 of more than an order of magnitude compared to straightforward (naive)
 FEniCS implementation.
 
