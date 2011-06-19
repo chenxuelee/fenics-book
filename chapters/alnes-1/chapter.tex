@@ -358,7 +358,7 @@ P = FiniteElement("Lagrange", cell, 1)
 V = VectorElement("Lagrange", cell, 2)
 T = TensorElement("DG", cell, 0, symmetry=True)
 
-TH = V * P
+TH = V*P
 ME = MixedElement(T, V, P)
 \end{uflcode}
 In the first line a polygonal cell is selected from the set of
@@ -369,7 +369,7 @@ also piecewise constant on each cell. The code proceeds to declare a
 mixed element \emp{TH}, which combines the quadratic vector element
 \emp{V} and the linear scalar element \emp{P}. This element is known
 as the Taylor-Hood element.  Finally another mixed element with three
-subelements is declared. Note that writing \emp{T * V * P} would not
+subelements is declared. Note that writing \emp{T*V*P} would not
 result in a mixed element with three direct subelements, but rather
 \emp{MixedElement(MixedElement(T, V), P)}.
 
@@ -570,7 +570,7 @@ subfunctions $u_0 \in V_h^0$ and $u_1 \in V_h^1$, you can split the
 mixed function or basis function into its subfunctions in a generic way
 using \emp{split}:
 \begin{uflcode}
-V = V0 * V1
+V = V0*V1
 u = Coefficient(V)
 u0, u1 = split(u)
 \end{uflcode}
@@ -1025,7 +1025,7 @@ can implement this as
 v = TestFunction(element)
 u = TrialFunction(element)
 w = Coefficient(element)
-f = 0.5 * w**2 * dx
+f = 0.5*w**2*dx
 F = derivative(f, w, v)
 J = derivative(F, w, u)
 \end{uflcode}
@@ -1048,7 +1048,7 @@ linearization reads
 \begin{uflcode}
 Vx = VectorElement("CG", triangle, 1)
 Vy = FiniteElement("CG", triangle, 1)
-u = Coefficient(Vx * Vy)
+u = Coefficient(Vx*Vy)
 x, y = split(u)
 f = inner(grad(x), grad(x))*dx + y*dot(x,x)*dx
 F = derivative(f, u)
@@ -1086,7 +1086,7 @@ T = TensorElement("CG", cell, 1)
 u = TrialFunction(V)
 v = TestFunction(V)
 M = Coefficient(T)
-a = M[i,j] * u[k].dx(j) * v[k].dx(i) * dx
+a = M[i,j]*u[k].dx(j)*v[k].dx(i)*dx
 astar = adjoint(a)
 \end{uflcode}
 which corresponds to
@@ -1120,9 +1120,9 @@ V = FiniteElement("CG", cell, 1)
 v = TestFunction(V)
 f = Coefficient(V)
 g = Coefficient(V)
-L = f**2 / (2*g) * v * dx
+L = f**2 / (2*g)*v*dx
 L2 = replace(L, { f: g, g: 3})
-L3 = g**2 / 6 * v * dx
+L3 = g**2 / 6*v*dx
 \end{uflcode}
 Here \emp{L2} and \emp{L3} represent exactly the same form. Since they
 depend only on \emp{g}, the code generated for these forms can be more
@@ -1455,7 +1455,7 @@ u = TrialFunction(V)
 v = TestFunction(V)
 c = Constant(cell)
 f = Coefficient(V)
-e = c * f**2 * u * v
+e = c*f**2*u*v
 
 from ufl.algorithms import Graph, partition
 G = Graph(e)
@@ -2194,7 +2194,7 @@ v = TrialFunction(V)
 f = Coefficient(V)
 
 # Note no *dx! This is an expression, not a form.
-a = dot(grad(f * u), grad(v))
+a = dot(grad(f*u), grad(v))
 
 from ufl.algorithms import *
 ac = expand_compounds(a)
@@ -2337,7 +2337,7 @@ terminal instances to values.  This code extends the above code with
 a mapping:
 \begin{python}
 c = Constant(cell)
-e = c * (x[0] + x[1])
+e = c*(x[0] + x[1])
 print e((0.5, 0.7), { c: 10 }) # prints 12.0
 \end{python}
 If functions and basis functions depend on the spatial coordinates, the
@@ -2350,7 +2350,7 @@ can be seen in the following code:
 element = VectorElement("CG", triangle, 1)
 c = Constant(triangle)
 f = Coefficient(element)
-e = c * (f[0] + f[1])
+e = c*(f[0] + f[1])
 def fh(x):
     return (x[0], x[1])
 print e((0.5, 0.7), { c: 10, f: fh }) # prints 12.0
@@ -2366,7 +2366,7 @@ element = FiniteElement("CG", triangle, 1)
 g = Coefficient(element)
 e = g**2 + g.dx(0)**2 + g.dx(1)**2
 def gh(x, der=()):
-    if der == ():   return x[0] * x[1]
+    if der == ():   return x[0]*x[1]
     if der == (0,): return x[1]
     if der == (1,): return x[0]
 print e((2, 3), { g: gh }) # prints 49
