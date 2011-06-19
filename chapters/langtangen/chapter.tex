@@ -1,13 +1,3 @@
-\newcommand{\langtangenxpoint}{{x}}
-\newcommand{\langtangennormalvec}{{n}}
-\newcommand{\langtangenep}{\thinspace . }
-\newcommand{\para}[1]{\paragraph{#1}}
-\newcommand{\langtangenidx}[1]{\index{#1@\emp{#1}}}
-\newcommand{\Vghat}{\hat{V}^{(\mbox{g})}}
-\newcommand{\Vg}{V^{(\mbox{g})}}
-\newcommand{\ue}{u_{\mbox{e}}}
-\newcommand{\gln}{\vspace{2mm}\par}
-
 \fenicschapter{A FEniCS tutorial}
               {A FEniCS tutorial}
               {Hans Petter Langtangen}
@@ -16,11 +6,10 @@
 This chapter presents a \fenics{} tutorial to get new users quickly up and
 running with solving differential equations. \fenics{} can be programmed
 both in C++ and Python, but this tutorial focuses exclusively on Python
-programming, since this is the simplest approach to exploring \fenics{}
-for beginners and since it actually gives high performance. After having
-digested the examples in this tutorial, the reader should be able to
-learn more from the \fenics{} documentation and from the other chapters
-in this book.
+programming since this is the simplest approach to exploring \fenics{} for
+beginners and it does not compromise on performance. After having digested
+the examples in this tutorial, the reader should be able to learn more
+from the \fenics{} documentation and from the other chapters in this book.
 
 \section{Fundamentals}
 \label{langtangen:fundamentals}
@@ -104,8 +93,8 @@ Our first example regards the Poisson problem,
     u &= u_0 \quad \mbox{on} \  \partial \Omega.
   \end{split}
 \end{equation}
-Here, $u = u(\langtangenxpoint)$ is the unknown function, $f =
-f(\langtangenxpoint)$ is a prescribed function, $\Delta$ is the Laplace
+Here, $u = u(x)$ is the unknown function, $f =
+f(x)$ is a prescribed function, $\Delta$ is the Laplace
 operator (also often written as $\nabla^2$), $\Omega$ is the spatial
 domain, and $\partial\Omega$ is the boundary of $\Omega$. A stationary
 PDE like this, together with a complete set of boundary conditions,
@@ -403,7 +392,7 @@ applies other components in the
 \fenics{} suite under the hood, but newcomers to \fenics{} programming
 do not need to care about this.
 
-The statement\langtangenidx{Mesh}\index{DOLFIN mesh}
+The statement\index{Mesh}\index{DOLFIN mesh}
 \begin{python}
 mesh = UnitSquare(6, 4)
 \end{python}
@@ -421,7 +410,7 @@ mesh from file.
 %We shall come back to this point later in Section~\ref{langtangen:possion:nD:nmat:prepro}.
 
 Having a mesh, we can define a discrete function space \emp{V} over this
-mesh: \langtangenidx{FunctionSpace}
+mesh: \index{FunctionSpace}
 \begin{python}
   V = FunctionSpace(mesh, "CG", 1)
 \end{python}
@@ -429,16 +418,16 @@ The second argument reflects the type of element, while the third
 argument is the degree of the basis functions on the element.
 \index{finite element specifications}\index{CG finite element
   family}\index{Lagrange finite element family}
-The type of element is here "Lagrange", implying the
-standard Lagrange family of elements (some \fenics{} programs use \emp{'CG'}, for Continuous Galerkin, as a synonym for \emp{'Lagrange'}).
-With degree 1, we simply get the standard linear
-Lagrange element, which is a triangle with nodes at the three
-vertices.  Some finite element practitioners refer to this element as
-the ``linear triangle''.  The computed $u$ will be continuous and
-linearly varying in $x$ and $y$ over each cell in the mesh.
-Higher-degree polynomial approximations over each cell are trivially
-obtained by increasing the third parameter in
-\emp{FunctionSpace}. Changing the second parameter to \emp{"DG"}
+The type of element is here "Lagrange", implying the standard Lagrange
+family of elements (some \fenics{} programs use \emp{'CG'}, for
+Continuous Galerkin, as a synonym for \emp{'Lagrange'}).  With degree 1,
+we simply get the standard linear Lagrange element, which is a triangle
+with nodes at the three vertices.  Some finite element practitioners
+refer to this element as the ``linear triangle''.  The computed $u$
+will be continuous and linearly varying in $x$ and $y$ over each
+cell in the mesh.  Higher-degree polynomial approximations over
+each cell are trivially obtained by increasing the third parameter
+in \emp{FunctionSpace}. Changing the second parameter to \emp{"DG"}
 creates a function space for discontinuous Galerkin methods.
 
 In mathematics, we distinguish between the trial and test spaces $V$
@@ -446,7 +435,7 @@ and $\hat{V}$. The only difference in the present problem is the
 boundary conditions. In \fenics{} we do not specify the boundary
 conditions as part of the function space, so it is sufficient to work
 with one common space \emp{V} for the test and trial functions in the
-program:\langtangenidx{TrialFunction}\langtangenidx{TestFunction}
+program:\index{TrialFunction}\index{TestFunction}
 \begin{python}
 u = TrialFunction(V)
 v = TestFunction(V)
@@ -454,7 +443,7 @@ v = TestFunction(V)
 
 The next step is to specify the boundary condition:
 $u=u_0$ on $\partial\Omega$. This is done
-by\langtangenidx{DirichletBC}\index{Dirichlet boundary conditions}
+by\index{DirichletBC}\index{Dirichlet boundary conditions}
 \begin{python}
 bc = DirichletBC(V, u0, u0_boundary)
 \end{python}
@@ -469,7 +458,7 @@ information about Dirichlet boundary conditions is \emp{DirichletBC}.
 
 The \emp{u0} variable refers to an \emp{Expression} object, which is
 used to represent a mathematical function. The typical construction is
-\langtangenidx{Expression}
+\index{Expression}
 \begin{python}
 u0 = Expression(formula)
 \end{python}
@@ -704,7 +693,7 @@ spatial point.  Alternatively, we can make a finite element field
 nodes are given by the \emp{u0} function. With mathematics, $u_e
 = \sum_{j=1}^N E_j\phi_j$, where $E_j=u_0(x_j,y_j)$, $(x_j,y_j)$
 being the coordinates of node number $j$.  This process is known as
-interpolation.\index{interpolation}\langtangenidx{interpolate} FEniCS
+interpolation.\index{interpolation}\index{interpolate} FEniCS
 has a function for performing the operation:
 \begin{python}
 u_e = interpolate(u0, V)
@@ -760,7 +749,7 @@ Mesh information can be gathered from the \emp{mesh} object, e.g.,
   and \emp{print mesh} is actually the same as \emp{print str(mesh)}.
 \end{itemize}
 All mesh objects are of type \emp{Mesh} so typing the command \emp{pydoc
-dolfin.Mesh}\langtangenidx{pydoc} in a terminal window will give a list
+dolfin.Mesh}\index{pydoc} in a terminal window will give a list
 of methods\footnote{A method in Python (and other
   languages supporting the class construct) is simply a function in a
   class.} that can be called through any \emp{Mesh} object. In fact,
@@ -988,9 +977,9 @@ this space is expressed by the standard sum $\sum_j\bar U_j\bar \phi_j$,
 for suitable (new) coefficients $\bar U_j$.}, using the same elements
 for the components of $w$ as we used for $u$.
 
-The variational problem for $w$ reads: find $w\in \Vg$ such that
+The variational problem for $w$ reads: find $w\in V^{(\mbox{g})}$ such that
 \begin{equation}
-  a(w, v) = L(v)\quad\foralls v\in \Vghat,
+  a(w, v) = L(v)\quad\foralls v\in \hat{V}^{(\mbox{g})},
 \end{equation}
 where
 \begin{align}
@@ -998,10 +987,10 @@ where
 \\
   L(v) &= \int_\Omega \nabla u\cdot v\dx.
 \end{align}
-The function spaces $\Vg$ and $\Vghat$ (with the superscript g denoting
+The function spaces $V^{(\mbox{g})}$ and $\hat{V}^{(\mbox{g})}$ (with the superscript g denoting
 ``gradient'') are vector versions of the function space for $u$, with
 boundary conditions removed (if $V$ is the space we used for $u$, with
-no restrictions on boundary values, $ \Vg = \Vghat = [V]^d$, where $d$
+no restrictions on boundary values, $ V^{(\mbox{g})} = \hat{V}^{(\mbox{g})} = [V]^d$, where $d$
 is the number of space dimensions).  For example, if we used piecewise
 linear functions on the mesh to approximate $u$, the variational problem
 for $w$ corresponds to approximating each component field of $w$ by
@@ -1078,7 +1067,7 @@ Section~\ref{langtangen:quickviz} for illustrations of this phenomenon.
 Representing the gradient by the same elements as we used for the solution
 is a very common step in finite element programs, so the formation and
 solution of a variational problem for $w$ as shown above can be replaced
-by a one-line call:\langtangenidx{project}\index{projection}
+by a one-line call:\index{project}\index{projection}
 \begin{python}
 gradu = project(grad(u), VectorFunctionSpace(mesh, "Lagrange", 1))
 \end{python}
@@ -1110,10 +1099,10 @@ which is of particular interest when studying convergence properties.
 Sometimes the interest concerns the flux out of a part $\Gamma$ of the
 boundary $\partial\Omega$,
 \begin{equation}
-  F = -\int_\Gamma p\nabla u\cdot\langtangennormalvec\ds,
+  F = -\int_\Gamma p\nabla u\cdot  \ds,
 \label{langtangen:poisson1:functionals:flux}
 \end{equation}
-where $\langtangennormalvec$ is an outward unit normal
+where $n$ is an outward unit normal
 at $\Gamma$ and $p$ is a coefficient (see the problem in
 Section~\ref{langtangen:possion:2D:varcoeff} for a specific example).
 All these functionals are easy to compute with \fenics, and this section
@@ -1327,7 +1316,7 @@ this tutorial).
 \paragraph{Flux functionals.}\index{flux functional}
 To compute flux integrals like
 \eqref{langtangen:poisson1:functionals:flux} we need to define the
-$\langtangennormalvec$ vector, referred to as \emph{facet normal} in
+$n$ vector, referred to as \emph{facet normal} in
 \fenics. If $\Gamma$ is the complete boundary we can perform the flux
 computation by
 \begin{python}
@@ -1370,7 +1359,7 @@ Poisson equation for a scalar field \emp{w} (the membrane deflection).
 
 The \emp{plot} function can take additional arguments, such as a title
 of the plot, or a specification of a wireframe plot (elevated mesh)
-instead of a colored surface plot:\langtangenidx{plot}
+instead of a colored surface plot:\index{plot}
 \begin{python}
 plot(mesh, title="Finite element mesh")
 plot(w, wireframe=True, title="solution")
@@ -1656,7 +1645,7 @@ calls an appropriate solution method for such systems.  An alternative
 is dropping the use of a \emp{VariationalProblem} object and instead
 asking \fenics{} to create the matrix $A$ and right-hand side $b$,
 and then solve for the solution vector $U$ of the linear system.
-The relevant statements read\langtangenidx{assemble}\index{linear systems
+The relevant statements read\index{assemble}\index{linear systems
 (in FEniCS)}\index{assembly of linear systems}
 \begin{python}
 A = assemble(a)
@@ -1679,7 +1668,7 @@ the linear system. The first three statements above can alternatively
 be carried out by\footnote{The
   essential boundary conditions are now applied to the element matrices
   and vectors prior to assembly.}
-\langtangenidx{assemble\_system}
+\index{assemble\_system}
 \begin{python}
 A, b = assemble_system(a, L, bc)
 \end{python}
@@ -1732,7 +1721,7 @@ do computations on this matrix, such as computing the eigenvalues
 (using the \emp{numpy.linalg.eig} function). We can alternatively dump
 the matrix to file in MATLAB format and invoke MATLAB or Octave to
 perform computations:
-\langtangenidx{File}
+\index{File}
 \begin{python}
 mfile = File("A.m"); mfile << A
 \end{python}
@@ -1846,9 +1835,9 @@ Section~\ref{langtangen:poisson:gradu}, we normally want the piecewise
 discontinuous flux or gradient to be approximated by a continuous
 vector field, using the same elements as used for the numerical
 solution $u$. The approximation now consists of solving $w = -p\nabla
-u$ by a finite element method: find $w\in \Vg$ such that
+u$ by a finite element method: find $w\in V^{(\mbox{g})}$ such that
 \begin{equation}
-a(w, v) = L(v)\quad\foralls v\in \Vghat,
+a(w, v) = L(v)\quad\foralls v\in \hat{V}^{(\mbox{g})},
 \end{equation}
 where
 \begin{align}
@@ -2833,7 +2822,7 @@ where \emp{u} is a \emp{Function} representing the most recent solution.
 
 The UFL language that we use to specify weak forms supports differentiation
 of forms. This means that when \emp{F} is given as above, we can simply
-compute the Gateaux derivative by\langtangenidx{derivative}
+compute the Gateaux derivative by\index{derivative}
 \begin{python}
 J = derivative(F, u, du)
 \end{python}
@@ -3054,7 +3043,7 @@ A new programming issue is how to deal with functions that vary in
 space \emph{and time}, such as the boundary condition $u_0$ given by
 \eqref{langtangen:diffusion:pde1:u0test}.  Given a \emp{mesh} and an
 associated function space \emp{V}, we can specify the $u_0$ function
-as \langtangenidx{Expression}
+as \index{Expression}
 \begin{python}
 alpha = 3; beta = 1.2
 u0 = Expression("1 + x[0]*x[0] + alpha*x[1]*x[1] + beta*t",
@@ -3140,7 +3129,7 @@ The right-hand side vector \emp{b} must obviously be recomputed at
 each time level.  With the construction \emp{b = assemble(L)}, a new
 vector for \emp{b} is allocated in memory in every pass of the time loop.
 It would be much more memory friendly to reuse the storage of the \emp{b}
-we already have.  This is easily accomplished by\langtangenidx{assemble}
+we already have.  This is easily accomplished by\index{assemble}
 \begin{python}
     b = assemble(L, tensor=b)
 \end{python}
@@ -3408,7 +3397,7 @@ The domain of the rectangular area is taken as
 \[ [-W/4, W/4]\times [-W/4, W/4]\times [-D/2, -D/2 + D/4]\]
 in 3D, with $[-W/4, W/4]\times [-D/2, -D/2 + D/4]$ in 2D and
 $[-D/2, -D/2 + D/4]$ in 1D.
-Since we need some testing in the definition of the $\kappa(\langtangenxpoint)$
+Since we need some testing in the definition of the $\kappa(x)$
 function, the most straightforward approach is to define a subclass
 of \emp{Expression}, where we can use a full Python method instead of
 just a C++ string formula for specifying a function.
@@ -3625,13 +3614,13 @@ adjustable parameters). For nonlinear problems there is also submenu
 for the Newton solver in \emp{VariationalProblem} can be set.
 
 A complete list of all parameters and their default values is printed
-to the screen by\langtangenidx{info}
+to the screen by\index{info}
 \begin{python}
 info(problem.parameters, True)
 \end{python}
 
 \subsection{Solve function}
-\langtangenidx{solve(A, x, b)}
+\index{solve(A, x, b)}
 
 For the \emp{solve(A, U, b)} approach, a fourth argument to \emp{solve}
 determines the type of method:
@@ -3790,7 +3779,7 @@ with simple shape:
 \emp{UnitCircle},
 and
 \emp{UnitCube}.
-\langtangenidx{UnitInterval}\langtangenidx{UnitSphere}\langtangenidx{UnitSquare}\langtangenidx{Interval}\langtangenidx{Rectangle}\langtangenidx{Box}\langtangenidx{UnitCircle}\langtangenidx{UnitCube}
+\index{UnitInterval}\index{UnitSphere}\index{UnitSquare}\index{Interval}\index{Rectangle}\index{Box}\index{UnitCircle}\index{UnitCube}
 Some of these names have been briefly met in previous sections.
 The hopefully self-explanatory code snippet below summarizes typical
 constructions of meshes with the aid of these tools:
@@ -4399,150 +4388,160 @@ for implementing such complicated PDE models.
 
 \section{Miscellaneous topics}
 
+
 \subsection{Glossary}
 
-Below we explain some key terms used in this tutorial.\gln
+Below we explain some key terms used in this tutorial.
+%
+\begin{trivlist}
+  \item[\fenics:] name of a software suite composed of many individual
+  software components (see \emp{fenicsproject.org}). Some components are
+  DOLFIN and Viper, explicitly referred to in this tutorial. Others are
+  FFC and FIAT, heavily used by the programs appearing in this tutorial,
+  but never explicitly used from the programs.
 
-\fenics: name of a software suite composed of many individual software
-components (see \emp{fenicsproject.org}). Some components are DOLFIN
-and Viper, explicitly referred to in this tutorial. Others are FFC and
-FIAT, heavily used by the programs appearing in this tutorial, but never
-explicitly used from the programs.\gln
+  \item[DOLFIN:] a \fenics{} component, more precisely a C++ library,
+  with a Python interface, for performing important actions in finite
+  element programs. DOLFIN makes use of many other \fenics{} components
+  and many external software packages.
 
-DOLFIN: a \fenics{} component, more precisely a C++ library, with a
-Python interface, for performing important actions in finite element
-programs. DOLFIN makes use of many other \fenics{} components and many
-external software packages.\gln
+  \item[Viper:] a \fenics{} component for quick visualization of finite
+  element meshes and solutions.
 
-Viper: a \fenics{} component for quick visualization of finite element
-meshes and solutions.\gln
+  \item[UFL:] a \fenics{} component implementing the \emph{unified
+  form language} for specifying finite element forms in \fenics{}
+  programs.  The definition of the forms, typically called
+  \emp{a} and \emp{L} in this tutorial, must have legal UFL
+  syntax. The same applies to the definition of functionals (see
+  Section~\ref{langtangen:poisson1:functionals}).
 
-UFL: a \fenics{} component implementing the \emph{unified form language}
-for specifying finite element forms in \fenics{} programs.  The definition
-of the forms, typically called \emp{a} and \emp{L} in this tutorial, must
-have legal UFL syntax. The same applies to the definition of functionals
-(see Section~\ref{langtangen:poisson1:functionals}).  \gln
+  \item[Class (Python):] a programming construction for creating objects
+  containing a set of variables and functions. Most types of \fenics{}
+  objects are defined through the class concept.
 
-Class (Python): a programming construction for creating objects containing
-a set of variables and functions. Most types of \fenics{} objects are
-defined through the class concept.\gln
+  \item[Instance (Python):] an object of a particular type, where the type
+  is implemented as a class. For instance, \emp{mesh = UnitInterval(10)}
+  creates an instance of class \emp{UnitInterval}, which is reached by
+  the name \emp{mesh}. (Class \emp{UnitInterval} is actually just an
+  interface to a corresponding C++ class in the DOLFIN C++ library.)
 
-Instance (Python): an object of a particular type, where the type is
-implemented as a class. For instance, \emp{mesh = UnitInterval(10)}
-creates an instance of class \emp{UnitInterval}, which is reached by the
-name \emp{mesh}. (Class \emp{UnitInterval} is actually just an interface
-to a corresponding C++ class in the DOLFIN C++ library.)\gln
+  \item[Class method (Python):] a function in a class, reached by dot
+  notation: \emp{instance\_name.method\_name}.
 
-Class method (Python): a function in a class, reached by dot notation:
-\emp{instance\_name.method\_name}\gln
+  \item[\emp{self} parameter (Python):] required first parameter in class
+  methods, representing a particular object of the class.\index{self} Used
+  in method definitions, but never in calls to a method.  For example,
+  if \emp{method(self, x)} is the definition of \emp{method} in a class
+  \emp{Y}, \emp{method} is called as \emp{y.method(x)}, where \emp{y}
+  is an instance of class \emp{X}.  In a call like \emp{y.method(x)},
+  \emp{method} is invoked with \emp{self=y}.
 
-\emp{self} parameter (Python): required first parameter in class methods,
-representing a particular object of the class.\langtangenidx{self} Used
-in method definitions, but never in calls to a method.  For example,
-if \emp{method(self, x)} is the definition of \emp{method} in a class
-\emp{Y}, \emp{method} is called as \emp{y.method(x)}, where \emp{y}
-is an instance of class \emp{X}.  In a call like \emp{y.method(x)},
-\emp{method} is invoked with \emp{self=y}.\gln
-
-Class attribute (Python): a variable in a class, reached by dot notation:
-\emp{instance\_name.attribute\_name}\gln
+  \item[Class attribute (Python):] a variable in a class, reached by
+  dot notation: \emp{instance\_name.attribute\_name}.
+\end{trivlist}
 
 \subsection{Overview of objects and functions}
 
 Most classes in \fenics{} have an explanation of the purpose and usage
 that can be seen by using the general documentation command \emp{pydoc}
-for Python objects. You can type\langtangenidx{pydoc}
+for Python objects. You can type\index{pydoc}
 \begin{progoutput}
 pydoc dolfin.X
 \end{progoutput}
-\noindent
+%
 to look up documentation of a Python class \emp{X} from the DOLFIN
 library (\emp{X} can be \emp{UnitSquare}, \emp{Function}, \emp{Viper},
 etc.). Below is an overview of the most important classes and functions
 in \fenics{} programs, in the order they typically appear within
-programs.\gln
+programs.
+%
+\begin{trivlist}
+  \item[\emp{UnitSquare(nx, ny)}:] generate mesh over the unit square
+  $[0,1]\times [0,1]$ using \emp{nx} divisions in $x$ direction and
+  \emp{ny} divisions in $y$ direction. Each of the \emp{nx*ny} squares
+  are divided into two cells of triangular shape.
 
-\emp{UnitSquare(nx, ny)}: generate mesh over the unit square $[0,1]\times
-[0,1]$ using \emp{nx} divisions in $x$ direction and \emp{ny} divisions
-in $y$ direction. Each of the \emp{nx*ny} squares are divided into two
-cells of triangular shape.\gln
+  \item[\emp{UnitInterval}, \emp{UnitCube}, \emp{UnitCircle},
+  \emp{UnitSphere}, \emp{Interval}, \emp{Rectangle}, and \emp{Box}:]
+  generate mesh over domains of simple geometric shape, see
+  Section~\ref{langtangen:prepro}.
 
-\emp{UnitInterval}, \emp{UnitCube}, \emp{UnitCircle}, \emp{UnitSphere},
-\emp{Interval}, \emp{Rectangle}, and \emp{Box}: generate mesh over domains
-of simple geometric shape, see Section~\ref{langtangen:prepro}.\gln
+  \item[\emp{FunctionSpace(mesh, element\_type, degree)}:] a
+  function space defined over a mesh, with a given element type (e.g.,
+  \emp{"Lagrange"} or \emp{"DG"}), with basis functions as polynomials
+  of a specified degree.
 
-\emp{FunctionSpace(mesh, element\_type, degree)}: a function space defined
-over a mesh, with a given element type (e.g., \emp{"Lagrange"} or \emp{"DG"}),
-with basis functions as polynomials of a specified degree.\gln
+  \item[\emp{Expression(formula)}:] a scalar- or vector-valued function,
+  given as a mathematical expression \emp{formula} (string) written in
+  C++ syntax.
 
-\emp{Expression(formula)}: a scalar- or vector-valued function, given as a
-mathematical expression \emp{formula} (string) written in C++ syntax. \gln
+  \item[\emp{Function(V)}:] a scalar- or vector-valued finite element
+  field in the function space \emp{V}. If \emp{V} is a \emp{FunctionSpace}
+  object, \emp{Function(V)} becomes a scalar field, and with \emp{V}
+  as a \emp{VectorFunctionSpace} object, \emp{Function(V)} becomes a
+  vector field.
 
-\emp{Function(V)}: a scalar- or vector-valued finite element field
-in the function space \emp{V}. If \emp{V} is a \emp{FunctionSpace}
-object, \emp{Function(V)} becomes a scalar field, and with \emp{V}
-as a \emp{VectorFunctionSpace} object, \emp{Function(V)} becomes a
-vector field.\gln
+  \item[\emp{SubDomain}:] class for defining a subdomain, either
+  a part of the boundary, an internal boundary, or a part of
+  the domain.  The programmer must subclass \emp{SubDomain} and
+  implement the \emp{inside(self, x, on\_boundary)} function (see
+  Section~\ref{langtangen:poisson1:impl}) for telling whether a point
+  \emp{x} is inside the subdomain or not.
 
-\emp{SubDomain}: class for defining a subdomain, either a part of the
-boundary, an internal boundary, or a part of the domain.  The programmer
-must subclass \emp{SubDomain} and implement the \emp{inside(self, x,
-on\_boundary)} function (see Section~\ref{langtangen:poisson1:impl})
-for telling whether a point \emp{x} is inside the subdomain or not.  \gln
+  \item[\emp{Mesh}:] class for representing a finite element mesh,
+  consisting of cells, vertices, and optionally faces, edges, and facets.
 
-\emp{Mesh}: class for representing a finite element mesh, consisting of
-cells, vertices, and optionally faces, edges, and facets.
+  \item[\emp{MeshFunction}:] tool for marking parts of the domain or
+  the boundary.  Used for variable coefficients (``material properties'',
+  see Section~\ref{langtangen:possion:2D:2mat:problem}) or for boundary
+  conditions (see Section~\ref{langtangen:poisson:mat:neumann}).
 
-\emp{MeshFunction}: tool for marking parts of the domain or the
-boundary.  Used for variable coefficients (``material properties'',
-see Section~\ref{langtangen:possion:2D:2mat:problem}) or for boundary
-conditions (see Section~\ref{langtangen:poisson:mat:neumann}).\gln
+  \item[\emp{DirichletBC(V, value, where)}:] specification of Dirichlet
+  (essential) boundary conditions via a function space \emp{V}, a
+  function \emp{value(x)} for computing the value of the condition at
+  a point \emp{x}, and a specification \emp{where} of the boundary,
+  either as a \emp{SubDomain} subclass instance, a plain function, or
+  as a \emp{MeshFunction} instance.  In the latter case, a 4th argument
+  is provided to describe which subdomain number that describes the
+  relevant boundary.
 
-\emp{DirichletBC(V, value, where)}: specification of Dirichlet
-(essential) boundary conditions via a function space \emp{V},
-a function \emp{value(x)} for computing the value of the condition
-at a point \emp{x}, and a specification \emp{where} of the boundary,
-either as a \emp{SubDomain} subclass instance, a plain function, or as
-a \emp{MeshFunction} instance.  In the latter case, a 4th argument is
-provided to describe which subdomain number that describes the relevant
-boundary.\gln
+  \item[\emp{TrialFunction(V)}:] define a trial function on a space
+  \emp{V} to be used in a variational form to represent the unknown in
+  a finite element problem.
 
-\emp{TrialFunction(V)}: define a trial function on a space \emp{V}
-to be used in a variational form to represent the unknown in a finite
-element problem.\gln
+  \item[\emp{TestFunction(V)}:] define a test function on a space \emp{V}
+  to be used in a variational form.
 
-\emp{TestFunction(V)}: define a test function on a space \emp{V} to be
-used in a variational form.\gln
+  \item[\emp{assemble(X)}:] assemble a matrix, a right-hand side, or a
+  functional, given a from \emp{X} written with UFL syntax.
 
-\emp{assemble(X)}: assemble a matrix, a right-hand side, or a functional,
-given a from \emp{X} written with UFL syntax.\gln
+  \item[\emp{assemble\_system(a, L, bc)}:] assemble the matrix and the
+  right-hand side from a bilinear (\emp{a}) and linear (\emp{L}) form
+  written with UFL syntax. The \emp{bc} parameter holds one or more
+  \emp{DirichletBC} objects.
 
-\emp{assemble\_system(a, L, bc)}: assemble the matrix and the right-hand
-side from a bilinear (\emp{a}) and linear (\emp{L}) form written with
-UFL syntax. The \emp{bc} parameter holds one or more \emp{DirichletBC}
-objects.\gln
+  \item[\emp{VariationalProblem(a, L, bc)}:] define and solve a
+  variational problem, given a bilinear (\emp{a}) and linear (\emp{L})
+  form, written with UFL syntax, and one or more \emp{DirichletBC}
+  objects stored in \emp{bc}.
 
-\emp{VariationalProblem(a, L, bc)}: define and solve a variational
-problem, given a bilinear (\emp{a}) and linear (\emp{L}) form,
-written with UFL syntax, and one or more \emp{DirichletBC} objects
-stored in \emp{bc}.  \gln
+  \item[\emp{solve(A, U, b)}:] solve a linear system with \emp{A}
+  as coefficient matrix (\emp{Matrix} object), \emp{U} as unknown
+  (\emp{Vector} object), and \emp{b} as right-hand side (\emp{Vector}
+  object).  Usually, \emp{U} is replaced by \emp{u.vector()}, where
+  \emp{u} is a \emp{Function} object representing the unknown finite
+  element function of the problem, while \emp{A} and \emp{b} are computed
+  by calls to \emp{assemble} or \emp{assemble\_system}.
 
-\emp{solve(A, U, b)}: solve a linear system with \emp{A} as coefficient
-matrix (\emp{Matrix} object), \emp{U} as unknown (\emp{Vector} object),
-and \emp{b} as right-hand side (\emp{Vector} object).  Usually, \emp{U}
-is replaced by \emp{u.vector()}, where \emp{u} is a \emp{Function}
-object representing the unknown finite element function of the problem,
-while \emp{A} and \emp{b} are computed by calls to \emp{assemble}
-or \emp{assemble\_system}.\gln
+  \item[\emp{plot(q)}:] quick visualization of a mesh, function, or mesh
+  function \emp{q}, using the Viper component in \fenics{}.
 
-\emp{plot(q)}: quick visualization of a mesh, function, or mesh function
-\emp{q}, using the Viper component in \fenics{}.\gln
+  \item[\emp{interpolate(func, V)}:] interpolate a formula or finite
+  element function \emp{func} onto the function space \emp{V}.
 
-\emp{interpolate(func, V)}: interpolate a formula or finite element
-function \emp{func} onto the function space \emp{V}.\gln
-
-\emp{project(func, V)}: project a formula or finite element function
-\emp{func} onto the function space \emp{V}.\gln
+  \item[\emp{project(func, V)}:] project a formula or finite element
+  function \emp{func} onto the function space \emp{V}.
+\end{trivlist}
 
 \subsection{Installing \fenics}
 \label{langtangen:app:install}
