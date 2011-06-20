@@ -747,15 +747,7 @@ term $\nabla \vec{u} \, \vec{u}_{n-1}$ by \emp{assemble(conv(u\_1, u,
   times as many zeroes as nonzeros, since the sparsity pattern of the
   matrix is determined by the connectivity of the degrees of freedom
   of the finite element fields. The assembled zeros slows down Krylov
-  solvers, which rely on efficient matrix-vector products for speed.
-
-\editornote{Can the assertion regarding the Krylov solver be supported?
-It could very well be the preconditioners operating on zeroes that are costly.
-Mikael: It can very well be supported. The extra zeros makes the matrix-vector
-product slower by the observed factor. I have checked by comparing only
-the matrix-vector products of regular and compressed matrices. I have not
-done anything in particular for the preconditioners, but they rely on
-matrix-vector products as well. Right Kent?}
+  solvers and preconditioners, which rely on efficient matrix-vector products for speed.
 
 \end{enumerate}
 In addition to these steps there are also some simple switches that can
@@ -843,17 +835,13 @@ resembling turbulence, and $\kappa$ is the amplitude of the perturbation.
 The variational form of Burgers' equation is obtained by multiplying
 \eqref{eq:mortensen:burgers} with test function $v$ and integrating over
 the domain, neglecting boundary terms due to the homogeneous Dirichlet boundary
-conditions. The resulting variational form is
+conditions. The resulting variational form involves finding $u_n$ such that 
 \begin{equation}
  \frac{1}{\Delta t}\inner{ u_{n} - u_{n-1}}{v}
       = - \inner{B(\tilde{u},\Bar{u})}{ v }
           - \nu \inner{ \nabla u_{n-\alpha}}{\nabla v }.
 \label{eq:mortensen:burgers_vf}
 \end{equation}
-\editornote{Above problem equation is very informal. What does one do with it?
-Mikael: We write in the introduction to this section 'The inviscid form of Burgers'
-equation will be used to illustrate differences between convective
-terms described in Section~\ref{sec:mortensen:Convection}.'}
 We have used Crank--Nicholson-style time discretization ($\alpha=0.5$)
 in all our investigations of this case. In one space
 dimension the convection terms need some modification from
