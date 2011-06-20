@@ -100,7 +100,8 @@ exceptions = {"chapter": ("this", "This"),
               "figure":  ("{",),
               "table":   ("{",),
               "runtime": ("/",),
-              "^T":      ("int_0",)}
+              "^t":      ("int_0", "psi"),
+              "^T":      ("int_0", "psi")}
 
 # List of words that are allowed to be uppercase in titles
 uppercase = ["A",
@@ -176,11 +177,12 @@ uppercase = ["A",
              "MAdLib"]
 
 # List of code environments
-code_environments = [("\\begin{python}",   "\\end{python}"),
-                     ("\\begin{c++}",      "\\end{c++}"),
-                     ("\\begin{uflcode}",  "\\end{uflcode}"),
-                     ("\\begin{swigcode}", "\\end{swigcode}"),
-                     ("\\begin{gencode}",  "\\end{gencode}")]
+code_environments = [("\\begin{python}",     "\\end{python}"),
+                     ("\\begin{c++}",        "\\end{c++}"),
+                     ("\\begin{uflcode}",    "\\end{uflcode}"),
+                     ("\\begin{swigcode}",   "\\end{swigcode}"),
+                     ("\\begin{gencode}",    "\\end{gencode}"),
+                     ("\\begin{progoutput}", "\\end{progoutput}")]
 
 def check_capitalization(text):
     warnings = []
@@ -194,7 +196,7 @@ def check_capitalization(text):
                         warnings.append("Capitalized word '%s' in section: %s" % (word, line))
     return warnings
 
-def check_all(text):
+def check_all(text, ignore_code_warnings):
     "Check stuff"
 
     warnings = []
@@ -214,7 +216,8 @@ def check_all(text):
             pos = text[offset:].find(a)
             if pos != -1:
                 if inside_code_environment(offset + pos, text):
-                    warnings += ["%s --> %s (but inside code environment so IGNORE)" % (a, b)]
+                    if not ignore_code_warnings:
+                        warnings += ["%s --> %s (inside code environment, use --ignore to ignore)" % (a, b)]
                 elif not exception(offset + pos, text, a):
                     warnings += ["%s --> %s" % (a, b)]
                 offset += pos + 1
@@ -268,8 +271,9 @@ def exception(pos, text, a):
 if __name__ == "__main__":
 
     # Get file name
-    if not len(sys.argv) == 2:
-        print "Usage: proofread file.tex"
+    if not len(sys.argv) in (2, 3):
+        print "Usage: proofread file.tex [--ignore]"
+        print "The --ignore flag skips warnings found in code environments."
         sys.exit(1)
     filename = sys.argv[1]
 
@@ -282,15 +286,15 @@ if __name__ == "__main__":
         print "Unable to open file '%s'." % filename
         sys.exit(1)
 
+    # Check whether code warnings should be ignored
+    ignore_code_warnings = "--ignore" in sys.argv
+
     # Check stuff
-    warnings = check_all(text)
+    warnings = check_all(text, ignore_code_warnings)
 
     # Print results
-    if len(warnings) == 0:
-        s = "%s: OK" % filename
-        print s + "\n" + "-"*len(s)
-    else:
+    if len(warnings) > 0:
         s = "%s: %d warning(s)" % (filename, len(warnings))
-        print s + "\n" + "-"*len(s)
+        print "\n" + s + "\n" + "-"*len(s)
         for warning in warnings:
             print "- " + warning

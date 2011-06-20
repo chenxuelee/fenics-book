@@ -1,6 +1,5 @@
 #!/bin/sh
 
 for f in chapters/*; do
-    echo ""
-    utils/proofread $f/chapter.tex
+    utils/proofread $f/chapter.tex $1
 done
