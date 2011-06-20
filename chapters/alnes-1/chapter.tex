@@ -267,7 +267,7 @@ in this implementation will be explained.
 \begin{uflcode}
 # Finite element spaces
 cell = tetrahedron
-element = VectorElement("CG", cell, 1)
+element = VectorElement("Lagrange", cell, 1)
 
 # Form arguments
 phi0 = TestFunction(element)
@@ -1046,8 +1046,8 @@ Equation~\ref{ufl:eq:harmonic} have basis function arguments in the mixed
 space $V_h^d \times V_h$. The implementation of these forms with automatic
 linearization reads
 \begin{uflcode}
-Vx = VectorElement("CG", triangle, 1)
-Vy = FiniteElement("CG", triangle, 1)
+Vx = VectorElement("Lagrange", triangle, 1)
+Vy = FiniteElement("Lagrange", triangle, 1)
 u = Coefficient(Vx*Vy)
 x, y = split(u)
 f = inner(grad(x), grad(x))*dx + y*dot(x,x)*dx
@@ -1081,8 +1081,8 @@ by swapping the test and trial functions, and can be written using the
 \emp{adjoint} form operator.  An example of its use on an anisotropic
 diffusion term looks like
 \begin{uflcode}
-V = VectorElement("CG", cell, 1)
-T = TensorElement("CG", cell, 1)
+V = VectorElement("Lagrange", cell, 1)
+T = TensorElement("Lagrange", cell, 1)
 u = TrialFunction(V)
 v = TestFunction(V)
 M = Coefficient(T)
@@ -1116,7 +1116,7 @@ L(f, g; v) = \int_\Omega (f^2 / (2g)) v \dx, \\
 This feature is implemented with \emp{replace}, as illustrated in
 this case:
 \begin{uflcode}
-V = FiniteElement("CG", cell, 1)
+V = FiniteElement("Lagrange", cell, 1)
 v = TestFunction(V)
 f = Coefficient(V)
 g = Coefficient(V)
@@ -1153,7 +1153,7 @@ a(u, v) - L(v) = 0,
 you can declare forms with both linear and bilinear terms and split the
 equations into $a$ and $L$ afterwards.  A simple example is
 \begin{uflcode}
-V = FiniteElement("CG", cell, 1)
+V = FiniteElement("Lagrange", cell, 1)
 u = TrialFunction(V)
 v = TestFunction(V)
 f = Coefficient(V)
@@ -1450,7 +1450,7 @@ of its graph.
 \begin{python}
 from ufl import *
 cell = triangle
-V = FiniteElement("CG", cell, 1)
+V = FiniteElement("Lagrange", cell, 1)
 u = TrialFunction(V)
 v = TestFunction(V)
 c = Constant(cell)
@@ -2041,12 +2041,12 @@ class ExampleFunction(MultiFunction):
 m = ExampleFunction()
 
 cell = triangle
-element = FiniteElement("CG", cell, 1)
+element = FiniteElement("Lagrange", cell, 1)
 x = cell.x
 print m(Argument(element))
 print m(x)
 print m(x[0] + x[1])
-print m(x[0] * x[1])
+print m(x[0]* x[1])
 \end{python}
 \caption{Example declaration and use of a multifunction.}
 \label{ufl:fig:examplefunction}
@@ -2188,7 +2188,7 @@ output is repeated below. Copy this code to a python file or run it in
 a python interpreter to see the full output.
 \begin{python}
 from ufl import *
-V = FiniteElement("CG", triangle, 1)
+V = FiniteElement("Lagrange", triangle, 1)
 u = TestFunction(V)
 v = TrialFunction(V)
 f = Coefficient(V)
@@ -2347,7 +2347,7 @@ floating point value.  If the function being mapped is a vector function,
 the callable must return a tuple of values instead.  These extensions
 can be seen in the following code:
 \begin{python}
-element = VectorElement("CG", triangle, 1)
+element = VectorElement("Lagrange", triangle, 1)
 c = Constant(triangle)
 f = Coefficient(element)
 e = c*(f[0] + f[1])
@@ -2362,7 +2362,7 @@ is called with a tuple of integers specifying the spatial directions in
 which to differentiate. A final example code computing $g^2 + g_{,0}^2 +
 g_{,1}^2$ for $g=x_0x_1$ is shown below.
 \begin{python}
-element = FiniteElement("CG", triangle, 1)
+element = FiniteElement("Lagrange", triangle, 1)
 g = Coefficient(element)
 e = g**2 + g.dx(0)**2 + g.dx(1)**2
 def gh(x, der=()):

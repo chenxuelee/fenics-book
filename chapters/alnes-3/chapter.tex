@@ -11,7 +11,6 @@
 
 \section{Introduction}
 
-
 This chapter concerns the finite element library \syfi{} and its form
 compiler \sfc{}.  \syfi{} is a framework for defining finite elements
 symbolically, using the C++ library GiNaC~\citep{BauerFrinkKreckel2000}
@@ -264,7 +263,7 @@ following UFL code for defining the variational problem for solving the
 Poisson problem, implemented in a file \emp{Poisson.ufl}:
 \begin{python}
 cell = triangle
-element = FiniteElement("CG", cell, 1)
+element = FiniteElement("Lagrange", cell, 1)
 
 u = TrialFunction(element)
 v = TestFunction(element)
@@ -334,8 +333,8 @@ of nonlinear equations to be solved, and $\JJ_F$ is the corresponding
 Jacobian.  This variational form is implemented in DOLFIN as follows:
 \begin{python}
 mesh = UnitSquare(N, N)
-V = VectorFunctionSpace(mesh, "CG", order)
-Q = FunctionSpace(mesh, "CG", order)
+V = VectorFunctionSpace(mesh, "Lagrange", order)
+Q = FunctionSpace(mesh, "Lagrange", order)
 
 U = Function(V)
 
@@ -499,7 +498,7 @@ variables for all subexpressions.  To place the temporary variables
 inside the correct loops in the generated code, the computational
 graph is partitioned based on the dependencies of subexpressions. See
 Chapter~\ref{chap:alnes-1} for an explanation of the partitioning
-algorithm provided by UFL.  The subexpression associated with
+algorithm provided by UFL. The subexpression associated with
 each temporary variable is then translated to a C/C++ string using
 GiNaC. Finally, \sfc{} puts it all together into a tabulate tensor
 implementation in the code generation classes (\emp{*CG}).
