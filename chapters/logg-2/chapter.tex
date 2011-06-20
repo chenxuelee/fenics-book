@@ -1922,8 +1922,26 @@ When combined with integrals defined using \emp{ds(0)} and
 domain boundary to the left of $x = 0.5$ and to the right of $x =
 0.5$, respectively.
 
-\editornote{Describe what to do with facet function, whether to attach it
-to the form. Awaiting result of recent discussion on mailing list.}
+Once the boundaries have been specified as a \emp{FacetFunction}, that
+object can be used do define the corresponding domains of
+integration. This is done differently in C++ and Python. From C++, one
+must assign to the \emp{.ds} member variable of the corresponding
+forms:
+\begin{c++}
+a.ds = exterior_facet_domains;
+L.ds = exterior_facet_domains;
+\end{c++}
+In addition to \emp{exterior\_facet\_domains} specified in terms of
+the \emp{ds} member variable, one may similarly specify
+\emp{cell\_domains} using the \emp{dx} member variable and
+\emp{interior\_facet\_domains} using the \emp{dS} variable.  Note that
+different forms may potentially use different definitions of their
+boundaries. From Python, one may simply connect the boundary
+definition to the corresponding measure by subscripting:
+\begin{python}
+ds = ds[neumann_boundary]
+a = ... + g*v*ds(0) + h*v*ds(1) + ...
+\end{python}
 
 The correct specification of boundaries is a common error source. For
 debugging the specification of boundary conditions, it can be helpful
