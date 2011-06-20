@@ -27,10 +27,6 @@
 % Make empty page really empty
 \usepackage{emptypage}
 
-% Hyperlinks
-\usepackage{hyperref}
-\hypersetup{colorlinks}
-
 % Font selection
 \usepackage[osf,sc]{mathpazo}
 \usepackage[scaled=0.90]{helvet}
@@ -110,7 +106,16 @@ facing=yes,capbesideposition={top,inside},floatwidth=0.62\textwidth}
 % Colors
 \usepackage{color}
 \definecolor{Grey}{rgb}{0.5, 0.5, 0.5}
+\definecolor{DarkGrey}{rgb}{0.2, 0.2, 0.2}
 \newcommand{\grey}[1]{\textcolor{Grey}{#1}}
+
+% Hyperlinks
+\usepackage{hyperref}
+\hypersetup{colorlinks,
+            citecolor=blue,
+            filecolor=blue,
+            linkcolor=blue,
+            urlcolor=blue}
 
 % Environments
 \newtheorem{example}{Example}[chapter]
