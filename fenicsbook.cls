@@ -28,7 +28,7 @@
 \usepackage{emptypage}
 
 % Font selection
-\usepackage[osf,sc]{mathpazo}
+\usepackage[sc]{mathpazo}
 \usepackage[scaled=0.90]{helvet}
 \usepackage[scaled=0.85]{beramono}
 \usepackage[T1]{fontenc}
