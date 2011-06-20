@@ -91,8 +91,17 @@
 
 % Side captions
 \usepackage{floatrow}
-\floatsetup[figure]{capposition=beside,capbesidewidth=0.35\textwidth,%
-facing=yes,capbesideposition={top,inside},floatwidth=0.62\textwidth}
+\DeclareFloatVCode{grayruleabove}%
+{{\color{gray}\par\rule\hsize{2.8pt}\vskip4pt\par}}
+\DeclareFloatVCode{grayrulebelow}%
+{{\color{gray}\par\vskip4pt\rule\hsize{2.8pt}}}
+\floatsetup[figure]{%
+  capposition=beside,
+  capbesidewidth=0.35\textwidth,
+  facing=yes,
+  capbesideposition={top,inside},
+  floatwidth=0.62\textwidth,
+  rowprecode=grayruleabove,rowpostcode=grayrulebelow}
 \usepackage[font={rm,small}]{caption}
 
 % Algorithm packages
