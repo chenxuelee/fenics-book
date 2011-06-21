@@ -572,7 +572,7 @@ discretization family, and in particular, the stability of mixed
 finite element methods for saddle point problems. \rognesascot{} can
 be imported as any \rognespython{} module:
 \begin{python}
-  from ascot import *
+from ascot import *
 \end{python}
 The remainder of this section describes how the afore described
 strategy is implemented in \rognesascot{}. Emphasis is placed on the
@@ -609,9 +609,9 @@ $\lambda$ functionality. For the mixed Laplacian, the forms $a$ and
 $b$ read $a = a(u, v) = \langle u, v \rangle$ and $b = b(v, q) =
 \langle \Div v, q \rangle$. These should be specified as
 \begin{python}
-  # Define a and b forms:
-  a = lambda u, v: dot(u, v)*dx
-  b = lambda v, q: div(v)*q*dx
+# Define a and b forms:
+a = lambda u, v: dot(u, v)*dx
+b = lambda v, q: div(v)*q*dx
 \end{python}
 The above format is advantageous as it separates the definition of the
 forms from the function spaces. Hence, the user needs not specify
@@ -627,9 +627,9 @@ $\langle u, v \rangle_{\Div} = \langle u, v \rangle + \langle \Div u,
 \Div v \rangle$ and $\langle p, q \rangle_0 = \langle p, q \rangle$. The
 corresponding code reads
 \begin{python}
-  # Define inner products:
-  Hdiv = lambda u, v: (dot(u, v) + div(u)*div(v))*dx
-  L2 = lambda p, q: dot(p, q)*dx
+# Define inner products:
+Hdiv = lambda u, v: (dot(u, v) + div(u)*div(v))*dx
+L2 = lambda p, q: dot(p, q)*dx
 \end{python}
 
 Third, the function spaces have to be specified. In particular, a list
@@ -639,11 +639,11 @@ piecewise linear vector fields $\rognesvectorcg{1}{2}$, combined with
 continuous piecewise linears $\rognescg{1}$, for a set of diagonal
 triangulations of the unit square, one can do as follows:
 \begin{python}
-  # Construct a family of mixed function spaces
-  meshsizes = [2, 4, 6, 8, 10]
-  meshes = [UnitSquare(n, n) for n in meshsizes]
-  W_hs = [VectorFunctionSpace(mesh, "Lagrange", 1) * FunctionSpace(mesh, "Lagrange", 1)
-          for mesh in meshes]
+# Construct a family of mixed function spaces
+meshsizes = [2, 4, 6, 8, 10]
+meshes = [UnitSquare(n, n) for n in meshsizes]
+W_hs = [VectorFunctionSpace(mesh, "Lagrange", 1)*FunctionSpace(mesh, "Lagrange", 1)
+        for mesh in meshes]
 \end{python}
 Note that the reliability of the computed stability characterization
 increases with the number of meshes and their refinement level.
@@ -653,7 +653,7 @@ function provided by \rognesascot{} is \emp{test\_stability}. This
 function takes three arguments: a list of forms, a list of inner
 products and a list of function spaces:
 \begin{python}
-  result = test_stability((a, b), (Hdiv, L2), W_hs)
+result = test_stability((a, b), (Hdiv, L2), W_hs)
 \end{python}
 A \emp{StabilityResult} is returned.  The instructions carried out by
 this function and the properties of the \emp{StabilityResult} are
@@ -820,7 +820,7 @@ for condition in result.conditions:
     print condition
 \end{python}
 The following output appears:
-\begin{python}
+\begin{progoutput}
 <Mixed element: (<Mixed element: (<CG1 on a <triangle of degree 1>>,
 <CG1 on a <triangle of degree 1>>)>, <CG1 on a <triangle of degree 1>>)>
 
@@ -833,7 +833,7 @@ reduced =        [0.56032, 0.35682, 0.24822, 0.18929, 0.15251]
 rates  =         [0.651, 0.895, 0.942, 0.968]
 
 Empty InfSupCollection: alpha_h
-\end{python}
+\end{progoutput}
 \rognesascot{} characterizes this discretization family as
 unstable. For the Brezzi inf-sup eigenvalue problems, there are 2 zero
 eigenvalues for each mesh. Hence, the Brezzi inf-sup constant is zero,
@@ -852,7 +852,7 @@ Section~\ref{rognes:sec:motivation} was the combination of continuous
 piecewise linear vector fields and piecewise constants. Using the same
 code as before, just replacing the finite element spaces, we obtain
 the following results:
-\begin{python}
+\begin{progoutput}
 <Mixed element: (<Mixed element: (<CG1 on a <triangle of degree 1>>,
 <CG1 on a <triangle of degree 1>>)>, <DG0 on a <triangle of degree 1>>)>
 Discretization family is: Unstable. Decaying.
@@ -864,7 +864,7 @@ rates  =         [0.187, 0.413, 0.586, 0.703]
 InfSupCollection: alpha_h
 values =         [1, 1, 1, 1, 1]
 rates  =         [-1.35e-14, 6.13e-14, 3.88e-13, 4.05e-13]
-\end{python}
+\end{progoutput}
 Look at the Brezzi inf-sup constants first. In this case, there are no
 singular values, and hence the Brezzi inf-sup constants are
 positive. However, the constants seem to decay with the mesh size at
@@ -886,7 +886,7 @@ see~Figure~\ref{rognes:fig:example}\subref{rognes:fig:cg}.
 
 Finally, we can inspect a stable method, namely the lowest order
 Raviart--Thomas space combined with the space of piecewise constants:
-\begin{python}
+\begin{progoutput}
 <Mixed element: (<RT1 on a <triangle of degree 1>>,
 <DG0 on a <triangle of degree 1>>)>
 Discretization family is: Stable.
@@ -898,7 +898,7 @@ rates  =         [0.00126, 0.000508, 0.000265, 0.000162]
 InfSupCollection: alpha_h
 values =         [1, 1, 1, 1, 1]
 rates  =         [5.6e-11, 1.39e-08, 1.64e-08, 2.24e-07]
-\end{python}
+\end{progoutput}
 \rognesascot{} characterizes this mixed element method as stable. It
 is indeed proven so \citep{RaviartThomas1977}. The Brezzi coercivity
 constant is equal to $1$ for all meshes tested and hence bounded from
@@ -922,14 +922,14 @@ meshes, specified in DOLFIN using
 meshes = [UnitSquare(n, n, "crossed") for n in meshsizes]
 \end{python}
 with the mesh sizes as before, the results are different:
-\begin{python}
+\begin{progoutput}
 Discretization family is: Unstable. Singular. Reduced stable.
 
 InfSupCollection: beta_h
 singularities = [4, 16, 36, 64, 100]
 reduced =        [0.97832, 0.97637, 0.97595, 0.97579, 0.97572]
 rates  =         [0.00288, 0.00106, 0.000543, 0.000328]
-\end{python}
+\end{progoutput}
 For this mesh family, the Brezzi inf-sup constants are zero and thus
 the method is singular. (In fact, there are $n^2$ spurious modes for
 this element on this mesh \citep{Qin1994}.) However, the reduced
@@ -976,10 +976,10 @@ degree between $1$ and $4$ matched with $L^2$-conforming functions of
 polynomial degrees between $0$ and $3$ on a given set of meshes,
 define
 \begin{python}
-  specifications = {"value_dimensions": (2, 1),
-                    "degrees": ((i,j) for i in range(1,5) for j in range(i)),
-                    "spaces": ("H1", "L2")}
-  spaces = create_spaces(meshes, **specifications)
+specifications = {"value_dimensions": (2, 1),
+                  "degrees": ((i,j) for i in range(1,5) for j in range(i)),
+                  "spaces": ("H1", "L2")}
+spaces = create_spaces(meshes, **specifications)
 \end{python}
 
 For the equations~\eqref{rognes:eq:stokes}, the Brezzi coercivity
@@ -1006,7 +1006,7 @@ stability of a discretization family is detected and not possible
 reduced stabilities. This mode is off by default, but can easily be
 turned on:
 \begin{python}
- ascot_parameters["only_stable"] = True
+ascot_parameters["only_stable"] = True
 \end{python}
 
 Applying the above to the diagonal mesh family used in the previous
@@ -1035,6 +1035,7 @@ the remaining elements follow from the previous results: if the Brezzi
 inf-sup condition holds for a family $\{V_h \times Q_h\}$, by
 definition it will also hold for the families $\{V_h \times P_h\}$ for
 $P_h \subseteq Q_h$.
+
 \begin{figure}
   \centering
   \begin{minipage}[t]{0.3\linewidth}

@@ -812,69 +812,69 @@ using Lagrange $P_1$ elements (see Chapter~\ref{chap:kirby-6}) and
 including dissipative and source terms is presented below.
 
 \begin{python}
-P=FiniteElement("Lagrange",triangle,1) # Linear Lagrange element in triangles
-Th=P*P # Product space for basis functions
+P = FiniteElement("Lagrange",triangle,1) # Linear Lagrange element in triangles
+Th = P*P # Product space for basis functions
 
 # eta_t: time derivative of the surface elevation
 # phi_t: time derivative of the velocity potential
-(eta_t,phi_t)=TrialFunctions(Th)
+(eta_t,phi_t) = TrialFunctions(Th)
 
 # p: test function for eta_t
 # q: test function for phi_t
-(p,q)=TestFunctions(Th)
+(p, q) = TestFunctions(Th)
 
-eta=Coefficient(P) # Surface elevation
-phi=Coefficient(P) # Velocity potential
+eta = Coefficient(P) # Surface elevation
+phi = Coefficient(P) # Velocity potential
 
-h=Coefficient(P) # Depth function
-g=Constant(triangle) # Gravity acceleration
+h = Coefficient(P) # Depth function
+g = Constant(triangle) # Gravity acceleration
 
 # Several types of sponge layers are considered
-sp_eta=Coefficient(P) # Viscous frequency coefficient of eta
-sp_lap_eta=Coefficient(P) # Viscosity coefficient of Laplacian of eta
-sp_phi=Coefficient(P) # Viscous frequency coefficient of phi
-sp_lap_phi=Coefficient(P) # Viscosity coefficient of Laplacian of phi
+sp_eta = Coefficient(P) # Viscous frequency coefficient of eta
+sp_lap_eta = Coefficient(P) # Viscosity coefficient of Laplacian of eta
+sp_phi = Coefficient(P) # Viscous frequency coefficient of phi
+sp_lap_phi = Coefficient(P) # Viscosity coefficient of Laplacian of phi
 
 # Source function for the surface elevation equation
-srceta=Coefficient(P)
+srceta = Coefficient(P)
 
 # Normal Vector for boundary contributions
-n=P.cell().n
+n = P.cell().n
 
 # Bilinear form declaration for M
 # Contribution from the surface elevation equation
-a0=eta_t*p*dx
-a1=(1./2.)*inner(h*h*grad(eta_t),grad(p))*dx
-a2=-(1./6.0)*inner(grad(eta_t),grad(h*h*p))*dx
-a3=(1./15.0)*inner(h*grad(h*eta_t),grad(p))*dx
-a4=-(1./15.)*h*inner(grad(h),n)*eta_t*p*ds # Boundary contribution
+a0 = eta_t*p*dx
+a1 = (1./2.)*inner(h*h*grad(eta_t),grad(p))*dx
+a2 = -(1./6.0)*inner(grad(eta_t),grad(h*h*p))*dx
+a3 = (1./15.0)*inner(h*grad(h*eta_t),grad(p))*dx
+a4 = -(1./15.)*h*inner(grad(h),n)*eta_t*p*ds # Boundary contribution
 
 # Contribution from the velocity potential equation
-a5=(phi_t*q)*dx
+a5 = (phi_t*q)*dx
 
 # a: bilinear form
 # See 'dolfwave/src/formsfactory/bilinearforminit.cpp'
-a=a0+a1+a2+a3+a4+a5
+a = a0+a1+a2+a3+a4+a5
 
 # Linear Variational form declaration for F(t,U)
 # Contribution from the surface elevation equation
-l0=inner(((h+eta))*grad(phi0),grad(p))*dx
+l0 = inner(((h+eta))*grad(phi0),grad(p))*dx
 
 # Contribution from the velocity potential equation
-l1=-(1./2.)*inner(grad(phi0),grad(phi0))*q*dx
-l2=-g*(eta*q)*dx
-l3=-g*(1.0/15.0)*inner(h*grad(eta),grad(h*q))*dx
+l1 = -(1./2.)*inner(grad(phi0),grad(phi0))*q*dx
+l2 = -g*(eta*q)*dx
+l3 = -g*(1.0/15.0)*inner(h*grad(eta),grad(h*q))*dx
 
 # Sponge layers contributions
-l4=-sp_eta*eta*p*dx-sp_lap_eta*inner(grad(eta),grad(p))*dx
-l5=-sp_phi*phi0*q*dx-sp_lap_phi*inner(grad(phi0),grad(q))*dx
+l4 = -sp_eta*eta*p*dx-sp_lap_eta*inner(grad(eta),grad(p))*dx
+l5 = -sp_phi*phi0*q*dx-sp_lap_phi*inner(grad(phi0),grad(q))*dx
 
 # Source function for the surface elevation equation
 l6=srceta*p*dx
 
 # L: linear form
 # See 'dolfwave/src/formsfactory/linearforminit.cpp'
-L=l0+l1+l2+l3+l4+l5+l6
+L = l0+l1+l2+l3+l4+l5+l6
 \end{python}
 
 Some wave generation mechanisms as well as reflective walls and sponge
@@ -1344,7 +1344,8 @@ given by~\eqref{eq:lopes:solita} and implemented as follows:
 class ElevationInit : public Expression
 {
   void eval(Array<double> & values,const Array<double> & x) const
-  { // Wave parameters (see Walkley [1999])
+  {
+    // Wave parameters (see Walkley [1999])
     double c=sqrt(1.025), H=0.4;
     double ca=-0.4, cb=ca+1.0/3.0;
     double center=-5.0;
@@ -1397,17 +1398,18 @@ class Depth :  public Expression
 {
   void eval(Array<double> & values,const Array<double> & x) const
   {
-    double retrn=0.0;
-    if(x[0]<=6.0)
+    double retrn = 0.0;
+    if (x[0] <= 6.0)
       retrn=0.4;
-    else if(x[0]<=12.0)
+    else if (x[0] <= 12.0)
       retrn=-0.05*x[0]+0.7;
-    else if(x[0]<=14.0)
+    else if (x[0] <= 14.0)
       retrn=0.1;
-    else if(x[0]<=17.0)
-      retrn=0.1*x[0]-1.3;
-    else retrn=0.4;
-    values[0]=retrn;
+    else if(x[0] <= 17.0)
+      retrn = 0.1*x[0]-1.3;
+    else
+      retrn = 0.4;
+    values[0] = retrn;
   }
 };
 \end{c++}
@@ -1440,30 +1442,30 @@ submerged bar  is the interval $[-25,25]$ ({\tt m})
 which is discretized using 201 nodes.
 %%
 \begin{c++}
-  Interval mesh(201,-25,25);
+Interval mesh(201,-25,25);
 \end{c++}
 %%
 Now all the known functions are initialized.  Sponge layers or source
 functions are not used here.
 %%
 \begin{c++}
-  Depth depth; // Depth function
-  ElevationInit eta_init; // Initial condition for the surface elevation
-  PotentialInit phi_init;  // Initial condition for the velocity potential
-  Constant zero(0.0); // Sponge layers and source function are 0
+Depth depth; // Depth function
+ElevationInit eta_init; // Initial condition for the surface elevation
+PotentialInit phi_init;  // Initial condition for the velocity potential
+Constant zero(0.0); // Sponge layers and source function are 0
 \end{c++}
 %%
 From the bilinear and linear forms of the variational formulation, all
 the finite element matrices and vectors are created.
 %%
 \begin{c++}
-  dw.FunctionSpaceInit(mesh); // Initialization of the function spaces
-  dw.BilinearFormInit(mesh,depth); // Initialization of the bilinear form 'a'
-  dw.MatricesAssemble( ); // Initialization of the system matrices
-  dw.FunctionsInit( ); // Initialization of the surface elevation and velocity potential
-  dw.LinearFormsInit(depth, zero, zero, zero, zero, zero); // Initialization of the linear form 'L'
-  dw.InitialCondition(eta_init,phi_init); // Setting the initial conditions
-  dw.VectorInit( ); // Initialization of the auxiliary vectors for the time integration schemes
+dw.FunctionSpaceInit(mesh); // Initialization of the function spaces
+dw.BilinearFormInit(mesh,depth); // Initialization of the bilinear form 'a'
+dw.MatricesAssemble( ); // Initialization of the system matrices
+dw.FunctionsInit( ); // Initialization of the surface elevation and velocity potential
+dw.LinearFormsInit(depth, zero, zero, zero, zero, zero); // Initialization of the linear form 'L'
+dw.InitialCondition(eta_init,phi_init); // Setting the initial conditions
+dw.VectorInit( ); // Initialization of the auxiliary vectors for the time integration schemes
 \end{c++}
 %%
 We only need to make an initial factorization for the LU solver, since
@@ -1476,7 +1478,7 @@ dw.LUFactorization(true); // Reuse the LU factorization throughout the time inte
 The output of the symmetric of the depth function is given by:
 %%
 \begin{c++}
-  dw.DepthPlot(mesh,depth,true); // Plot the symmetric of the depth function h
+dw.DepthPlot(mesh,depth,true); // Plot the symmetric of the depth function h
 \end{c++}
 %%
 Now, the time integration routines are used.
@@ -1485,19 +1487,18 @@ equations~\eqref{eq:lopes:pc} is initialized by a fourth-order explicit
 Runge--Kutta scheme.
 %%
 \begin{c++}
-  dw.RKInit("exp4");    // Choose the explicit 4th-order Runge-Kutta for initialization
-  dw.RKSolve( );        // Use the Runge-Kutta for the 3 initial steps
-  dw.PCInit(mesh,true); // Initialization of the predictor-corrector with multi-step corrector
+dw.RKInit("exp4");    // Choose the explicit 4th-order Runge-Kutta for initialization
+dw.RKSolve( );        // Use the Runge-Kutta for the 3 initial steps
+dw.PCInit(mesh,true); // Initialization of the predictor-corrector with multi-step corrector
 
-  // Advance in time with the predictor-corrector scheme
-  for(dolfin::uint i=4; i<dw.MaxSteps+1;i++)
-  {
-    dw.PCSolve( ); // Adams-Bashforth-Moulton method
-    if (!(i%dw.WriteGap)) // Save and preview the surf. elevation with a gap of 100 iterations
-    dw.Plot(mesh, true /*eta preview*/, false /*phi preview*/,
-            true /*eta save*/, false /*phi save*/);
-  }
-  return (EXIT_SUCCESS); // Finish the process
+// Advance in time with the predictor-corrector scheme
+for(dolfin::uint i=4; i<dw.MaxSteps+1;i++)
+{
+  dw.PCSolve( ); // Adams-Bashforth-Moulton method
+  if (!(i%dw.WriteGap)) // Save and preview the surf. elevation with a gap of 100 iterations
+
+  dw.Plot(mesh, true /*eta preview*/, false /*phi preview*/,
+          true /*eta save*/, false /*phi save*/);
 }
 \end{c++}
 %%
