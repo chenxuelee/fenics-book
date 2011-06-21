@@ -97,11 +97,12 @@
 {{\color{gray}\par\vskip4pt\rule\hsize{2.8pt}}}
 \floatsetup[figure]{%
   capposition=beside,
-  capbesidewidth=0.35\textwidth,
+  capbesidewidth=0.32\textwidth,
   facing=yes,
   capbesideposition={top,inside},
-  floatwidth=0.62\textwidth,
-  rowprecode=grayruleabove,rowpostcode=grayrulebelow}
+  %rowprecode=grayruleabove,rowpostcode=grayrulebelow},
+  floatwidth=0.65\textwidth,
+  }
 \usepackage[font={rm,small}]{caption}
 
 % Algorithm packages
@@ -141,9 +142,8 @@
 
 % Settings for graphics
 \setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio}
-\newcommand{\largefig}{10cm}
-\newcommand{\smallfig}{5cm}
-\newcommand{\fullfig}{14.8cm}
+\newcommand{\largefig}{0.63\textwidth}
+\newcommand{\smallfig}{0.4\textwidth}
 
 % Typesetting macros
 \newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage}
