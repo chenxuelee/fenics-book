@@ -179,14 +179,14 @@ implemented as subclasses of \emp{SubDomain}, similarly to the given
 example of \emp{Top}.
 \begin{python}
 class Top(SubDomain):
-	def __init__(self, z_index, z_max, z_min):
-		SubDomain.__init__(self)
-		self.z_index = z_index
-		self.z_max = z_max
-		self.z_min = z_min
+    def __init__(self, z_index, z_max, z_min):
+        SubDomain.__init__(self)
+        self.z_index = z_index
+        self.z_max = z_max
+        self.z_min = z_min
 
-	def inside(self, x, on_boundary):
-		return bool(on_boundary and x[self.z_index] == self.z_max)
+    def inside(self, x, on_boundary):
+        return bool(on_boundary and x[self.z_index] == self.z_max)
 \end{python}
 To define the domain correctly, we override the base class
 function \emp{inside}. It returns a boolean evaluating if the inserted
@@ -199,9 +199,9 @@ condition also is valid on the outermost/innermost nodes of the inflow
 and outflow sections as implemented below:
 \begin{python}
 def on_ellipse(x, a, b, x_index, y_index, x_move=0, y_move=0):
-	x1 = x[x_index] - x_move
-	x2 = x[y_index] - y_move
-	return bool( abs((x1/a)**2 + (x2/b)**2 - 1.0 ) < 10**-6 )
+    x1 = x[x_index] - x_move
+    x2 = x[y_index] - y_move
+    return bool( abs((x1/a)**2 + (x2/b)**2 - 1.0 ) < 10**-6 )
 \end{python}
 The vectors describing the ellipses of the cord and the dura in a
 cross section with the corresponding axes are required. The global
@@ -216,28 +216,28 @@ defined analogously.
 
 \begin{python}
 class Top(SubDomain): # bc for top
-	def __init__(self, a2_o, a2_i, b2_o, b2_i, x_index, y_index, z_index, z_max, \
-	             x2_o_move=0, y2_o_move=0, x2_i_move=0, y2_i_move=0):
-		SubDomain.__init__(self)
-		self.x_index = x_index
-		self.y_index = y_index
-		self.a2_o = a2_o
-		self.a2_i = a2_i
-		self.b2_o = b2_o
-		self.b2_i = b2_i
-		self.z_index = z_index
-		self.z_max = z_max
-		self.x2_o_move = x2_o_move
-		self.x2_i_move = x2_i_move
-		self.y2_o_move = y2_o_move
-		self.y2_i_move = y2_i_move
+    def __init__(self, a2_o, a2_i, b2_o, b2_i, x_index, y_index, z_index, z_max, \
+                x2_o_move=0, y2_o_move=0, x2_i_move=0, y2_i_move=0):
+    SubDomain.__init__(self)
+    self.x_index = x_index
+    self.y_index = y_index
+    self.a2_o = a2_o
+    self.a2_i = a2_i
+    self.b2_o = b2_o
+    self.b2_i = b2_i
+    self.z_index = z_index
+    self.z_max = z_max
+    self.x2_o_move = x2_o_move
+    self.x2_i_move = x2_i_move
+    self.y2_o_move = y2_o_move
+    self.y2_i_move = y2_i_move
 
-	def inside(self, x, on_boundary):
-		return bool(on_boundary and abs(x[self.z_index] - self.z_max) < 10**-6 \
-		            and not on_ellipse(x, self.a2_o, self.b2_o, self.x_index, \
-		                               self.y_index, self.x2_o_move, self.y2_o_move) \
-		            and not on_ellipse(x, self.a2_i, self.b2_i, self.x_index, \
-		                               self.y_index, self.x2_i_move, self.y2_i_move))
+def inside(self, x, on_boundary):
+    return on_boundary and abs(x[self.z_index] - self.z_max) < 10**-6 \
+           and not on_ellipse(x, self.a2_o, self.b2_o, self.x_index, \
+                              self.y_index, self.x2_o_move, self.y2_o_move) \
+           and not on_ellipse(x, self.a2_i, self.b2_i, self.x_index, \
+                              self.y_index, self.x2_i_move, self.y2_i_move))
 \end{python}
 
 The underscores \emp{o} and \emp{i} represent the outer and inner
@@ -285,17 +285,16 @@ while the negative counter movement has a reduced amplitude and lasts
 considerably longer.  The global function for defining the pulse is:
 \begin{python}
 def get_pulse_input_function(V, z_index, factor, A, HR_inv, HR, b, f1):
-        C0 = 3.4 * pi
-        rad = C0 /HR_inv
-        v_z = "factor*(-A*(exp(-fmod(t,T)*rad) * Ees * (sin( - f1*fmod(t,T)*rad) - vd)
-              - (1-exp( - factor*fmod(t,T)*rad)) * p0 * (exp(sin( - fmod(t,T)*rad) - vd) -1) ) -b)"
-        vel = ["0.0", "0.0", "0.0"]
-        vel[z_index] = v_z
-
-        defaults = {"factor":factor, "A":A, "p0":1, "vd":0.03, "Ees":50,
-                    "T": HR_inv, "HR":HR, "rad":rad, "b":b, 'f1':f1}
-        pulse = Expression(vel, defaults)
-        return pulse
+    C0 = 3.4 * pi
+    rad = C0 /HR_inv
+    v_z = "factor*(-A*(exp(-fmod(t, T)*rad)*Ees*(sin(-f1*fmod(t, T)*rad) - vd)
+     - (1-exp(-factor*fmod(t, T)*rad))*p0*(exp(sin(-fmod(t, T)*rad) - vd) -1)) - b)"
+    vel = ["0.0", "0.0", "0.0"]
+    vel[z_index] = v_z
+   defaults = {"factor":factor, "A":A, "p0":1, "vd":0.03, "Ees":50,
+               "T": HR_inv, "HR":HR, "rad":rad, "b":b, 'f1':f1}
+    pulse = Expression(vel, defaults)
+    return pulse
 \end{python}
 The following parameters have been used with this function.
 \begin{python}
@@ -344,42 +343,42 @@ chosen time step length (0.001 s) represents a high temporal
 resolution.
 \begin{python}
 def __init__(self, options):
-	ProblemBase.__init__(self, options)
-	filename = "../../data/meshes/chiari/csf_extrude_2d_bd1.xml.gz"
-	self.mesh = Mesh(filename)
-	self.mesh.order()
-	self.mesh.init(2)
+    ProblemBase.__init__(self, options)
+    filename = "../../data/meshes/chiari/csf_extrude_2d_bd1.xml.gz"
+    self.mesh = Mesh(filename)
+    self.mesh.order()
+    self.mesh.init(2)
 
-	self.z_max = 5.0	# in cm
-	self.z_min = 0.0	# in cm
-	self.z_index = 2
-	self.D = 0.5 		# characteristic diameter in cm
+    self.z_max = 5.0	# in cm
+    self.z_min = 0.0	# in cm
+    self.z_index = 2
+    self.D = 0.5 		# characteristic diameter in cm
 
-	self.contour = Contour(self.z_index, self.z_max, self.z_min)
-	self.bottom = Bottom(self.z_index, self.z_max, self.z_min)
-	self.top = Top(self.z_index, self.z_max, self.z_min)
+    self.contour = Contour(self.z_index, self.z_max, self.z_min)
+    self.bottom = Bottom(self.z_index, self.z_max, self.z_min)
+    self.top = Top(self.z_index, self.z_max, self.z_min)
 
-	# Load subdomain markers
-	self.sub_domains = MeshFunction("uint", self.mesh, self.mesh.topology().dim() - 1)
+    # Load subdomain markers
+    self.sub_domains = FacetFunction("uint", self.mesh)
 
-	# Mark all facets as subdomain 3
-	for i in range(self.sub_domains.size()):
-		self.sub_domains.set(i, 3)
+    # Mark all facets as subdomain 3
+    for i in range(self.sub_domains.size()):
 
-	self.contour.mark(self.sub_domains, 0)
-	self.top.mark(self.sub_domains, 1)
-	self.bottom.mark(self.sub_domains, 2)
+        self.sub_domains.set(i, 3)
+        self.contour.mark(self.sub_domains, 0)
+        self.top.mark(self.sub_domains, 1)
+        self.bottom.mark(self.sub_domains, 2)
 
-	# Set viscosity
-	self.nu = 0.7 * 10**-2 # cm^2/s
+        # Set viscosity
+        self.nu = 0.7 * 10**-2 # cm^2/s
 
-	# Create right-hand side function
-	self.f = Constant(self.mesh, (0.0, 0.0, 0.0))
-	n = FacetNormal(self.mesh)
+        # Create right-hand side function
+        self.f = Constant(self.mesh, (0.0, 0.0, 0.0))
+        n = FacetNormal(self.mesh)
 
-	# Set end-time
-	self.T = 1.2 * 1.0/self.HR
-	self.dt = 0.001
+        # Set end-time
+        self.T = 1.2 * 1.0/self.HR
+        self.dt = 0.001
 \end{python}
 
 Increasing the time step length usually speeds up the calculation of
@@ -396,16 +395,18 @@ under different scenarios is given in the end of the chapter.
 
 The area of the mesh surfaces and the mesh size can be found as follows.
 \begin{python}
-	self.h = MeshSize(self.mesh)
-	self.A0 = self.area(0)
-	self.A1 = self.area(1)
-	self.A2 = self.area(2)
+def __init__(self, ...)
+    ...
+    self.h = MeshSize(self.mesh)
+    self.A0 = self.area(0)
+    self.A1 = self.area(1)
+    self.A2 = self.area(2)
 
 def area(self, i):
-	f = Constant(self.mesh, 1)
-	A = f*ds(i)
-	a = assemble(A, exterior_facet_domains=self.sub_domains)
-	return a
+    f = Constant(self.mesh, 1)
+    A = f*ds(i)
+    a = assemble(A, exterior_facet_domains=self.sub_domains)
+    return a
 \end{python}
 
 \paragraph{Function objects.}
@@ -416,28 +417,28 @@ prints the maximum values for pressure and velocity. The normal flux
 through the boundaries is defined in the separate function \emp{flux}.
 \begin{python}
 def update(self, t, u, p):
-	self.g1.t = t
-	self.g2.t = t
+    self.g1.t = t
+    self.g2.t = t
 
 def functional(self, t, u, p):
-	v_max = u.vector().norm(linf)
-	f0 = self.flux(0,u)
-	f1 = self.flux(1,u)
-	f2 = self.flux(2,u)
-	pressure_at_peak_v = p.vector()[0]
+    v_max = u.vector().norm(linf)
+    f0 = self.flux(0,u)
+    f1 = self.flux(1,u)
+    f2 = self.flux(2,u)
+    pressure_at_peak_v = p.vector()[0]
 
-	# if current velocity is peak
-	if v_max > self.peak_v:
-		self.peak_v = v_max
-		self.pressure_at_peak_v = pressure_at_peak_v
+    # if current velocity is peak
+    if v_max > self.peak_v:
+        self.peak_v = v_max
+        self.pressure_at_peak_v = pressure_at_peak_v
 
-	return pressure_at_peak_v
+    return pressure_at_peak_v
 
 def flux(self, i, u):
-	n = FacetNormal(self.mesh)
-	A = dot(u,n)*ds(i)
-	a = assemble(A, exterior_facet_domains=self.sub_domains)
-	return a
+    n = FacetNormal(self.mesh)
+    A = dot(u,n)*ds(i)
+    a = assemble(A, exterior_facet_domains=self.sub_domains)
+    return a
 \end{python}
 
 The boundary conditions are all given as Dirichlet conditions,
@@ -449,31 +450,31 @@ pressure are collected in the lists \emp{bcv}, \emp{bcp} and \emp{bcpsi}.
 %%
 \begin{python}
 def boundary_conditions(self, V, Q):
-	# Create no-slip boundary condition for velocity
-	self.g0 = Constant(self.mesh, (0.0, 0.0, 0.0))
-	bc0 = DirichletBC(V, self.g0, self.contour)
 
-	# create function for inlet and outlet BC
-	self.g1 = get_sine_input_function(V, self.z_index, self.HR, self.HR_inv, self.v_max)
-	self.g2 = self.g1
+    # Create no-slip boundary condition for velocity
+    self.g0 = Constant(self.mesh, (0.0, 0.0, 0.0))
+    bc0 = DirichletBC(V, self.g0, self.contour)
 
-	# Create inflow boundary condition for velocity on side 1 and 2
-	bc1 = DirichletBC(V, self.g1, self.top)
-	bc2 = DirichletBC(V, self.g2, self.bottom)
+    # Create function for inlet and outlet BC
+    self.g1 = get_sine_input_function(V, self.z_index, self.HR, self.HR_inv,
+                                      self.v_max)
+    self.g2 = self.g1
 
-	# Collect boundary conditions
-	bcv = [bc1, bc0, bc2]
-	bcp = []
-	bcpsi = []
+    # Create inflow boundary condition for velocity on side 1 and 2
+    bc1 = DirichletBC(V, self.g1, self.top)
+    bc2 = DirichletBC(V, self.g2, self.bottom)
 
-	return bcv, bcp, bcpsi
+    # Collect boundary conditions
+    bcv = [bc1, bc0, bc2]
+    bcp = []
+    bcpsi = []
+
+    return bcv, bcp, bcpsi
 
 def initial_conditions(self, V, Q):
-
-	u0 = Constant(self.mesh, (0.0, 0.0, 0.0))
-	p0 = Constant(self.mesh, 0.0)
-
-	return u0, p0
+    u0 = Constant(self.mesh, (0.0, 0.0, 0.0))
+    p0 = Constant(self.mesh, 0.0)
+    return u0, p0
 \end{python}
 
 \paragraph{Running.}
@@ -701,18 +702,20 @@ self.flow_per_unit_area = self.volume_flow/self.A1
 sin_integration_factor = 0.315
 self.v_max = self.flow_per_unit_area/sin_integration_factor
 \end{python}
-As before, we have a global function returning the sine as a Function - object,
+As before, we have a global function returning the sine as an object:
 \begin{python}
 def get_sine_input_function(V, z_index, HR, HR_inv, v_max):
-        v_z = "sin(2*pi*HR*fmod(t,T))*(v_max)"
-        vel = ["0.0", "0.0", "0.0"]
-        vel[z_index] = v_z
-        defaults = {'HR':HR, 'v_max':v_max, 'T':HR_inv}
-        sine = Expression(vel, defaults)
+    v_z = "sin(2*pi*HR*fmod(t,T))*(v_max)"
+    vel = ["0.0", "0.0", "0.0"]
+    vel[z_index] = v_z
+    defaults = {'HR':HR, 'v_max':v_max, 'T':HR_inv}
+    sine = Expression(vel, defaults)
+    return sine
 \end{python}
 that is called instead of \emp{get\_pulse\_input\_function} in the function \emp{boundary\_conditions}:
 \begin{python}
-self.g1 = get_sine_input_function(V, self.z_index, self.factor, self.A, self.HR_inv, self.HR, self.b, self.f1)
+self.g1 = get_sine_input_function(V, self.z_index, self.factor, self.A,
+                                 self.HR_inv, self.HR, self.b, self.f1)
 \end{python}
 
 The pulse and the sine are sketched in

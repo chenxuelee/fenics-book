@@ -238,21 +238,21 @@ multigrid (AMG)\index{AMG} as a preconditioner, there will be only a
 small number of alphas and betas. Therefore we use the dense linear
 algebra tools in NumPy to compute the eigenvalue estimates.
 \begin{python}
-    def eigenvalue_estimates(self):
-        # eigenvalues estimates in terms of alphas and betas
+def eigenvalue_estimates(self):
+    # eigenvalues estimates in terms of alphas and betas
 
-        import numpy
+    import numpy
 
-        n = len(self.alphas)
-        M = numpy.zeros([n,n])
-        M[0,0] = 1/self.alphas[0]
-        for k in range(1, n):
-            M[k,k] = 1/self.alphas[k] + self.betas[k-1]/self.alphas[k-1]
-            M[k,k-1] = numpy.sqrt(self.betas[k-1])/self.alphas[k-1]
-            M[k-1,k] = M[k,k-1]
-        e,v = numpy.linalg.eig(M)
-        e.sort()
-        return e
+    n = len(self.alphas)
+    M = numpy.zeros([n,n])
+    M[0,0] = 1/self.alphas[0]
+    for k in range(1, n):
+        M[k,k] = 1/self.alphas[k] + self.betas[k-1]/self.alphas[k-1]
+        M[k,k-1] = numpy.sqrt(self.betas[k-1])/self.alphas[k-1]
+        M[k-1,k] = M[k,k-1]
+    e,v = numpy.linalg.eig(M)
+    e.sort()
+    return e
 \end{python}
 The following code shows the implementation of a Poisson problem
 solver, using the above mentioned ML preconditioner and conjugate

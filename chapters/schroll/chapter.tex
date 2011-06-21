@@ -318,20 +318,19 @@ Using $\mathrm{dG}(0)$ time integration with a trapezoidal quadrature rule appli
 \end{multline}
 To evaluate the right-hand side, the area of the well is defined as a subdomain:
 \begin{python}
- class WellDomain(SubDomain):
-     def inside(self, x, on_boundary):
-         return bool((0.2 <= x[0] and x[0] <= 0.3 and \
-                      0.2 <= x[1] and x[1] <= 0.3))
+class WellDomain(SubDomain):
+    def inside(self, x, on_boundary):
+        return 0.2 <= x[0] and x[0] <= 0.3 and 0.2 <= x[1] and x[1] <= 0.3
 \end{python}
 Next, it gets marked:
 \begin{python}
- well = WellDomain()
- subdomains = MeshFunction("uint", mesh, mesh.topology().dim())
- well.mark(subdomains, 1)
+well = WellDomain()
+subdomains = MeshFunction("uint", mesh, mesh.topology().dim())
+well.mark(subdomains, 1)
 \end{python}
 An integral over the well area is defined:
 \begin{python}
- dxWell = dx(1)
+dxWell = dx(1)
 \end{python}
 The area of the well is computed:
 \begin{python}
@@ -339,24 +338,24 @@ wellarea = assemble(Constant(1.0)*dx1, cell_domains=subdomains, mesh=mesh)
 \end{python}
 The driving source in \eqref{eq:schroll:trapez} is written as:
 \begin{python}
- f = dt*(u1-d1+u0-d0)*phi*dxWell/wellarea
+f = dt*(u1-d1+u0-d0)*phi*dxWell/wellarea
 \end{python}
 The first line in \eqref{eq:schroll:trapez} is stated in variational formulation:
 \begin{python}
- F = (u_trial-u)*phi*dx \
-   + 0.5*dt*( d*dot( grad(u_trial+u), grad(phi) ) )*dx
+F = (u_trial-u)*phi*dx + 0.5*dt*(d*dot( grad(u_trial + u), grad(phi)))*dx
 \end{python}
 Let DOLFIN sort out left- and right-hand sides:
 \begin{python}
- a = lhs(F); L = rhs(F)
+a = lhs(F)
+L = rhs(F)
 \end{python}
 Construct the variational problem:
 \begin{python}
- problem = VariationalProblem(a, L+f)
+problem = VariationalProblem(a, L + f)
 \end{python}
 And solve it:
 \begin{python}
- u = problem.solve()
+u = problem.solve()
 \end{python}
 
 %------------------------------------------------------------------------------
