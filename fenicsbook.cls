@@ -147,7 +147,7 @@
 \newcommand{\twofigs}{0.3\textwidth}       % for 1/2 of normal figure
 \newcommand{\threefigs}{0.2\textwidth}     % for 1/3 of normal figure
 \newcommand{\fourfigs}{0.2\textwidth}      % for 1/4 of normal figure
-\newcommand{\fullfig}{\textwidth}          % for full width figure
+\newcommand{\fullfig}{0.9\textwidth}       % for 90% full width figure
 \newcommand{\twofigsfull}{0.45\textwidth}  % for 1/2 of full width figure
 \newcommand{\threefigsfull}{0.3\textwidth} % for 1/3 of full width figure
 
