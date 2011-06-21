@@ -142,8 +142,12 @@
 
 % Settings for graphics
 \setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio}
-\newcommand{\largefig}{0.63\textwidth}
-\newcommand{\smallfig}{0.4\textwidth}
+\newcommand{\largefig}{0.63\textwidth}     % for normal large figure
+\newcommand{\smallfig}{0.4\textwidth}      % for normal small figure
+\newcommand{\twofigs}{0.3\textwidth}       % for 1/2 of normal figure
+\newcommand{\fullfig}{\textwidth}          % for full width figure
+\newcommand{\twofigsfull}{0.45\textwidth}  % for 1/2 of full width figure
+\newcommand{\threefigsfull}{0.3\textwidth} % for 1/3 of full width figure
 
 % Typesetting macros
 \newcommand{\blankpage}{\newpage\hbox{}\thispagestyle{empty}\newpage}
