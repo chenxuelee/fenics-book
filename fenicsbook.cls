@@ -224,7 +224,7 @@
 
 % Book macros
 \newcommand{\fenicsinput}[1]{\input{chapters/#1/chapter}}
-\newcommand{\fenicschapter}[4]{\chapter{#1} \vspace{-1cm} \large By #3 \normalsize \vspace{1.5cm}\label{chap:#4}}
+\newcommand{\fenicschapter}[4]{\chapter[#2]{#1} \vspace{-1cm} \large By #3 \normalsize \vspace{1.5cm}\label{chap:#4}}
 \newcommand{\fenicsfig}[3]{\def\svgwidth{#3}\import{chapters/#1/pdf/}{#2.pdf_tex}}
 \newcommand{\fenicsauthor}[5]{
   \noindent
