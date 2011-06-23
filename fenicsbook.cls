@@ -8,7 +8,7 @@
   a4paper,
   layoutsize={193mm,260mm}, % trim size
   text={157mm,216mm},       % text area
-  hmargin={18mm,18mm},      % inner and outer margins
+  inner={18mm},             % inner margin (outer will also be 18mm)
   top=20mm,                 % top margin including header should be 13mm + 8mm = 21mm
                             % but when measured it comes out as 22mm so we take 20mm
   headsep=4.5mm,            % adjust top header to 13mm by trial and error
