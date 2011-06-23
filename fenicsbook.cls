@@ -46,6 +46,15 @@
 \titleformat*{\subsubsection}{\itshape}
 \titleformat*{\paragraph}{\itshape}
 
+% Set up headers and footers
+\usepackage{fancyhdr}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[LO,RE]{\slshape\nouppercase\leftmark}
+\fancyfoot[C]{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\pagestyle{fancy}
+
 % Typeset URLs
 \usepackage{url}
 
