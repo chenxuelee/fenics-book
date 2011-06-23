@@ -37,15 +37,15 @@ arrays between the Python code and the C/C++ code.
 Our first example demonstrates the usage of Instant in a very simple case:
 \begin{python}
 from instant import inline
-c_code = r'''
+c_code = r"""
 double add(double a, double b)
 {
   printf("Hello world! C function add is being called...\n");
   return a+b;
-}'''
+}"""
 add_func = inline(c_code)
 sum = add_func(3, 4.5)
-print 'The sum of 3 and 4.5 is', sum
+print "The sum of 3 and 4.5 is", sum
 \end{python}
 When run, this script produces the following output:
 \begin{progoutput}
@@ -64,7 +64,7 @@ made to the C source code.
 
 %Note that a raw string is used in this example, to avoid Python
 %interpreting escape sequences such as
-%'\verb@\@\emp{n}'. Alternatively, special characters can be escaped
+%"\verb@\@\emp{n}". Alternatively, special characters can be escaped
 %using a backslash.
 
 Although Instant notifies the user when it is compiling, it might
@@ -73,7 +73,7 @@ Instant internals. We can do this by setting the logging level before
 calling any other Instant functions:
 \begin{python}
 from instant import output
-output.set_logging_level('DEBUG')
+output.set_logging_level("DEBUG")
 \end{python}
 %The intrinsic Python module \emp{logging} is used. First,
 %the \emp{build\_\-function} arguments are displayed, whereafter the
@@ -150,8 +150,8 @@ For example, \emp{double* p} may be an array of length $m$ or it may simply be
 output. In Instant you must therefore specify what the arrays are:
 \begin{python}
 time_loop_c = inline_with_numpy(c_code,
-                                arrays = [['n', 'p'],
-                                          ['m', 'Q']])
+                                arrays = [["n", "p"],
+                                          ["m", "Q"]])
 \end{python}
 Here, we tell Instant that \emp{(int n, double* p)} and
 \emp{(int m, double* Q)} are NumPy arrays (and Instant then generates the
@@ -204,8 +204,8 @@ The complete code for this example can be found in \emp{ex2.py}.
 \subsection{NumPy arrays and OpenMP}
 
 It is easy to speed up code on parallel computers with OpenMP. In the
-following code preprocessor directives like '\emp{\#pragma
-omp \ldots}' are OpenMP directives and OpenMP functions always start
+following code preprocessor directives like \emp{\#pragma
+omp \ldots} are OpenMP directives and OpenMP functions always start
 with \emp{omp}.  In this example, we want to solve a standard
 2-dimensional wave equation in a heterogeneous medium with local wave
 velocity $k$:
@@ -272,16 +272,16 @@ This can be done as follows:
 \begin{python}
 instant_ext = \
   build_module(code=c_code,
-               system_headers=['numpy/arrayobject.h',
-                               'omp.h'],
+               system_headers=["numpy/arrayobject.h",
+                               "omp.h"],
                include_dirs=[numpy.get_include()],
-               init_code='import_array();',
-               cppargs=['-fopenmp'],
-               lddargs=['-lgomp'],
-               arrays=[['ux', 'uy', 'u'],
-               ['umx', 'umy', 'um'],
-               ['kx', 'ky', 'k'],
-               ['upn', 'up', 'out']])
+               init_code="import_array();",
+               cppargs=["-fopenmp"],
+               lddargs=["-lgomp"],
+               arrays=[["ux", "uy", "u"],
+               ["umx", "umy", "um"],
+               ["kx", "ky", "k"],
+               ["upn", "up", "out"]])
 \end{python}
 Note that the arguments \emp{include\_\-headers}, \emp{init\_\-code},
 and the first element of \emp{system\_\-headers} could have been
@@ -322,16 +322,16 @@ C/C++ code, 2) errors caused by wrong usage of SWIG, and 3) errors
 related to importing the module from the cache. We will now go briefly
 through these three different types of errors.
 
-Let us start by removing a ';' in the C++ code of
+Let us start by removing a \emp{";"} in the C++ code of
 \emp{ex2.py}, making the C++ compiler unable to compile the code. We will then get errors on the
 following form:
 \begin{progoutput}
 --- Instant: compiling ---
 In instant.recompile: The module did not compile,
-   see '/tmp/tmpZ4M_ZO2010-11-9-08-24_instant/instant_module_dff94651124193a[...]
+   see "/tmp/tmpZ4M_ZO2010-11-9-08-24_instant/instant_module_dff94651124193a[...]
 Traceback (most recent call last):
       File "test2.py", line 21, in <module>
-          sum_func = inline_with_numpy(c_code, arrays = [['n1', 'array1']])
+          sum_func = inline_with_numpy(c_code, arrays = [["n1", "array1"]])
         File "/usr/local/lib/python2.6/dist-packages/instant/inlining.py", line 95, in inline_with_numpy
           module = build_module(**kwargs)
         File "/usr/local/lib/python2.6/dist-packages/instant/build.py", line 474, in build_module
@@ -341,7 +341,7 @@ Traceback (most recent call last):
         File "/usr/local/lib/python2.6/dist-packages/instant/output.py", line 49, in instant_error
           raise RuntimeError(text)
       RuntimeError: In instant.recompile: The module did not compile,
-      see '/tmp/tmpZ4M_ZO2010-11-9-08-24_instant/instant_module_dff946511241[...]
+      see "/tmp/tmpZ4M_ZO2010-11-9-08-24_instant/instant_module_dff946511241[...]
 \end{progoutput}
 The error message from the compiler is located in the file \emp{compile.log} in the temporary directory
 \emp{/tmp/tmpZ4M\_ZO2010-11-9-08-24\_instant/instant\_module\_dff946511241aab327593a2d71105c5fc/}.
@@ -358,7 +358,7 @@ error message, namely
 \begin{progoutput}
 instant_module_815d9b7181988c1596a71b62f8a17936a77e5944.i:39: Error: Syntax error in input(1).
 running build_ext
-building '_instant_module_815d9b7181988c1596a71b62f8a17936a77e5944' extension
+building "_instant_module_815d9b7181988c1596a71b62f8a17936a77e5944" extension
 creating build
 creating build/temp.linux-i686-2.6
 gcc -pthread -fno-strict-aliasing -DNDEBUG -g -fwrapv -O2 -Wall -Wstrict-prototypes -fPIC
@@ -381,10 +381,10 @@ from \emp{\$LD\_LIBRARY\_PATH} and so on.  Such error messages look
 like:
 \begin{progoutput}
 In instant.import_module_directly:
-Failed to import module 'instant_module_4b41549bc6282877d3f97d54ef664d4' from '/home/kent-and/.instant/cache'.
+Failed to import module "instant_module_4b41549bc6282877d3f97d54ef664d4" from "/home/kent-and/.instant/cache".
 Traceback (most recent call last):
   File "test2.py", line 21, in <module>
-    sum_func = inline_with_numpy(c_code, arrays = [['n1', 'array1']])
+    sum_func = inline_with_numpy(c_code, arrays = [["n1", "array1"]])
   File "/usr/local/lib/python2.6/dist-packages/instant/inlining.py", line 95, in inline_with_numpy
     module = build_module(**kwargs)
   File "/usr/local/lib/python2.6/dist-packages/instant/build.py", line 383, in build_module
@@ -408,15 +408,15 @@ example, but we set the module name explicitly with the keyword
 argument \emp{modulename} to see more clearly what happens:
 \begin{python}
 from instant import inline
-code = r'''
+code = r"""
 double add(double a, double b)
 {
   printf("Hello world! C function add is being called...\n");
   return a+b;
-}'''
-add_func = inline(code, modulename='ex4')
+}"""
+add_func = inline(code, modulename="ex4")
 sum = add_func(3, 4.5)
-print 'The sum of 3 and 4.5 is', sum
+print "The sum of 3 and 4.5 is", sum
 \end{python}
 After running this code there is a new directory \emp{ex4} in our directory.
 The contents are:
@@ -470,9 +470,9 @@ three strings, two for the length in each dimension, and one for the
 array pointer. This following example illustrate the array
 specification:
 \begin{python}
-arrays = [['len_a', 'a'],                        # a 1D array / vector
-          ['len_bx', 'len_by', 'b'],           # a matrix
-          ['len_cx', 'len_cy', 'len_cz', 'c']] # a 3D tensor
+arrays = [["len_a", "a"],                      # a 1D array / vector
+          ["len_bx", "len_by", "b"],           # a matrix
+          ["len_cx", "len_cy", "len_cz", "c"]] # a 3D tensor
 \end{python}
 The variables names specified reflect the variable names in the C function
 signature. It is important that the order of the variables in the signature is
@@ -489,7 +489,7 @@ long}, \emp{unsigned short}, \emp{unsigned int}, \emp{unsigned long},
 and \emp{unsigned long long}. The type can be specified by adding an
 additional value to the list describing the array, e.g.
 \begin{python}
-arrays = [['len_a', 'a', 'long']]
+arrays = [["len_a", "a", "long"]]
 \end{python}
 It is important that there is correspondence between the type of the
 NumPy array and the type in the signature of the C function. For
@@ -515,7 +515,7 @@ we calculate the matrix-vector multiplication $x = Ab$. The integer
 matrix $A$ and double vector $b$ are marked as input, while the double
 vector $x$ is output. The code can be found in: \emp{ex5.py}.
 \begin{python}
-c_code = '''
+c_code = """
 void dot_c(int Am, int An, long* A, int bn, long* b, int xn, double* x)
 {
     for (int i=0; i<Am; i++)
@@ -527,11 +527,11 @@ void dot_c(int Am, int An, long* A, int bn, long* b, int xn, double* x)
         }
     }
 }
-'''
+"""
 dot = inline_with_numpy(c_code,
-                          arrays = [['Am', 'An', 'A', 'in', 'long'],
-                                    ['bn', 'b', 'in', 'long'],
-                                    ['xn', 'x', 'out', 'double']])
+                          arrays = [["Am", "An", "A", "in", "long"],
+                                    ["bn", "b", "in", "long"],
+                                    ["xn", "x", "out", "double"]])
 a = arange(9)
 a.shape = (3, 3)
 b = arange(3)
@@ -547,12 +547,12 @@ checking, and can currently only be used for the C
 type \emp{double}. The list describing the array should contain the
 variable name for holding the number of dimensions, the variable name
 for an integer array holding the size in each dimension, the variable
-name for the array, and the argument \emp{'multi'}, indicating that it
+name for the array, and the argument \emp{"multi"}, indicating that it
 has more than 3 dimensions. The \emp{arrays} argument could for
 example be:
 \begin{python}
-arrays = [['m', 'mp', 'ar1', 'multi'],
-          ['n', 'np', 'ar2', 'multi']]
+arrays = [["m", "mp", "ar1", "multi"],
+          ["n", "np", "ar2", "multi"]]
 \end{python}
 In this case, the C function signature should look like:
 \begin{c++}
@@ -652,7 +652,7 @@ SWIG programmers. The keywords arguments are as follows:
   \end{itemize}
 \item \emp{source\_\-directory}
   \begin{itemize}
-    \item Default: '.'
+    \item Default: "."
     \item Type: String
     \item Comment: The directory where user supplied files reside. The files
       given in \emp{sources}, \emp{wrap\_\-headers}, and \emp{local\_\-headers}
@@ -660,13 +660,13 @@ SWIG programmers. The keywords arguments are as follows:
   \end{itemize}
 \item \emp{code}
   \begin{itemize}
-    \item Default: \emp{''}
+    \item Default: \emp{""}
     \item Type: String
     \item Comment: The C or C++ code to be compiled and wrapped.
   \end{itemize}
 \item \emp{init\_\-code}
   \begin{itemize}
-    \item Default: \emp{''}
+    \item Default: \emp{""}
     \item Type: String
     \item Comment: Code that should be executed when the Instant module is
       initialized. An
@@ -675,7 +675,7 @@ SWIG programmers. The keywords arguments are as follows:
   \end{itemize}
 \item \emp{additional\_\-definitions}
   \begin{itemize}
-    \item Default: \emp{''}
+    \item Default: \emp{""}
     \item Type: String
     \item Comment: Additional definitions needed in the interface file.
       These definitions should be additional code that is not found
@@ -687,7 +687,7 @@ SWIG programmers. The keywords arguments are as follows:
   \end{itemize}
 \item \emp{additional\_\-declarations}
   \begin{itemize}
-    \item Default: \emp{''}
+    \item Default: \emp{""}
     \item Type: String
     \item Comment: Additional declarations needed in the interface file.
       These declarations should be declarations of code that is found
@@ -756,9 +756,9 @@ SWIG programmers. The keywords arguments are as follows:
   \end{itemize}
 \item \emp{swigargs}
   \begin{itemize}
-    \item Default: \emp{['-c++', '-fcompact', '-O', '-I.', '-small']}
+    \item Default: \emp{["-c++", "-fcompact", "-O", "-I.", "-small"]}
     \item Type: List of strings
-    \item Comment: Arguments to swig, e.g. \emp{['-lpointers.i']}
+    \item Comment: Arguments to swig, e.g. \emp{["-lpointers.i"]}
       to include the SWIG library \emp{pointers.i}.
   \end{itemize}
 \item \emp{swig\_\-include\_\-dirs}
@@ -769,17 +769,17 @@ SWIG programmers. The keywords arguments are as follows:
   \end{itemize}
 \item \emp{cppargs}
   \begin{itemize}
-    \item Default: \emp{['-O2']}
+    \item Default: \emp{["-O2"]}
     \item Type: List of strings
     \item Comment: Arguments to the C++ compiler (except include
-      directories) e.g. \emp{['-Wall', '-fopenmp']}.
+      directories) e.g. \emp{["-Wall", "-fopenmp"]}.
   \end{itemize}
 \item \emp{lddargs}
   \begin{itemize}
     \item Default: \emp{[]}
     \item Type: List of strings
     \item Comment: Arguments to the linker, other than libraries and library
-      directories, e.g. \emp{['-E', '-U']}.
+      directories, e.g. \emp{["-E", "-U"]}.
   \end{itemize}
 %\item \emp{object\_\-files}
 %  \begin{itemize}
@@ -873,7 +873,7 @@ Using the module name or signature, assuming the
 module \emp{instant\_\-ext} exists in the current working directory or
 the Instant cache, we import a module in the following way:
 \begin{python}
-instant_ext = import_module('instant_ext')
+instant_ext = import_module("instant_ext")
 \end{python}
 An object and a directory can be used as input provided that this object includes a
 function \emp{signature()} and that the module is located in the
@@ -897,8 +897,8 @@ arguments. If \emp{returnLinkFlags} is \emp{True}, the link flags are
 returned as a fifth list.  It is used as follows:
 \begin{python}
 inc_dirs, comp_flags, libs, lib_dirs, link_flags = \
-header_and_libs_from_pkgconfig('ufc-1', 'libxml-2.0',
-                               'numpy-1',
+header_and_libs_from_pkgconfig("ufc-1", "libxml-2.0",
+                               "numpy-1",
                                returnLinkFlags=True)
 \end{python}
 
@@ -919,7 +919,7 @@ the necessary environment variables.
 
 \subsection[get\_swig\_version]{\emp{get\_swig\_version}}
 
-The function returns the SWIG version number like  '1.3.36'.
+The function returns the SWIG version number like \emp{"1.3.36"}.
 
 \subsection[check\_swig\_version]{\emp{check\_swig\_version}}
 

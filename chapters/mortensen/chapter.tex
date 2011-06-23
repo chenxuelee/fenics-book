@@ -651,12 +651,12 @@ The three alternative versions of the convective term discussed in
 Section~\ref{sec:mortensen:Convection} have be implemented in the method
 \emp{conv} as
 \begin{python}
-def conv(u_tilde, u_bar, v, mode='standard'):
-    if (mode == 'standard'):
+def conv(u_tilde, u_bar, v, mode="standard"):
+    if (mode == "standard"):
         return inner(grad(u_bar)*u_tilde, v)
-    elif (mode == 'divergence'):
+    elif (mode == "divergence"):
         return inner(div(outer(u_bar,u_tilde)), v)
-    elif (mode == 'skew'):
+    elif (mode == "skew"):
         return 0.5*(inner(grad(u_bar)*u_tilde, v) + \
         inner(div(outer(u_bar, u_tilde)), v))
 \end{python}
@@ -665,7 +665,7 @@ than the fully coupled, since there are more steps involved. The
 details of several fractional step solvers are given in
 Chapter~\ref{chap:kvs-1}, and thus not repeated here.
 
-\subsection{Speed-up of 'naive' Navier--Stokes solvers}
+\subsection{Speed-up of ``naive'' Navier--Stokes solvers}
 \label{sec:mortensen:speed-up}
 
 The previous section presents the straightforward (or naive)
@@ -880,7 +880,7 @@ T = 0.25; Nt = 200; k = Constant(T/Nt); t = 0
 alfa = Constant(0.5); nu = Constant(0)
 u_tilde = u_1 # or u_tilde = 1.5*u_1 - 0.5*u_2 for Adams-Bashforth
 u_bar = alfa*(u + u_1)
-mode = 'standard'  # 'skew' or 'divergence' (convection term)
+mode = "standard"  # "skew" or "divergence" (convection term)
 
 F = v*(u - u_1)*dx + k*conv(u_tilde, u_bar, v, mode)*dx + \
     k*nu*u_bar.dx(0)*v.dx(0)*dx
@@ -891,7 +891,7 @@ while t < T:
     A = assemble(a)
     b = assemble(L)
     bc.apply(A, b)
-    solve(A, u_.vector(), b, 'gmres', 'ilu')
+    solve(A, u_.vector(), b, "gmres", "ilu")
     u_2.assign(u_1); u_1.assign(u_)
 \end{python}
 
@@ -995,14 +995,14 @@ this represents an unstable mode that will grow in time.
 Hence one might argue that eventually this disturbance will become
 unstable and lead to transition from laminar to turbulent flow.
 
-The Orr--Sommerfeld equation is derived directly from the NS
-equations by assuming that the perturbation is small compared to the
-mean flow. Hence if the mean flow in a channel is initialized like
-\eqref{eq:mortensen:channel}, the instability should grow 'exactly' like
-implied by the Orr--Sommerfeld equation \eqref{eq:mortensen:OrrS}. This
-has been used to validate NS solvers by \citet{MalikZangHussaini1984}. The
-perturbation flow energy is here used as a measure for the accuracy of
-the solver:
+The Orr--Sommerfeld equation is derived directly from the NS equations
+by assuming that the perturbation is small compared to the mean
+flow. Hence if the mean flow in a channel is initialized like
+\eqref{eq:mortensen:channel}, the instability should grow ``exactly''
+like implied by the Orr--Sommerfeld equation
+\eqref{eq:mortensen:OrrS}. This has been used to validate NS solvers
+by \citet{MalikZangHussaini1984}. The perturbation flow energy is here
+used as a measure for the accuracy of the solver:
 \begin{equation}
   E(t)= \int_0^{2\pi}\int_{-1}^{1} \left( \left[u-(1-y^2)\right]^2
     + v^2 \right) \dx.
@@ -1053,7 +1053,7 @@ specified initial velocity field we need to create an instance of the
 procedure for the fractional step solver is:
 \begin{python}
 # Using 80 Chebyshev points and Reynolds number of 8000:
-u = U0(element=V.ufl_element(), defaults={'Re':8000., 'N':80})
+u = U0(element=V.ufl_element(), defaults={"Re":8000., "N":80})
 u_ = interpolate(u, V)
 p_ = Constant(0.)
 \end{python}

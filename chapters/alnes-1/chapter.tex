@@ -913,7 +913,7 @@ explains how derivatives are computed.
 A few operators are provided for the implementation of discontinuous
 Galerkin methods.  The basic concept is restricting an expression to
 the positive or negative side of an interior facet, which is expressed
-simply as \emp{v('+')} or \emp{v('-')} respectively. On top of
+simply as \emp{v("+")} or \emp{v("-")} respectively. On top of
 this, the operators \emp{avg} and \emp{jump} are implemented,
 defined as
 \begin{align}
@@ -1533,21 +1533,22 @@ See Section~\ref{ufl:sec:transformer} for more about this transformation.
 %------------------------------------------------------------
 \subsection{Partitioning}
 
-\ufl{} is intended as a front-end for form compilers.  Since the
-end goal is generation of code from expressions, some utilities are
+\ufl{} is intended as a front-end for form compilers.  Since the end
+goal is generation of code from expressions, some utilities are
 provided for the code generation process. In principle, correct code
 can be generated for an expression from its computational graph simply
 by iterating over the vertices and generating code for each operation
 separately, basically mirroring Algorithm~\ref{ufl:alg:program}.
 However, a good form compiler should be able to produce better code.
-\ufl{} provides utilities for partitioning the computational graph into
-subgraphs (partitions) based on dependencies of subexpressions, which
-enables quadrature based form compilers to easily place subexpressions
-inside the right sets of loops.  The function \emp{partition} implements
-this feature.  Each partition is represented by a simple array of vertex
-indices, and each partition is labeled with a set of dependencies. By
-default, this set of dependencies use the strings 'x', 'c', and 'v\%d'
-to denote dependencies on spatial coordinates, cell specific quantities,
+\ufl{} provides utilities for partitioning the computational graph
+into subgraphs (partitions) based on dependencies of subexpressions,
+which enables quadrature based form compilers to easily place
+subexpressions inside the right sets of loops. The function
+\emp{partition} implements this feature.  Each partition is
+represented by a simple array of vertex indices, and each partition is
+labeled with a set of dependencies. By default, this set of
+dependencies use the strings \emp{x}, \emp{c}, and \emp{v\%d} to
+denote dependencies on spatial coordinates, cell specific quantities,
 and form arguments (not coefficients) respectively.
 
 The following example code partitions the graph built above, and prints
@@ -1563,13 +1564,13 @@ for deps in sorted(partitions.keys()):
 The output text from the program is included below.  Notice that the
 literal constant 2 has no dependencies. Expressions in this partition can
 always be precomputed compile-time. The \emp{Constant} \emp{c\_0} depends
-on data which varies for each cell, represented by 'c' in the dependency
+on data which varies for each cell, represented by \emp{c} in the dependency
 set, but not on spatial coordinates, so it can be placed outside the
 quadrature loop. The \emp{Function} \emp{w\_1} and expressions depending
 on it depends in addition on the spatial coordinates, represented by
-'x', and therefore needs to be computed for each quadrature point.
+\emp{x}, and therefore needs to be computed for each quadrature point.
 Expressions depending on only the test or trial function are marked
-with 'v\%d' where the number is the internal counter used by \ufl{} to
+with \emp{v\%d} where the number is the internal counter used by \ufl{} to
 distinguish between arguments.  Note that test and trial functions are
 here marked as depending on the spatial coordinates, but not on cell
 dependent quantities. This is only true for finite elements defined
@@ -1583,19 +1584,19 @@ implementation details.
 \begin{gencode}
 The following depends on ()
 V[4] = 2
-The following depends on ('c',)
+The following depends on ("c",)
 V[2] = c_0
-The following depends on ('x', 'c')
+The following depends on ("x", "c")
 V[3] = w_1
 V[5] = w_1 ** 2
 V[6] = c_0 * w_1 ** 2
-The following depends on ('x', 'v-1')
+The following depends on ("x", "v-1")
 V[1] = v_{-1}
-The following depends on ('x', 'c', 'v-1')
+The following depends on ("x", "c", "v-1")
 V[7] = v_{-1} * c_0 * w_1 ** 2
-The following depends on ('x', 'v-2')
+The following depends on ("x", "v-2")
 V[0] = v_{-2}
-The following depends on ('x', 'c', 'v-2', 'v-1')
+The following depends on ("x", "c", "v-2", "v-1")
 V[8] = v_{-2} * v_{-1} * c_0 * w_1 ** 2
 \end{gencode}
 

@@ -131,7 +131,7 @@ Consider a decomposition of the function $u$ according to
 where $\Bar{u}: \Omega \rightarrow \mathbb{R}$ and $\Hat{u}: \Omega
 \rightarrow \mathbb{R}$ are continuous functions, and $\mathcal{H}$ is
 the Heaviside function centered at the surface across which $u$ exhibits
-a jump.  We use the terminology `continuous' loosely for now, and for
+a jump.  We use the terminology ``continuous'' loosely for now, and for
 simplicity we consider $\Hat{u}$ to be defined everywhere in~$\Omega$.
 If $\mathcal{T}_h$ is a triangulation of the domain $\Omega$, consider
 the finite element function spaces
@@ -200,7 +200,7 @@ equation~\eqref{eqn:nikbakht:u_h_decomp} is expressed as follows:
 %
 where $\Bar{\phi}_{i}$ and $\Hat{\phi}_{j}$ are the finite element basis
 functions associated with $\Bar{V}_{h}$ and $\Hat{V}_{h}$, respectively,
-and $\Bar{u}_{i}$ and $\Hat{u}_{j}$ are the regular and `enriched' degrees
+and $\Bar{u}_{i}$ and $\Hat{u}_{j}$ are the regular and ``enriched'' degrees
 of freedom, respectively. Note that the usual interpolation property
 of finite element functions does not hold in the region of a discontinuity
 surface. In practice $m \ll n$.
@@ -230,17 +230,18 @@ Heaviside function.
 
 In automating the generation of extended finite element models, we
 build upon three key components from the \fenics{} project. Firstly,
-the Unified Form Language (\ufl{}, Chapter~\ref{chap:alnes-1}) is used to
-express variational statements. Particular use is made of the concept of
-`enriched' spaces and the \ufl{} concept of a `restriction'. The latter
-is the restriction of functions to a particular entity subdomain.
-To generate code for a finite element assembler (and additional helper
-functions), we develop extensions of the \fenics{} Form Compiler (\ffc{},
-Chapter~\ref{chap:logg-1}) for generating \ufc{}-compliant code. Finally,
-re-usable tools for the implementation of extended finite element methods,
-including an interface layer to transfer enriched degree of freedom
-data to the generated code, function spaces and surface abstractions,
-are constructed upon \dolfin{} (Chapter~\ref{chap:logg-2}).
+the Unified Form Language (\ufl{}, Chapter~\ref{chap:alnes-1}) is used
+to express variational statements. Particular use is made of the
+concept of ``enriched'' spaces and the \ufl{} concept of a
+``restriction''. The latter is the restriction of functions to a
+particular entity subdomain.  To generate code for a finite element
+assembler (and additional helper functions), we develop extensions of
+the \fenics{} Form Compiler (\ffc{}, Chapter~\ref{chap:logg-1}) for
+generating \ufc{}-compliant code. Finally, re-usable tools for the
+implementation of extended finite element methods, including an
+interface layer to transfer enriched degree of freedom data to the
+generated code, function spaces and surface abstractions, are
+constructed upon \dolfin{} (Chapter~\ref{chap:logg-2}).
 %------------------------------------------------------------------------------
 \subsection{Form language}
 
@@ -263,7 +264,7 @@ a continuous function space by a measure~\emp{dc}. Motivated by
 equation~\eqref{eqn:nikbakht:u_decomp}, we wish to locally enrich a
 continuous function space with a space that contains a discontinuity. We
 do this by adding continuous and discontinuous function spaces to create
-an `enriched' space:
+an ``enriched'' space:
 %
 \begin{python}
 Ec = FiniteElement("Lagrange", "tetrahedron", 2)
@@ -301,8 +302,8 @@ discontinuity. The \emp{jump} and \emp{average} of the function value
 of $v$ across the surface is defined by:
 %
 \begin{python}
-jump(v) = v('+') - v('-')
-avg(v)  = [v('+') + v('-')]/2
+jump(v) = v("+") - v("-")
+avg(v)  = [v("+") + v("-")]/2
 \end{python}
 %
 respectively.
@@ -367,7 +368,7 @@ extensions are:
   \item Generation of intermediate representations for forms with
   discontinuous function spaces;
 
-  \item `Expansion transformer' to separate standard and enriched terms
+  \item ``Expansion transformer'' to separate standard and enriched terms
   appearing in integrals if any coefficient defined on a discontinuous
   space exists; and
 
@@ -666,11 +667,12 @@ apply Dirichlet-type conditions that do not conform to the mesh for
 a mixed-method.
 
 The form compiler input for this problem is presented in
-Figure~\ref{code:nikbakht:mixed-Poisson}.  Note the distinction between
-enriched and mixed elements.  The usual BDM and piecewise-constant
-elements are `enriched' to incorporate a potential discontinuity (using
-the summation sign), and the enriched spaces are then combined to create
-a mixed finite element (using the multiplication sign).
+Figure~\ref{code:nikbakht:mixed-Poisson}.  Note the distinction
+between enriched and mixed elements.  The usual BDM and
+piecewise-constant elements are ``enriched'' to incorporate a
+potential discontinuity (using the summation sign), and the enriched
+spaces are then combined to create a mixed finite element (using the
+multiplication sign).
 %
 \begin{figure}
 \begin{python}
@@ -785,8 +787,8 @@ def sigma(v):
 
 # Bilinear form and linear forms
 a = inner(sigma(u), grad(v))*dx \
-  - inner(jump(u), avg(sigma(v))*n('+'))*dS \
-  - inner(avg(sigma(u))*n('+'), jump(v))*dS \
+  - inner(jump(u), avg(sigma(v))*n("+"))*dS \
+  - inner(avg(sigma(u))*n("+"), jump(v))*dS \
   + (E*alpha/avg(h))*inner(jump(u), jump(v))*dS \
   - inner(u, sigma(v)*n)*ds \
   -inner(sigma(u)*n, v)*ds \
