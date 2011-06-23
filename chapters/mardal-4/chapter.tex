@@ -23,16 +23,16 @@
   \normalsize
 \end{figure}}
 
-In this chapter we describe the implementation of block preconditioned
-Krylov solvers for systems of partial differential equations (PDEs)
-using \emp{cbc.block}\index{\emp{cbc.block}} and the Python interfaces of
-DOLFIN and Trilinos\index{PyTrilinos}.  We start by reviewing the
-abstract theory of constructing preconditioners\index{preconditioner}
-by considering the differential operators as mappings in properly
-chosen Sobolev spaces, before giving a short overview
-of \emp{cbc.block}. We then present several examples, namely the
-Poisson problem, the Stokes problem, the time-dependent Stokes problem
-and finally a mixed formulation of the Hodge Laplacian.
+In this chapter, we describe the implementation of block
+preconditioned Krylov solvers for systems of partial differential
+equations (PDEs) using CBC.Block\index{CBC.Block} and the
+Python interfaces of DOLFIN and Trilinos\index{PyTrilinos}. We start
+by reviewing the abstract theory of constructing
+preconditioners\index{preconditioner} by considering the differential
+operators as mappings in properly chosen Sobolev spaces, before giving
+a short overview of CBC.Block. We then present several examples,
+namely the Poisson problem, the Stokes problem, the time-dependent
+Stokes problem and finally a mixed formulation of the Hodge Laplacian.
 
 \section{Abstract framework for constructing preconditioners}
 
@@ -102,10 +102,10 @@ problem.  Finally, we will see that $\mathcal{B}_h$ often can be
 constructed using multigrid techniques. These multigrid
 preconditioners will be spectrally equivalent with the Riesz mappings.
 
-\section{Overview of \emp{cbc.block}}
+\section{Overview of CBC.Block}
 
-\emp{cbc.block} makes it possible to write matrix operations in mathematical notation, such as $M = A B+C$, where $A$, $B$ and $C$ are matrices or operators. The algebraic operations are not performed explicitly; instead the operators are stored in a graph as shown in Figure~\ref{fig:mardal-4:block:dag}. When $M$ is called upon to operate on a vector, as in $y=Mx$, the individual operations are performed in the right order on the vector: $u=Bx$, $v=Au$, $w=Cx$, $y=v+w$. Since the matrix product or sum is not created explicitly, the individual operators do not need to have an explicit matrix representation, but  may be a DOLFIN matrix, a preconditioner such as ML, or even an inner iterative solver.
-To enable the construction of this graph \emp{cbc.block} injects the
+CBC.Block makes it possible to write matrix operations in mathematical notation, such as $M = A B+C$, where $A$, $B$ and $C$ are matrices or operators. The algebraic operations are not performed explicitly; instead the operators are stored in a graph as shown in Figure~\ref{fig:mardal-4:block:dag}. When $M$ is called upon to operate on a vector, as in $y=Mx$, the individual operations are performed in the right order on the vector: $u=Bx$, $v=Au$, $w=Cx$, $y=v+w$. Since the matrix product or sum is not created explicitly, the individual operators do not need to have an explicit matrix representation, but  may be a DOLFIN matrix, a preconditioner such as ML, or even an inner iterative solver.
+To enable the construction of this graph CBC.Block injects the
 methods \emp{\_\_mul\_\_}, \emp{\_\_add\_\_}, and \emp{\_\_sub\_\_}
 into the \emp{Matrix} and \emp{Vector} classes in \dolfin.  The module
 also implements block partitioned matrices and vectors. These are pure
@@ -737,17 +737,17 @@ $p$.
 \section{Conclusion}
 
 In this chapter we have demonstrated that advanced solution algorithms
-can be developed relatively easily by using \emp{cbc.block} and the
-Python interfaces of DOLFIN and Trilinos. The \emp{cbc.block} module
-allows rather complicated block-partitioned preconditioners to be
-written in a simple form since it represent the linear operators as a
-graph. The Python linear algebra interface in DOLFIN allow us to write
-Krylov solvers and customize them in the language which these
-algorithms are typically expressed in books.  Furthermore, it is
-relatively simple to employ state--of--the--art algebraic multigrid
-algorithms in Python using Trilinos.  We remark that an alternative to
-PyTrilinos is PyAMG~\citep{BellOlsonSchroder2009} which can be used
-together with the DOLFIN Python interface.
+can be developed relatively easily by using CBC.Block and the Python
+interfaces of DOLFIN and Trilinos. The \emp{cbc.block} module allows
+rather complicated block-partitioned preconditioners to be written in
+a simple form since it represent the linear operators as a graph. The
+Python linear algebra interface in DOLFIN allow us to write Krylov
+solvers and customize them in the language which these algorithms are
+typically expressed in books.  Furthermore, it is relatively simple to
+employ state--of--the--art algebraic multigrid algorithms in Python
+using Trilinos.  We remark that an alternative to PyTrilinos is
+PyAMG~\citep{BellOlsonSchroder2009} which can be used together with
+the DOLFIN Python interface.
 
 We have shown the implementation of block preconditioners for a few
 selected problems.  Block preconditioners have been used in a variety
