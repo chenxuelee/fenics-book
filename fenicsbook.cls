@@ -233,7 +233,7 @@
 
 % Book macros
 \newcommand{\fenicsinput}[1]{\input{chapters/#1/chapter}}
-\newcommand{\fenicschapter}[4]{\chapter{#1} \vspace{-1cm} \large By #3 \normalsize \vspace{1.5cm}\label{chap:#4}\chaptermark{#2}}
+\newcommand{\fenicschapter}[5]{\chapter[#1]{#2} \vspace{-1cm} \large By #4 \normalsize \vspace{1.5cm}\label{chap:#5}\chaptermark{#3}}
 \newcommand{\fenicsfig}[3]{\def\svgwidth{#3}\import{chapters/#1/pdf/}{#2.pdf_tex}}
 \newcommand{\fenicsauthor}[5]{
   \noindent
@@ -247,7 +247,7 @@
 \newcommand{\editornote}[1]{\todo[inline, color=red!40]{\underline{Editor note:} #1}}
 
 % Uncomment for testing, will display chapter labels in table of contents
-%\renewcommand{\fenicschapter}[4]{\chapter{[#4] #1} \vspace{-1cm} \large By #3 \normalsize \vspace{1.5cm}\label{chap:#4}\chaptermark{#2}}
+\renewcommand{\fenicschapter}[5]{\chapter[#5 #1]{#2} \vspace{-1cm} \large By #4 \normalsize \vspace{1.5cm}\label{chap:#5}\chaptermark{#3}}
 
 % Macro for Ciarlet FEM definition which is used in at least two chapters
 \newcommand{\femdefinition}{
