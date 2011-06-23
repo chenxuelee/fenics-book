@@ -4,40 +4,39 @@
               {Robert C. Kirby}
               {kirby-2}
 
-%------------------------------------------------------------------------------
-\section{Introduction}
-
-The FIAT project~\citep{Kirby2004,Kirby2006} implements the mathematical
-framework described in Chapter~\ref{chap:kirby-1} as a Python package,
-working mainly in terms of numerical linear algebra.  Although an
-implementation in floating-point arithmetic presents some challenges
-relative to symbolic computation, it can allow greater efficiency in terms
-of work and memory usage, especially for high order elements.  To obtain
-efficiency in Python, the compute-intensive operations are expressed
-in terms of numerical linear algebra and performed using the widely
-distributed \texttt{numpy} package.  FIAT is one of the first FEniCS
-projects, providing the basis function back-end for FFC and enabling
-high-order $H^1$, $H(\mathrm{div})$ and $H(\mathrm{curl})$ elements.
+The FIAT project~\citep{Kirby2004,Kirby2006} implements the
+mathematical framework described in Chapter~\ref{chap:kirby-1} as a
+Python package, working mainly in terms of numerical linear algebra.
+Although an implementation in floating-point arithmetic presents some
+challenges relative to symbolic computation, it can allow greater
+efficiency in terms of work and memory usage, especially for high
+order elements. To obtain efficiency in Python, the compute-intensive
+operations are expressed in terms of numerical linear algebra and
+performed using the widely distributed NumPy package. FIAT is one of
+the first FEniCS projects, providing the basis function back-end for
+FFC and enabling high-order $H^1$, $H(\mathrm{div})$ and
+$H(\mathrm{curl})$ elements.
 
 This chapter works in the context of a Ciarlet triple
 $(T,\CiarletSpace,\mathcal{L})$ \citep{Ciarlet2002}, where $T$
-is a fixed reference domain, typically a triangle or tetrahedron.
+is a fixed reference domain, typically a triangle or tetrahedron,
 $\CiarletSpace$ is a finite-dimensional polynomial space, though perhaps
 vector- or tensor-valued and not coincident with polynomials of some
-fixed degree.  $\mathcal{L} = \{ \ell_i \}_{i=1}^{|\CiarletSpace|}$ is
+fixed degree, and  $\mathcal{L} = \{ \ell_i \}_{i=1}^{|\CiarletSpace|}$ is
 a set of linear functionals spanning $\CiarletSpace^\prime$.  Recalling
 Chapter~\ref{chap:kirby-1}, the goal is first to enumerate a convenient
-basis $\{ \phi_i \}_{i=1}^{|\CiarletSpace|}$) for $\CiarletSpace$ and
+basis $\{ \phi_i \}_{i=1}^{|\CiarletSpace|}$ for $\CiarletSpace$ and
 then to form a generalized Vandermonde system
 \begin{equation}
   V A = I,
 \end{equation}
-where $V_{ij} = \ell_i( \phi_j)$.  Of course, forming this matrix requires
-some calculations, and we will discuss this further in a later section.
-The columns of $A = V^{-1}$ store the expansion coefficients of the
-nodal basis for $(T,\CiarletSpace,\mathcal{L})$ in terms of some basis
-$\{\phi_i\}$.
+where $V_{ij} = \ell_i( \phi_j)$.  Of course, forming this matrix
+requires some calculations, and we will discuss this further in a
+later section.  The columns of $A = V^{-1}$ store the expansion
+coefficients of the nodal basis for $(T,\CiarletSpace,\mathcal{L})$ in
+terms of some other basis $\{\psi_i\}$.
 
+%------------------------------------------------------------------------------
 \section{Prime basis: collapsed-coordinate polynomials}
 
 High order polynomials in floating-point arithmetic require stable
@@ -239,7 +238,7 @@ values to the expansion coefficients back in the Dubiner basis.
 
 This paradigm may also be extended to vector- and tensor-valued
 polynomials, making use of the multidimensional arrays implemented in
-\texttt{numpy}.  Let \( P \) be a space of scalar-valued polynomials and
+NumPy. Let \( P \) be a space of scalar-valued polynomials and
 \( m > 0 \) an integer.  Then, a member of \( [P]^m \), a vector with \(
 m \) components in \( P \), may be represented as a two-dimensional array.
 Let \( p \in [P]^m \) and \( p^j \) be the \( j^\mathrm{th} \) component
@@ -332,14 +331,14 @@ e^i \phi_j ) \).
 Now, let \( \{ v_i \}_{i=1}^N \) be a set of vector-valued polynomials
 and \( \{ \ell_i \}_{i=1}^M \) a set of linear functionals acting on
 them.  The polynomials may be stored by a coefficient tensor \( C_{ijk}
-= \mathcal{R}(v_i)_{jk} \).  The functionals may be represented by a
+= \mathcal{R}(v_i)_{jk} \). The functionals may be represented by a
 tensor \( L_{ijk} = \mathcal{R}^\prime(\ell_i)_{jk} \).  The matrix \(
 A_{ij} = \ell_i(v_j) \) is readily computed by the contraction
 \[
 A_{ij} = L_{ikl} C_{jkl}.
 \]
 Despite having three indices, this calculation may still be performed by
-matrix multiplication.  Since \texttt{numpy} stores arrays in row-major
+matrix multiplication. Since NumPy stores arrays in row-major
 format, a simple reshaping may be performed so that
 \( A = \tilde{L} \tilde{C}^{\top} \), for \( \tilde{L} \) and \( \tilde{C} \)
 reshaped to two-dimensional arrays by combining the second and third axes.
