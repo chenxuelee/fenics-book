@@ -237,6 +237,9 @@
 \newcommand{\authornote}[1]{\todo[inline, color=blue!40]{\underline{Author note:} #1}}
 \newcommand{\editornote}[1]{\todo[inline, color=red!40]{\underline{Editor note:} #1}}
 
+% Uncomment for testing, will display chapter labels in table of contents
+%\renewcommand{\fenicschapter}[4]{\chapter{[#4] #1} \vspace{-1cm} \large By #3 \normalsize \vspace{1.5cm}\label{chap:#4}\chaptermark{#2}}
+
 % Macro for Ciarlet FEM definition which is used in at least two chapters
 \newcommand{\femdefinition}{
 \index{finite element definition}
