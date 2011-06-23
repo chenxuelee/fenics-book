@@ -755,28 +755,29 @@ be turned on in the form compiler that optimize the assembly process.
 
 Table~\ref{tab:mortensen:speed-up} summarizes the effect of the
 speed-up routines on the CPU-time for the Taylor--Green problem (see
-Section~\ref{sec:mortensen:TG}) with $Re=100$ on a \emp{UnitCube} of size
-$16^3$ using four time steps and a total integration time of~$0.5$.
-The naive implementations referenced in Table~\ref{tab:mortensen:speed-up}
-use one single form for the Navier--Stokes equations and lhs/rhs to extract
-forms for the numerical schemes. This corresponds roughly to the code
-presented at the beginning of
-Section~\ref{sec:mortensen:impl_fenics} for the coupled solver and similar
-for the segregated solver. The optimized versions have been implemented
-following the steps outlined above. The two CPU times shown are the total
-time and the time spent inside the time integration loop; that is, the
-total time minus the time it takes to set up the problem for looping. The
-two numbers in parenthesis show the time spent in the Krylov solvers
-and the assemblers respectively. Evidently, with the implicit solvers
-we can for this problem obtain a speed-up factor of nearly 40 (662/17)
-for the coupled solver. Most of this speed--up follows from minimizing
-the amount of code that needs to be reassembled every time step and by
-avoiding a direct assembly of a large $(n_vd+n_p)\times (n_vd+n_p)$
-matrix. As can be seen, the Krylov solvers are for the optimized
-solvers approximately a factor three faster, which is attributed to the
+Section~\ref{sec:mortensen:TG}) with $Re=100$ on a \emp{UnitCube} of
+size $16^3$ using four time steps and a total integration time
+of~$0.5$.  The naive implementations referenced in
+Table~\ref{tab:mortensen:speed-up} use one single form for the
+Navier--Stokes equations and lhs/rhs to extract forms for the
+numerical schemes. This corresponds roughly to the code presented at
+the beginning of Section~\ref{sec:mortensen:impl_fenics} for the
+coupled solver and similar for the segregated solver. The optimized
+versions have been implemented following the steps outlined above. The
+two CPU times shown are the total time and the time spent inside the
+time integration loop; that is, the total time minus the time it takes
+to set up the problem for looping. The two numbers in parenthesis show
+the time spent in the Krylov solvers and the assemblers
+respectively. Evidently, with the implicit solvers we can for this
+problem obtain a speed-up factor of nearly 40 (662/17) for the coupled
+solver. Most of this speed--up follows from minimizing the amount of
+code that needs to be reassembled every time step and by avoiding a
+direct assembly of a large $(n_vd+n_p)\times (n_vd+n_p)$ matrix. As
+can be seen, the Krylov solvers are for the optimized solvers
+approximately a factor three faster, which is attributed to the
 compression of the sparse matrices, which speeds up the matrix--vector
-products in the Krylov solvers. It has been verified that the naive and
-optimized solvers produce exactly the same results.
+products in the Krylov solvers. It has been verified that the naive
+and optimized solvers produce exactly the same results.
 
 \begin{table}
 \caption{CPU times (total/inside time loop) for the fully coupled and
@@ -785,18 +786,19 @@ optimized solvers produce exactly the same results.
   time and time spent in the solver loop. Numbers in parenthesis show
   timings for the solver and assembler respectively.}
 \centering
-\begin{tabular}{c|cc|cc}
-\hline                        & \multicolumn{2}{c|}{Fully coupled}   &  \multicolumn{2}{c}{Segregated} \\ [-1ex]
-\raisebox{1.5ex}{Convection}  &  Optimized & Naive & Optimized & Naive \\ [1ex] \hline
-                              & 46/18 & 170/31 & 45/11   & 134/31 \\ [-1ex]
-\raisebox{1.5ex}{Explicit \ref{eq:mortensen:EX}} & (4.5/3.7) & (11.3/122) & (3.0/2.8) & (8.3/81) \\ [1ex]
-\hline
-                              & 45/17 & 688/662  & 44/11 & 498/462 \\ [-1ex]
-\raisebox{1.5ex}{Implicit \ref{eq:mortensen:IM2}}& (4.4/3.5) & (10.5/628) & (3.1/2.5) & (8.5/434) \\ [1ex] \hline
+\begin{tabular}{ccccc}
+  \toprule
+  & \multicolumn{2}{c|}{Fully coupled}   &  \multicolumn{2}{c}{Segregated} \\ [-1ex]
+  \midrule
+  \raisebox{1.5ex}{Convection}  &  Optimized & Naive & Optimized & Naive \\ [1ex]
+  & 46/18 & 170/31 & 45/11   & 134/31 \\ [-1ex]
+  \raisebox{1.5ex}{Explicit \ref{eq:mortensen:EX}} & (4.5/3.7) & (11.3/122) & (3.0/2.8) & (8.3/81) \\ [1ex]
+  & 45/17 & 688/662  & 44/11 & 498/462 \\ [-1ex]
+\raisebox{1.5ex}{Implicit \ref{eq:mortensen:IM2}}& (4.4/3.5) & (10.5/628) & (3.1/2.5) & (8.5/434) \\ [1ex]
+\bottomrule
 \end{tabular}
 \label{tab:mortensen:speed-up}
 \end{table}
-
 
 \section{Numerical investigations}
 \label{sec:mortensen:testcases}
