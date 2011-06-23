@@ -152,6 +152,7 @@
 % Settings for graphics
 \setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio}
 \newcommand{\largefig}{0.63\textwidth}     % for normal large figure
+\newcommand{\mediumfig}{0.5\textwidth}     % for normal medium figure
 \newcommand{\smallfig}{0.4\textwidth}      % for normal small figure
 \newcommand{\twofigs}{0.3\textwidth}       % for 1/2 of normal figure
 \newcommand{\threefigs}{0.2\textwidth}     % for 1/3 of normal figure
