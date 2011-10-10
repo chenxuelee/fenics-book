@@ -369,6 +369,7 @@ lead to fewer iterations. However, for this work, we have adopted the
 simple strategy described above.
 
 \begin{figure}
+\bwfig
   \centering
   \includegraphics[width=\largefig]{chapters/selim/pdf/primal.pdf}
   \caption{A partitioned approach to solving the FSI problem. In each
@@ -386,6 +387,7 @@ simple strategy described above.
     is pushed forward to the current fluid domain and thus defines the
     new deformed current domain.}
   \label{selim:fig:fp}
+  \vspace*{24pt}
 \end{figure}
 
 The two subproblems $(f)$, $(S)$ in~\eqref{selim:eq:FSIsystem} define a
@@ -400,8 +402,9 @@ structure mechanics problems, respectively.  In the subsequent sections,
 we will briefly explain these frameworks and the code that solves the
 FSI problem~\eqref{selim:eq:FSIsystem}.
 
+
 %------------------------------------------------------------------------------
-\subsection{Fluid subproblem}
+\vspace*{-3pt}\subsection{Fluid subproblem}
 
 The fluid subproblem in~\eqref{selim:eq:FSIsystem} is solved using the
 \emp{CBC.Solve} module \emp{CBC.Flow}. The fluid problem can be
@@ -422,6 +425,7 @@ more comprehensive discussion on how to solve and implement different
 solvers for the incompressible Navier--Stokes equations in FEniCS, see
 Chapter~\ref{chap:kvs-1}.
 \begin{figure}
+\bwfig
 \begin{python}
 class NavierStokesSolver(CBCSolver):
     "Navier-Stokes solver"
@@ -496,6 +500,7 @@ and especially how to implement different material models, see
 Chapter~\ref{chap:narayanan}.
 
 \begin{figure}
+\bwfig
 \begin{python}
 class CG1MomentumBalanceSolver(CBCSolver):
     def __init__(self, problem):
@@ -556,6 +561,7 @@ linears (not quadratics); see~\citet{FormaggiaNobile1999}.
 The implementation of the variational forms describing the mesh
 subproblem is illustrated in Figure~\ref{selim:fig:meshsolver}.
 \begin{figure}
+\bwfig
 \begin{python}
 # Define cG(1) scheme for time-stepping
 a = inner(u, v)*dx + 0.5*k*inner(sigma(u), sym(grad(v)))*dx
@@ -737,6 +743,7 @@ mesh, weighted by the interpolation error of the dual solution. The
 implementation of these indicators is illustrated in Figure~\ref{selim:fig:strong_residuals}.
 
 \begin{figure}
+\bwfig
 \begin{python}
 # Fluid residual contributions
 R_F0 = w*inner(EZ_F - Z_F, Dt_U_F - div(Sigma_F))*dx_F
@@ -874,6 +881,7 @@ To summarize, the adaptive feedback process involves the following steps:
 \end{enumerate}
 
 \begin{figure}
+\bwfig
   \centering
   \includegraphics[width=\largefig]{chapters/selim/pdf/adaptive.pdf}
   \caption{A schematic picture of the adaptive FSI algorithm. The primal
@@ -891,6 +899,7 @@ To summarize, the adaptive feedback process involves the following steps:
 \end{figure}
 
 \begin{figure}
+\bwfig
   \caption{The adaptive solver class \emp{FSISolver}. Here, the
     problem specific data is passed through the variable \emp{problem}. In
     the first adaptive loop, we make an initial guess of the stability
@@ -933,7 +942,8 @@ class FSISolver(CBCSolver):
 \label{selim:fig:FSISolver-1}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[!t]
+\bwfig
 \caption{The adaptive solver class \emp{FSISolver}, continued.}
 \begin{python}
             # Estimate error and compute error indicators
@@ -1005,7 +1015,7 @@ and in Figure~\ref{selim:fig:dual_channel_2}.
 
 \begin{figure}
   \centering
-  \subfloat[]{\label{subfig:1:a}\includegraphics[width=\largefig]{chapters/selim/png/new_channel.png}} \\
+    \subfloat[]{\label{subfig:1:a}\includegraphics[width=\largefig]{chapters/selim/png/new_channel.png}} \\
   \subfloat[]{\label{subfig:1:b}\includegraphics[width=\largefig]{chapters/selim/png/channel_test_zoom.png}}
   \caption{The adaptive FSI solution to the channel with flap problem
      depicted in the current domain $\omega(t)$ at final time
@@ -1017,8 +1027,9 @@ and in Figure~\ref{selim:fig:dual_channel_2}.
 \end{figure}
 
 \begin{figure}
+\bwfig
   \centering
-  \subfloat[$Z_{_{F}}$]{\label{fig:a}\includegraphics[width=\largefig]{chapters/selim/png/channelZF.png}} \\
+\subfloat[$Z_{_{F}}$]{\label{fig:a}\includegraphics[width=\largefig]{chapters/selim/png/channelZF.png}} \\
   \subfloat[$Z_{_{S}}$]{\label{fig:b}\includegraphics[width=\largefig]{chapters/selim/png/channelZS.png}}
   \caption{The dual fluid velocity solution $Z_{_{F}}$ and the dual
     structure solution $Z_{_{S}}$ at the ``final time'' $t=0$ in the
@@ -1033,6 +1044,7 @@ and in Figure~\ref{selim:fig:dual_channel_2}.
 \end{figure}
 
 \begin{figure}
+\bwfig
   \centering
   \includegraphics[width=\largefig]{chapters/selim/png/channelZM.png}
   \caption{The dual mesh displacement $Z_{_{M}}$ to the channel with
@@ -1073,7 +1085,7 @@ where $\psi^t_{_{S}}=(0,1)$.  The physical parameters related to the
 problem is set to $(\rhoF,\mu_{_{F}}) = (1, 1)$,
 $(\rho_{_{S}},\mu_{_{S}}, \lambda_{_{S}}) = (2, 3, 3)$ and
 $(\mu_{_{M}}, \lambda_{_{M}}) = (3.8461, 5.76)$. The discretization
-parameters are set to $(\mathrm{TOL}, w_h, w_k,w_c) = (0.5, 0.45,
+parameters are set to\break $(\mathrm{TOL}, w_h, w_k,w_c) = (0.5, 0.45,
 0.45, 0.1)$ with an initial time step size $0.05$.  In contrast to the
 previous problem, the solution, and in particular the structure
 displacement, varies substantially over time. The adaptive primal FSI
@@ -1082,6 +1094,7 @@ dynamic time step size is illustrated
 in~Figure~\ref{selim:fig:cavity_timestep}.
 
 \begin{figure}
+\bwfig
   \centering
   \subfloat[]{\label{subfig:2:a}\includegraphics[width=\largefig]{chapters/selim/png/new_cavity.png}} \\
   \subfloat[]{\label{subfig:2:b}\includegraphics[width=\largefig]{chapters/selim/png/zoom_cavity.png}}
@@ -1094,6 +1107,7 @@ in~Figure~\ref{selim:fig:cavity_timestep}.
 \end{figure}
 
 \begin{figure}
+\bwfig
   \centering
   \includegraphics[width=\largefig]{chapters/selim/pdf/plot.pdf}
   \caption{The time step $k_n$ and the algebraic residual $r_k^n$ as
