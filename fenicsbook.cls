@@ -272,3 +272,6 @@
 
 % Macros used by Springer added here so we can get the book to compile
 \newcommand{\bwfig}{}
+\newcommand{\nolinenumbers}{}
+\newcommand{\AQ}[1]{\textbf{#1}}
+\newcommand{\processqueries}{}
