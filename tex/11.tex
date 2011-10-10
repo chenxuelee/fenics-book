@@ -62,6 +62,7 @@ Chapter~\ref{chap:alnes-2}). This process is illustrated schematically
 in Figure~\ref{fig:logg-1:formcompiler}.
 
 \begin{figure}
+\bwfig
   \centering
   \includegraphics[width=\mediumfig]{chapters/logg-1/pdf/ufl_ffc_ufc.pdf}
   \caption{The form compiler FFC generates C++ code in UFC format
@@ -152,6 +153,7 @@ In Figure~\ref{fig:logg-1:formcode}, we list (a part of) the generated
 C++ code for the input displayed in Figure~\ref{fig:logg-1:python:form}.
 
 \begin{figure}
+\bwfig
   \begin{python}
 from ufl import *
 from ffc import *
@@ -171,6 +173,7 @@ compile_form([a, L], prefix="Poisson")
 \end{figure}
 
 \begin{figure}
+\bwfig
   \begin{c++}
 virtual void tabulate_tensor(double* A,
                              const double * const * w,
@@ -245,6 +248,7 @@ Figure~\ref{fig:logg-1:elementcode}, we list (a part of) the generated
 C++ code for the input displayed in Figure~\ref{fig:logg-1:python:element}.
 
 \begin{figure}
+\bwfig
   \begin{python}
 from ufl import *
 from ffc import *
@@ -256,6 +260,7 @@ compile_element(element, prefix="P4tet")
 \end{figure}
 
 \begin{figure}
+\bwfig
   \begin{c++}
 virtual void evaluate_basis(unsigned int i,
                             double* values,
@@ -418,9 +423,10 @@ stages involved when compiling forms. For compilation of elements a
 similar (but simpler) set of stages is used.
 
 \begin{figure}
+\bwfig
   \centering
   \includegraphics[width=\smallfig]{chapters/logg-1/pdf/compilerdesign.pdf}
-  \caption{Form compilation broken into six sequential stages:
+\caption{Form compilation broken into six sequential stages:
     Language, Analysis, Representation, Optimization, Code
     generation and Code Formatting. Each stage generates output
     based on input from the previous stage. The input/output data
@@ -497,7 +503,7 @@ similar (but simpler) set of stages is used.
   strings containing the C++ code. As an example, the data generated for
   \emp{ufc::form::rank} may be the string ``\emp{return~2;}''.
 
-  We emphasize the importance of separating stages 2, 3 and 4. This
+ \looseness-1{}We emphasize the importance of separating stages 2, 3 and 4. This
   allows stages~2 and 3 to focus on algorithmic aspects related to finite
   elements and variational forms, while stage~4 is concerned only with
   generating C++ code from a set of instructions prepared in earlier
@@ -521,6 +527,9 @@ similar (but simpler) set of stages is used.
   \end{tabular}
 \end{description}
 
+\enlargethispage{6pt}
+
+\vspace*{-6pt}
 %------------------------------------------------------------------------------
 \section{Form representation}
 \label{sec:logg-1:representation}
@@ -533,6 +542,7 @@ and refer readers to Chapter~\ref{chap:oelgaard-2} for details of the quadrature
 representation and to Chapter~\ref{chap:kirby-8} for details of the tensor
 representation.
 
+\vspace*{3pt}
 %------------------------------------------------------------------------------
 \subsection{Quadrature representation}
 \index{quadrature representation}
@@ -596,6 +606,8 @@ generated successfully, each monomial is investigated and if the
 number of coefficients plus derivatives is greater than three, then
 quadrature representation is selected for the given variational form.
 
+\enlargethispage{9pt}
+
 %------------------------------------------------------------------------------
 \section{Optimization}
 \index{optimization}
@@ -621,18 +633,18 @@ optimizations come at the expense of an increased generation time for
 can make the compilation impossible.
 
 Optimizations are switched on by using the command-line
-option \emp{-O} or through the Python interface by setting the
+option \emp{-O} or through the Python\break interface by setting the
 parameter \emp{optimize} equal to \emp{True}. For the quadrature
-representation, there exist four optimization strategy options,
-and these can be selected through the command-line interface by giving
+representation, there\break exist four optimization strategy options,
+and these can be selected through the command-line\break interface by giving
 the additional options \emp{-f eliminate\_zeros}, \emp{-f
-simplify\_expressions},
+simplify\_expressions},\break
 \emp{-f precompute\_ip\_const} and \emp{-f precompute\_basis\_const},
 and through the Python interface by setting these
 parameters equal to \emp{True} in the options dictionary.
 The option \emp{-f eliminate\_zeros} can be combined with
 any of the other three options.
-Only one of the optimizations \emp{-f simplify\_expressions},
+Only one of the optimizations \emp{-f simplify\_express-\break ions},
 \emp{-f precompute\_ip\_const} and \emp{-f precompute\_basis\_const} can be
 switched on at one time, and if two are given \emp{-f simplify\_expressions}
 takes precedence over \emp{-f precompute\_ip\_const} which in turn takes
@@ -642,6 +654,7 @@ only \emp{-O} is specified, the default is to switch on the
 optimizations \emp{-f eliminate\_zeros} and
 \emp{-f simplify\_expressions}.
 
+\vspace*{7pt}
 %------------------------------------------------------------------------------
 \section{Just-in-time compilation}
 \label{sec:logg-1:jit}
@@ -656,7 +669,7 @@ return Python modules. Calling the JIT compiler involves calling the
 \begin{python}
 (compiled_object, compiled_module, form_data, prefix) \
     = jit(ufl_object, parameters=None, common_cell=None)
-\end{python}
+\end{python}\vspace*{10pt}
 where \emp{ufl\_object} is either a \ufl{} form or finite element
 object, \emp{parameters} is an optional dictionary containing form
 compiler parameters and \emp{common\_cell} is an optional argument.
@@ -691,6 +704,7 @@ compilation. It makes it possible to combine the performance features
 of generated C++ code with the ease of a scripted interface.
 
 \begin{figure}
+\bwfig
   \centering
   \includegraphics[width=\largefig]{chapters/logg-1/pdf/jit.pdf}
   \caption{JIT compilation of variational forms coordinated by
@@ -734,6 +748,7 @@ evaluation of variational forms in C++ via operator overloading, see
 Figures~\ref{fig:logg-1:poisson,before}--\ref{fig:logg-1:poisson,ufl}.
 
 \begin{figure}
+\bwfig
 \begin{c++}
 class Poisson : public PDE
 {
@@ -767,6 +782,7 @@ private:
 \end{figure}
 
 \begin{figure}
+\bwfig
 \begin{python}
 name = "Poisson"
 element = FiniteElement("Lagrange", "triangle", 1)
@@ -786,6 +802,7 @@ L = v*f*dx
 \end{figure}
 
 \begin{figure}
+\bwfig
 \begin{uflcode}
 element = FiniteElement("Lagrange", triangle, 1)
 
