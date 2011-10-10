@@ -51,13 +51,12 @@ such as the linear algebra libraries
 \citet{www:petsc,www:trilinos,www:ublas} and \citet{www:mtl4}, and the
 mesh partitioning libraries \citet{www:parmetis} and
 SCOTCH~\citep{www:scotch}.
-
 \begin{figure}
   \centering
   \includegraphics[width=\largefig]{chapters/logg-2/pdf/fenics-map.pdf}
   \caption{DOLFIN functions as the main user interface of FEniCS and
     handles the communication between the various components of FEniCS
-    and external software. Solid lines indicate dependencies and
+    and external \hbox{software.} Solid lines indicate dependencies and
     dashed lines indicate data flow.}
   \label{fig:logg-2:fenicsmap}
 \end{figure}
@@ -99,6 +98,7 @@ access the underlying data structures in order to use native functionality
 from the wrapped external libraries.
 
 \begin{figure}
+\bwfig
   \centering
   \includegraphics[width=\largefig]{chapters/logg-2/pdf/dolfin-uml.pdf}
   \caption{Schematic overview of some of the most important components
@@ -502,7 +502,7 @@ The \emp{Matrix}, \emp{Vector}, \emp{LUSolver} and \emp{KrylovSolver}
 objects are all based on a specific linear algebra backend.
 The default backend depends on which backends are enabled when DOLFIN
 is configured.  The backend can be set via the global
-parameter \emp{"linear\_algebra\_backend"}.  To use PETSc as the linear
+parameter\break \emp{"linear\_algebra\_backend"}.  To use PETSc as the linear
 algebra backend:
 %%
 \begin{c++}
@@ -590,7 +590,7 @@ A \emp{MyNonlinearProblem} object is constructed using a linear form
 \emp{L}, that when assembled corresponds to $F$, and a bilinear form
 \emp{a}, that when assembled corresponds to~$J$. The classes \emp{Form}
 and \emp{BoundaryCondition} used in the example are discussed in more
-detail later.  The same \emp{MyNonlinearProblem} class can be defined
+detail later.  The same \emp{MyNon-\break linearProblem} class can be defined
 in Python:
 %%
 \begin{python}
@@ -1053,7 +1053,7 @@ sub_domains = mesh.data().mesh_function("sub_domains")
 DOLFIN uses \emp{MeshData} internally to store various data associated
 with a \emp{Mesh}. To list data that is associated with a given
 \emp{Mesh}, issue the command \emp{info(mesh.data(), true)} in C++
-or \emp{info(mesh.data(), True)} in Python.
+or\break \emp{info(mesh.data(), True)} in Python.
 
 
 \paragraph{Mesh refinement.}
@@ -1361,6 +1361,7 @@ distributed memory architecture, the \emp{FunctionSpace} and the
 \emp{GenericVector} are distributed across the processes.
 
 \begin{figure}
+\bwfig
   \centering
   \fenicsfig{logg-2}{femsolution}{\mediumfig}
   \caption{A piecewise linear finite element function~$u_h$ on a
@@ -1370,9 +1371,11 @@ distributed memory architecture, the \emp{FunctionSpace} and the
   \label{fig:logg-2:femsolution}
 \end{figure}
 
+\enlargethispage{12pt}
+
 \paragraph{Creating functions.}
 
-To create a \emp{Function} on a \emp{FunctionSpace}, one simply calls
+\looseness-1{}To create a \emp{Function} on a \emp{FunctionSpace}, one simply calls
 the constructor of the \emp{Function} class with the \emp{FunctionSpace}
 as the argument, as illustrated in the following code examples:
 %%
@@ -1404,7 +1407,7 @@ solve(A, u.vector(), b)
 \end{c++}
 %%
 The process of assembling and solving a linear system is handled
-automatically by the class \emp{Variational\-Problem}, which will be
+automatically by the class\break \emp{Variational\-Problem}, which will be
 discussed in more detail below.
 
 \paragraph{Function evaluation.}
@@ -1584,6 +1587,8 @@ The above code will automatically generate subclasses of the DOLFIN C++
 \emp{Expression} class that overload the \emp{eval} function. This has the
 advantage of being more efficient, since the callback to the \emp{eval}
 function takes place in C++ rather than in Python.
+
+\enlargethispage{12pt}
 
 A feature that can be used to implement a time-dependent \emp{Expression}
 in the Python interface is to use a variable name in an \emp{Expression}
@@ -2057,7 +2062,7 @@ previously set values.
 
 Variational problems (finite element discretizations of partial
 differential equations) can be easily solved in DOLFIN using the class
-\emp{VariationalProblem}. This is done by first specifying a
+\emp{VariationalProblem}. This is done by first specifying a\break
 \emp{VariationalProblem} in terms of a pair of forms and (possibly)
 boundary conditions, and then calling the \emp{solve} member function.
 
@@ -2211,6 +2216,7 @@ Example plots generated using the \emp{plot} command are presented in
 Figures~\ref{fig:logg-2:plots,mesh} and~\ref{fig:logg-2:plots,function}.
 
 \begin{figure}
+\bwfig
   \centering
   \includegraphics[width=\smallfig]{chapters/logg-2/png/plot_mesh.png}
   \caption{Plotting a mesh using the DOLFIN \emp{plot} command, here
@@ -2219,9 +2225,10 @@ Figures~\ref{fig:logg-2:plots,mesh} and~\ref{fig:logg-2:plots,function}.
 \end{figure}
 
 \begin{figure}
-  \centering
+\bwfig
+\centering
   \includegraphics[width=\largefig]{chapters/logg-2/png/plots.png}
-  \caption{Plotting a scalar and a vector-valued function using the
+    \caption{Plotting a scalar and a vector-valued function using the
     DOLFIN \emp{plot} command, here the pressure (left) and velocity
     (right) from a solution of the Stokes equations on the mesh from
     Figure~\ref{fig:logg-2:plots,mesh}.}
@@ -2345,7 +2352,7 @@ parameters_file >> parameters
 \end{python}
 %%
 One cannot read/write \emp{Function} and \emp{FunctionSpace} objects
-since the representation of a \emp{FunctionSpace} (and thereby the
+since the representation of a\break \emp{FunctionSpace} (and thereby the
 representation of a \emp{Function}) relies on generated code.
 
 DOLFIN automatically handles \emph{reading} of gzipped XML files. Thus,
@@ -2871,12 +2878,14 @@ For example, the code
 parameters["num_threads"] = 6;
 \end{c++}
 %%
-instructs DOLFIN to use six threads in the assembly process.  During
+\looseness-1{}instructs DOLFIN to use six threads in the assembly process.  During
 assembly, DOLFIN loops over the cells or cell facets in a mesh, and
 computes local contributions to the global matrix or vector, which are
 then added to the global matrix or vector. When using multithreaded
 assembly, each thread is assigned a collection of cells or facets for
 which it is responsible. This is transparent to the user.
+
+\enlargethispage{10pt}
 
 The use of multithreading requires design care to avoid race conditions,
 which occur if multiple threads attempt to write to the same memory
@@ -2986,6 +2995,9 @@ the DOLFIN interface that facilitate this integration are presented. The
 Python interface also integrates well with the \numpy and \scipy toolkits,
 which is also discussed below.
 
+
+\pagebreak
+
 %------------------------------------------------------------------------------
 \subsection{UFL integration and just-in-time compilation}
 
@@ -3006,9 +3018,8 @@ be intentionally excluded. A reader can examine particular classes or
 functions in the code for a full understanding of the implementation.
 
 \paragraph{Construction of function spaces.}
-
 In the Python interface, \emp{ufl.FiniteElement} and
-\emp{dolfin::FunctionSpace} are integrated. The declaration of a
+\emp{dolfin::Function-\break Space} are integrated. The declaration of a
 \emp{FunctionSpace} is similar to that of a \emp{ufl.FiniteElement},
 but instead of a cell type (for example, \emp{triangle}) the
 \emp{FunctionSpace} constructor takes a \emp{cpp.Mesh} (\emp{dolfin.Mesh}):
@@ -3050,7 +3061,7 @@ class FunctionSpace(cpp.FunctionSpace):
 
 \paragraph{Constructing arguments (trial and test functions).}
 
-The \emp{ufl.Argument} class (the base class of \emp{ufl.TrialFunction}
+The \emp{ufl.Argument} class (the base class of\break \emp{ufl.TrialFunction}
 and \emp{ufl.TestFunction}) is subclassed in the Python interface. Instead
 of using a \emp{ufl.FiniteElement} to instantiate the classes, a DOLFIN
 \emp{FunctionSpace} is used:
@@ -3061,7 +3072,7 @@ v = TestFunction(V)
 \end{python}
 %%
 The \emp{ufl.Argument} base class is instantiated in the subclassed
-constructor by extracting the \emp{ufl.FiniteElement} from the passed
+constructor by extracting the\break \emp{ufl.FiniteElement} from the passed
 \emp{FunctionSpace}, which is illustrated by the following pseudo
 code:
 %%
@@ -3082,6 +3093,8 @@ def TrialFunction(V):
 def TestFunction(V):
     return Argument(V, -2)
 \end{python}
+
+\enlargethispage{12pt}
 
 \paragraph{Coefficients, functions and expressions.}
 
@@ -3188,8 +3201,7 @@ Classes in Python can be created during run-time by using the
 \emp{type} function. The logic of creating a class and returning an
 instance of that class is handled in the \emp{\_\_new\_\_} method of
 \emp{dolfin.Expression}, as illustrated by the following pseudo code:
-%%
-\begin{python}
+\vspace*{16pt}\begin{python}
 class Expression(object):
     def __new__(cls, cppcode=None):
         if cls.__name__ != "Expression":
