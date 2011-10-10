@@ -20,6 +20,8 @@ the surface displaces them. This chapter will be of interest to those
 seeking to model compositional discontinuities using field methods,
 as well as those interested in mantle convection simulations.
 
+
+
 %------------------------------------------------------------------------------
 \section{Convection in the Earth's mantle}
 
@@ -54,6 +56,19 @@ can the assumptions made in matching the longevity of these reservoirs
 be consistent with seismic observations and the physics we know of the
 Earth's interior and plate tectonics?
 
+\begin{figure}
+\bwfig
+  \centering
+  \includegraphics[width=\largefig]{chapters/vynnytska/png/layout.png}
+ \caption{Initial configuration of the model in the $h$ by
+    $\lambda$ rectangular box $\Omega$. Color shows dimensionless
+    temperature (for dimensional values, see
+    Section~\ref{vynnytska:sec:results}). The shaded layer on the
+    bottom with height $d$ is the denser layer corresponding to the
+    D'' layer.}
+  \label{vynnytska:fig:IC}
+\end{figure}
+
 Primarily, the observations we need to match are simply the transfer of
 matter between the Earth's interior and surface. At the surface of the
 Earth, tectonic plates are bent and pushed into the interior. In other
@@ -80,17 +95,7 @@ hotter D'' layer and a plume ascending respectively following the
 boundary layer arguments of~\citet{KekenEtAl1997}. The idea is simply
 to create an initial configuration that drives the convection of the
 problem.
-\begin{figure}
-  \centering
-  \includegraphics[width=\largefig]{chapters/vynnytska/png/layout.png}
-  \caption{Initial configuration of the model in the $h$ by
-    $\lambda$ rectangular box $\Omega$. Color shows dimensionless
-    temperature (for dimensional values, see
-    Section~\ref{vynnytska:sec:results}). The shaded layer on the
-    bottom with height $d$ is the denser layer corresponding to the
-    D'' layer.}
-  \label{vynnytska:fig:IC}
-\end{figure}
+
 
 The viscosity of the mantle, on the order of $10^{22} \mathrm{Pa~s}$,
 is so high that inertial forces and compressibility are
@@ -193,7 +198,7 @@ For the composition $\phi$, we set
   \phi |_{x_2 = 0} = 1, \quad \partial_{n} \phi|_{\Gamma} = 0.
 \end{equation}
 That is, we fix the composition on the bottom of the box $\Omega$
-and apply zero flux conditions on the remainder of the boundary. This
+and apply zero\vadjust{\pagebreak} flux conditions on the remainder of the boundary. This
 condition can be viewed as a consequence of the no outflow conditions
 for the velocity.
 
@@ -279,7 +284,9 @@ elements for the velocity and the pressure; that is, the combination
 of continuous piecewise quadratic vector fields for $V_h$ and
 continuous piecewise linears for $Q_h$~\citep{TaylorHood1973}.
 
-\subsection{Discontinuous Galerkin formulation of advection--diffusion equations}
+\enlargethispage{12pt}
+
+\vspace*{-6pt}\subsection{Discontinuous Galerkin formulation of advection--diffusion equations}
 
 The energy and transport equations~\eqref{vynnytska:eq:energy}
 and~\eqref{vynnytska:eq:transdif} have the same structure from the
@@ -561,8 +568,83 @@ In the subsections below, we discuss the definition of each of the
 variational forms and problems and an implementational structure for
 these.
 
+
+\subsection{Variational formulation of the Stokes equations}
+
+The mixed variational formulation for the Stokes equations is
+classical and listed in Figure~\ref{vynnytska:fig:stokes}. The
+definition of the bilinear and linear forms rely only on the mesh, a
+source vector field $f$ = $(Ra T_h - Rb \phi_h) e$ and the viscosity
+$\eta$, see~\eqref{vynnytska:eq:mixed}.  The viscosity itself is
+temperature- and depth-dependent, but crucially not velocity
+dependent.  Thus the bilinear and linear forms can be represented by
+standard linear formulations.  Since the preconditioner for this
+system relies on the same function spaces and basis functions, we
+define the form for the preconditioner together with the variational
+forms describing the partial differential equation.
+
+
+\subsection{Variational formulation of advection-diffusion equations}
+
+In the implementation of the variational forms for the
+advection-diffusion problems, we emphasize the following:
+first, the variational forms defining the predictor step for
+the temperature and the composition are the same (modulo the
+diffusivity constant and possibly the penalty constant).  Second, the
+predictor and the corrector steps for the temperature involve the same
+mathematical building blocks. Third, discontinuous Galerkin methods
+often involve quite a number of terms and the combined forms may
+easily become intractable. In view of these aspects, a minimal (as in
+highly reused) code close to mathematical syntax seemed preferable.
+
+To this end, the implementation mimics the structure defined
+by~\eqref{vynnytska:eq:dgadv},~\eqref{vynnytska:eq:dgdiff}, and
+\eqref{vynnytska:eq:thetascheme}. The pure advection form $a_A$ and
+the pure diffusion form $a_D$ are defined through separate Python
+functions. The code for these is listed in
+Figures~\ref{vynnytska:fig:advection}
+and~\ref{vynnytska:fig:diffusion} and explained in the captions of
+those figures. The implementation of the weak forms of the predictor
+equation for the composition, and the predictor and corrector
+equations for the temperature are then built using these basic functions. The
+code for the corrector equation is included and discussed
+in~Figure~\ref{vynnytska:fig:temperaturecorrection}. The code for the
+predictor equations is similar but simpler and not discussed
+here.
+
+
+%%------------------------------------------------------------------------------
+
+\section{Results}
+\label{vynnytska:sec:results}
+
+In this section we present the results of the thermochemical
+convection simulation, calculated on a mesh constructed by dividing
+the domain into $160 \times 80$ squares. Each square is split into two
+triangles by the right diagonal. The $C_{\mathrm{CFL}}$ time step
+parameter in~\eqref{vynnytska:eq:timestep} is $0.5$.
+
+The equations presented in Section~\ref{vynnytska:sec:maths} are
+dimensionalised using the physical parameters in
+Table~\ref{vynnytska:table:variables}. Scaling parameters for time
+$t_s$ and velocity $u_s$ are obtained as follows:
+\begin{align}
+ \label{vynnytska:eq:velsc}
+ t_s = \frac{h^2}{k_{th}}, \quad u_s = \frac{h}{t_s}.
+\end{align}
+
+Convection in the model domain is determined by the
+kinematic energy of the fluid, given by:
+\begin{align}
+  \label{vynnytska:eq:KE}
+  E_{K} = \frac{1}{2}\int_{\Omega}\rho \Vert \bm{u} \Vert^{2}dx.
+\end{align}
+{Since the variation in density is small, $\rho$ can be taken out of
+the integral, and by defining the\hfilneg}
+
 \begin{figure}
-    \begin{python}
+\bwfig
+{\small    \begin{python}
 # Functions at previous time step (and initial conditions)
 (phi_, T_, u_, P) = compute_initial_conditions()
 
@@ -629,9 +711,9 @@ while (t <= finish):
     T_.assign(T)
     u_.assign(u)
     t += dt
-    \end{python}
-    \caption{Abridged code for the main predictor-corrector algorithm,
-      see Algorithm~\ref{vynnytska:alg:algorithm}. The initialization
+    \end{python}}
+    \caption{\fontsize{8.5}{10.5}\selectfont Abridged code for the main predictor-corrector algorithm,
+      see \hbox{Algorithm} \ref{vynnytska:alg:algorithm}. The~initi\-alization
       of the mesh \emp{mesh}, the viscous and chemical parameters and
       the boundary conditions are omitted. The solution fields are
       consistently named \emp{T}, \emp{u}, and \emp{phi} for
@@ -681,20 +763,8 @@ while (t <= finish):
   \label{vynnytska:fig:mainalgorithm}
 \end{figure}
 
-\subsection{Variational formulation of the Stokes equations}
-
-The mixed variational formulation for the Stokes equations is
-classical and listed in Figure~\ref{vynnytska:fig:stokes}. The
-definition of the bilinear and linear forms rely only on the mesh, a
-source vector field $f$ = $(Ra T_h - Rb \phi_h) e$ and the viscosity
-$\eta$, see~\eqref{vynnytska:eq:mixed}.  The viscosity itself is
-temperature- and depth-dependent, but crucially not velocity
-dependent.  Thus the bilinear and linear forms can be represented by
-standard linear formulations.  Since the preconditioner for this
-system relies on the same function spaces and basis functions, we
-define the form for the preconditioner together with the variational
-forms describing the partial differential equation.
 \begin{figure}
+\bwfig
   \begin{python}
 def stokes(mesh, eta, f):
 
@@ -733,34 +803,8 @@ def stokes(mesh, eta, f):
   \label{vynnytska:fig:stokes}
 \end{figure}
 
-\subsection{Variational formulation of advection-diffusion equations}
-
-In the implementation of the variational forms for the
-advection-diffusion problems, we emphasize the following:
-first, the variational forms defining the predictor step for
-the temperature and the composition are the same (modulo the
-diffusivity constant and possibly the penalty constant).  Second, the
-predictor and the corrector steps for the temperature involve the same
-mathematical building blocks. Third, discontinuous Galerkin methods
-often involve quite a number of terms and the combined forms may
-easily become intractable. In view of these aspects, a minimal (as in
-highly reused) code close to mathematical syntax seemed preferable.
-
-To this end, the implementation mimics the structure defined
-by~\eqref{vynnytska:eq:dgadv},~\eqref{vynnytska:eq:dgdiff}, and
-\eqref{vynnytska:eq:thetascheme}. The pure advection form $a_A$ and
-the pure diffusion form $a_D$ are defined through separate Python
-functions. The code for these is listed in
-Figures~\ref{vynnytska:fig:advection}
-and~\ref{vynnytska:fig:diffusion} and explained in the captions of
-those figures. The implementation of the weak forms of the predictor
-equation for the composition, and the predictor and corrector
-equations for the temperature are then built using these basic functions. The
-code for the corrector equation is included and discussed
-in~Figure~\ref{vynnytska:fig:temperaturecorrection}. The code for the
-predictor equations is similar but simpler and not discussed
-here.
 \begin{figure}
+\bwfig
     \begin{python}
 def advection(phi, psi, u, n, theta=1.0):
 
@@ -789,6 +833,7 @@ def advection(phi, psi, u, n, theta=1.0):
 \end{figure}
 %
 \begin{figure}
+\bwfig
     \begin{python}
 def diffusion(phi, psi, k_c, alpha, n, h, theta=1.0):
 
@@ -817,6 +862,7 @@ def diffusion(phi, psi, k_c, alpha, n, h, theta=1.0):
 \end{figure}
 
 \begin{figure}
+\bwfig
     \begin{python}
 def energy_correction(mesh, dt, u, u_, T_):
 
@@ -862,7 +908,7 @@ def energy_correction(mesh, dt, u, u_, T_):
       used in the advection and diffusion forms.
 %
       We use \emp{lambda} functions to reduce the number of input
-      arguments to the advection and diffusion functions. This is in
+      arguments to the advection and diffusion \hbox{functions}. This is in
       part merely syntactical, but does also increase readability and
       facilitates debugging. The input to the functions \emp{a\_A}
       and \emp{a\_D} thus directly corresponds to the arguments of
@@ -875,36 +921,9 @@ def energy_correction(mesh, dt, u, u_, T_):
       right-hand side forms are extracted using the UFL
       functions \emp{lhs} and \emp{rhs}.}
   \label{vynnytska:fig:temperaturecorrection}
-\end{figure}
+\end{figure}\clearpage
 
-%%------------------------------------------------------------------------------
-
-\section{Results}
-\label{vynnytska:sec:results}
-
-In this section we present the results of the thermochemical
-convection simulation, calculated on a mesh constructed by dividing
-the domain into $160 \times 80$ squares. Each square is split into two
-triangles by the right diagonal. The $C_{\mathrm{CFL}}$ time step
-parameter in~\eqref{vynnytska:eq:timestep} is $0.5$.
-
-The equations presented in Section~\ref{vynnytska:sec:maths} are
-dimensionalised using the physical parameters in
-Table~\ref{vynnytska:table:variables}. Scaling parameters for time
-$t_s$ and velocity $u_s$ are obtained as follows:
-\begin{align}
- \label{vynnytska:eq:velsc}
- t_s = \frac{h^2}{k_{th}}, \quad u_s = \frac{h}{t_s}.
-\end{align}
-
-Convection in the model domain is determined by the
-kinematic energy of the fluid, given by:
-\begin{align}
-  \label{vynnytska:eq:KE}
-  E_{K} = \frac{1}{2}\int_{\Omega}\rho \Vert \bm{u} \Vert^{2}dx.
-\end{align}
-Since the variation in density is small, $\rho$ can be taken out of
-the integral, and by defining the root-mean square velocity, $u_{\mathrm{rms}}$
+\noindent root-mean square velocity, $u_{\mathrm{rms}}$
 by:
 \begin{align}
   \label{vynnytska:eq:u_rms}
@@ -951,6 +970,7 @@ for details.
 \end{table}
 
 \begin{figure}
+\bwfig
   \centering
   \includegraphics[width=\largefig]{chapters/vynnytska/png/u_rms.png}
   \caption{Dimensionless root mean square velocity over
@@ -963,7 +983,7 @@ for details.
 
 \begin{figure}
   \centering
-  \begin{tabular}{cr}
+    \begin{tabular}{cr}
     Temperature & Viscosity \\
     \includegraphics[width=\twofigs]{chapters/vynnytska/png/tmB.png} &
     \includegraphics[width=\twofigs]{chapters/vynnytska/png/visB.png} \\& $B$ \\
@@ -1007,7 +1027,7 @@ for details.
 %
 \begin{figure}
   \centering
-  \begin{tabular}{cr}
+\begin{tabular}{cr}
     Temperature & Viscosity \\
     \includegraphics[width=\twofigs]{chapters/vynnytska/png/tmH.png} &
     \includegraphics[width=\twofigs]{chapters/vynnytska/png/visH.png} \\ & $H$ \\
@@ -1078,6 +1098,6 @@ and marker chain approaches are often used to overcome this
 problem~\citep{IsmailZadehTackley2010}. However, the approach
 presented here allows us to represent compositional heterogeneities
 because it employs discontinuous Galerkin methods, while a filtering
-scheme minimizes the numerical smoothing error.
+scheme minimizes the numerical smoothing error.\clearpage
 
 %%------------------------------------------------------------------------------
