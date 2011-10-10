@@ -269,3 +269,6 @@
   $\CiarletSpace'$; that is, the space of bounded linear functionals
   on $\CiarletSpace$.
 \end{itemize}}
+
+% Macros used by Springer added here so we can get the book to compile
+\newcommand{\bwfig}{}

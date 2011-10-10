@@ -599,6 +599,7 @@ normally benefit from using highly professional tools such as ParaView
 and VisIt.
 
 \begin{figure}
+%\bwfig
   \centering
   \includegraphics[width=\largefig]{chapters/langtangen/pdf/ex1_u.pdf}
   \caption{Plot of the solution in the first \fenics{} example.
@@ -609,6 +610,8 @@ and VisIt.
 \end{figure}
 
 \begin{figure}
+\vspace*{12pt}
+\bwfig
   \centering
   \includegraphics[width=\smallfig]{chapters/langtangen/png/ex1_mesh.png}
   \caption{Plot of the mesh in the first \fenics{} example.}
@@ -1497,7 +1500,7 @@ $a(u,v)=L(v)$ is straightforward with
 \end{align}
 
 How does the Neumann condition impact the implementation?  The code
-in the file \emp{Poisson2D\_D2.py} remains almost the same.  Only two
+in the file \emp{Poisson2D\_D2\break .py} remains almost the same.  Only two
 adjustments are necessary:
 \begin{enumerate}
   \item The function describing the boundary where Dirichlet conditions
@@ -1832,7 +1835,7 @@ p = Expression("x[0] + x[1]")
 f = Expression("-8*x[0] - 10*x[1]")
 \end{python}
 No additional modifications are necessary. The complete code can be
-found in in the file \emp{Poisson2D\_Dvc.py}. You can run it and confirm
+found in in the file\break \emp{Poisson2D\_Dvc.py}. You can run it and confirm
 that it recovers the exact $u$ at the nodes.
 
 The flux $-p\nabla u$ may be of particular interest in
@@ -2732,7 +2735,7 @@ the perturbation $\delta u$ are neglected.
 
 The implementation is identical to the one in
 Section~\ref{langtangen:nonlinear:Newton:algebraic} and is found in
-the file \emp{nlPoisson\_pdeNewton.py} (for the fun of it we use
+the file\break \emp{nlPoisson\_pdeNewton.py} (for the fun of it we use
 a \emp{VariationalProblem} object instead of assembling a matrix and
 vector and calling \emp{solve}). The reader is encouraged to go
 through this code to be convinced that the present method actually
@@ -2822,7 +2825,8 @@ du = TrialFunction(V)
 J = inner(q(u)*grad(du), grad(v))*dx + \
     inner(Dq(u)*du*grad(u), grad(v))*dx
 \end{python}
-where \emp{u} is a \emp{Function} representing the most recent solution.
+\vspace*{12pt}
+\noindent where \emp{u} is a \emp{Function} representing the most recent solution.
 
 The UFL language that we use to specify weak forms supports differentiation
 of forms. This means that when \emp{F} is given as above, we can simply
@@ -2830,17 +2834,18 @@ compute the Gateaux derivative by\index{derivative}
 \begin{python}
 J = derivative(F, u, du)
 \end{python}
-The differentiation is done symbolically so no numerical approximation
+
+\vspace*{12pt}\noindent The differentiation is done symbolically so no numerical approximation
 formulas are involved. The \emp{derivative} function is obviously
 very convenient in problems where differentiating \emp{F} by hand
 implies lengthy calculations.
 
 The solution of the nonlinear problem is now a question of two statements:
-\index{nonlinear variational problems}
+\index{nonlinear variational problems}\vspace*{3pt}
 \begin{python}
 problem = VariationalProblem(J, F, bc)
 u = problem.solve(u)
-\end{python}
+\end{python}\vspace*{9pt}
 The \emp{u} we feed to \emp{problem.solve} is filled with the solution
 and returned, implying that the \emp{u} on the left-hand side actually
 refers to the same \emp{u} as provided on the right-hand side\footnote{Python
@@ -2855,6 +2860,10 @@ The file \emp{nlPoisson\_vp1.py} contains the complete code, where
 a counterpart where \emp{J} is computed by \emp{derivative(F, u, du)}.
 The latter file represents clearly the most automated way of solving
 the present nonlinear problem in \fenics.
+
+
+\enlargethispage{-12pt}
+\vspace*{12pt}
 
 \section{Time-dependent problems}
 \label{langtangen:timedep}
@@ -3589,7 +3598,7 @@ Conjugate Gradient method is applied.
 Having chosen an iterative solver, we can invoke the submenu
 \emp{"solver"/"krylov\_solver"} in the \emp{parameters} object for setting
 various parameters for the iterative solver (GMRES or Conjugate Gradients,
-depending on whether the matrix is symmetric or not):
+depending on whether the matrix is symmetric or not):\vspace*{-6pt}
 \begin{python}
 itsolver = problem.parameters["solver"]["krylov_solver"] # short form
 itsolver["absolute_tolerance"] = 1E-10
@@ -3600,9 +3609,9 @@ itsolver["monitor_convergence"] = True
 itsolver["report"] = True
 \end{python}
 Here, \emp{"maximum\_iterations"}  governs the
-maximum allowable number of iterations, the
+maximum allowable number of iterations, the\break
 \emp{"gmres\_restart"} parameter tells how many
-iterations GMRES performs before it restarts,
+iterations GMRES performs before it restarts,\break
 \emp{"monitor\_convergence"} prints detailed
 information about the development of the residual of a solver,
 \emp{"report"} governs whether a one-line
@@ -3610,6 +3619,8 @@ report about the solution method and the number of iterations is
 written on the screen or not. The absolute and relative tolerances enter
 (usually residual-based) stopping criteria, which are dependent on the
 implementation of the underlying iterative solver in the actual backend.
+
+\enlargethispage{12pt}
 
 When direct solver is chosen, there is similarly a submenu
 \emp{"lu\_solver"} to set parameters, but here only the \emp{"report"}
@@ -3890,6 +3901,7 @@ M$ array, $M$ being the number of vertices in the mesh. However,
 we need to take the transpose. The resulting mesh is displayed in
 Figure~\ref{langtangen:mesh:transform:cyl:fig1}.
 \begin{figure}
+\bwfig
  \centering
  \includegraphics[width=\largefig]{chapters/langtangen/pdf/hollow_cylinder.pdf}
   \caption{A hollow cylinder generated by mapping a rectangular mesh,
@@ -4085,7 +4097,7 @@ subdomain1.mark(subdomains, 1)
 \end{python}
 
 Calling \emp{subdomains.values()} returns a \emp{numpy} array of the
-subdomain values. That is, \emp{subdomain.values()[i]} is the subdomain
+subdomain values. That is,\break \emp{subdomain.values()[i]} is the subdomain
 value of cell number \emp{i}. This array is used to look up the subdomain
 or material number of a specific element.
 
@@ -4399,9 +4411,9 @@ for implementing such complicated PDE models.
 
 Below we explain some key terms used in this tutorial.
 %
-\begin{trivlist}
+\begin{trivlist}\leftskip4pt
   \item[\fenics:] name of a software suite composed of many individual
-  software components (see \emp{fenicsproject.org}). Some components are
+  software components (see\break \emp{fenicsproject.org}). Some components are
   DOLFIN and Viper, explicitly referred to in this tutorial. Others are
   FFC and FIAT, heavily used by the programs appearing in this tutorial,
   but never explicitly used from the programs.
@@ -4443,7 +4455,7 @@ Below we explain some key terms used in this tutorial.
   \emp{method} is invoked with \emp{self=y}.
 
   \item[Class attribute (Python):] a variable in a class, reached by
-  dot notation: \emp{instance\_name.attribute\_name}.
+  dot notation: \emp{instance\_name.attribute\_\break name}.
 \end{trivlist}
 
 \subsection{Overview of objects and functions}
@@ -4459,9 +4471,9 @@ to look up documentation of a Python class \emp{X} from the DOLFIN
 library (\emp{X} can be \emp{UnitSquare}, \emp{Function}, \emp{Viper},
 etc.). Below is an overview of the most important classes and functions
 in \fenics{} programs, in the order they typically appear within
-programs.
+programs.\enlargethispage{12pt}
 %
-\begin{trivlist}
+\begin{trivlist}\leftskip3.5pt
   \item[\emp{UnitSquare(nx, ny)}:] generate mesh over the unit square
   $[0,1]\times [0,1]$ using \emp{nx} divisions in $x$ direction and
   \emp{ny} divisions in $y$ direction. Each of the \emp{nx*ny} squares
@@ -4482,7 +4494,7 @@ programs.
   C++ syntax.
 
   \item[\emp{Function(V)}:] a scalar- or vector-valued finite element
-  field in the function space \emp{V}. If \emp{V} is a \emp{FunctionSpace}
+  field in the function space \emp{V}. If \emp{V} is a \emp{Function\break Space}
   object, \emp{Function(V)} becomes a scalar field, and with \emp{V}
   as a \emp{VectorFunctionSpace} object, \emp{Function(V)} becomes a
   vector field.
