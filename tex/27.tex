@@ -1,3 +1,4 @@
+\begingroup
 \def\bone{{1}}
 \def\Bepsilon{\mbox{$\epsilon$}}
 \def\Bvarphi{\mbox{$\varphi$}}
@@ -239,6 +240,7 @@ Principal stretches and directions &  $\bC = \sum_{A=1}^{3}
 \end{table}
 
 \begin{figure}
+\bwfig
 \begin{python}
 # Deformation gradient
 def DeformationGradient(u):
@@ -312,7 +314,7 @@ As already mentioned, the strain energy function can be posed in
 equivalent forms in terms of different strain measures. (Again, the
 interested reader is directed to classical texts to motivate this.) In
 order to then arrive at the second Piola--Kirchhoff stress tensor, we
-turn to the chain rule of differentiation. For example,
+turn to the chain rule of differentiation. For example,\enlargethispage{12pt}
 %%
 \begin{equation}
   \begin{split}
@@ -344,6 +346,7 @@ material_model_base.py}. The implementation relies heavily on the UFL
 \emp{diff} operator.
 
 \begin{figure}
+\bwfig
 \begin{python}
 def SecondPiolaKirchhoffStress(self, u):
 
@@ -401,6 +404,7 @@ salient point to note here is that it is straightforward to introduce
 other additional models, and this is a significant feature of \twist.
 
 \begin{figure}
+\bwfig
 \begin{python}
 class StVenantKirchhoff(MaterialModel)
 
@@ -419,6 +423,7 @@ class StVenantKirchhoff(MaterialModel)
 \end{figure}
 
 \begin{figure}
+\bwfig
 \begin{python}
 class MooneyRivlin(MaterialModel)
 
@@ -496,16 +501,17 @@ a finite approximation of the test space $\hat{\mathrm{V}}_{h} \subset
   complexity associated with calculations on a moving computational
   domain when implementing this formulation.}
 
+\vspace*{-3pt}
 \subsection{Implementation of the static form}
 
 We consider first the static weak form (dropping the time derivative
-term) of the balance of linear momentum which reads
+term) of the balance of linear momentum which reads\vspace*{-2pt}
 %%
 \begin{equation}
   \int_{\Omega} \bP:\mathrm{Grad}(\bv) \dx - \int_{\Omega} \bB
   \cdot \bv \dx -  \int_{\partial\Omega_{\mathrm{N}}} \bT \cdot
   \bv \ds = 0.
-\label{eq:narayanan:staticweakform}
+\label{eq:narayanan:staticweakform}\vspace*{-2pt}
 \end{equation}
 %%
 Since \twist{} provides the necessary functionality to easily compute
@@ -534,7 +540,7 @@ automatic differentiation capabilities of UFL\footnote{An earlier
     \texttt{a = derivative(L, w, u)}
   \end{itemize}} make this nonlinear form straightforward to
 implement, as evidenced by the code listing in Figure~\ref{code:%
-narayanan:staticmomentumsolver}.
+narayanan:staticmomentumsolver}.\enlargethispage{6pt}
 
 This listing provides the relevant section of the static balance of
 linear momentum solver class, \emp{StaticMomentumBalanceSolver}. The
@@ -545,7 +551,8 @@ the user can specify problem details are covered in the following
 section containing examples of \twist{} usage.} and solves the
 nonlinear momentum balance equation using a Newton solver.
 
-\begin{figure}
+\begin{figure}[!t]
+\bwfig
 \begin{python}
 # Get the problem mesh
 mesh = problem.mesh()
@@ -583,6 +590,7 @@ linear momentum.}
 \label{code:narayanan:staticmomentumsolver}
 \end{figure}
 
+\vspace*{-3pt}
 \subsection{Time-stepping algorithms}
 
 \twist{} implements two time integration algorithms to solve the weak
@@ -593,8 +601,9 @@ to derive this method, \eqref{eq:narayanan:weakform}, which is
 a second order differential equation in time, is rewritten as a system
 of first order equations. We do this by introducing an additional
 velocity variable, $\bw = \frac{\partial \bu}{\partial t}$. Thus, the
-weak form now reads: \\*
-Find ($\bu, \bw) \in \mathrm{V}$, such that $\foralls (\bv,
+weak form now reads: \\*\pagebreak
+
+\noindent Find ($\bu, \bw) \in \mathrm{V}$, such that $\foralls (\bv,
 \br) \in \hat{\mathrm{V}}$:
 %%
 \begin{equation}
@@ -647,6 +656,7 @@ code closely mirrors the scheme defined in
 that is solved for using a Newton scheme.
 
 \begin{figure}
+\bwfig
 \begin{python}
 class CG1MomentumBalanceSolver(CBCSolver):
 
@@ -821,6 +831,7 @@ the Dirichlet condition defined in
 Figure~\ref{code:narayanan:statictwist}.
 
 \begin{figure}
+\bwfig
   \centering
   \includegraphics[width=\largefig]{chapters/narayanan/images/png/twistedcube.png}
   \caption{A hyperelastic cube twisted by 60 degrees.}
@@ -847,6 +858,7 @@ Dirichlet boundary conditions are posed in two parts: the conditions
 themselves, and the corresponding boundaries along which they act.
 
 \begin{figure}
+\bwfig
 \begin{python}
 class Twist(StaticHyperelasticity):
 
@@ -891,6 +903,7 @@ displacement field shown in
 Figure~\ref{fig:narayanan:twistedcube}.
 
 \begin{figure}
+\bwfig
 \begin{python}
 twist = Twist()
 u = twist.solve()
@@ -936,7 +949,7 @@ and tracks the motion of the cube over 2~s.
 
 The problem is specified in the user-created class \emp{Release},
 which derives from \emp{Hyperelasticity}. This example is similar to
-the previous one, except that since it is a dynamic calculation, it also
+the previous one, except\AQ{Figure~27.12 figure \& citation not in ms} that since it is a dynamic calculation, it also
 provides initial conditions, a reference density and information about
 time-stepping. Again, the methods listed in
 Figure~\ref{code:narayanan:dynamicrelease} are straightforward, and
@@ -947,6 +960,7 @@ files, and it allows for the specification of boundaries purely as
 conditional strings.
 
 \begin{figure}
+\bwfig
 \begin{python}
 class Release(Hyperelasticity):
 
@@ -1005,6 +1019,7 @@ and \emp{u} are the discrete velocity and displacement fields
 respectively.
 
 \begin{figure}
+\bwfig
   \ffigbox{\caption{Relaxation and subsequent re-twisting of a
       released cube over the first 0.5~s of the
       calculation.}\label{fig:narayanan:releasedcube}}
@@ -1063,6 +1078,7 @@ conditions. The specification listing is not very long because
 information.
 
 \begin{figure}
+\bwfig
 \begin{python}
 class FishyFlow(Hyperelasticity):
 
@@ -1103,6 +1119,7 @@ and manually step through time using the \emp{step} method. This is
 shown in Figure~\ref{code:narayanan:manualstep}.
 
 \begin{figure}
+\bwfig
 \begin{python}
 problem = FishyFlow()
 
@@ -1123,7 +1140,7 @@ while t <= T:
 
 The advantage of solving the problem in this manner is that, now, one
 has more control over calculations in \twist{}. For example, rather
-than just fixing a traction force on the surface of the dolphin to
+than just fixing\AQ{27.17~figure \& citation  not in ms} a traction force on the surface of the dolphin to
 mimic the effect of flow field, one can instead solve at each time
 step an actual flow field and use it to correctly drive the solid
 mechanics. This functionality of \twist{} is used in a following
@@ -1143,6 +1160,7 @@ motion of the dolphin over the course of the computation. Notice that
 the fish deforms elastically as it tumbles toward the right.
 
 \begin{figure}
+\bwfig
   \ffigbox{\caption{The motion of a hyperelastic dolphin being forced to the
       right. Careful observation of the tail fin shows deformation of
       the dolphin in addition to its overall motion toward the right.}
@@ -1208,3 +1226,5 @@ these lines, some possible ideas for extending the framework include:
 %%
 Contributions toward these (or other useful) extensions are
 welcome.
+\processqueries
+\endgroup
