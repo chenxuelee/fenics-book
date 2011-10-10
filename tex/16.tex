@@ -51,6 +51,7 @@ code generation, and a second subset consisting of the mesh and
 coefficient data that is given as input to the assembler.
 
 \begin{figure}
+\bwfig
   \ffigbox{\caption{A flow diagram of finite element assembly in FEniCS.}
            \label{fig:alnes-2:ufc_flowdiagram}}
           {\includegraphics[width=\fullfig]{chapters/alnes-2/pdf/ufc_flowdiagram.pdf}}
@@ -130,6 +131,7 @@ over an interior facet~$S^0$ as an \emph{interior facet integral}
 \label{sec:alnes-2:ufc:syntax}
 
 \begin{figure}
+\bwfig
   \centering
   \includegraphics[width=\largefig]{chapters/alnes-2/pdf/ufc_classes.pdf}
   \caption{Schematic overview of some of the UFC classes. Arrows indicate dependencies.}
@@ -232,6 +234,7 @@ of the mesh entities in the cell. This step depends on the specific
 mesh being used.
 
 \begin{figure}
+\bwfig
 \begin{c++}
 class cell
 {
@@ -677,11 +680,464 @@ maps.
 
 \subsection{Reference cells}
 
-\input{chapters/alnes-2/referencecells_common.tex}
+%\input{chapters/alnes-2/referencecells_common.tex}
+
+\index{reference cells}
+
+The following five reference cells are covered by the UFC
+specification: the reference \emph{interval}, the reference
+\emph{triangle}, the reference \emph{quadrilateral}, the reference
+\emph{tetrahedron}, and the reference \emph{hexahedron}.  The UFC
+specification assumes that each cell in a finite element mesh is
+always isomorphic to one of the reference cells. The UFC reference
+cells are listed in the table below.
+
+\vspace{0.5cm}
+\begin{center}
+  \begin{tabular}{lccc}
+    \toprule
+    Reference cell & Dimension & \#Vertices & \#Facets \\
+    \hline
+    The reference interval      & 1 & 2 & 2 \\
+    The reference triangle      & 2 & 3 & 3 \\
+    The reference quadrilateral & 2 & 4 & 4 \\
+    The reference tetrahedron   & 3 & 4 & 4 \\
+    The reference hexahedron    & 3 & 8 & 6 \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+\paragraph{The reference interval.}
+\index{interval}
+
+The reference interval and the coordinates of its two vertices are
+shown in the figure and table below.
+
+\newcolumntype{T}{>{\centering\arraybackslash}m{6cm}}
+
+\begin{center}
+  \begin{tabular}{TT}
+    \fenicsfig{alnes-2}{interval}{\smallfig}
+    &
+    \begin{tabular}{cc}
+      \toprule
+      Vertex & Coordinates \\
+      \hline
+      $v_0$ & $x = 0$ \\
+      $v_1$ & $x = 1$ \\
+      \bottomrule
+    \end{tabular}
+  \end{tabular}
+\end{center}
+
+\paragraph{The reference triangle.}
+\index{triangle}
+
+The reference triangle and the coordinates of its three vertices are
+shown in figure and table below.
+
+\begin{center}
+\bwfig
+  \begin{tabular}{TT}
+    \fenicsfig{alnes-2}{triangle}{\smallfig}
+    &
+    \begin{tabular}{cc}
+      \toprule
+      Vertex & Coordinates \\
+      \hline
+      $v_0$ & $x = (0, 0)$ \\
+      $v_1$ & $x = (1, 0)$ \\
+      $v_2$ & $x = (0, 1)$ \\
+      \bottomrule
+    \end{tabular}
+  \end{tabular}
+\end{center}
+
+\paragraph{The reference quadrilateral.}
+\index{quadrilateral}
+
+The reference quadrilateral and the coordinates of its four vertices
+are shown in the figure and table below.
+
+\begin{center}
+\bwfig
+  \begin{tabular}{TT}
+    \fenicsfig{alnes-2}{quadrilateral}{\smallfig}
+    &
+    \begin{tabular}{cc}
+      \toprule
+      Vertex & Coordinates \\
+      \hline
+      $v_0$ & $x = (0, 0)$ \\
+      $v_1$ & $x = (1, 0)$ \\
+      $v_2$ & $x = (1, 1)$ \\
+      $v_3$ & $x = (0, 1)$ \\
+      \bottomrule
+    \end{tabular}
+  \end{tabular}
+\end{center}
+
+\paragraph{The reference tetrahedron.}
+\index{tetrahedron}
+
+The reference tetrahedron and the coordinates of its four vertices are
+shown in the figure and table below.
+
+\begin{center}
+\bwfig
+  \begin{tabular}{TT}
+    \fenicsfig{alnes-2}{tetrahedron}{\smallfig}
+    &
+    \begin{tabular}{cc}
+      \toprule
+      Vertex & Coordinates \\
+      \hline
+      $v_0$ & $x = (0, 0, 0)$ \\
+      $v_1$ & $x = (1, 0, 0)$ \\
+      $v_2$ & $x = (0, 1, 0)$ \\
+      $v_3$ & $x = (0, 0, 1)$ \\
+      \bottomrule
+    \end{tabular}
+  \end{tabular}
+\end{center}
+
+\paragraph{The reference hexahedron.}
+\index{hexahedron}
+
+The reference hexahedron and the coordinates of its eight vertices are
+shown in the figure and table below.
+
+\begin{center}
+\bwfig
+  \begin{tabular}{TT}
+    \fenicsfig{alnes-2}{hexahedron}{\smallfig}
+    &
+    \begin{tabular}{cc}
+      \toprule
+      Vertex & Coordinate \\
+      \hline
+      $v_0$ & $x = (0, 0, 0)$ \\
+      $v_1$ & $x = (1, 0, 0)$ \\
+      $v_2$ & $x = (1, 1, 0)$ \\
+      $v_3$ & $x = (0, 1, 0)$ \\
+      $v_4$ & $x = (0, 0, 1)$ \\
+      $v_5$ & $x = (1, 0, 1)$ \\
+      $v_6$ & $x = (1, 1, 1)$ \\
+      $v_7$ & $x = (0, 1, 1)$ \\
+      \bottomrule
+    \end{tabular}
+  \end{tabular}
+\end{center}
+
 
 \subsection{Numbering of mesh entities}
 
-\input{chapters/alnes-2/numbering_common.tex}
+%\input{chapters/alnes-2/numbering_common.tex}
+
+\index{numbering}
+
+The UFC specification dictates a certain numbering of the vertices,
+edges etc. of the cells of a finite element mesh. First, an \emph{ad
+hoc} numbering may be picked for the vertices of each cell. Then, the
+remaining entities are ordered based on a simple rule, as described in
+detail below.
+
+\paragraph{Basic concepts}
+\index{mesh entity}
+\index{topological dimension}
+
+The topological entities of a cell (or mesh) are referred to as
+\emph{mesh entities}. A mesh entity can be identified by a pair $(d,
+i)$, where $d$ is the topological dimension of the mesh entity and $i$
+is a unique index of the mesh entity. Mesh entities are numbered
+within each topological dimension from $0$ to $n_d-1$, where $n_d$ is
+the number of mesh entities of topological dimension $d$.
+
+For convenience, mesh entities of topological dimension~$0$ are
+referred to as \emph{vertices}, entities of dimension~$1$ as
+\emph{edges}, entities of dimension~$2$ as \emph{faces}, entities of
+\emph{codimension}~$1$ as \emph{facets}, and entities of codimension~$0$
+as \emph{cells}. These concepts are summarized in the table below.
+
+\vspace{0.5cm}
+\begin{center}
+  \begin{tabular}{lcc} \toprule Entity & Dimension &
+    Codimension \\ \hline Vertex & $0$ & -- \\ Edge & $1$ & -- \\ Face
+    & $2$ & -- \\ & & \\ Facet & -- & $1$ \\ Cell & -- &
+    $0$ \\ \bottomrule \end{tabular}
+\end{center}
+\vspace{0.5cm}
+
+Thus, the vertices of a tetrahedron are identified as $v_0 = (0, 0)$,
+$v_1 = (0, 1)$, $v_2 = (0, 2)$ and $v_3 = (0, 3)$, the edges are $e_0
+= (1, 0)$, $e_1 = (1, 1)$, $e_2 = (1, 2)$, $e_3 = (1, 3)$, $e_4 = (1,
+4)$ and $e_5 = (1, 5)$, the faces (facets) are $f_0 = (2, 0)$, $f_1 =
+(2, 1)$, $f_2 = (2, 2)$ and $f_3 = (2, 3)$, and the cell itself is
+$c_0 = (3, 0)$.
+
+\paragraph{Numbering of vertices.}
+\index{vertex numbering}
+
+For simplicial cells (intervals, triangles and tetrahedra) of a finite
+element mesh, the vertices are numbered locally based on the
+corresponding global vertex numbers. In particular, a tuple of
+increasing local vertex numbers corresponds to a tuple of increasing
+global vertex numbers. This is illustrated in
+Figure~\ref{fig:numbering_example_triangles} for a mesh consisting of
+two triangles.
+
+\begin{figure}
+\bwfig
+  \begin{center}
+    \fenicsfig{alnes-2}{numbering_example_triangles}{\largefig}
+    \caption{The vertices of a simplicial mesh are numbered locally
+      based on the corresponding global vertex numbers.}
+    \label{fig:numbering_example_triangles}
+  \end{center}
+\end{figure}
+
+For non-simplicial cells (quadrilaterals and hexahedra), the numbering
+is arbitrary, as long as each cell is topologically isomorphic to the corresponding
+reference cell by matching each vertex with the corresponding vertex
+in the reference cell. This is illustrated in
+Figure~\ref{fig:numbering_example_quadrilaterals} for a mesh
+consisting of two quadrilaterals.
+
+\begin{figure}
+\bwfig
+  \begin{center}
+    \fenicsfig{alnes-2}{numbering_example_quadrilaterals}{\largefig}
+    \caption{The local numbering of vertices of a non-simplicial mesh
+      is arbitrary, as long as each cell is topologically isomorphic
+      to the reference cell by matching each vertex to the
+      corresponding vertex of the reference cell.}
+    \label{fig:numbering_example_quadrilaterals}
+  \end{center}
+\end{figure}
+
+\paragraph{Numbering of other mesh entities.}
+
+When the vertices have been numbered, the remaining mesh entities are
+numbered within each topological dimension based on a
+\emph{lexicographical ordering} of the corresponding ordered tuples of
+\emph{non-incident vertices}.
+
+As an illustration, consider the numbering of edges (the mesh entities
+of topological dimension one) on the reference triangle in
+Figure~\ref{fig:orderingexample,triangle}. To number the edges of the
+reference triangle, we identify for each edge the corresponding
+non-incident vertices. For each edge, there is only one such vertex
+(the vertex opposite to the edge). We thus identify the three edges in
+the reference triangle with the tuples $(v_0)$, $(v_1)$, and $(v_2)$. The
+first of these is edge $e_0$ between vertices $v_1$ and $v_2$ opposite
+to vertex $v_0$, the second is edge $e_1$ between vertices $v_0$ and
+$v_2$ opposite to vertex $v_1$, and the third is edge $e_2$ between
+vertices $v_0$ and $v_1$ opposite to vertex $v_2$.
+
+Similarly, we identify the six edges of the reference tetrahedron with
+the corresponding non-incident tuples $(v_0, v_1)$, $(v_0, v_2)$,
+$(v_0, v_3)$, $(v_1, v_2)$, $(v_1, v_3)$ and $(v_2, v_3)$. The first
+of these is edge $e_0$ between vertices $v_2$ and $v_3$ opposite to
+vertices $v_0$ and $v_1$ as shown in
+Figure~\ref{fig:orderingexample,tetrahedron}.
+
+\begin{figure}
+  \begin{center}
+    \fenicsfig{alnes-2}{ordering_example_triangle}{\smallfig}
+    \caption{Mesh entities are ordered based on a lexicographical
+      ordering of the corresponding ordered tuples of non-incident
+      vertices. The first edge $e_0$ is non-incident to vertex $v_0$.}
+    \label{fig:orderingexample,triangle}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \fenicsfig{alnes-2}{ordering_example_tetrahedron}{\smallfig}
+    \caption{Mesh entities are ordered based on a lexicographical
+      ordering of the corresponding ordered tuples of non-incident
+      vertices. The first edge $e_0$ is non-incident to vertices $v_0$
+      and $v_1$.}
+    \label{fig:orderingexample,tetrahedron}
+  \end{center}
+\end{figure}
+
+\paragraph{Relative ordering.}
+
+The relative ordering of mesh entities with respect to other incident
+mesh entities follows by sorting the entities by their (global)
+indices. Thus, the pair of vertices incident to the first edge $e_0$
+of a triangular cell is $(v_1, v_2)$, not $(v_2, v_1)$. Similarly, the
+first face $f_0$ of a tetrahedral cell is incident to vertices $(v_1,
+v_2, v_3)$.
+
+For simplicial cells, the relative ordering in combination with the
+convention of numbering the vertices locally based on global vertex
+indices means that two incident cells will always agree on the
+orientation of incident subsimplices. Thus, two incident triangles
+will agree on the orientation of the common edge and two incident
+tetrahedra will agree on the orientation of the common edge(s) and the
+orientation of the common face (if any). This is illustrated in
+Figure~\ref{fig:orientation_example_triangles} for two incident
+triangles sharing a common edge. This leads to practical advantages in
+the assembly of higher-order, $\Hdiv$ and $\Hcurl$ elements.
+
+\begin{figure}
+\bwfig
+  \begin{center}
+    \fenicsfig{alnes-2}{orientation_example_triangles}{\largefig}
+    \caption{Two incident triangles will always agree on the
+      orientation of the common edge.}
+    \label{fig:orientation_example_triangles}
+  \end{center}
+\end{figure}
+
+\paragraph{Limitations.}
+
+The UFC specification is only concerned with the ordering of mesh
+entities with respect to entities of larger topological dimension. In
+other words, the UFC specification is only concerned with the ordering
+of incidence relations of the class $d - d'$ where $d > d'$. For
+example, the UFC specification is not concerned with the ordering of
+incidence relations of the class $0 - 1$, that is, the ordering of
+edges incident to vertices.
+
+\paragraph{Numbering of mesh entities on intervals.}
+\index{interval}
+
+The numbering of mesh entities on interval cells is summarized in the
+table below.
+
+\begin{center}
+  \begin{tabular}{ccc}
+    \toprule
+    Entity & Incident vertices & Non-incident vertices \\
+    \hline
+    $v_0 = (0, 0)$ & $(v_0)$ & $(v_1)$ \\
+    $v_1 = (0, 1)$ & $(v_1)$ & $(v_0)$ \\
+    $c_0 = (1, 0)$ & $(v_0, v_1)$ & $\emptyset$ \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+\paragraph{Numbering of mesh entities on triangular cells.}
+\index{triangle}
+
+The numbering of mesh entities on triangular cells is summarized in the
+table below.
+
+\begin{center}
+  \begin{tabular}{ccc}
+    \toprule
+    Entity & Incident vertices & Non-incident vertices \\
+    \hline
+    $v_0 = (0, 0)$ & $(v_0)$ & $(v_1, v_2)$ \\
+    $v_1 = (0, 1)$ & $(v_1)$ & $(v_0, v_2)$ \\
+    $v_2 = (0, 2)$ & $(v_2)$ & $(v_0, v_1)$ \\
+    $e_0 = (1, 0)$ & $(v_1, v_2)$ & $(v_0)$ \\
+    $e_1 = (1, 1)$ & $(v_0, v_2)$ & $(v_1)$ \\
+    $e_2 = (1, 2)$ & $(v_0, v_1)$ & $(v_2)$ \\
+    $c_0 = (2, 0)$ & $(v_0, v_1, v_2)$ & $\emptyset$ \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+\paragraph{Numbering of mesh entities on quadrilateral cells.}
+\index{quadrilateral}
+
+The numbering of mesh entities on quadrilateral cells is summarized in the
+table below.
+
+\begin{center}
+  \begin{tabular}{ccc}
+    \toprule
+    Entity & Incident vertices & Non-incident vertices \\
+    \hline
+    $v_0 = (0, 0)$ & $(v_0)$ & $(v_1, v_2, v_3)$ \\
+    $v_1 = (0, 1)$ & $(v_1)$ & $(v_0, v_2, v_3)$ \\
+    $v_2 = (0, 2)$ & $(v_2)$ & $(v_0, v_1, v_3)$ \\
+    $v_3 = (0, 3)$ & $(v_3)$ & $(v_0, v_1, v_2)$ \\
+    $e_0 = (1, 0)$ & $(v_2, v_3)$ & $(v_0, v_1)$ \\
+    $e_1 = (1, 1)$ & $(v_1, v_2)$ & $(v_0, v_3)$ \\
+    $e_2 = (1, 2)$ & $(v_0, v_3)$ & $(v_1, v_2)$ \\
+    $e_3 = (1, 3)$ & $(v_0, v_1)$ & $(v_2, v_3)$ \\
+    $c_0 = (2, 0)$ & $(v_0, v_1, v_2, v_3)$ & $\emptyset$ \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+\paragraph{Numbering of mesh entities on tetrahedral cells.}
+\index{tetrahedron}
+
+The numbering of mesh entities on tetrahedral cells is summarized in the
+table below.
+
+\begin{center}
+  \begin{tabular}{ccc}
+    \toprule
+    Entity & Incident vertices & Non-incident vertices \\
+    \hline
+    $v_0 = (0, 0)$ & $(v_0)$ & $(v_1, v_2, v_3)$ \\
+    $v_1 = (0, 1)$ & $(v_1)$ & $(v_0, v_2, v_3)$ \\
+    $v_2 = (0, 2)$ & $(v_2)$ & $(v_0, v_1, v_3)$ \\
+    $v_3 = (0, 3)$ & $(v_3)$ & $(v_0, v_1, v_2)$ \\
+    $e_0 = (1, 0)$ & $(v_2, v_3)$ & $(v_0, v_1)$ \\
+    $e_1 = (1, 1)$ & $(v_1, v_3)$ & $(v_0, v_2)$ \\
+    $e_2 = (1, 2)$ & $(v_1, v_2)$ & $(v_0, v_3)$ \\
+    $e_3 = (1, 3)$ & $(v_0, v_3)$ & $(v_1, v_2)$ \\
+    $e_4 = (1, 4)$ & $(v_0, v_2)$ & $(v_1, v_3)$ \\
+    $e_5 = (1, 5)$ & $(v_0, v_1)$ & $(v_2, v_3)$ \\
+    $f_0 = (2, 0)$ & $(v_1, v_2, v_3)$ & $(v_0)$ \\
+    $f_1 = (2, 1)$ & $(v_0, v_2, v_3)$ & $(v_1)$ \\
+    $f_2 = (2, 2)$ & $(v_0, v_1, v_3)$ & $(v_2)$ \\
+    $f_3 = (2, 3)$ & $(v_0, v_1, v_2)$ & $(v_3)$ \\
+    $c_0 = (3, 0)$ & $(v_0, v_1, v_2, v_3)$ & $\emptyset$ \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+\paragraph{Numbering of mesh entities on hexahedral cells.}
+\index{hexahedron}
+
+The numbering of mesh entities on hexahedral cells is summarized in
+the table below.
+
+\begin{center}
+  \begin{tabular}{ccc}
+    \toprule
+    Entity & Incident vertices & Non-incident vertices \\
+    \hline
+    $v_0 = (0, 0)$ & $(v_0)$ & $(v_1, v_2, v_3, v_4, v_5, v_6, v_7)$ \\
+    $v_1 = (0, 1)$ & $(v_1)$ & $(v_0, v_2, v_3, v_4, v_5, v_6, v_7)$ \\
+    $v_2 = (0, 2)$ & $(v_2)$ & $(v_0, v_1, v_3, v_4, v_5, v_6, v_7)$ \\
+    $v_3 = (0, 3)$ & $(v_3)$ & $(v_0, v_1, v_2, v_4, v_5, v_6, v_7)$ \\
+    $v_4 = (0, 4)$ & $(v_4)$ & $(v_0, v_1, v_2, v_3, v_5, v_6, v_7)$ \\
+    $v_5 = (0, 5)$ & $(v_5)$ & $(v_0, v_1, v_2, v_3, v_4, v_6, v_7)$ \\
+    $v_6 = (0, 6)$ & $(v_6)$ & $(v_0, v_1, v_2, v_3, v_4, v_5, v_7)$ \\
+    $v_7 = (0, 7)$ & $(v_7)$ & $(v_0, v_1, v_2, v_3, v_4, v_5, v_6)$ \\
+    $e_0 = (1, 0)$ & $(v_6, v_7)$ & $(v_0, v_1, v_2, v_3, v_4, v_5)$ \\
+    $e_1 = (1, 1)$ & $(v_5, v_6)$ & $(v_0, v_1, v_2, v_3, v_4, v_7)$ \\
+    $e_2 = (1, 2)$ & $(v_4, v_7)$ & $(v_0, v_1, v_2, v_3, v_5, v_6)$ \\
+    $e_3 = (1, 3)$ & $(v_4, v_5)$ & $(v_0, v_1, v_2, v_3, v_6, v_7)$ \\
+    $e_4 = (1, 4)$ & $(v_3, v_7)$ & $(v_0, v_1, v_2, v_4, v_5, v_6)$ \\
+    $e_5 = (1, 5)$ & $(v_2, v_6)$ & $(v_0, v_1, v_3, v_4, v_5, v_7)$ \\
+    $e_6 = (1, 6)$ & $(v_2, v_3)$ & $(v_0, v_1, v_4, v_5, v_6, v_7)$ \\
+    $e_7 = (1, 7)$ & $(v_1, v_5)$ & $(v_0, v_2, v_3, v_4, v_6, v_7)$ \\
+    $e_8 = (1, 8)$ & $(v_1, v_2)$ & $(v_0, v_3, v_4, v_5, v_6, v_7)$ \\
+    $e_9 = (1, 9)$ & $(v_0, v_4)$ & $(v_1, v_2, v_3, v_5, v_6, v_7)$ \\
+    $e_{10} = (1, 10)$ & $(v_0, v_3)$ & $(v_1, v_2, v_4, v_5, v_6, v_7)$ \\
+    $e_{11} = (1, 11)$ & $(v_0, v_1)$ & $(v_2, v_3, v_4, v_5, v_6, v_7)$ \\
+    $f_0 = (2, 0)$ & $(v_4, v_5, v_6, v_7)$ & $(v_0, v_1, v_2, v_3)$ \\
+    $f_1 = (2, 1)$ & $(v_2, v_3, v_6, v_7)$ & $(v_0, v_1, v_4, v_5)$ \\
+    $f_2 = (2, 2)$ & $(v_1, v_2, v_5, v_6)$ & $(v_0, v_3, v_4, v_7)$ \\
+    $f_3 = (2, 3)$ & $(v_0, v_3, v_4, v_7)$ & $(v_1, v_2, v_5, v_6)$ \\
+    $f_4 = (2, 4)$ & $(v_0, v_1, v_4, v_5)$ & $(v_2, v_3, v_6, v_7)$ \\
+    $f_5 = (2, 5)$ & $(v_0, v_1, v_2, v_3)$ & $(v_4, v_5, v_6, v_7)$ \\
+    $c_0 = (3, 0)$ & $(v_0, v_1, v_2, v_3, v_4, v_5, v_6, v_7)$ & $\emptyset$ \\
+    \toprule
+  \end{tabular}
+\end{center}
+
 
 %------------------------------------------------------------------------------
 \section{Discussion}
