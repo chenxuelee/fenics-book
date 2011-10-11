@@ -31,6 +31,9 @@ code_environments = [("\\begin{c++}",        "\\end{c++}"),
                      ("%",                   "\n"),
                      ("\\langtangenidx{",    "}")]
 
+# Special case...
+code_environments.append(("\citet[Proposition~6.1, Section~VI.6]{", "}"))
+
 def strip_code_environments(text):
     "String code environments from text"
     for begin, end in code_environments:
