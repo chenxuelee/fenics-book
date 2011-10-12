@@ -349,7 +349,7 @@ Figure~\ref{fig:uml} and consist of format strings for the skeleton of
 each subclass. The following code illustrates how to generate a
 subclass of the UFC \emp{form} class.
 
-\begin{c++}
+\begin{python}
 from ufc_utils import form_combined
 
 implementation = {}
@@ -365,7 +365,7 @@ implementation["num_coefficients"] = "return 0;"
 implementation["num_cell_domains"] = "return 3;"
 implementation["num_interior_facet_domains"] = "return 1;"
 implementation["num_exterior_facet_domains"] = "return 0;"
-implementation["create_finite_element"] = "\
+implementation["create_finite_element"] = """
 switch (i)
 {
 case 0:
@@ -374,8 +374,8 @@ case 1:
   return new my_finite_element_1();
 default:
   return 0;
-}"
-implementation["create_dofmap"] = "\
+}"""
+implementation["create_dofmap"] = """
 switch (i)
 {
 case 0:
@@ -384,8 +384,8 @@ case 1:
   return new my_dofmap_1();
 default:
   return 0;
-}"
-implementation["create_cell_integral"] = "\
+}"""
+implementation["create_cell_integral"] = """
 switch (i)
 {
 case 0:
@@ -396,13 +396,13 @@ case 2:
   return new my_cell_integral_2();
 default:
   return 0;
-}"
-implementation["create_exterior_facet_integral"] = "\
-return new my_exterior_facet_integral();"
+}"""
+implementation["create_exterior_facet_integral"] = \
+    "return new my_exterior_facet_integral();"
 implementation["create_interior_facet_integral"] = "return 0;"
 
 print form_combined % implementation
-\end{c++}
+\end{python}
 
 This generates code for a single header file that also contains the
 implementation of each function in the UFC \emp{form} interface. It is
@@ -558,14 +558,14 @@ a simple language for specification of variational forms, which may be
 entered either directly in Python or in text files given to a form
 compiler.  We consider the following definition of the bilinear form
 $a(u, v) = \inner{\nabla u}{\nabla v}$ in UFL:
-\begin{c++}
-element = FiniteElement("Lagrange", "triangle", 1)
+\begin{uflcode}
+element = FiniteElement("Lagrange", triangle, 1)
 
 u = TrialFunction(element)
 v = TestFunction(element)
 
 a = inner(grad(u), grad(v))*dx
-\end{c++}
+\end{uflcode}
 
 When compiling this code, a C++ header file is created, containing UFC
 code that may be used to assemble the global sparse stiffness matrix
