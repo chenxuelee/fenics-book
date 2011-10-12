@@ -9,7 +9,12 @@ this approach, transport coefficients are determined from well output
 measurements. Finite element implementation of the multi-lithology
 models and their duals is automated by the DOLFIN Python interface.
 
-%\index{important term}
+\index{automatic calibration}
+\index{deposition}
+\index{nonlinear diffusion}
+\index{transport}
+\index{sedimentation model}
+\index{dual lithology model}
 
 %------------------------------------------------------------------------------
 \section{Issues in sedimentary deposition}
@@ -80,6 +85,7 @@ $(1-s) \nabla h$ are given.
 
 %------------------------------------------------------------------------------
 \section{An inverse approach}
+\index{inverse approach}
 
 The parameter-to-observation mapping $R: (\alpha, \beta) \mapsto (s,
 h)$ is commonly referred to as the forward problem.  In a basin, direct
@@ -111,6 +117,10 @@ basin.
 
 %------------------------------------------------------------------------------
 \section{The Landweber algorithm}
+\index{Landweber algorithm}
+\index{PDE constrained minimization}
+\index{duality arguments}
+\index{dual problem}
 
 In a slightly more abstract setting, the task is to minimize an
 objective functional $J$ which implicitly depends on the parameters
@@ -118,7 +128,8 @@ $p$ via $u$ subject to the constraint that $u$ satisfies some PDE
 model; a PDE constrained minimization problem: Find $p$ such that
 $J(p)=J(u(p))=\min$ and $\mathrm{PDE}(u,p)=0$.
 
-Landweber's steepest decent algorithm~\citep{Landweber1951} iterates the
+\index{steepest descent}
+Landweber's steepest descent algorithm~\citep{Landweber1951} iterates the
 following sequence until convergence:
 \\*
 While $\| \nabla_pJ(p^k) \| > TOL$:
@@ -129,7 +140,7 @@ While $\| \nabla_pJ(p^k) \| > TOL$:
 \end{enumerate}
 
 Note that the search direction $d^k$, the negative gradient, is the
-direction of steepest decent.  To avoid scale dependence, the search
+direction of steepest descent. To avoid scale dependence, the search
 direction is normed.
 
 The increment $\Delta p^k$ is determined by a one dimensional line
@@ -334,7 +345,7 @@ dxWell = dx(1)
 \end{python}
 The area of the well is computed:
 \begin{python}
-wellarea = assemble(Constant(1.0)*dx1, cell_domains=subdomains, mesh=mesh)
+wellarea = assemble(Constant(1.0)*dxWell, cell_domains=subdomains, mesh=mesh)
 \end{python}
 The driving source in \eqref{eq:schroll:trapez} is written as:
 \begin{python}
@@ -351,11 +362,12 @@ L = rhs(F)
 \end{python}
 Construct the variational problem:
 \begin{python}
-problem = VariationalProblem(a, L + f)
+problem = LinearVariationalProblem(a, L + f, u)
 \end{python}
 And solve it:
 \begin{python}
-u = problem.solve()
+solver = LinearVariationalSolver(problem)
+solver.solve()
 \end{python}
 
 %------------------------------------------------------------------------------
@@ -415,7 +427,7 @@ iteration is stopped if $\| \nabla J(p^k) \| \le 10^{-7}$, an
 indication that the minimum is reached.  In all figures below, a green
 dot marks the optimal, calibrated parameters.  The lower left plot
 shows the corresponding scan over $\beta$ where $\alpha=(0.8,0.8)$ is
-fixed.  Obviously the search directions follow the steepest decent,
+fixed.  Obviously the search directions follow the steepest descent,
 confirming that the gradients are correctly evaluated via the dual
 solution.  In the right column of Figure~\ref{fig2} we see results for
 the same experiments, but with 5\% random noise added to the synthetic
