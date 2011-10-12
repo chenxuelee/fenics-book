@@ -18,7 +18,7 @@ In this chapter, we review the finite element method and summarize
 some basic concepts and notation used throughout this book. In the
 coming chapters, we discuss these concepts in more detail, with a
 particular focus on the implementation and automation of the finite
-element method as part of the FEniCS project.
+element method as part of the FEniCS Project.
 
 %------------------------------------------------------------------------------
 \section{A simple model problem}
@@ -33,17 +33,17 @@ the negative Laplacian $-\Delta u$ of some unknown field $u = u(x)$ is
 equal to a given function $f = f(x)$ on a domain~$\Omega \subset \R^d$,
 possibly amended by a set of boundary conditions for the solution $u$
 on the boundary $\partial \Omega$ of~$\Omega$:
+\index{Dirichlet condition}
+\index{Neumann condition}
 \begin{equation} \label{eq:poisson}
   \begin{split}
-    - \Delta u &= f \quad \mbox{in } \Omega,
+    - \Delta u &= f \,\,\, \quad \mbox{in } \Omega,
     \\
     u &= u_0 \quad \mbox{on } \Gamma_{\mathrm{D}} \subset \partial \Omega,
     \\
-    - \partial_n u &= g \quad \mbox{on } \Gamma_{\mathrm{N}} \subset \partial \Omega.
+    - \partial_n u &= g \,\,\, \quad \mbox{on } \Gamma_{\mathrm{N}} \subset \partial \Omega.
   \end{split}
 \end{equation}
-\index{Dirichlet condition}
-\index{Neumann condition}
 The Dirichlet boundary condition $u = u_0$ signifies a prescribed
 value for the unknown~$u$ on a subset $\Gamma_{\mathrm{D}}$ of the
 boundary, and the Neumann boundary condition $-\partial_n u = g$
@@ -99,7 +99,7 @@ equations~(\ref{eq:poisson,mixed}) by introducing~$\sigma = -\nabla u$
 as an auxiliary variable in the second-order
 equation~(\ref{eq:poisson}). We also note that the Dirichlet and
 Neumann boundary conditions in~(\ref{eq:poisson}) correspond to
-prescribed values for the temperature and heat flux respectively.
+prescribed values for the temperature and heat flux, respectively.
 
 \begin{figure}
 \bwfig
@@ -163,7 +163,7 @@ problem~(\ref{eq:poisson,varproblem,discrete}), we must construct a
 suitable pair of discrete trial and test spaces $V_h$ and $\hat{V}_h$.
 We return to this issue below, but assume for now that we have a basis
 $\{\phi_j\}_{j=1}^N$ for $V_h$ and a basis $\{\hat{\phi}_i\}_{i=1}^N$
-for $\hat{V}_h$. Here, $N$ denotes the dimension of the space~$V_h$.
+for $\hat{V}_h$. Here, $N$ denotes the dimension of the spaces~$V_h$ and $\hat{V}_h$.
 We may then make an Ansatz for $u_h$ in terms of the basis functions
 of the trial space,
 %
@@ -675,7 +675,7 @@ it holds that
 \begin{equation} \label{eq:constraint}
   \ell^T_i(v|_T) = \ell^{T'}_{i'}(v|_{T'}).
 \end{equation}
-In other words, if two local degrees of freedom $\ell_i$ and
+In other words, if two local degrees of freedom $\ell_i^T$ and
 $\ell^{T'}_{i'}$ are mapped to the same global degree of freedom, then
 they must agree for each function $v \in V_h$. Here, $v|_T$ denotes
 (the continuous extension of the) restriction of $v$ to the interior
@@ -772,7 +772,7 @@ components of $F_T$ are functions in $\hat{\CiarletSpace}$. For function
 spaces discretizing $\Hdiv$ like
 in~(\ref{eq:poisson,varproblem,mixed}) or $\Hcurl$, the appropriate
 mappings are the contravariant and covariant Piola mappings which
-preserve normal and tangential components respectively;
+preserve normal and tangential components, respectively;
 see~\citet{RognesKirbyLogg2009}. For simplicity, we restrict the
 following discussion to the case when $F_T$ is affine or
 isoparametric.
@@ -940,15 +940,7 @@ them.
 
 The error~$e = u - u_h$ in a computed finite element solution~$u_h$
 approximating the exact solution~$u$ of~(\ref{eq:varproblem}) may be
-estimated either \emph{a~priori} or \emph{a~posteriori}. Both types of
-estimates are based on relating the size of the error to the size of
-the (weak) residual $r : \hat{V} \rightarrow \R$ defined by
-\begin{equation} \label{eq:residual,weak}
-  r(v) = L(v) - a(u_h, v).
-\end{equation}
-Note that the weak residual is formally related to the \emph{strong
-  residual} $R \in \hat{V}'$ by $r(v) = \inner{R}{v}$ for all $v \in
-\hat{V}$.
+estimated either \emph{a~priori} or \emph{a~posteriori}.
 
 \emph{A~priori} error estimates express the error in terms of the
 regularity of the exact (unknown) solution and may give useful
@@ -1054,10 +1046,19 @@ we have $C = \alpha = 1$ and $p = q = 1$.
 \paragraph{Energy norm error estimates.}
 
 The continuity and coercivity of the bilinear form~$a$ also allow the
-derivation of an \emph{a~posteriori} error estimate.  In fact, it
-follows that the $V$-norm of the error $e = u - u_h$ is equivalent to
-the $V'$-norm of the residual $r$. To see this, note that by the
-continuity of the bilinear form~$a$, we have
+derivation of an \emph{a~posteriori} error estimate. This type of error
+estimate is obtained by relating the size of the error to the size of
+the (weak) residual $r : \hat{V} \rightarrow \R$ defined by
+\begin{equation} \label{eq:residual,weak}
+  r(v) = L(v) - a(u_h, v).
+\end{equation}
+Note that the weak residual is formally related to the \emph{strong
+  residual} $R \in \hat{V}'$ by $r(v) = \inner{R}{v}$ for all $v \in
+\hat{V}$.
+
+We first note that the $V$-norm of the error $e = u - u_h$ is
+equivalent to the $V'$-norm of the residual $r$. To see this, note
+that by the continuity of the bilinear form~$a$, we have
 \begin{equation}
   r(v)
   = L(v) - a(u_h, v) = a(u, v) - a(u_h, v) = a(u - u_h, v)
@@ -1134,7 +1135,7 @@ The dual trial and test spaces are given by
 \end{equation}
 that is, the dual trial space is the primal test space and the dual
 test space is the primal trial space modulo boundary conditions. In
-particular, if $V = u_0 + \hat{V}$ and $V_h = u_0 + \hat{V}_h$ then
+particular, if $V = u_0 + \hat{V}$ then
 $V^* = \hat{V}^* = \hat{V}$, and both the dual test and trial
 functions vanish at Dirichlet boundaries. The definition of the dual
 problem leads us to the following representation of the error:
@@ -1195,7 +1196,7 @@ that $\eta_h \leqslant \epsilon$. Starting from an initial coarse
 mesh, the mesh is successively refined in those cells where the error
 indicator $\eta_T$ is large. Several strategies are available, such as
 refining the top fraction of all cells where $\eta_T$ is large, say
-the first $20\%$ of all cells ordered by $\eta_T$. Other strategies
+the first $20\%$ of all cells ordered by the size of $\eta_T$. Other strategies
 include refining all cells where $\eta_T$ is above a certain fraction
 of $\max_{T\in\mesh} \eta_T$, or refining a top fraction of all cells
 such that the sum of their error indicators account for a significant
@@ -1229,7 +1230,7 @@ actual error, as measured by the \emph{efficiency index} $\eta_h /
 \section{Automating the finite element method}
 \index{automation}
 
-The FEniCS project seeks to automate the solution of differential
+The FEniCS Project seeks to automate the solution of differential
 equations. This is a formidable task, but it may be approached by an
 automation of the finite element method. In particular, this
 automation relies on the following key steps:
@@ -1241,7 +1242,7 @@ automation relies on the following key steps:
 \item[(iii)]
   automation of error control.
 \end{itemize}
-Since its inception in~2003, the FEniCS project has been concerned
+Since its inception in~2003, the FEniCS Project has been concerned
 mainly with the automation of discretization, resulting in the
 development of the form compilers FFC and SyFi/SFC, the code
 generation interface~UFC, the form language~UFL, and a generic
@@ -1255,7 +1256,14 @@ libraries for linear algebra have been implemented as part of
 DOLFIN. Ongoing work is now seeking to automate error control by
 automated error estimation and adaptivity. In the following chapters,
 we return to specific aspects of the automation of the finite element
-method developed as part of the FEniCS Project.
+method developed as part of the FEniCS Project. The mathematical
+methodology behind the FEniCS Project has also been described in
+a number of scientific works. For further reading, we refer to
+\citet{Logg2007a,LoggWells2010,Kirby2004,KirbyLogg2006,
+AlnaesLoggMardalEtAl2009,AlnaesMardal2009b,KirbyKnepleyLoggEtAl2005,
+KirbyLoggScottEtAl2006,KirbyLogg2007,KirbyLogg2008,KirbyScott2007,
+Kirby2006a,OelgaardLoggWells2008,RognesKirbyLogg2009,OelgaardWells2010,
+Logg2009}.
 
 %------------------------------------------------------------------------------
 \section{Historical notes}
