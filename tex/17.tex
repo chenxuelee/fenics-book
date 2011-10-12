@@ -92,7 +92,7 @@ explain the design of the implementation and dive into some
 implementation details.  Many details of the language have to be
 omitted in a text such as this, and we refer to the \ufl{} manual
 \citep{AlnaesLogg2009} for a more thorough description. Note that this
-chapter refers to \ufl{} version 0.5.4, and both the user interface
+chapter refers to \ufl{} version 1.0.0, and both the user interface
 and the implementation may change in future versions.
 
 Starting with a brief overview, we mention the main design goals for
@@ -719,6 +719,10 @@ classes are found in Section~\ref{ufl:sec:representation}.
 %\index{**}
 \index{\emp{sin}}
 \index{\emp{cos}}
+\index{\emp{tan}}
+\index{\emp{asin}}
+\index{\emp{acos}}
+\index{\emp{atan}}
 \index{\emp{exp}}
 \index{\emp{ln}}
 \index{\emp{pow}}
@@ -742,6 +746,7 @@ classes are found in Section~\ref{ufl:sec:representation}.
 \index{\emp{det}}
 \index{\emp{transpose}}
 \index{\emp{inv}}
+\index{\emp{elem\_op}}
 
 \ufl{} defines a comprehensive set of operators that can be used for
 composing expressions.  The elementary algebraic operators \emp{+},
@@ -789,8 +794,11 @@ found in the manual.
 
 A set of common elementary functions operating on scalar expressions
 without free indices are included, in particular \emp{abs(f)}, \emp{pow(f,
-g)}, \emp{sqrt(f)}, \emp{exp(f)}, \emp{ln(f)}, \emp{sin(f)}, \emp{cos(f)},
-and \emp{sign(f)}.
+g)}, \emp{sqrt(f)}, \emp{exp(f)}, \emp{ln(f)},
+\emp{cos(f)}, \emp{sin(f)}, \emp{tan(f)},
+\emp{acos(f)}, \emp{asin(f)}, \emp{atan(f)},
+and \emp{sign(f)}. Any operator taking scalar arguments can be applied
+element-wise to tensors using e.g. \emp{elem\_op(sin, A)}.
 
 %------------------------------------------------------------------------------
 \subsection{Differential operators} \label{ufl:sec:differential}
@@ -951,11 +959,14 @@ The condition can be one of
 \item \emp{lt(a, b)} $\leftrightarrow$ $(a < b)$
 \item \emp{le(a, b)} $\leftrightarrow$ $(a \le b)$
 \item \emp{eq(a, b)} $\leftrightarrow$ $(a = b)$
+\item \emp{And(P, Q)} $\leftrightarrow$ $(P \land Q)$
+\item \emp{Not(P)} $\leftrightarrow$ $(\lnot P)$
 \end{itemize}
 \begin{itemize}
 \item \emp{gt(a, b)} $\leftrightarrow$ $(a > b)$
 \item \emp{ge(a, b)} $\leftrightarrow$ $(a \ge b)$
 \item \emp{ne(a, b)} $\leftrightarrow$ $(a \ne b)$
+\item \emp{Or(P, Q)} $\leftrightarrow$ $(P \lor Q)$
 \end{itemize}
 \end{multicols}}
 
@@ -1078,10 +1089,12 @@ in this framework, in particular arbitrary mixed elements are supported.
 \label{ufl:sec:adjoint}
 
 Another form operator is the adjoint $a^*$ of a bilinear form $a$,
-defined as $a^*(u,v) = a(v,u)$, which is similar to taking the transpose
+defined as $a^*(v,u) = a(u,v)$, which is equivalent to taking the transpose
 of the assembled sparse matrix.  In \ufl{} this is implemented simply
-by swapping the test and trial functions, and can be written using the
-\emp{adjoint} form operator.  An example of its use on an anisotropic
+by swapping the order of the test and trial functions, and can be written using the
+\emp{adjoint} form operator.
+(Note that this is not the most generic definition of the adjoint of an operator).
+An example of its use on an anisotropic
 diffusion term looks like
 \begin{uflcode}
 V = VectorElement("Lagrange", cell, 1)
@@ -1092,10 +1105,10 @@ M = Coefficient(T)
 a = M[i,j]*u[k].dx(j)*v[k].dx(i)*dx
 astar = adjoint(a)
 \end{uflcode}
-which corresponds to
+which corresponds to (with $u \in U$ and $v \in V$)
 \begin{align}
-a(M; u, v) = \int_\Omega M_{ij} u_{k,j} v_{k,i} \dx, \\
-a^*(M; u, v) = a(M; v, u) = \int_\Omega  M_{ij} v_{k,j} u_{k,i} \dx.
+a(M; u, v) =& \int_\Omega M_{ij} u_{k,j} v_{k,i} \dx, \\
+a^*(M; v, u) =& \int_\Omega  M_{ij} u_{k,j} v_{k,i} \dx = a(M; u, v).
 \end{align}
 This automatic transformation is particularly useful if we need the
 adjoint of nonsymmetric bilinear forms computed using
@@ -2047,7 +2060,7 @@ x = cell.x
 print m(Argument(element))
 print m(x)
 print m(x[0] + x[1])
-print m(x[0]* x[1])
+print m(x[0] * x[1])
 \end{python}
 \caption{Example declaration and use of a multifunction.}
 \label{ufl:fig:examplefunction}
@@ -2461,7 +2474,7 @@ representation, and thus the signature, of a form may change with
 versions of \ufl{}.  The following line prints the signature of a form
 with \emp{expand\_derivatives} and renumbering applied.
 \begin{python}
-print repr(preprocess(myform).form_data().form)
+print repr(preprocess(myform).preprocessed_form)
 \end{python}
 
 %------------------------------------------------------------
@@ -2553,6 +2566,6 @@ goal Automation of Mathematical Modeling.
 This work has been supported by the Norwegian Research Council (grant
 162730) and Simula Research Laboratory.  I wish to thank everyone who
 has helped improving \ufl{} with suggestions and testing, in particular
-Anders Logg, Kristian \O{}lgaard, Garth Wells, and Harish Narayanan. In
-addition to the two anonymous referees, both Kent-Andr\'e Mardal and Marie
+Anders Logg, Kristian \O{}lgaard, Garth Wells, Harish Narayanan and Marie Rognes.
+In addition to the two anonymous referees, both Kent-Andr\'e Mardal and Marie
 Rognes performed critical reviews which greatly improved this chapter.
