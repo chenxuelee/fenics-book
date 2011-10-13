@@ -1,9 +1,9 @@
 \newcommand{\Ca}{\ensuremath{\mbox{Ca}^{2+}}\xspace}
-\newcommand{\CaC}{\ensuremath{\left[\mbox{Ca}^{2+}\right]}\xspace}
+\newcommand{\CaC}{[\ensuremath{\mbox{Ca}^{2+}}]\xspace}
 \newcommand{\Na}{\ensuremath{\mbox{Na}^{+}}\xspace}
 \newcommand{\Cl}{\ensuremath{\mbox{Cl}^{-}}\xspace}
 \newcommand{\Mg}{\ensuremath{\mbox{Mg}^{2+}}\xspace}
-\newcommand{\MgC}{\ensuremath{\left[\mbox{Mg}^{2+}\right]}\xspace}
+\newcommand{\MgC}{[\ensuremath{\mbox{Mg}^{2+}}]\xspace}
 \newcommand{\PEe}{\mathrm{PE}_{\mathrm{e}}}
 
 % positional numbers
@@ -87,10 +87,8 @@ coupling wherein \Ca flows into the cell and triggers further \Ca
 release.
 
 \begin{figure}
-  \centering
-  \includegraphics[width=\largefig]{chapters/hake/pdf/morphology}
-  \caption[The dyadic cleft]{(A): A diagram showing the
-    relationship between the TT, the SR, and the jSR in the interior
+  \ffigbox{\caption[The dyadic cleft]{(A): A diagram showing the
+      relationship between the TT, the SR, and the jSR in the interior
     of a heart cell. The volume between the flat jSR and the TT is the
     dyadic cleft. The black structures in the cleft are Ryanodine
     receptors, which are large channel proteins. (B): The
@@ -98,8 +96,8 @@ release.
     top of the disk is the cell membrane of the SR or jSR. The bottom
     is the cell membrane of the TT, and the circumference of the disk
     is the interface to the cytosol. The elevations in the TT membrane
-    model two \Ca ion channels.}
-\label{fig:hake:morphology}
+    model two \Ca ion channels.}\label{fig:hake:morphology}}
+  {\includegraphics[width=\fullfig]{chapters/hake/pdf/morphology}}
 \end{figure}
 
 \section{Mathematical models}
@@ -256,9 +254,7 @@ distance to the center of the cytosol. In our model, we have used \Ds
 = 50 nm.
 
 \begin{figure}
-  \centering
-  \includegraphics[height=\largefig]{chapters/hake/pdf/markov_models}
-  \caption[Discrete markov models]{(A): State diagram of the
+\ffigbox{\caption[Discrete markov models]{(A): State diagram of the
     discrete LCC Markov model from \citet{JafriRiceWinslow1998}. Each
     channel can be in one of the 12 states.  The transitions between
     the states are controlled by propensities. The $\alpha$, and
@@ -273,8 +269,8 @@ distance to the center of the cytosol. In our model, we have used \Ds
     of an RyR from \citet{SternSongEtAl1999}. The $\alpha$ and
     $\gamma$ propensities are \Ca-dependent, representing the
     activation and inactivation dependency of the cytosolic \CaC. The
-    $\beta$ and $\delta$ propensities are constant.}
-  \label{fig:hake:markov-models}
+    $\beta$ and $\delta$ propensities are constant.}\label{fig:hake:markov-models}}
+{\includegraphics[height=\fullfig]{chapters/hake/pdf/markov_models}}
   \vspace*{30pt}
 \end{figure}
 
@@ -445,15 +441,15 @@ from dolfin import *
 mesh = Mesh("cleft_mesh.xml.gz")
 mesh.order()
 
-Vs = FunctionSpace(mesh, "Lagrange", 1)
-Vv = VectorFunctionSpace(mesh, "Lagrange", 1)
+Vs = FunctionSpace(mesh, "CG", 1)
+Vv = VectorFunctionSpace(mesh, "CG", 1)
 
 v = TestFunction(Vs)
 u = TrialFunction(Vs)
 
 # Defining the electric field-function
 a = Expression(["0.0","0.0","phi_0*valence*kappa*sigma*exp(-kappa*x[2])"],
-               defaults = {"phi_0":-2.2,"valence":2,"kappa":1,"sigma":1.e5},
+               phi_0=-2.2, valence=2, kappa=1, sigma=1.e5,
                element=Vv.ufl_element())
 
 # Assembly of the K, M and A matrices
@@ -463,15 +459,15 @@ E = assemble(-u*inner(a, grad(v))*dx)
 
 # Collecting face markers from a file, and skip the 0 one
 sub_domains = MeshFunction("uint", mesh, "cleft_mesh_face_markers.xml.gz")
-unique_sub_domains = list(set(sub_domains.values()))
+unique_sub_domains = list(set(sub_domains.array()))
 unique_sub_domains.remove(0)
 
 # Assemble matrices and source vectors from exterior facets domains
 domain = MeshFunction("uint", mesh, 2)
 F = {}; f = {}; tmp = K.copy(); tmp.zero()
 for k in unique_sub_domains:
-    domain.values()[:] = (sub_domains.values() != k)
-    F[k] = assemble(u*v*ds, exterior_facet_domains = domain,
+    domain.array()[:] = (sub_domains.array() != k)
+    F[k] = assemble(u*v*ds, exterior_facet_domains = domain, \
                     tensor = tmp.copy(), reset_sparsity = False)
     f[k] = assemble(v*ds, exterior_facet_domains = domain)
 \end{python}
@@ -552,36 +548,34 @@ element in the direction of $a$.
 The DOLFIN code that assembles the SUPG part of the problem is
 presented in the following script:
 \begin{python}
-# Python code for the assembly of the SUPG term for the mass and advection matrices
-# Defining the stabilization using local Peclet number
 cppcode = """class Stab : public Expression {
 public:
-  GenericFunction* field; double sigma;
-  Stab(): Expression(3), field(0), sigma(1.0e5){}
-  void eval(Array<double>& v, const Data& data) const {
-    if (!field)
-      error("Attach a field function.");
+  double sigma; boost::shared_ptr<GenericFunction> field;
+  boost::shared_ptr<Mesh> mesh;
+  Stab(): Expression(3), sigma(1.0e5){}
+  void eval(Array<double>& v, const Array<double>& x,
+            const ufc::cell& c) const {
+    Cell cell(*mesh, c.index);
     double field_norm = 0.0; double tau = 0.0;
-    double h = data.cell().diameter();
-    field->eval(v, data);
-    for (uint i = 0;i < data.x.size(); ++i)
+    double h = cell.diameter();
+    field->eval(v, x, c);
+    for (uint i = 0;i < x.size(); ++i)
       field_norm += v[i]*v[i];
     field_norm = sqrt(field_norm);
     double PE = 0.5*field_norm * h/sigma;
     if (PE > DOLFIN_EPS)
       tau = 1/tanh(PE)-1/PE;
-    for (uint i = 0;i < data.x.size(); ++i)
-      v[i] *= 0.5*h*tau/field_norm;
-}};
+    for (uint i = 0;i < x.size(); ++i)
+      v[i] *= 0.5*h*tau/field_norm;}};
 """
-stab = Expression(cppcode); stab.field = a
+stab = Expression(cppcode); stab.field = a; stab.mesh = mesh
 
 # Assemble the stabilization matrices
 E_stab = assemble(div(a*u)*inner(stab, grad(v))*dx)
 M_stab = assemble(u*inner(stab, grad(v))*dx)
 
 # Adding them to the A and M matrices, weighted by the global tau
-tau = 0.28; E.axpy(tau, E_stab, True); M.axpy(tau, M_stab,True)
+tau = 0.28; E.axpy(tau, E_stab, True); M.axpy(tau, M_stab, True)
 \end{python}
 In the above script, two matrices \texttt{E\_stab} and
 \texttt{M\_stab} are assembled. Both matrices are added to the
@@ -621,34 +615,34 @@ events = [0.2,tstop/2,tstop,tstop]; dt_expand = 2.0;
 sigma = 1e5; ds = 50; area = pi; Faraday = 0.0965; amp = -0.1
 t_channels = {1:[0.2,tstop/2], 2:[tstop/2,tstop]}
 
-# Initialize the solution Function and the left and right-hand side
+# Initialize the solution Function and the left and right hand side
 u = Function(Vs); x = u.vector()
-x[:] = c0*exp(-a.valence*a.phi_0*exp(-a.kappa*mesh.coordinates()[:,-1]))
+x[:] = c0*np.exp(-a.valence*a.phi_0*np.exp(-a.kappa*mesh.coordinates()[:,-1]))
 b = Vector(len(x)); A = K.copy();
 
-solver = KrylovSolver("bicgstab","amg_hypre")
+solver = KrylovSolver("bicgstab","hypre_amg")
 solver.parameters["relative_tolerance"] = 1e-10
 solver.parameters["absolute_tolerance"] = 1e-7
 
 plot(u, vmin=0, vmax=4000, interactive=True)
 while t < tstop:
-    # Initalize the left and right-hand side
+    # Initalize the left and right hand side
     A.assign(K); A *= sigma; A += E; b[:] = 0
-
+    
     # Adding channel fluxes
     for c in [1,2]:
         if t >= t_channels[c][0] and t < t_channels[c][1]:
             b.axpy(-amp*1e9/(2*Faraday*area),f[c])
-
+    
     # Adding cytosole flux at Omega 3
     A.axpy(sigma/ds,F[3],True); b.axpy(c0*sigma/ds,f[3])
 
     # Applying the Backward Euler time discretization
     A *= dt; b *= dt; b += M*x; A += M
-
+    
     solver.solve(A,x,b)
     t += dt; print "Ca Concentration solved for t:",t
-
+    
     # Handle the next time step
     if t == events[0]:
         dt = dt_min; events.pop(0)
@@ -656,7 +650,7 @@ while t < tstop:
         dt = events[0] - t
     else:
         dt *= dt_expand
-
+    
     plot(u, vmin=0, vmax=4000)
 
 plot(u, vmin=0, vmax=4000, interactive=True)

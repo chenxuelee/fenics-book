@@ -10,7 +10,7 @@ u = Function(Vs); x = u.vector()
 x[:] = c0*np.exp(-a.valence*a.phi_0*np.exp(-a.kappa*mesh.coordinates()[:,-1]))
 b = Vector(len(x)); A = K.copy();
 
-solver = KrylovSolver("bicgstab","amg_hypre")
+solver = KrylovSolver("bicgstab","hypre_amg")
 solver.parameters["relative_tolerance"] = 1e-10
 solver.parameters["absolute_tolerance"] = 1e-7
 
