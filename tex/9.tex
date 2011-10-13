@@ -60,9 +60,9 @@ matrix--vector product:
 \begin{equation} \label{eq:kirby-4:tildeag}
   A^0 : G_T \leftrightarrow \tilde{A}^0 \tilde{g}_T.
 \end{equation}
-Here, the matrix $ \tilde{A} $ lies in $ \mathbb{R}^{|\mathcal{I}| \times
+Here, the matrix $ \tilde{A}^0 $ lies in $ \R^{|\mathcal{I}| \times
   |\mathcal{A}|} $, and the vector $ \tilde{g}_{T} $ lies in $
-\mathbb{R}^{|\mathcal{A}|} $. The resulting matrix--vector product can
+\R^{|\mathcal{A}|} $. The resulting matrix--vector product can
 then be reshaped into the element tensor $A_T$. As this computation
 must occur for each cell $T$ in a finite element mesh, it makes
 sense to try to make this operation as efficient as possible.
@@ -73,8 +73,8 @@ general matrix--vector product
 \begin{equation}
 y = A x,
 \end{equation}
-efficiently, where $ A = \tilde{A}^0 $ is a constant matrix
-known \apriori{}, and $x = \tilde{g}_T $is an arbitrary vector. We
+where $ A = \tilde{A}^0 $ is a constant matrix
+known \apriori{}, and $x = \tilde{g}_T$ is an arbitrary vector. We
 will study structure of $ A $ that allows for a reduction in the
 number of arithmetic operations required to form these products. With
 this structure, we are able to produce a routine that computes the
@@ -118,7 +118,7 @@ vector $x$ in fewer operations than the $144$ multiply--add pairs required
 by a standard matrix--vector multiplication. This requires
 offline analysis of $A$ and special-purpose code generation that
 applies the particular $A$ to a generic $x$. For $ A \in
-\mathbb{R}^{M\times N} $, let $\{ a^i \}_{i=1}^M \subset \mathbb{R}^N$
+\R^{M\times N} $, let $\{ a^i \}_{i=1}^M \subset \R^N$
 denote the rows of $ A $. The vector $ y = Ax $ may then be computed
 by $ M $ dot products of the form $ y_i = a^i x $. Below, we
 investigate relationships among the rows of $ A $ to find an optimized
@@ -461,10 +461,10 @@ BLAS, in particular using a call to~\texttt{dgemv}. There exist a
 number of optimized implementations of BLAS, including hand-optimized
 vendor implementations, empirically and automatically tuned libraries
 \citep{WhaleyPetitetDongarra2001} and formal methods for automatic
-derivation of algorithms \citet{BientinesiGunnelsMyersEtAl2005}.
+derivation of algorithms \citep{BientinesiGunnelsMyersEtAl2005}.
 
 The computation of the element tensor $A_T$ may be optimized further
-by recognizing that\vadjust{\pagebreak} one may compute the element tensor for a batch of
+by recognizing that\vadjust{\pagebreak} one may compute the element tensors for a batch of
 elements $\{T_i\}_i \subset \mathcal{T}$ in one matrix--matrix
 multiplication:
 \begin{equation}
@@ -485,7 +485,7 @@ between the entries of the element tensor. With optimizations turned
 on, FFC calls FErari at compile-time to generate optimized
 code. Optimization for FFC can be turned on either by the \texttt{-O}
 parameter when FFC is called from the command-line, or by setting
-\emp{parameters["form\_compiler"]["optimization"] = True} when FFC is
+\emp{parameters["form\_compiler"]["optimize"] = True} when FFC is
 called as a just-in-time compiler from the DOLFIN Python
 interface. Note that the FErari optimizations are only used when FFC
 generates code based on the tensor representation described in
