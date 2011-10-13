@@ -68,7 +68,7 @@ multilinear form~$a$ of arity~$\rho$:
   \begin{split}
     a &: W_{1,h} \times W_{2,h} \times \cdots \times W_{n,h} \, \times \,
     V_{\rho,h} \times \cdots \times V_{2,h} \times V_{1,h} \rightarrow \R, \\
-    a &\mapsto a(w_1, w_2, \ldots, w_n; v_{\rho}, \ldots, v_2, v_1);
+    a &\mapsto a(w_1, w_2, \ldots, w_n; v_{\rho}, \ldots, v_2, v_1).
   \end{split}
 \end{equation}
 Here, $\{V_{j,h}\}_{j=1}^{\rho}$ is a sequence of discrete function
@@ -81,7 +81,7 @@ are many important examples, such as mixed methods, where the
 arguments come from different function spaces. The choice of
 coefficient function spaces depends on the application; a polynomial
 basis simplifies exact integration, while in some cases evaluating
-coefficients in quadrature points may be required.
+coefficients at quadrature points may be required.
 
 As we saw in Chapter~\ref{chap:logg-3}, the global tensor~$A$ can be
 computed by summing contributions from the cells and facets of a
@@ -101,8 +101,8 @@ in~\eqref{eq:varform} can be expressed as a sum of integrals over the
 cells~$\mathcal{T}_h$, the exterior facets~$\partial_h$, and the
 interior facets~$\partial_h^0$ of the mesh. The integrals may then be
 expressed on disjoint subsets $\mathcal{T}_h = \cup_{k=1}^{n_c}
-\mathcal{T}_{h,k}$, $\partial_h = \cup_{k=1}^{n_f} \partial_{h,k}$,
-and $\partial_{h,k}^0 = \cup_{k=1}^{n_f^0} \partial_{h,k}^0$,
+\mathcal{T}_{h,k}$, $\partial_h = \cup_{k=1}^{n_f} \partial_{h,k}$
+and $\partial_h^0 = \cup_{k=1}^{n_f^0} \partial_{h,k}^0$,
 respectively. In particular, it is assumed that the multilinear form
 can be expressed in the following canonical form:
 \begin{equation} \label{eq:form_integrals}
@@ -138,7 +138,7 @@ over an interior facet~$S^0$ as an \emph{interior facet integral}
   \label{fig:uml}
 \end{figure}
 
-The UFC interface\footnote{This chapter describes version 1.4 of the
+The UFC interface\footnote{This chapter describes version 2.0 of the
   UFC interface.} consists of a small collection of abstract C++
 classes that represent common components for assembling tensors using
 the finite element method. The full UFC interface is specified in a
@@ -153,7 +153,7 @@ operations.\footnote{The exceptions are the functions to initialize a
 \subsection{Class relations}
 
 Figure (\ref{fig:uml}) shows all UFC classes and their relations. The
-classes \emp{mesh}, \emp{cell}, and \emp{function} provide the means
+classes \emp{mesh}, \emp{cell} and \emp{function} provide the means
 for communicating mesh and coefficient function data as arguments.
 The integrals of~\eqref{eq:form_integrals} are represented by one of
 the following classes:
@@ -182,12 +182,10 @@ public:
   virtual cell_integral* create_cell_integral(unsigned int i) const = 0;
 
   /// Create a new exterior facet integral on sub domain i
-  virtual exterior_facet_integral*
-  create_exterior_facet_integral(unsigned int i) const = 0;
+  virtual exterior_facet_integral* create_exterior_facet_integral(unsigned int i) const = 0;
 
   /// Create a new interior facet integral on sub domain i
-  virtual interior_facet_integral*
-  create_interior_facet_integral(unsigned int i) const = 0;
+  virtual interior_facet_integral* create_interior_facet_integral(unsigned int i) const = 0;
 
 };
 \end{c++}
@@ -201,7 +199,7 @@ of degrees of freedom and evaluation of basis functions and their
 derivatives. The \emp{dofmap} object provides functionality such as
 tabulating the local-to-global map of degrees of freedom on a single
 element, as well as tabulation of subsets associated with particular
-mesh entities, which is used to apply Dirichlet boundary conditions
+mesh entities, which are used to apply Dirichlet boundary conditions
 and build connectivity information.
 
 Both the \emp{finite\_element} and \emp{dofmap} classes can
@@ -223,7 +221,7 @@ Next, we focus on a few key parts of the interface and explain how
 these can be used to implement the assembly algorithm presented in
 Chapter~\ref{chap:logg-3}. The general algorithm consists of three
 stages: (i) assembling the contributions from all cells, (ii)
-assembling the contributions from all exterior facets, and (iii)
+assembling the contributions from all exterior facets and (iii)
 assembling the contributions from all interior facets.
 
 Each of the three assembly stages (i)--(iii) is further composed of
@@ -243,7 +241,8 @@ public:
   /// Constructor
   cell(): cell_shape(interval),
           topological_dimension(0), geometric_dimension(0),
-          entity_indices(0), coordinates(0) {}
+          entity_indices(0), coordinates(0),
+          index(0), local_facet(-1), mesh_identifier(-1) {}
 
   /// Destructor
   virtual ~cell() {}
@@ -290,6 +289,9 @@ case, the coefficient function is passed as an implementation of the
 \emp{function} interface (a simple functor) to the
 function~\emp{evaluate\_dofs} in the UFC \emp{finite\_element} class.
 
+\break
+
+The \emp{evaluate\_dofs} function has the following signature:
 \begin{c++}
 /// Evaluate linear functionals for all dofs on the function f
 virtual void evaluate_dofs(double* values,
@@ -304,13 +306,14 @@ the current cell.
 In the third step, the local-to-global map of degrees of freedom is
 tabulated for each of the function spaces. That is, for each of the
 local discrete finite element spaces on $T$, we tabulate the
-corresponding global degrees of freedom.
+corresponding global degrees of freedom. This is handled by the
+\emp{tabulate\_dofs} function:
 
 \begin{c++}
 /// Tabulate the local-to-global mapping of dofs on a cell
-void dofmap::tabulate_dofs(unsigned int* dofs,
-                           const mesh& m,
-                           const cell& c) const
+virtual void dofmap::tabulate_dofs(unsigned int* dofs,
+                                   const mesh& m,
+                                   const cell& c) const = 0;
 \end{c++}
 Here, \emp{unsigned int* dofs} is a pointer to the first element of an
 array of unsigned integers that will be filled with the
@@ -415,7 +418,7 @@ implementation (\emp{.cpp}) files by using the \emp{form\_header} and
 The \emp{ufc\_utils} module also contains the utility function
 \emp{build\_ufc\_module} that can be called to build a Python module
 based on generated UFC code. This process involves compilation,
-linking, and loading of the generated C++ code as well as generating a
+linking and loading of the generated C++ code as well as generating a
 Python wrapper module using Instant/SWIG as described in
 Chapter~\ref{chap:wilbers}.
 
@@ -614,16 +617,15 @@ virtual void tabulate_tensor(double* A,
   const double G0_1_1 = det*(K_10*K_10 + K_11*K_11);
 
   // Compute element tensor
-  A[0] = 0.500000000000000*G0_0_0 + 0.500000000000000*G0_0_1
-       + 0.500000000000000*G0_1_0 + 0.500000000000000*G0_1_1;
-  A[1] = -0.500000000000000*G0_0_0 - 0.500000000000000*G0_1_0;
-  A[2] = -0.500000000000000*G0_0_1 - 0.500000000000000*G0_1_1;
-  A[3] = -0.500000000000000*G0_0_0 - 0.500000000000000*G0_0_1;
-  A[4] = 0.500000000000000*G0_0_0;
-  A[5] = 0.500000000000000*G0_0_1;
-  A[6] = -0.500000000000000*G0_1_0 - 0.500000000000000*G0_1_1;
-  A[7] = 0.500000000000000*G0_1_0;
-  A[8] = 0.500000000000000*G0_1_1;
+  A[0] = 0.5*G0_0_0 + 0.5*G0_0_1 + 0.5*G0_1_0 + 0.5*G0_1_1;
+  A[1] = -0.5*G0_0_0 - 0.5*G0_1_0;
+  A[2] = -0.5*G0_0_1 - 0.5*G0_1_1;
+  A[3] = -0.5*G0_0_0 - 0.5*G0_0_1;
+  A[4] = 0.5*G0_0_0;
+  A[5] = 0.5*G0_0_1;
+  A[6] = -0.5*G0_1_0 - 0.5*G0_1_1;
+  A[7] = 0.5*G0_1_0;
+  A[8] = 0.5*G0_1_1;
 }
 \end{c++}
 
@@ -639,6 +641,7 @@ associated with a global vertex. Hence, FFC constructs the map by
 picking the corresponding global vertex number for each degree of
 freedom as demonstrated below.
 \begin{c++}
+/// Tabulate the local-to-global mapping of dofs on a cell
 virtual void tabulate_dofs(unsigned int* dofs,
                            const ufc::mesh& m,
                            const ufc::cell& c) const
@@ -654,6 +657,7 @@ global vertex and edge numbers (entities of dimension zero and one
 respectively). We list the code for \emp{tabulate\_dofs} generated by
 FFC for quadratic Lagrange elements below.
 \begin{c++}
+/// Tabulate the local-to-global mapping of dofs on a cell
 virtual void tabulate_dofs(unsigned int* dofs,
                            const ufc::mesh& m,
                            const ufc::cell& c) const
@@ -689,7 +693,7 @@ maps.
 The following five reference cells are covered by the UFC
 specification: the reference \emph{interval}, the reference
 \emph{triangle}, the reference \emph{quadrilateral}, the reference
-\emph{tetrahedron}, and the reference \emph{hexahedron}.  The UFC
+\emph{tetrahedron} and the reference \emph{hexahedron}.  The UFC
 specification assumes that each cell in a finite element mesh is
 always isomorphic to one of the reference cells. The UFC reference
 cells are listed in the table below.
@@ -839,8 +843,8 @@ shown in the figure and table below.
 \index{numbering}
 
 The UFC specification dictates a certain numbering of the vertices,
-edges etc. of the cells of a finite element mesh. First, an \emph{ad
-hoc} numbering may be picked for the vertices of each cell. Then, the
+edges etc. of the cells of a finite element mesh. First, a specific
+numbering is picked for the vertices of each cell. Then, the
 remaining entities are ordered based on a simple rule, as described in
 detail below.
 
@@ -863,10 +867,18 @@ as \emph{cells}. These concepts are summarized in the table below.
 
 \vspace{0.5cm}
 \begin{center}
-  \begin{tabular}{lcc} \toprule Entity & Dimension &
-    Codimension \\ \hline Vertex & $0$ & -- \\ Edge & $1$ & -- \\ Face
-    & $2$ & -- \\ & & \\ Facet & -- & $1$ \\ Cell & -- &
-    $0$ \\ \bottomrule \end{tabular}
+  \begin{tabular}{lcc}
+    \toprule
+    Entity & Dimension & Codimension \\
+    \hline
+    Vertex & $0$ & $D$ \\
+    Edge & $1$ & $D-1$ \\
+    Face & $2$ & $D-2$ \\
+    & & \\
+    Facet & $D-1$ & $1$ \\
+    Cell & $D$ & $0$ \\
+    \bottomrule
+  \end{tabular}
 \end{center}
 \vspace{0.5cm}
 
@@ -930,7 +942,7 @@ Figure~\ref{fig:orderingexample,triangle}. To number the edges of the
 reference triangle, we identify for each edge the corresponding
 non-incident vertices. For each edge, there is only one such vertex
 (the vertex opposite to the edge). We thus identify the three edges in
-the reference triangle with the tuples $(v_0)$, $(v_1)$, and $(v_2)$. The
+the reference triangle with the tuples $(v_0)$, $(v_1)$ and $(v_2)$. The
 first of these is edge $e_0$ between vertices $v_1$ and $v_2$ opposite
 to vertex $v_0$, the second is edge $e_1$ between vertices $v_0$ and
 $v_2$ opposite to vertex $v_1$, and the third is edge $e_2$ between
@@ -1155,7 +1167,7 @@ Raviart--Thomas elements, Crouzeix--Raviart elements and \nedelec{}
 elements.
 
 The form compilers FFC and SFC described in Chapters~\ref{chap:logg-1}
-and~\ref{chap:alnes-2} are UFC compliant, both generating efficient
+and~\ref{chap:alnes-3} are UFC compliant, both generating efficient
 UFC code from an abstract problem definition. The assembler in DOLFIN
 uses the generated UFC code, communicates with the DOLFIN mesh data
 structure to extract \emp{ufc::mesh} and \emp{ufc::cell} data, and
@@ -1163,7 +1175,7 @@ assembles the global tensor into a data structure implemented by one
 of a number of linear algebra backends supported by DOLFIN, including
 PETSc, Trilinos (Epetra), uBLAS and MTL4.
 
-One of the main limitations in the current version (1.4) of the UFC
+One of the main limitations in the current version (2.0) of the UFC
 interface is the assumption of a homogeneous mesh; that is, only one
 cell shape is allowed throughout the mesh. Thus, although mesh
 ordering conventions have been defined for the interval, triangle,
@@ -1180,7 +1192,7 @@ the UFC interface.
 UFC was introduced in 2007 when the first version of UFC (1.0) was
 released. The UFC interface has been used by DOLFIN since the release
 of DOLFIN~0.7.0 in 2007. The 1.0 release of UFC was followed by
-version~1.1 in 2008, version~1.2 in 2009, and version~1.4 in 2010. The
+version~1.1 in 2008, version~1.2 in 2009, version~1.4 in 2010 and version~2.0 in 2011. The
 new releases have involved minor corrections to the initial UFC
 interface but have also introduced some new functionality, like
 functions for evaluating multiple degrees of freedom
@@ -1192,7 +1204,7 @@ interface for both form compilers (FFC and SFC) and assemblers
 (DOLFIN).
 
 %------------------------------------------------------------------------------
-\section*{Acknowledgment}
+\section*{Acknowledgments}
 
 The authors would like to thank Johan Hake, Ola Skavhaug, Garth Wells,
 Kristian \O{}lgaard and Hans Petter Langtangen for their contributions
