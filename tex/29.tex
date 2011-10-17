@@ -88,7 +88,7 @@ expressed in local form as
 \end{align}
 where~\eqref{selim:eq:momentum} is the balance of linear momentum
 and~\eqref{selim:eq:continuity} is the conservation of mass.  Here,
-$\subdt(\cdot)$ denotes the material time derivative, $\rho$ the density,
+$\subdt(\cdot)$ denotes a material time derivative, $\rho$ the density,
 $u$ the velocity, $\sigma$ the stress, and $b$ represents a given body
 force per unit volume. In an FSI problem, the different physical
 quantities of the fluid and the structure, denoted with subscripts
@@ -102,7 +102,10 @@ the following equilibrium equation holds:
 \end{equation}
 where $n_{_{F}}$ and $n_{_{S}}$ denote the outward normals on the
 fluid--structure boundary, viewed from the fluid and structure
-domains, respectively. Hence, $n_{_{F}} = - n_{_{S}}$.  How a continuum
+domains, respectively. Hence, $n_{_{F}} = - n_{_{S}}$. In addition to~\eqref{selim:eq:traction}, we also require kinematic
+continuity at the common fluid--structure boundary; that is, the
+velocity of the fluid and the solid are equal at the common
+fluid--structure boundary. How a continuum
 responds to stress and in particular to shear stress, distinguishes a
 fluid continuum from a solid continuum. A fluid cannot withstand shear
 forces; it will continue to deform as long as the stress is
@@ -153,7 +156,7 @@ with the corresponding stress tensor $\sigmaS(\uS) = f\cdot(2\mu_{_{S}}e
 + \lambda_{_{S}} \textrm{tr}(e)I)$.  Note that we usually omit the mass
 conservation equation~\eqref{selim:eq:SVKcon} since it is automatically
 satisfied for compressible materials in the Lagrangian framework.  For a
-more in depth analysis of hyperelastic materials and structure mechanics
+more in depth analysis of hyperelastic materials and structural mechanics
 in general, see \citet{Gurtin1981,Holzapfel2000}.
 
 %------------------------------------------------------------------------------
@@ -174,7 +177,7 @@ Cauchy stress) is given by $\sigmaFup = 2\mu_{_{F}}\varepsilon (\uF) -
 \pF I$, where $\mu_{_{F}}$ denotes the dynamic viscosity and
 $\varepsilon(\cdot)$ the symmetric gradient. In this chapter, we
 assume that the fluid is an incompressible Newtonian fluid. The fluid
-is then described by the classical incompressible Navier--Stokes
+is then described by the incompressible Navier--Stokes
 equations:
 \begin{align}
   \label{selim:eq:NSmom}
@@ -186,15 +189,15 @@ equations:
 \end{align}
 For a more in depth analysis of constitutive laws
 for fluids and for fluid mechanics in general,
-see~\citet{Batchelor1967,Panton1984,WeltyWicksWilson2001}.
+see~\citet{Batchelor1967,Panton1984}.
 %------------------------------------------------------------------------------
 \section{FSI and the ALE computational framework}
 \label{selim:sec:ale}
 
 To combine the Lagrangian and the Eulerian frameworks
 in a computational setting, the fluid traction force from
-problem~\eqref{selim:eq:NSmom}-\eqref{selim:eq:NScon} is transferred to
-the structure problem~\eqref{selim:eq:SVKmom}-\eqref{selim:eq:SVKcon}
+problem~\eqref{selim:eq:NSmom}--\eqref{selim:eq:NScon} is transferred to
+the structure problem~\eqref{selim:eq:SVKmom}--\eqref{selim:eq:SVKcon}
 via the Piola map: $(j\;\sigma_{_{F}}\cdot f^{-\top})\cdot n_{_{F}} = -
 \sigma_{_{S}}\cdot n_{_{S}}$ at the common fluid--structure boundary.
 The deformation of the structure, given by the structure solution
@@ -295,19 +298,22 @@ the fully coupled FSI problem:
 The corresponding set of equations for the triplet
 $(f),(S),(M)$ is given by:
 \begin{align}
-  \label{selim:eq:FSIsystem}
+  \label{selim:eq:FSIsystem-f-mom}
   &(f):&\quad
   \rhoF(\dotuF + \graduF\cdot\uF) - \divv\sigmaF(\uF,\pF) &= \bff
   \quad&&\textrm{in}\;\oF(t),
   \\
+  \label{selim:eq:FSIsystem-f-con}
   &&
   \divv\uF &= 0
   \quad&&\textrm{in}\;\oF(t),
   \\
+  \label{selim:eq:FSIsystem-S}
   &(S):&\quad
   \rhoS \ddotUS - \Divv \SigmaS(\US) &= \BS
   \quad&&\textrm{in}\;\OS\times(0,T],
   \\
+  \label{selim:eq:FSIsystem-M}
   &(M):&\quad
   \dot{U}_{_{M}} - \Divv \SigmaM(\UM) &= 0
   \quad&&\textrm{in}\;\OF\times(0,T],
@@ -317,17 +323,17 @@ proposed notation, the stress from the fluid is transferred to the
 structure and the movement of the structure is tracked in the fluid
 domain at the common fluid--structure boundary such that:
 \begin{align}
-  \label{selim:eq:ALEtraction}
+  \label{selim:eq:ALEtraction-1}
   (J_{_{M}}\;(\sigmaF\circ\PhiM) \cdot F_{_{M}}^{-\top})\cdot
   N_{_{F}} &= - \SigmaS\cdot N_{_{S}}
   \quad &&\textrm{on}\;\Gamma_{_{FS}},
   \\
-  \uF\circ\PhiM &= \dot{\Phi}_{_{S}}
+  \label{selim:eq:ALEtraction-2}
+  \uF\circ\PhiM &= \dot{U}_{_{S}}
   \quad &&\textrm{on}\;\Gamma_{_{FS}}.
 \end{align}
-Thus, \eqref{selim:eq:ALEtraction} transfers data between all the
-equations in the FSI system~\eqref{selim:eq:FSIsystem} at the common
-FSI interface.
+Thus, \eqref{selim:eq:ALEtraction-1}--\eqref{selim:eq:ALEtraction-2} transfer data between all the
+equations in the FSI system~\eqref{selim:eq:FSIsystem-f-mom}--\eqref{selim:eq:FSIsystem-M} at the common FSI interface.
 
 In the numerical solution of the fluid problem $(f)$, we compensate
 for the additional (unphysical) mesh movement $\dot{u}_{_{M}}$ in the
@@ -343,16 +349,16 @@ continuum representation of the FSI problem.
 \label{selim:sec:primalsolver}
 
 The proposed system of equations that defines the fully coupled FSI
-problem~\eqref{selim:eq:FSIsystem} is a partitioned system, where the
+problem~\eqref{selim:eq:FSIsystem-f-mom}--\eqref{selim:eq:FSIsystem-M} is a partitioned system, where the
 subproblems $(f),(S),(M)$ are connected at the fluid--structure interface
-through the boundary conditions in~\eqref{selim:eq:ALEtraction}. To
+through the boundary conditions in~\eqref{selim:eq:ALEtraction-1}--\eqref{selim:eq:ALEtraction-2}. To
 solve such a system, we utilize a fixed point iteration. The algorithm
 reads as follows and is illustrated in Figure~\ref{selim:fig:fp}.
 %%
 \begin{enumerate}
   \item Solve the fluid problem $(f)$.
 
-  \item Transfer the fluid stress using~\eqref{selim:eq:ALEtraction}
+  \item Transfer the fluid stress using~\eqref{selim:eq:ALEtraction-1}
   and solve the structure problem $(S)$.
 
   \item Solve the mesh problem $(M)$ and update the fluid domain.
@@ -390,7 +396,7 @@ simple strategy described above.
   \vspace*{24pt}
 \end{figure}
 
-The two subproblems $(f)$, $(S)$ in~\eqref{selim:eq:FSIsystem} define a
+The two subproblems $(f)$, $(S)$ define a
 classic set of equations from fluid and structure mechanics. To solve the
 coupled system, a solver framework for handling both types of physics
 is needed. For this purpose, we have used the multiphysics framework
@@ -400,13 +406,13 @@ two core components; \emp{CBC.Flow} and \emp{CBC.Twist}.  These are
 frameworks explicitly developed for solving fluid mechanics problems and
 structure mechanics problems, respectively.  In the subsequent sections,
 we will briefly explain these frameworks and the code that solves the
-FSI problem~\eqref{selim:eq:FSIsystem}.
+FSI problem~\eqref{selim:eq:FSIsystem-f-mom}--\eqref{selim:eq:FSIsystem-M}.
 
 
 %------------------------------------------------------------------------------
 \vspace*{-3pt}\subsection{Fluid subproblem}
 
-The fluid subproblem in~\eqref{selim:eq:FSIsystem} is solved using the
+The fluid subproblem in~\eqref{selim:eq:FSIsystem-f-mom}--\eqref{selim:eq:FSIsystem-f-con} is solved using the
 \emp{CBC.Solve} module \emp{CBC.Flow}. The fluid problem can be
 solved in an Eulerian coordinate system or in an ALE coordinate
 system, and the solver is based on the stress formulation of the
@@ -488,8 +494,7 @@ method~\citep{ErikssonEstepHansboEtAl1996} or the ``HHT''
 method~\citep{HilberHughesTaylor1977}.  In the \cgone{} method, used in
 this chapter, the structure problem is re-written as a first order
 system in time by introducing the additional equation $P_{_{S}} -
-\dot{U}_{_{S}} = 0$ to the structure equation $(S)$
-in~\eqref{selim:eq:FSIsystem}. The structure stress tensor, regardless
+\dot{U}_{_{S}} = 0$ to the structure equation~\eqref{selim:eq:FSIsystem-S}. The structure stress tensor, regardless
 of material model, is given as the first Piola--Kirchhoff tensor and
 the nonlinear variational problem is solved using Newton's method.
 The implementation of the \cgone{} version is illustrated in the code
@@ -529,7 +534,7 @@ class CG1MomentumBalanceSolver(CBCSolver):
   solver \emp{CBC.Twist}. In the \cgone{} method, the structure problem
   is re-written as a first order system in time by introducing the
   additional equation $P_{_{S}} - \dot{U}_{_{S}} = 0$ to the structure
-  equation $(S)$ in~\eqref{selim:eq:FSIsystem}. The two resulting
+  equation~\eqref{selim:eq:FSIsystem-S}. The two resulting
   equations are multiplied with test functions \emp{v} and \emp{q}
   respectively, and adding the two equations yields the nonlinear
   variational form \emp{L}. The nonlinear variational form \emp{L}
@@ -602,7 +607,7 @@ computation of a specific goal functional $\M$, such that
 Here, $ U-U^{hk} \equiv e$ is the error of the finite element solution
 in space $(h)$ and time $(k)$, and $\mathrm{TOL}>0$ is a user-defined
 tolerance.  To define the dual problem for the FSI
-problem~\eqref{selim:eq:FSIsystem}, we pull the fluid subproblem
+problem~\eqref{selim:eq:FSIsystem-f-mom}--\eqref{selim:eq:FSIsystem-M}, we pull the fluid subproblem
 $(f)$ back from the current fluid domain $\oF(t)$ to the fluid reference
 domain $\OF$ using the map $\PhiM$:
 \begin{equation}
@@ -614,7 +619,7 @@ domain $\OF$ using the map $\PhiM$:
 With the fluid problem $(F)$ defined in the reference domain, all the
 three subproblems $(F,S,M)$ are posed in the reference domain
 $\Omega$, and we may thus formulate a monolithic counterpart to the
-FSI problem~\eqref{selim:eq:FSIsystem}. The abstract nonlinear
+FSI problem~\eqref{selim:eq:FSIsystem-f-mom}--\eqref{selim:eq:FSIsystem-M}. The abstract nonlinear
 variational form reads: find $U\equiv \{\UF, \PF, \US, \PS, \UM,
 P_{_{M}} \}\in V$ such that
 \begin{equation}
@@ -725,17 +730,28 @@ and space/time in the error
 representation~\eqref{selim:eq:representation} to obtain the following
 \apost{} error estimate: $|\M(U) - \M(U^{hk})| \leqslant  E_h +
 E_k + E_c$, where
-
-\begin{equation}
-\label{selim:eq:aposteriori}
-\begin{split}
-E_h &\equiv \sum_{n=1}^{N}\int_{I_n} \sum_{T\in\mathcal{T}_h}| \langle
-R_T,\; Z - \pi_h Z \rangle_T |+ | \langle \tfrac{1}{2}\llbracket R_{\partial T}
-\rrbracket,\; Z - \pi_h Z \rangle _{\partial T}|\dt,\\\\ E_k &\equiv
-\;\mathcal{S}(T)\max_{[0,T]}\;\{k_n | r_k ^n|\},\\\\ E_c &\equiv
-|r(\pi_{hk}Z)|.
-\end{split}
-\end{equation}
+%% \begin{equation}
+%% \label{selim:eq:aposteriori}
+%% \begin{split}
+%% E_h &\equiv \sum_{n=1}^{N}\int_{I_n} \sum_{T\in\mathcal{T}_h}| \langle
+%% R_T,\; Z - \pi_h Z \rangle_T |+ | \langle \tfrac{1}{2}\llbracket R_{\partial T}
+%% \rrbracket,\; Z - \pi_h Z \rangle _{\partial T}|\dt,\\\\ E_k &\equiv
+%% \;\mathcal{S}(T)\max_{[0,T]}\;\{k_n | r_k ^n|\},\\\\ E_c &\equiv
+%% |r(\pi_{hk}Z)|.
+%% \end{split}
+%% \end{equation}
+\begin{align}
+  \label{selim:eq:aposteriori-Eh}
+   E_h &\equiv \sum_{n=1}^{N}\int_{I_n} \sum_{T\in\mathcal{T}_h}| \langle
+   R_T,\; Z - \pi_h Z \rangle_T |+ | \langle \tfrac{1}{2}\llbracket R_{\partial T}
+   \rrbracket,\; Z - \pi_h Z \rangle _{\partial T}|\dt,
+   \\\nonumber\\
+   \label{selim:eq:aposteriori-Ek}
+   E_k &\equiv\;\mathcal{S}(T)\max_{[0,T]}\;\{k_n | r_k ^n|\},
+   \\\nonumber\\
+   \label{selim:eq:aposteriori-Ec}
+   E_c &\equiv |r(\pi_{hk}Z)|.
+\end{align}
 Here, $E_h$ estimates the space discretization error which on each
 space-time slab $S_n = \mathcal{T}_h \times I_n$ is expressed as the sum
 of error indicators $R_T$ and $R_{\partial T}$ from the cells of the
@@ -800,7 +816,7 @@ mesh.  For a more comprehensive discussion and derivation of this
 \subsection{The adaptive algorithm}
 
 With the \apost{} error estimate presented
-in~\eqref{selim:eq:aposteriori}, we construct an algorithm based on a
+in~\eqref{selim:eq:aposteriori-Eh}--\eqref{selim:eq:aposteriori-Ec}, we construct an algorithm based on a
 feedback process that provides an adaptive space-time discretization
 such that~\eqref{selim:eq:goalTOL} holds. In order to determine the
 stopping criteria for the space and time discretizations, the user
@@ -812,7 +828,7 @@ where $\mathrm{TOL}_h = w_h \mathrm{TOL}, \;\mathrm{TOL}_k = w_k
 \mathrm{TOL}, \;\mathrm{TOL}_c = w_c \mathrm{TOL}$.  We here take $w_h
 = w_k = w_c = 1/3$. The weight $w_c$ affects the tolerance used for
 the fixed point algorithm when
-solving~\eqref{selim:eq:FSIsystem}. Based on the spatial error
+solving~\eqref{selim:eq:FSIsystem-f-mom}--\eqref{selim:eq:FSIsystem-M}. Based on the spatial error
 estimate $E_h$, we refine the mesh until $E_h \leqslant \mathrm{TOL}_h$.
 There are various ways in which refine the mesh and to determine which
 elements to refine. In the examples to come, we have adopted the
@@ -852,7 +868,8 @@ error.
 
 The main outline of the adaptive FSI algorithm is depicted in
 Figure~\ref{selim:fig:adaptiveMAP}. In the \emp{FSISolver}, the FSI
-problem~\eqref{selim:eq:FSIsystem} (referred to as the primal problem)
+problem~~\eqref{selim:eq:FSIsystem-f-mom}--\eqref{selim:eq:FSIsystem-M}
+(referred to as the primal problem)
 is solved in the module \emp{PrimalSolver}, which solves and
 transfers data from the three subproblems defined in
 \emp{CBC.Twist}, \emp{CBC.Flow} and \emp{MeshSolver}. Once
@@ -860,21 +877,22 @@ the entire primal problem is solved, the primal data is passed to the
 \emp{DualSolver}. In the dual solver, the linearized dual
 problem~\eqref{selim:eq:dual} is solved. The primal and dual solutions
 are passed to the module \emp{Residuals} where the error
-estimate~\eqref{selim:eq:aposteriori} is evaluated. The code for the
+estimate~\eqref{selim:eq:aposteriori-Eh}--\eqref{selim:eq:aposteriori-Ec} is evaluated. The code for the
 \emp{FSISolver} is illustrated in
 Figure~\ref{selim:fig:FSISolver-1} and Figure~\ref{selim:fig:FSISolver-2}.
 
 To summarize, the adaptive feedback process involves the following steps:
 \begin{enumerate}
   \item Solve the partitioned (primal) FSI
-  problem~\eqref{selim:eq:FSIsystem} for $t\in(0,T]$. For each
+  problem~\eqref{selim:eq:FSIsystem-f-mom}--\eqref{selim:eq:FSIsystem-M}
+ for $t\in(0,T]$. For each
   time step, determine the local time step size $k_n$ according
   to~\eqref{selim:eq:timestep2}.
 
   \item Solve the dual problem~\eqref{selim:eq:dual} for $t\in[0,T)$
   using the same time step size as in the primal problem.
 
-  \item Evaluate the error estimate~\eqref{selim:eq:aposteriori} and
+  \item Evaluate the error estimate~\eqref{selim:eq:aposteriori-Eh}--\eqref{selim:eq:aposteriori-Ec} and
   refine the computational domain in space.
 
   \item Repeat steps 1 -- 3 until $\M(e)\leqslant \mathrm{TOL}$.
@@ -885,7 +903,8 @@ To summarize, the adaptive feedback process involves the following steps:
   \centering
   \includegraphics[width=\largefig]{chapters/selim/pdf/adaptive.pdf}
   \caption{A schematic picture of the adaptive FSI algorithm. The primal
-    problem ~\eqref{selim:eq:FSIsystem} is solved iteratively in the
+    problem~\eqref{selim:eq:FSIsystem-f-mom}--\eqref{selim:eq:FSIsystem-M}
+ is solved iteratively in the
     \emp{PrimalSolver} and the solution $U$ is passed to the
     \emp{FSISolver}. The dynamic time step $k_n$ is calculated for
     each time step in the iterative solver \emp{PrimalSolver}
@@ -905,7 +924,7 @@ To summarize, the adaptive feedback process involves the following steps:
     the first adaptive loop, we make an initial guess of the stability
     factor $\mathcal{S}(T)=1$ in order to adapt the time step in the
     first loop.  The variable name \emp{error} represents the sum of
-    $E_h + E_k + E_c$ in~\eqref{selim:eq:aposteriori} and
+    $E_h + E_k + E_c$ in~\eqref{selim:eq:aposteriori-Eh}--\eqref{selim:eq:aposteriori-Ec} and
     \emp{indicator} represents $\eta_T$ in~\eqref{selim:eq:dorfler}.}
 \begin{python}
 class FSISolver(CBCSolver):
@@ -1015,8 +1034,8 @@ and in Figure~\ref{selim:fig:dual_channel_2}.
 
 \begin{figure}
   \centering
-    \subfloat[]{\label{subfig:1:a}\includegraphics[width=\largefig]{chapters/selim/png/new_channel.png}} \\
-  \subfloat[]{\label{subfig:1:b}\includegraphics[width=\largefig]{chapters/selim/png/channel_test_zoom.png}}
+    \subfloat[]{\label{subfig:1:a}\includegraphics[width=\mediumfig]{chapters/selim/png/new_channel.png}} \\
+  \subfloat[]{\label{subfig:1:b}\includegraphics[width=\mediumfig]{chapters/selim/png/channel_test_zoom.png}}
   \caption{The adaptive FSI solution to the channel with flap problem
      depicted in the current domain $\omega(t)$ at final time
      $t=0.5$. In Figure~(a), the fluid velocity solution
@@ -1122,7 +1141,8 @@ in~Figure~\ref{selim:fig:cavity_timestep}.
 In this chapter, an adaptive finite element method for FSI
 problems has been formulated and its implementation in FEniCS has
 been demonstrated. By relating the fully coupled partitioned FSI
-problem~\eqref{selim:eq:FSIsystem} in a moving domain to a dual
+problem~~\eqref{selim:eq:FSIsystem-f-mom}--\eqref{selim:eq:FSIsystem-M}
+ in a moving domain to a dual
 problem~\eqref{selim:eq:dual} posed on a fixed reference domain, an
 adapted space and time discretization is obtained.
 
@@ -1134,4 +1154,3 @@ goal that it will allow users to easily solve fluid problems, structure
 and FSI problems. Everyone is encouraged to fetch and try it.  Users are
 also encouraged to modify the code to better suit their own purposes,
 and contribute changes that they think are useful to the community.
-
