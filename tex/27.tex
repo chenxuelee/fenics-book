@@ -580,9 +580,9 @@ L = inner(P, Grad(v))*dx - inner(B, v)*dx - inner(PN, v)*ds
 a = derivative(L, u, du)
 
 # Setup and solve problem
-equation = VariationalProblem(a, L, bcu,
-                              nonlinear = True)
-equation.solve(u)
+problem = NonlinearVariationalProblem(L, u, bcu, a)
+solver = NonlinearVariationalSolver(problem)
+solver.solve()
 \end{python}
 \caption{The relevant section of the class
 \emp{StaticMomentumBalanceSolver}, the solver for the static balance of
@@ -715,7 +715,7 @@ second order accurate and energy conserving.\footnote{This is
   demonstrated in Figure~\ref{fig:narayanan:energies} as part of the
   second example calculation.}  But it should also be noted that the mixed
 system that results from the formulation is computationally expensive
-and memory intensive as the number of variables being solved for have
+and memory intensive, as the number of variables being solved for have
 doubled due to the introduction of the velocity variable.
 
 \twist{} also provides a standard implementation of a finite
@@ -869,11 +869,9 @@ class Twist(StaticHyperelasticity):
     def dirichlet_conditions(self):
         clamp = Expression(("0.0", "0.0", "0.0"))
         twist = Expression(("0.0",
-        "y0 + (x[1]-y0)*cos(theta) - (x[2]-z0)*sin(theta) - x[1]",
-        "z0 + (x[1]-y0)*sin(theta) + (x[2]-z0)*cos(theta) - x[2]"))
-        twist.y0 = 0.5
-        twist.z0 = 0.5
-        twist.theta = pi/3
+        "y0+(x[1]-y0)*cos(theta)-(x[2]-z0)*sin(theta)-x[1]",
+        "z0+(x[1]-y0)*sin(theta)+(x[2]-z0)*cos(theta)-x[2]"),
+        y0=0.5, z0=0.5, theta=pi/3)
         return [clamp, twist]
 
     def dirichlet_boundaries(self):
@@ -1093,8 +1091,7 @@ class FishyFlow(Hyperelasticity):
         return 0.1
 
     def neumann_conditions(self):
-        flow_push = Expression(("force", "0.0"))
-        flow_push.force = 0.05
+        flow_push = Expression(("force", "0.0"), force=0.05)
         return [flow_push]
 
     def neumann_boundaries(self):
