@@ -843,31 +843,57 @@ $f_{,i}$, which is shorthand for $\frac{\partial f}{\partial x_i}$.
 Repeated indices imply summation, such that the divergence of a vector
 valued expression \emp{v} can be written $v_{i,\,i}$, or \emp{v[i].dx(i)}.
 
-Several common compound spatial derivative operators are defined, namely
-\emp{div}, \emp{grad}, \emp{curl} and \emp{rot} (rot is a synonym for
-curl). Be aware that there are two common ways to define $\mop{grad}$
-and $\mop{div}$. Let $s$ be a scalar expression, $\vv$ be a vector
-expression, and $\MM$ be a tensor expression of rank $r$.  In \ufl{},
-the gradient is then defined as
+Several common compound spatial derivative operators are defined,
+namely the gradient, divergence, and curl (rot) operators.
+These operators are named \emp{grad}, \emp{div},
+\emp{nabla\_grad}, \emp{nabla\_div},
+\emp{curl} and \emp{rot} (rot is a synonym for curl).
+Be aware that there are two common ways to define the
+gradient and divergence, and \ufl{} supports both.
+
+Let $s$ be a scalar expression, $\vv$ be a vector expression,
+and $\MM$ be a tensor expression of rank $r$.
+In \ufl{}, the operator \emp{grad} is then defined explicitly as
 \begin{align}
 \left(\Grad (s) \right)_{i} &= s_{,i}, \\
 \left(\Grad (\vv) \right)_{ij} &= v_{i,j}, \\
 \left(\Grad (\MM) \right)_{i_1\,\ldots\,i_r\,k} &= M_{i_1\,\ldots\,i_r,\,k},
 \end{align}
-and the divergence is correspondingly defined as
+and the operator \emp{div} is correspondingly defined as
 \begin{align}
 \Div (\vv) &= v_{i,\,i}, \\
 \left(\Div (\MM) \right)_{i_1\,\ldots\,i_{r-1}} &= M_{i_1\,\ldots\,i_r,\,i_r}.
 \end{align}
-Thinking in terms of value shape, the gradient appends an axis to the
-end of the tensor shape of its operand.  Correspondingly, the divergence
-sums over the last index of its operand.
-
-For 3D vector expressions, curl is defined in terms of the nabla operator
-and the cross product:
+In contrast, the \emp{nabla\_*} operators are defined
+in terms of the $\mop{\nabla}$ operator
 \begin{align}
-  \nabla &\equiv \ee_k \frac{\partial}{\partial x_k}, \\
-  \mop{curl}(\vv) &\equiv \nabla \times \vv.
+  \nabla &\equiv \ee_k \frac{\partial}{\partial x_k}.
+\end{align}
+The operator \emp{nabla\_grad} is the outer product of $\mop{\nabla}$ with its operand:
+\begin{align}
+  \left(\nabla s\right)_i     &= s_{,i}, \\
+  \left(\nabla \vv\right)_{ij} &= v_{j,i}, \\
+  \left(\nabla \MM \right)_{k, i_1\,\ldots\,i_r} &= M_{i_1\,\ldots\,i_r,\,k}.
+\end{align}
+Similarly, the operator \emp{nabla\_div} is the dot product of $\mop{\nabla}$ with its operand:
+\begin{align}
+  \nabla \cdot \vv &= v_{i,\,i}, \\
+  \left(\nabla \cdot \MM \right)_{i_2\,\ldots\,i_r} &= M_{i_1\,\ldots\,i_r,\,i_1}.
+\end{align}
+Thinking in terms of value shape, the \emp{grad} operator appends
+an axis to the end of the shape of its operand,
+while the \emp{nabla\_grad} operator prepends an axis.
+For gradients of scalars, the result is the same.
+Correspondingly, the \emp{div} operator sums over the last index of its operand,
+while the \emp{nabla\_div} operator sums over the first index of its operand.
+For the divergence of vectors, the result is the same.
+
+For the operators \emp{curl} and \emp{rot} there is no difference
+between the two traditions. For 3D vector expressions, the curl can be
+defined in terms of the nabla operator and the cross product:
+\begin{align}
+  \mop{curl}(\vv) &\equiv \nabla \times \vv = 
+  \ee_0 (v_{2,1} - v_{1,2}) - \ee_1 (v_{2,0} - v_{0,2}) + \ee_2 (v_{1,0} - v_{0,1})
 \end{align}
 For 2D vector and scalar expressions the definitions are:
 \begin{align}
