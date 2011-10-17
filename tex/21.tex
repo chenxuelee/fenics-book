@@ -314,7 +314,7 @@ will tend to ``creep'' around the corners.
 # Tentative velocity step
 U = 0.5*(u0 + u)
 F1 = (1/k)*inner(u - u0, v)*dx \
-   + inner(inner(u0, nabla_grad(u0)), v)*dx \
+   + inner(dot(u0, nabla_grad(u0)), v)*dx \
    + inner(sigma(U, p0, nu), epsilon(v))*dx \
    + inner(p0*n, v)*ds \
    - beta*nu*inner(dot(n, nabla_grad(U).T), v)*ds \
@@ -356,9 +356,9 @@ q$ for $q
 $\renni{\nabla q}{\dot{u} + u \cdot \nabla u - \nu \Delta u + \nabla
   p} = \renni{\nabla q}{f}$. Since $\renni{\nabla q}{\dot{u}} =
 \renni{-q}{\nabla \cdot \dot{u}} + \renni{qn}{\dot{u}}_{\partial
-  \Omega}$, it follows by~(\ref{eq:ns,con}) that
+  \Omega} = 0$, it follows by~(\ref{eq:ns,con}) that
 \begin{equation}\label{eq:css,laplace}
-  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - u \cdot \nabla +
+  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - u \cdot \nabla u +
     \nu \Delta u},
 \end{equation}
 if we assume that $\dot{u} = 0$ on~$\partial\Omega$. Next, we use the
@@ -387,7 +387,7 @@ following pair of variational problems:
 \end{equation}
 where $D_t^n u_h$ is an appropriate approximation of $\dot{u}_h$ and
 $p^{\bigstar}_h$ is an appropriate approximation of the pressure. In
-the simplest case, one may chose $p_h^{\bigstar} = p_h^{n-1}$ but
+the simplest case, one may choose $p_h^{\bigstar} = p_h^{n-1}$ but
 higher order approximations are also possible. For example, one may
 take $p_h^{\bigstar}$ to be the linear extrapolation of $p_h$ from
 $p_h^{n-2}$ and $p_h^{n-1}$ given by $p_h^{\bigstar} = p_h^{n-1} +
@@ -528,7 +528,7 @@ defined by
 \begin{equation}
   \begin{split}
     \renni{v}{D_t^n u_h}
-    + \renni{v}{\nabla u_n^n \cdot w}
+    + \renni{v}{w \cdot \nabla u_n^n}
     + \renni{\epsilon(v)}{\sigma(u_h^{n-\frac{1}{2}}, p_h^n)}
     - \renni{v}{\nu n \cdot (\nabla u_h^{n-\frac{1}{2}})^{\top}}_{\partial\Omega}
     + \renni{v}{\bar{p} n}_{\partial\Omega}
@@ -541,12 +541,12 @@ for all $(v, q) \in V_h \times Q_h$, where $u^{n-\frac{1}{2}} =
 ({u}^{n}_h + {u}^{n-1}_h) / 2$ and
 \begin{equation}
   SD_{\delta}
-  = \renni{\nabla v \,  u_h^{n-\frac{1}{2}}}{\delta_1 u_h^{n-\frac{1}{2}} \cdot \nabla u_h^{n-\frac{1}{2}}}
+  = \renni{u_h^{n-\frac{1}{2}} \cdot \nabla v}{\delta_1 u_h^{n-\frac{1}{2}} \cdot \nabla u_h^{n-\frac{1}{2}}}
   + \renni{\nabla \cdot v}{\delta_2 \nabla \cdot u_h^{n-\frac{1}{2}}}.
 \end{equation}
 The G2 equations may be obtained by testing the incompressible
 Navier--Stokes equations against modified test functions $v
-\rightarrow v + \delta_1 (\bar{u}^{n} \cdot \nabla v + \nabla q)$ and
+\rightarrow v + \delta_1 (u_h^{n-\frac{1}{2}} \cdot \nabla v + \nabla q)$ and
 $q \rightarrow q + \delta_2 \nabla \cdot v$ and dropping a number of
 terms, including all stabilizing terms involving the time derivative
 $D_t^n u_h$. The stabilization parameters are set to $\delta_{1} =
@@ -625,7 +625,8 @@ Fv = (1/k)*inner(u - u0, v)*dx \
    - beta*nu*inner(dot(n, nabla_grad(U).T), v)*ds \
    + inner(pbar*n, v)*ds \
    - inner(f, v)*dx \
-   + d1*inner(dot(W, nabla_grad(U)), dot(W, nabla_grad(v)))*dx \
+   + d1*inner(dot(W, nabla_grad(U)), \
+              dot(W, nabla_grad(v)))*dx \
    + d2*nabla_div(U)*nabla_div(v)*dx
 av = lhs(Fv)
 Lv = rhs(Fv)
@@ -713,7 +714,7 @@ $A_Q$ are the mass and stiffness matrices associated with the pressure
 discretization. Hence, we let $L_1=\frac{1}{\deltat} M_Q$ and
 ${L}_2=A_Q$ and approximate $L^{-1}$ by $\tau_1 L_1^{-1} + \tau_2
 {L}_2^{-1}$. For simplicity, we here let $\tau_1 = \tau_2 = 2$.  For a
-further discussion on these preconditioners, we refer to the
+further discussion on these preconditioners, we refer to
 Chapter~\ref{chap:mardal-4}. In the implementation, we have chosen to
 exclude the convective term in the preconditioners $K$ and $L$ to
 avoid reassembly.  The GRPC scheme is summarized in Scheme~6 and the
@@ -868,7 +869,7 @@ functional are available in \citet{PanditKalitaDalal2007}, where a
 reference value of $\min\psi = -0.0585236$ is reported, and
 in \citet{ChudanovPopkovChurbanovEtAl2007}, where a value of $\min\psi
 = -0.058048$ is reported. These values differ already in the third
-decimal. To obtain a better reference value, we have therefore
+digit. To obtain a better reference value, we have therefore
 computed the solution using the spectral element code Semtex \citep{Blackburn2009,Blackburn2004}
 with up to $80 \times 80$ $10^{th}$ order elements heavily refined in
 the area in the vicinity of the minimum of the stream function. The
@@ -883,9 +884,10 @@ Figure~\ref{fig:drivencavity_CPU_and_errors}.
 
 \paragraph{Computing the stream function.}
 
-The stream function is defined as
+The stream function is defined by
 \begin{equation}
-  u_x = \frac{\partial{\psi}}{\partial{y}}, \;\; \;\;  u_y = \frac{\partial{\psi}}{\partial{x}},
+  u = \nabla \times \psi
+  = (\frac{\partial{\psi}}{\partial{y}}, -\frac{\partial{\psi}}{\partial{x}})
 \end{equation}
 and can be computed by solving the Poisson problem
 \begin{equation}
@@ -893,7 +895,8 @@ and can be computed by solving the Poisson problem
  \end{equation}
 where $\omega$ is the vorticity given by
 \begin{equation}
-  \omega = \frac{\partial{u_x}}{\partial{y}} - \frac{\partial{u_y}}{\partial{x}}.
+  \omega = \nabla \times u
+  = \frac{\partial{u_y}}{\partial{x}} - \frac{\partial{u_x}}{\partial{y}}.
 \end{equation}
 For a more thorough description, see \citet{White1999}
 or \citet{White1991}. Figure~\ref{fig:streamfunction} shows how to
@@ -915,8 +918,8 @@ g  = Constant(0)
 bc = DirichletBC(V, g, DomainBoundary())
 
 # Compute solution
-problem = VariationalProblem(a, L, bc)
-psi = problem.solve()
+psi = Function(V)
+solve(a == L, psi, bc)
     \end{python}
     \caption{Computing the stream function in DOLFIN.}
     \label{fig:streamfunction}
@@ -1236,14 +1239,14 @@ is accurate but expensive.
 As pointed out in \citet{GuermondMinevShen2006}, the fractional step
 solvers are usually plagued by an artificial boundary layer, because
 the boundary condition $ \nabla p^n_h \cdot n |_{\partial\Omega}=0$ is
-enforced on the pressure. This 'unphysical' Neumann boundary condition
+enforced on the pressure. This ``unphysical'' Neumann boundary condition
 can create a numerical boundary layer simply because the velocity
 update $u^{n}_h=u^{n-1}-\deltat\nabla p^n_h$ may lead to nonzero
 velocities in the tangential direction on no-slip walls (this follows
 since there is nothing preventing the pressure gradient from being
 nonzero in the tangential direction). However, in this work the
 velocity is being updated through a weak form where the no-slip
-boundary condition is strongly enforced. As such, the tangential
+boundary condition is strongly enforced. Therefore, the tangential
 velocity is set to zero and an artificial boundary layer is not
 observed in our simulations using the fractional step solvers Chorin
 and IPCS.

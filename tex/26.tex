@@ -72,7 +72,7 @@ We will consider problems posed on a polygonal domain $\Omega \subset
 denoted by $\partial \Omega$, is decomposed into regions $\Gamma_{D}$
 and $\Gamma_{N}$ such that $\Gamma_{D} \cup \Gamma_{N} = \partial \Omega$
 and $\Gamma_{D} \cap \Gamma_{N} = \emptyset$.  The outward unit normal
-vector on $\partial \Omega$ is will be denoted by~$n$.  For time-dependent
+vector on $\partial \Omega$ will be denoted by~$n$.  For time-dependent
 problems, we will consider a time interval of interest~$I = (0, T]$
 and let superimposed dots denote time derivatives.  We will use $\Omega$
 to denote the current configuration of a solid body; that is, the domain
@@ -989,9 +989,11 @@ c  = Constant((0.0, 0.0, 0.0))
 bc = DirichletBC(V, c, DomainBoundary())
 
 # Set up PDE and solve
-problem = VariationalProblem(a, L, bc)
-problem.parameters["symmetric"] = True
-u = problem.solve()
+u = Function(V)
+problem = LinearVariationalProblem(a, L, u, bcs=bc)
+solver = LinearVariationalSolver(problem)
+solver.parameters["symmetric"] = True
+solver.solve()
 \end{python}
 \caption{DOLFIN Python solver for a simple linearized elasticity problem
 on a unit cube.}
@@ -1389,8 +1391,9 @@ F = derivative(Pi, u, w)
 dF = derivative(F, u, du)
 
 # Create nonlinear variational problem and solve
-problem = VariationalProblem(F, dF, bc)
-problem.solve(u)
+problem = NonlinearVariationalProblem(F, u, bcs=bc, J=dF)
+solver = NonlinearVariationalSolver(problem)
+solver.solve()
 
 # Save solution in VTK format
 file = File("displacement.pvd");
@@ -1544,18 +1547,20 @@ def left(x):
 bc = DirichletBC(V, zero, left)
 
 # Set up PDE, advance in time and solve
-problem = VariationalProblem(a, L, bcs=bc)
+u = Function(V)
+problem = LinearVariationalProblem(a, L, u, bcs=bc)
+solver = LinearVariationalSolver(problem)
 # Save solution in VTK format
 file = File("displacement.pvd")
 while t <= T:
     t += dt
     h.t = t
-    u = problem.solve()
+    solver.solve()
     update(u, u0, v0, a0, beta, gamma, dt)
     file << u
 \end{python}
 \caption{Continuation of Python code extract for solving for a dynamic
-problem in Figure~\ref{fig:oelgaard-1:time_ufl_code2}.}
+problem.}
 \label{fig:oelgaard-1:time_ufl_code2}
 \end{figure}
 
