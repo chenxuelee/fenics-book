@@ -23,6 +23,9 @@
   \normalsize
 \end{figure}}
 
+
+\newcommand{\mop}[1]{\operatorname{#1}}
+
 In this chapter, we describe the implementation of block
 preconditioned Krylov solvers for systems of partial differential
 equations (PDEs) using CBC.Block\index{CBC.Block} and the
@@ -143,17 +146,17 @@ and \emp{Subdomains} are often removed to shorten the presentation.
 The Poisson equation with Neumann conditions reads:
 Find $u$ such that
 \begin{align}
-  -\Delta u &= f \mbox{ in } \Omega,  \\
+  -\Div \Grad u &= f \mbox{ in } \Omega,  \\
   \frac{\partial u}{\partial n} &= g \mbox{ on } \partial \Omega .
 \end{align}
 The corresponding variational problem is:  Find $u\in H^1 \cap L^2_0$ such that
 \[
-\int_\Omega \nabla u \cdot \nabla v \dx = \int_\Omega f v \dx +
+\int_\Omega \Grad u \cdot \Grad v \dx = \int_\Omega f v \dx +
 \int_{\partial \Omega} g v  \ds, \quad\foralls v \in H^1 \cap L^2_0 .
 \]
 Let the linear operator $\mathcal{A}$ be defined in terms of the  bilinear form,
 \[
-(\mathcal{A} u, v) =  \int_\Omega \nabla u \cdot \nabla v \dx.
+(\mathcal{A} u, v) =  \int_\Omega \Grad u \cdot \Grad v \dx.
 \]
 It is well-known that $\mathcal{A}$ is a bounded invertible operator
 from $H^1 \cap L^2_0$ into its dual space.  Furthermore, it is
@@ -326,16 +329,16 @@ source code \emp{poisson\_neumann.py}.
 
 Our next example is the Stokes problem,
 \begin{align}
-  -\Delta u - \nabla p &= f \quad \mbox{in} \ \Omega, \\
-  \nabla \cdot u &= 0 \quad \mbox{in} \  \Omega, \\
+  -\Div \Grad u - \Grad p &= f \quad \mbox{in} \ \Omega, \\
+  \Div u &= 0 \quad \mbox{in} \  \Omega, \\
   u &= g   \quad \mbox{on} \  \partial \Omega.
 \end{align}
 The variational form is: \\
 Find $u,p \in H^1_g \times L_0^2$ such that
 \[
-\int_\Omega \nabla u : \nabla v \dx +
-\int_\Omega \nabla \cdot u \, q \dx +
-\int_\Omega \nabla \cdot v \, p \dx = \int_\Omega f\, v \dx   , \quad
+\int_\Omega \Grad u : \Grad v \dx +
+\int_\Omega \Div u \, q \dx +
+\int_\Omega \Div v \, p \dx = \int_\Omega f\, v \dx   , \quad
 \foralls v,q \in H^1_0 \times L_0^2.
 \]
 Let the linear operator $\mathcal{A}$ be defined as
@@ -345,8 +348,8 @@ Let the linear operator $\mathcal{A}$ be defined as
 \]
 where
 \begin{align}
-  (A u, v) &= \int_\Omega \nabla u : \nabla v \dx, \\
-  (B u, q) &= \int_\Omega \nabla \cdot u \, q \dx,
+  (A u, v) &= \int_\Omega \Grad u : \Grad v \dx, \\
+  (B u, q) &= \int_\Omega \Div u \, q \dx,
 \end{align}
 and $B^*$ is the adjoint of $B$.  Then it is well-known that
 $\mathcal{A}$ is a bounded operator from $H^1_g \times L_0^2$ to its
@@ -361,7 +364,7 @@ H^1_g \times L_0^2$ defined as
 \]
 where
 \begin{align}
-  (K u, v) &= \int_\Omega \nabla u: \nabla v \dx, \\
+  (K u, v) &= \int_\Omega \Grad u: \Grad v \dx, \\
   (L p, q) &= \int_\Omega p \, q \dx.
 \end{align}
 We refer to \citet{MardalWinther11} for a mathematical explanation of
@@ -403,7 +406,7 @@ decreases, but is here stopped. However, for the stabilized method,
 $\mathrm{CG}_1-\mathrm{CG}_1$-stab, where the pressure is stabilized
 by
 \[
-\int_\Omega \nabla \cdot u \, q  - \alpha h^2 \, \nabla p \cdot \nabla q
+\int_\Omega \Div u \, q  - \alpha h^2 \, \Grad p \cdot \Grad q
     \dx,
 \]
 with $\alpha=0.01$, the number of iterations and the condition number appear to be bounded.
@@ -488,8 +491,8 @@ We refer to \emp{stokes.py} for the complete code.
 \subsection{The time-dependent Stokes problem}
 Our next example is the time-dependent Stokes problem,
 \begin{align}
-u - k \Delta u - \nabla p &= f \quad \mbox{in} \ \Omega, \\
-\nabla \cdot u &= 0 \quad \mbox{in} \  \Omega, \\
+u - k \Div \Grad u - \Grad p &= f \quad \mbox{in} \ \Omega, \\
+\Div u &= 0 \quad \mbox{in} \  \Omega, \\
              u &= 0   \quad \mbox{on} \  \partial \Omega.
 \end{align}
 Here $k$ is the time stepping parameter.
@@ -498,9 +501,9 @@ The variational form is: \\
 Find $u,p \in H^1_0 \times L_0^2$ such that
 \[
 \int_\Omega u \cdot v \dx +
-k \int_\Omega \nabla u : \nabla v \dx +
-\int_\Omega \nabla \cdot u \, q \dx +
-\int_\Omega \nabla \cdot v \, p \dx = \int_\Omega f\, v \dx, \quad
+k \int_\Omega \Grad u : \Grad v \dx +
+\int_\Omega \Div u \, q \dx +
+\int_\Omega \Div v \, p \dx = \int_\Omega f\, v \dx, \quad
 \foralls v,q \in H^1_0 \times L_0^2.
 \]
 Let
@@ -510,16 +513,16 @@ Let
 \]
 where
 \begin{align}
-  (A u, v) &= \int_\Omega u \cdot v \dx +  k \int_\Omega \nabla u : \nabla v \dx, \\
-  (B u, q) &= \int_\Omega \nabla \cdot u \, q \dx,
+  (A u, v) &= \int_\Omega u \cdot v \dx +  k \int_\Omega \Grad u : \Grad v \dx, \\
+  (B u, q) &= \int_\Omega \Div u \, q \dx,
 \end{align}
 This operator changes character as $k$ varies.  For $k=1$ the problem
 behaves like Stokes problem, with a non-harmful low order
 term. However as $k$ approaches zero the problems change to the mixed
 formulation of a Poisson equation; that is,
 \begin{align}
-  u - \nabla p &= f, \quad \mbox{in} \ \Omega, \\
-  \nabla \cdot u &= 0, \quad \mbox{in} \ \Omega.
+  u - \Grad p &= f, \quad \mbox{in} \ \Omega, \\
+  \Div u &= 0, \quad \mbox{in} \ \Omega.
 \end{align}
 This problem is not a well-defined operator from $H^1_0 \times L_0^2$
 into its dual. Instead, it is a mapping from $\Hdiv \times L_0^2$ to
@@ -542,9 +545,9 @@ Such a $\mathcal{B}$ can be defined as
 \]
 where
 \begin{align}
-  (K u, v) &= \int_\Omega u\cdot v  +  k \nabla u: \nabla v \dx, \\
+  (K u, v) &= \int_\Omega u\cdot v  +  k \Grad u: \Grad v \dx, \\
   (L p, q) &= \int_\Omega k^{-1} p q \dx, \\
-  (M p, q) &= \int_\Omega \nabla p \cdot  \nabla q \dx.
+  (M p, q) &= \int_\Omega \Grad p \cdot  \Grad q \dx.
 \end{align}
 Again we refer to \citet{MardalWinther11} and references therein, for
 an overview and more comprehensive mathematical derivation of the
@@ -603,17 +606,17 @@ coarse meshes.  The complete code can be found in \emp{timestokes.py}
 The final example is a mixed formulation
 of the Hodge Laplacian,
 \begin{align}
-\nabla \times \nabla \times u - \nabla p &= f \quad \mbox{in} \ \Omega,    \label{mixed:hodge1} \\
-\nabla \cdot u -p &=  0 \quad \mbox{in} \ \Omega, \label{mixed:hodge2} \\
+\mop{rot} \mop{curl} u - \Grad p &= f \quad \mbox{in} \ \Omega,    \label{mixed:hodge1} \\
+\Div u -p &=  0 \quad \mbox{in} \ \Omega, \label{mixed:hodge2} \\
              u \times n &= 0 \quad \mbox{on} \ \partial \Omega, \\
              p          &= 0 \quad \mbox{on} \ \partial \Omega.
 \end{align}
 The variational form is: \\
 Find $u, p \in H_0(\operatorname{curl}) \times H^1_0$ such that
 \begin{align}
-\int_\Omega \nabla \times u \cdot \nabla \times v \dx
-- \int_\Omega \nabla p v \dx &= \int_\Omega f v \dx  \quad \foralls v \in H_0(\operatorname{curl}), \\
- \int_\Omega u  \nabla q \dx - \int_\Omega p q \dx &= 0 \quad
+\int_\Omega \mop{curl} u \cdot \mop{curl} v \dx
+- \int_\Omega \Grad p \, v \dx &= \int_\Omega f v \dx  \quad \foralls v \in H_0(\operatorname{curl}), \\
+ \int_\Omega u  \Grad q \dx - \int_\Omega p q \dx &= 0 \quad
  \foralls q \in H^1_0.
 \end{align}
 Hence, it is natural to consider a preconditioner  for
@@ -633,9 +636,9 @@ Let
 \]
 where,
 \begin{align}
-  (A u, v) &= \int_\Omega \nabla \times u \cdot \nabla \times v \dx, \\
-  (B p, v) &=  - \int_\Omega \nabla p v \dx, \\
-  (C p, q) &=  - \int_\Omega p q \dx.
+  (A u, v) &= \int_\Omega \mop{curl} u \cdot \mop{curl} v \dx, \\
+  (B p, v) &=  - \int_\Omega \Grad p \, v \dx, \\
+  (C p, q) &=  - \int_\Omega p \, q \dx.
 \end{align}
 Then $\mathcal{A}: H_0(\operatorname{curl}) \times H^1_0 \rightarrow
 H^{-1}(\operatorname{curl}) \times H^{-1}$, where
@@ -646,7 +649,7 @@ However, if we for the moment forget about the boundary conditions,
 we can obtain the Laplacian form  by eliminating $p$
 from \eqref{mixed:hodge1}-\eqref{mixed:hodge2}; that is,
 \[
-\nabla \times \nabla \times u - \nabla \nabla \cdot u = f .
+\mop{rot} \mop{curl} u - \Div \Grad u = f .
 \]
 Hence, the problem is elliptic
 in nature and modulo boundary conditions,  $\mathcal{A}: H^1 \times L^2 \rightarrow  H^{-1} \times L^2$.
