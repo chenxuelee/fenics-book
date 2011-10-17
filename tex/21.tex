@@ -91,7 +91,7 @@ The above quantities $\sigma$ and $\epsilon$ may be defined as follows
 in DOLFIN/UFL:
 \begin{python}
 def epsilon(u):
-    return 0.5*(grad(u) + grad(u).T)
+    return 0.5*(nabla_grad(u) + nabla_grad(u).T)
 \end{python}
 \begin{python}
 def sigma(u, p, nu):
@@ -238,18 +238,19 @@ satisfied exactly (at the nodal points).
     \begin{python}
 # Tentative velocity step
 F1 = (1/k)*inner(u - u0, v)*dx \
-   + inner(grad(u0)*u0, v)*dx \
-   + nu*inner(grad(u), grad(v))*dx - inner(f, v)*dx
+   + inner(dot(u0, nabla_grad(u0)), v)*dx \
+   + nu*inner(nabla_grad(u), nabla_grad(v))*dx \
+   - inner(f, v)*dx
 a1 = lhs(F1)
 L1 = rhs(F1)
 
 # Poisson problem for the pressure
-a2 = inner(grad(p), grad(q))*dx
-L2 = -(1/k)*div(us)*q*dx
+a2 = inner(nabla_grad(p), nabla_grad(q))*dx
+L2 = -(1/k)*nabla_div(us)*q*dx
 
 # Velocity update
 a3 = inner(u, v)*dx
-L3 = inner(us, v)*dx - k*inner(grad(p1), v)*dx
+L3 = inner(us, v)*dx - k*inner(nabla_grad(p1), v)*dx
     \end{python}
     \caption{Implementation of variational forms for the Chorin solver.}
     \label{fig:chorin_code}
@@ -313,22 +314,22 @@ will tend to ``creep'' around the corners.
 # Tentative velocity step
 U = 0.5*(u0 + u)
 F1 = (1/k)*inner(u - u0, v)*dx \
-   + inner(grad(u0)*u0, v)*dx \
+   + inner(inner(u0, nabla_grad(u0)), v)*dx \
    + inner(sigma(U, p0, nu), epsilon(v))*dx \
    + inner(p0*n, v)*ds \
-   - beta*nu*inner(grad(U).T*n, v)*ds \
+   - beta*nu*inner(dot(n, nabla_grad(U).T), v)*ds \
    - inner(f, v)*dx
 a1 = lhs(F1)
 L1 = rhs(F1)
 
 # Pressure correction
-a2 = inner(grad(p), grad(q))*dx
-L2 = inner(grad(p0), grad(q))*dx \
-   - (1.0/k)*div(u1)*q*dx
+a2 = inner(nabla_grad(p), nabla_grad(q))*dx
+L2 = inner(nabla_grad(p0), nabla_grad(q))*dx \
+   - (1.0/k)*nabla_div(u1)*q*dx
 
 # Velocity correction
 a3 = inner(u, v)*dx
-L3 = inner(u1, v)*dx - k*inner(grad(p1 - p0), v)*dx
+L3 = inner(u1, v)*dx - k*inner(nabla_grad(p1 - p0), v)*dx
     \end{python}
     \caption{Implementation of variational forms for the IPCS
       solver. The flag \emp{beta = 1} is set to zero in the case when
@@ -495,22 +496,22 @@ else:
 
 # Tentative velocity step
 F1 = (1/k)*inner(u - u0, v)*dx \
-   + inner(grad(u0)*u0, v)*dx \
+   + inner(dot(u0, nabla_grad(u0)), v)*dx \
    + inner(sigma(u, ps, nu), epsilon(v))*dx \
-   - beta*nu*inner(grad(u).T*n, v)*ds \
+   - beta*nu*inner(dot(n, nabla_grad(u).T), v)*ds \
    + inner(pbar*n, v)*ds \
    - inner(f, v)*dx
 a1 = lhs(F1)
 L1 = rhs(F1)
 
 # Pressure correction
-a2 = inner(grad(p), grad(q))*dx
-L2 = (1/k)*inner(u1 - u0, grad(q))*dx \
+a2 = inner(nabla_grad(p), nabla_grad(q))*dx
+L2 = (1/k)*inner(u1 - u0, nabla_grad(q))*dx \
    - (1/k)*inner(u1 - u0, q*n)*ds
 
 # Pressure update
 a3 = p*q*dx
-L3 = p1*q*dx + psi*q*dx - nu*div(u1)*q*dx
+L3 = p1*q*dx + psi*q*dx - nu*nabla_div(u1)*q*dx
     \end{python}
     \caption{Implementation of variational forms for the CSS
       solver(s). The flag \emp{beta = 1} is set to zero in the case of
@@ -619,19 +620,19 @@ Figure~\ref{fig:g2_code}.
 U = 0.5*(u0 + u)
 P = p1
 Fv = (1/k)*inner(u - u0, v)*dx \
-   + inner(grad(U)*W, v)*dx \
+   + inner(dot(W, nabla_grad(U)), v)*dx \
    + inner(sigma(U, P, nu), epsilon(v))*dx \
-   - beta*nu*inner(grad(U).T*n, v)*ds \
+   - beta*nu*inner(dot(n, nabla_grad(U).T), v)*ds \
    + inner(pbar*n, v)*ds \
    - inner(f, v)*dx \
-   + d1*inner(grad(U)*W, grad(v)*W)*dx \
-   + d2*div(U)*div(v)*dx
+   + d1*inner(dot(W, nabla_grad(U)), dot(W, nabla_grad(v)))*dx \
+   + d2*nabla_div(U)*nabla_div(v)*dx
 av = lhs(Fv)
 Lv = rhs(Fv)
 
 # Pressure system
-ap = inner(grad(p), grad(q))*dx
-Lp = -(1/d1)*div(u1)*q*dx
+ap = inner(nabla_grad(p), nabla_grad(q))*dx
+Lp = -(1/d1)*nabla_div(u1)*q*dx
 
 # Projection of velocity
 aw = inner(w, z)*dx
@@ -750,12 +751,12 @@ implementation is shown in Figure~\ref{fig:grpc_code}.
 U = 0.5*(u0 + u1)
 P = p01
 Ru = inner(u1 - u0, v)*dx \
-   + k*inner(grad(U)*U, v)*dx \
+   + k*inner(dot(U, nabla_grad(U)), v)*dx \
    + k*inner(sigma(U, P, nu), epsilon(v))*dx \
-   - beta*k*nu*inner(grad(U).T*n, v)*ds \
+   - beta*k*nu*inner(dot(n, nabla_grad(U).T), v)*ds \
    + k*inner(pbar*n, v)*ds \
    - k*inner(f, v)*dx
-Rp = k*div(U)*q*dx
+Rp = k*nabla_div(U)*q*dx
     \end{python}
     \caption{Implementation of variational forms for the GRPC solver.}
     \label{fig:grpc_code}
@@ -906,7 +907,7 @@ compute the stream function in DOLFIN.
 V   = u.function_space().sub(0)
 psi = TrialFunction(V)
 q   = TestFunction(V)
-a   = dot(grad(psi), grad(q))*dx
+a   = dot(nabla_grad(psi), nabla_grad(q))*dx
 L   = dot(u[1].dx(0) - u[0].dx(1), q)*dx
 
 # Define boundary condition
