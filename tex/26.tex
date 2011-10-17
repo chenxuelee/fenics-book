@@ -989,9 +989,11 @@ c  = Constant((0.0, 0.0, 0.0))
 bc = DirichletBC(V, c, DomainBoundary())
 
 # Set up PDE and solve
-problem = VariationalProblem(a, L, bc)
-problem.parameters["symmetric"] = True
-u = problem.solve()
+u = Function(V)
+problem = LinearVariationalProblem(a, L, u, bcs=bc)
+solver = LinearVariationalSolver(problem)
+solver.parameters["symmetric"] = True
+solver.solve()
 \end{python}
 \caption{DOLFIN Python solver for a simple linearized elasticity problem
 on a unit cube.}
@@ -1389,8 +1391,9 @@ F = derivative(Pi, u, w)
 dF = derivative(F, u, du)
 
 # Create nonlinear variational problem and solve
-problem = VariationalProblem(F, dF, bc)
-problem.solve(u)
+problem = NonlinearVariationalProblem(F, u, bcs=bc, J=dF)
+solver = NonlinearVariationalSolver(problem)
+solver.solve()
 
 # Save solution in VTK format
 file = File("displacement.pvd");
@@ -1544,13 +1547,15 @@ def left(x):
 bc = DirichletBC(V, zero, left)
 
 # Set up PDE, advance in time and solve
-problem = VariationalProblem(a, L, bcs=bc)
+u = Function(V)
+problem = LinearVariationalProblem(a, L, u, bcs=bc)
+solver = LinearVariationalSolver(problem)
 # Save solution in VTK format
 file = File("displacement.pvd")
 while t <= T:
     t += dt
     h.t = t
-    u = problem.solve()
+    solver.solve()
     update(u, u0, v0, a0, beta, gamma, dt)
     file << u
 \end{python}
