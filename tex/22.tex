@@ -30,6 +30,8 @@ less suitable for large-scale turbulence applications. The performance
 of the solvers is validated with the one-dimensional Burgers' equation,
 the Orr--Sommerfeld perturbation in two dimensions and finally the
 three-dimensional unstable and transitional Taylor--Green vortex.
+All solvers and problems can be found as part of the openly
+distributed CBC.Pdesys package.
 
 \section{Background}
 
@@ -652,13 +654,13 @@ Section~\ref{sec:mortensen:Convection} have be implemented in the method
 \emp{conv} as
 \begin{python}
 def conv(u_tilde, u_bar, v, mode="standard"):
-    if (mode == "standard"):
-        return inner(grad(u_bar)*u_tilde, v)
-    elif (mode == "divergence"):
-        return inner(div(outer(u_bar,u_tilde)), v)
-    elif (mode == "skew"):
-        return 0.5*(inner(grad(u_bar)*u_tilde, v) + \
-        inner(div(outer(u_bar, u_tilde)), v))
+    if (mode == "Standard"):
+        return inner(u_tilde*nabla_grad(u_bar), v)
+    elif (mode == "Divergence"):
+        return inner(nabla_div(outer(u_tilde, u_bar)), v)
+    elif (mode == "Skew"):
+        return 0.5*(inner(u_tilde*nabla_grad(u_bar), v) + \
+        inner(nabla_div(outer(u_tilde, u_bar)), v))
 \end{python}
 The fractional step Navier--Stokes solver is somewhat more elaborate
 than the fully coupled, since there are more steps involved. The
@@ -1041,7 +1043,7 @@ At our disposal we have an Orr--Sommerfeld eigenvalue solver that uses
 spectral collocation in $n+1$ Chebyshev points. The details of this
 solver is given by \citet{Trefethen2006} and not repeated here, and the
 source code can be found in the file \emp{OrrSommerfeld\_eig.py} that
-comes with this chapter. For the initialization of DOLFIN \emp{Functions}
+resides within the CBC.Pdesys package. For the initialization of DOLFIN \emp{Functions}
 with the Orr--Sommerfeld solution, a subclass called \emp{U0} of the
 DOLFIN class \emp{Expression} is implemented such that it solves the
 eigenvalue problem on creation and overloads the \emp{eval} function
@@ -1253,7 +1255,7 @@ computed respectively as
 The average rate of dissipation is, as already mentioned, the single
 most important measure of a turbulent flow. It is implemented in FEniCS as
 \begin{python}
-assemble(nu*inner(grad(u_),grad(u_))*dx)/(2*pi)**3.
+assemble(nu*inner(grad(u_), grad(u_))*dx)/(2*pi)**3.
 \end{python}
 
 Since the Taylor--Green vortex is (eventually) a turbulent flow there
