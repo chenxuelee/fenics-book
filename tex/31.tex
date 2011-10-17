@@ -643,6 +643,69 @@ the integral, and by defining the\hfilneg}
 \begin{figure}
 \bwfig
 {\small    \begin{python}
+...
+
+# Functions at previous timestep (and initial conditions)
+(phi_, T_, u_, P) = compute_initial_conditions(W, Q)
+
+# Containers for storage
+velocity_series = TimeSeries("bin/velocity")
+temperature_series = TimeSeries("bin/temperature")
+density_series = TimeSeries("bin/density")
+
+# Solver for the Stokes systems
+solver = KrylovSolver("tfqmr", "amg")
+...
+while (t <= finish):
+
+    # Solve for predicted temperature
+    (a, L) = energy(Q, Constant(dt), u_, T_)
+    solve(a == L, T_pr, T_bcs,
+          solver_parameters={"linear_solver": "gmres"})
+
+    # Solve for predicted phi
+    (a, L) = transport(Q, Constant(dt), u_, phi_)
+    solve(a == L, phi_pr, bc,
+          solver_parameters={"linear_solver": "gmres"})
+
+    # Filter predicted phi (in place)
+    filter_properties(phi_pr)
+    phi.assign(phi_pr)
+
+    # Solve for predicted velocity
+    eta = viscosity(T_pr)
+    (a, L, precond) = momentum(W, eta,
+                               (Ra*T_pr - Rb*phi_pr)*g)
+    (A, b) = assemble_system(a, L, bcs)
+    solver.set_operators(A, P)
+    solver.solve(velocity_pressure.vector(), b)
+    u_pr.assign(velocity_pressure.split()[0])
+
+    # Solve for corrected temperature T
+    (a, L) = energy_correction(Q, Constant(dt), u_pr, u_, T_)
+    solve(a == L, T, T_bcs,
+          solver_parameters={"linear_solver": "gmres"})
+
+    # Solve for corrected velocity
+    eta = viscosity(T)
+    (a, L, precond) = momentum(W, eta,
+                               (Ra*T - Rb*phi)*g)
+    (A, b) = assemble_system(a, L, bcs)
+    solver.set_operators(A, P)
+    solver.solve(velocity_pressure.vector(), b)
+    u.assign(velocity_pressure.split()[0])
+
+    # Store stuff
+    store(phi, T, u, t)
+
+    # Compute time step
+    dt = compute_timestep(u)
+
+    # Move to new timestep and update functions
+    phi_.assign(phi)
+    T_.assign(T)
+    u_.assign(u)
+    t += dt
     \end{python}}
     \caption{\fontsize{8.5}{10.5}\selectfont Abridged code for the main predictor-corrector algorithm,
       see \hbox{Algorithm} \ref{vynnytska:alg:algorithm}. The~initi\-alization
@@ -667,11 +730,7 @@ the integral, and by defining the\hfilneg}
 %
       The contents of the loop follow steps (1) -- (6) of
       Algorithm~\ref{vynnytska:alg:algorithm}. First, the predicted
-      temperature \emp{T\_pr} must be computed. This is done is 4
-      substeps: the forms for the variational problem are created;
-      the forms are passed together with the boundary conditions to a
-      \emp{VariationalProblem}; the type of linear solver is set for
-      the problem; and the problem is solved. Next, the same steps are
+      temperature \emp{T\_pr} must be computed. This is here accomplished in 2 substeps: the forms for the variational problem are created and then the variational problem is solved using the free function \emp{solve}. Next, the same steps are
       performed for the predicted composition \emp{phi\_pr}. The
       predicted composition is then filtered (in place) and also
       assigned to \emp{phi}.
@@ -698,23 +757,49 @@ the integral, and by defining the\hfilneg}
 \begin{figure}
 \bwfig
   \begin{python}
-  \end{python}
+def momentum(W, eta, f):
 
-  \caption{Definition of variational forms for the Stokes equations
-    and the corresponding preconditioner. The Taylor--Hood mixed
-    finite element space is defined by combining Lagrange vector
-    elements of polynomial order 2 with Lagrange elements of order
-    1. The equation is phrased in the style $F(\cdot, \cdot) = 0$, and
-    the form for the preconditioner is defined using the same basis
-    functions. The left- and right-hand side of the form $F$ are
-    extracted using the UFL functions \emp{lhs}
-    and \emp{rhs}.}
+    # Define basis functions
+    (u, p) = TrialFunctions(W)
+    (v, q) = TestFunctions(W)
+
+    # Define equation F((u, p), (v, q)) = 0
+    F = (2.0*eta*inner(strain(u), strain(v))*dx
+         + div(v)*p*dx
+         + div(u)*q*dx
+         + inner(f, v)*dx)
+
+    # Define form for preconditioner
+    precond = inner(grad(v), grad(u))*dx + q*p*dx
+
+    # Return left and right hand side and preconditioner
+    return (lhs(F), rhs(F), precond)
+  \end{python}
+  \caption{Definition of the variational forms for the Stokes
+    equations and the corresponding preconditioner. The equation is
+    phrased in the style $F(\cdot, \cdot) = 0$, and the form for the
+    preconditioner is defined using the same basis functions. The
+    left- and right-hand side of the form $F$ are extracted using the
+    UFL functions \emp{lhs} and \emp{rhs}.}
   \label{vynnytska:fig:stokes}
 \end{figure}
 
 \begin{figure}
 \bwfig
     \begin{python}
+def advection(phi, psi, u, n, theta=1.0):
+
+    # Define |u * n|
+    un = abs(dot(u('+'), n('+')))
+
+    # Contributions from cells
+    a_cell = - dot(u*phi, grad(psi))*dx
+
+    # Contributions from interior facets
+    a_int = (dot(u('+'), jump(psi, n))*avg(phi)
+             + 0.5*un*dot(jump(phi, n), jump(psi, n)))*dS
+
+    return theta*(a_cell + a_int)
     \end{python}
   \caption{Definition of an upwinded discontinuous Galerkin
     formulation of the advection term. The input consists of:
@@ -724,13 +809,26 @@ the integral, and by defining the\hfilneg}
     value of the normal component of \emp{u} is defined and the
     contributions from the cell integrals and facet integrals are
     defined in accordance with~\eqref{vynnytska:eq:dgadv}. The sum
-    of the contributions is returned.}
+    of the contributions (multiplied by theta) is returned.}
   \label{vynnytska:fig:advection}
 \end{figure}
 %
 \begin{figure}
 \bwfig
     \begin{python}
+def diffusion(phi, psi, k_c, alpha, n, h, theta=1.0):
+
+    # Contribution from the cells
+    a_cell = k_c*dot(grad(phi), grad(psi))*dx
+
+    # Contribution from the interior facets
+    tmp = (alpha('+')/h('+')*dot(jump(psi, n), jump(phi, n))
+           - dot(avg(grad(psi)), jump(phi, n))
+           - dot(jump(psi, n), avg(grad(phi))))*dS
+    a_int = k_c('+')*tmp
+
+    return theta*(a_cell + a_int)
+
     \end{python}
   \caption{Definition of a discontinuous Galerkin formulation of the
     diffusion term. The input consists of: \emp{phi} and \emp{psi}
@@ -739,27 +837,57 @@ the integral, and by defining the\hfilneg}
     facet normal \emp{n}; the cell size \emp{h}; and an optional
     scalar multiplier \emp{theta}. The contributions from the cell
     integrals and facet integrals are defined
-    following~\eqref{vynnytska:eq:dgdiff}. The sum of the
-    contributions is returned.}
+    in accordance with~\eqref{vynnytska:eq:dgdiff}. The sum of the
+    contributions (multiplied by theta) is returned.}
   \label{vynnytska:fig:diffusion}
 \end{figure}
 
 \begin{figure}
 \bwfig
     \begin{python}
+def energy_correction(Q, dt, u, u_, T_):
+
+    # Define test and trial functions
+    T = TrialFunction(Q)
+    psi = TestFunction(Q)
+
+    # Diffusivity constant
+    k_c = Constant(1.0)
+
+    # Constants associated with DG scheme
+    alpha = Constant(50.0)
+    mesh = Q.mesh()
+    h = CellSize(mesh)
+    n = FacetNormal(mesh)
+
+    # Define discrete time derivative operator
+    def Dt(T):
+        return backward_euler(T, T_, dt)
+
+    # Add syntactical sugar for a_A and a_D
+    def a_A(T, u, psi):
+        return advection(T, psi, u, n, theta=0.5)
+    def a_D(T, u, psi):
+        return diffusion(T, psi, k_c, alpha, n, h, theta=0.5)
+
+    # Define form
+    F = (Dt(T)*psi*dx
+         + a_A(T, u, psi) + a_A(T_, u_, psi)
+         + a_D(T, u, psi) + a_D(T_, u_, psi))
+
+    return (lhs(F), rhs(F))
     \end{python}
     \caption{Definition of variational forms for one correction step
       for the temperature, see~\eqref{vynnytska:eq:corrector}. The
-      input is the mesh, the time step \emp{dt}, two given velocities
+      input is the element space \emp{Q}, the time step \emp{dt}, two given velocities
       \emp{u} and \emp{u\_}, and (typically) a previous temperature
-      \emp{T\_}. We define the function space of (discontinuous)
-      piecewise linears, the unknown temperature \emp{T} and the test
+      \emp{T\_}. We define the unknown temperature \emp{T} and the test
       function \emp{psi}. The diffusivity constant \emp{k\_c} is in
       this case $1.0$. We define the penalty parameter \emp{alpha}
       and also the cell normal \emp{n} and mesh size \emp{h} to be
       used in the advection and diffusion forms.
 %
-      We use \emp{lambda} functions to reduce the number of input
+      We use Python functions to reduce the number of input
       arguments to the advection and diffusion \hbox{functions}. This is in
       part merely syntactical, but does also increase readability and
       facilitates debugging. The input to the functions \emp{a\_A}
