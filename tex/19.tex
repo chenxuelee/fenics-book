@@ -301,8 +301,8 @@ Python module.
 %module(package="dolfin", directors="1") cpp
 \end{swigcode}
 This statement tells SWIG to create a module called \emp{cpp} that
-resides in the package of \dolfin{}. We have also enabled the use of
-directors.  The latter is required to be able to subclass \dolfin classes
+resides in the package \dolfin{}. We also enable the use of
+directors.  This is required to be able to subclass \dolfin classes
 in Python, an issue that will be discussed below.  By naming the generated
 extension module \emp{cpp}, and including it in the \dolfin{} Python
 package, we hide the generated interface into a submodule of \dolfin{}; the
@@ -348,7 +348,7 @@ Shared pointers are provided by the \emp{boost\_shared\_ptr.i} file.
 This file defines the directive: \emp{\%shared\_ptr}. The directive
 must be used for each class we want shared pointers for. In DOLFIN
 this is done in the \emp{shared\_ptr\_classes.i} file. Note that when
-the \emp{\%shared\_ptr} directive is called typemaps for passing a
+the \emp{\%shared\_ptr} directive is called, typemaps for passing a
 \emp{shared\_ptr} stored object to method that expects a reference or
 a pointer is also defined. This means that the typemap pass a
 de-referenced \emp{shared\_ptr} to the function. This behavior can
@@ -394,7 +394,7 @@ not global if it is included in the kernel specific interface files,
 see below. Here we present some of the global typemaps defined in the
 files included in \emp{dolfin.i}.
 
-In \emp{typemaps.i} are typemaps and so called SWIG fragments, defined
+In \emp{typemaps.i} are typemaps and so called SWIG fragments (explained later), defined
 for the three primitive types:\emp{int}, \emp{dolfin::uint} and
 \emp{double}.
 
@@ -455,7 +455,7 @@ in \emp{PyInt\_Check} function. The reason for that is that
 \emp{PyInt\_Check} in Python2.6 can not be combined with \numpy
 \emp{Int}.
 
-In \emp{numpy\_typemaps.i} are typemaps for c-arrays of primitive
+In \emp{numpy\_typemaps.i} are typemaps for C-arrays of primitive
 types: \emp{double}, \emp{int} and \emp{dolfin::uint} defined. As in
 the \emp{Array} example in the previous section, these typemaps let a
 user pass a \numpy array of the corresponding type as arguments to
@@ -539,7 +539,7 @@ otherwise. The converted array will be returned by the \emp{TYPE*\&
   ret} argument.  Finally, the \emp{\%apply TYPE* \{TYPE* \_array\}}
 directive means that we want the typemap to apply to any argument of
 type \emp{TYPE*} with argument name \emp{\_array}. In this way we copy
-the already defined typemap to an c-array argument with the name
+the already defined typemap to an C-array argument with the name
 \emp{\_array}.  Note that \emp{\#\# TYPE\_NAME} is a SWIG macro
 directive that will be expanded to the value of the \emp{TYPE\_NAME}
 macro argument.
@@ -716,7 +716,7 @@ files.  Below, we will highlight some of these specializations.
 The \emp{mesh} module defines the Python interfaces for \emp{Mesh},
 \emp{MeshFunction}, \emp{MeshEntity}, and their subclasses. In
 \emp{Mesh} the geometrical and topological information is stored in
-contiguous c-arrays. These arrays are accessible from Python using
+contiguous C-arrays. These arrays are accessible from Python using
 methods that return the underlying data wrapped to \numpy arrays. With
 this functionality, for example move a mesh 1 unit in the
 x-direction as follows:
@@ -746,7 +746,7 @@ this functionality is found in \emp{mesh\_pre.i}:
 Here we first ignore the C++ versions of the \emp{coordinates} and
 \emp{cells} methods. Then we re-implements them using the
 \emp{make\_numpy\_array} macro. This macro takes a pointer to a
-c-array, together with the dimension and size of that array. The last
+C-array, together with the dimension and size of that array. The last
 argument is used to set the writable flag of the NumPy array. This
 flag is set to \emp{true} for \emp{coordinates} and false for
 \emp{cells}. 
