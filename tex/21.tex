@@ -72,7 +72,7 @@ We consider the incompressible Navier--Stokes equations with unit
 fluid density written in the form\vspace*{2pt}
 \begin{align}
   \label{eq:ns,mom}
-  \dot{u} + \nabla u \, u - \nabla \cdot \sigma &= f, \\
+  \dot{u} + u \cdot \nabla u - \nabla \cdot \sigma &= f, \\
   \label{eq:ns,con}
   \nabla \cdot u &= 0,
 \end{align}\vspace*{2pt}
@@ -191,7 +191,7 @@ divergence free vector fields. The projection step is a Darcy problem
 for $u_h^n$ and $p^n_h$:
 \begin{align}
   \frac{u_h^n -u_h^{\bigstar}}{k_n} + \nabla p^n_h &= 0, \\
- \nabla \cdot u_h^n &= 0,
+  \nabla \cdot u_h^n &= 0,
 \end{align}
 which is in fact reducible to a Poisson problem $-\Delta p^n_h =
 - \nabla \cdot u_h^{\bigstar} / k_n$ for the corrected pressure
@@ -210,7 +210,7 @@ satisfied exactly (at the nodal points).
   Compute a tentative velocity $u_h^\bigstar$ by solving
   \begin{equation}\label{eq:chorin,1}
     \renni{v}{D_t^n u_h^\bigstar}
-    + \renni{v}{\nabla u_h^{n-1} \, u_h^{n-1}}
+    + \renni{v}{u_h^{n-1} \cdot \nabla u_h^{n-1}}
     + \renni{\nabla v}{\nu \nabla u_h^{\bigstar}}
     = \renni{v}{f^n} \quad \foralls v \in V_h,
   \end{equation}
@@ -267,8 +267,8 @@ implementation is shown in Figure~\ref{fig:IPCS}. The IPCS scheme as
 implemented here also differs from the Chorin scheme in that the
 viscous term is evaluated at $(t_{n-1} + t_n)/2$ and a stress
 formulation is used in place of the Laplacian formulation used for the
-Chorin scheme. Note the importance of the term $\renni{v}{\nu (\nabla
-  u_h^{n-1/2})^{\top} n}_{\partial\Omega}$ which arises as a result of
+Chorin scheme. Note the importance of the term $\renni{v}{\nu n \cdot (\nabla
+  u_h^{n-1/2})^{\top}}_{\partial\Omega}$ which arises as a result of
 integrating the stress term by parts. Without this term an incorrect
 velocity profile is obtained at inlets and outlets where the velocity
 will tend to ``creep'' around the corners.
@@ -279,11 +279,11 @@ will tend to ``creep'' around the corners.
   Compute the tentative velocity $u_h^\bigstar$ by solving
   \begin{multline}\label{eq:ipcs,1}
       \renni{v}{D_t^n u_h^{\bigstar}}
-      + \renni{v}{\nabla u_h^{n-1} \, u_h^{n-1}}
+      + \renni{v}{u_h^{n-1} \cdot \nabla u_h^{n-1}}
       + \renni{\epsilon(v)}{\sigma(u_h^{n-\frac{1}{2}}, p^{n-1}_h)}
       + \renni{v}{p^{n-1}_h n}_{\partial\Omega}
       \\
-      - \renni{v}{\nu (\nabla u_h^{n-\frac{1}{2}})^{\top} n}_{\partial\Omega}
+      - \renni{v}{\nu n \cdot (\nabla u_h^{n-\frac{1}{2}})^{\top}}_{\partial\Omega}
       = \renni{v}{f^n}
   \end{multline}
   for all $v \in V_h$, including any boundary conditions for the
@@ -353,12 +353,12 @@ pressure. The derivation of the consistent splitting scheme is as
 follows. Multiply the momentum equation~\eqref{eq:ns,mom} by $\nabla
 q$ for $q
 \in H^1(\Omega)$ and integrate over the domain~$\Omega$ to obtain
-$\renni{\nabla q}{\dot{u} + \nabla u \, u - \nu \Delta u + \nabla
+$\renni{\nabla q}{\dot{u} + u \cdot \nabla u - \nu \Delta u + \nabla
   p} = \renni{\nabla q}{f}$. Since $\renni{\nabla q}{\dot{u}} =
 \renni{-q}{\nabla \cdot \dot{u}} + \renni{qn}{\dot{u}}_{\partial
   \Omega}$, it follows by~(\ref{eq:ns,con}) that
 \begin{equation}\label{eq:css,laplace}
-  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - \nabla u \, u +
+  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - u \cdot \nabla +
     \nu \Delta u},
 \end{equation}
 if we assume that $\dot{u} = 0$ on~$\partial\Omega$. Next, we use the
@@ -368,7 +368,7 @@ constraint~(\ref{eq:ns,con}) to write the diffusive term
 of~(\ref{eq:css,laplace}) in
 \emph{rotational form}:
 \begin{equation}\label{eq:css,curl}
-  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - \nabla u \, u -
+  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - u \cdot \nabla u -
     \nu \nabla \times \nabla \times u}.
 \end{equation}
 This equation is the basis for the consistent splitting scheme. At
@@ -376,14 +376,14 @@ this point, we may formulate the CSS scheme as the solution of the
 following pair of variational problems:
 \begin{equation} \label{eq:css,u}
   \inner{D_t^n u_h}{v}
-  + \inner{\nabla u_h^{n-1} \, u_h^{n-1}}{v}
+  + \inner{u_h^{n-1} \cdot \nabla u_h^{n-1}}{v}
   + \inner{\nu \nabla u_h^n}{\nabla v}
   - \inner{p_h^{\bigstar}}{\nabla \cdot v}
   = \inner{f^n}{v},
 \end{equation}
 \begin{equation} \label{eq:css,pn}
   \renni{\nabla q}{\nabla p_h^n} =
-  \renni{\nabla q}{f^n -\nabla u_h^{n-1} \, u_h^{n-1} - \nu \nabla \times \nabla \times u_h^n},
+  \renni{\nabla q}{f^n - u_h^{n-1} \cdot \nabla u_h^{n-1} - \nu \nabla \times \nabla \times u_h^n},
 \end{equation}
 where $D_t^n u_h$ is an appropriate approximation of $\dot{u}_h$ and
 $p^{\bigstar}_h$ is an appropriate approximation of the pressure. In
@@ -439,10 +439,10 @@ The CSS scheme is summarized in Scheme~3/4.
   \begin{equation}\label{eq:css,2}
     \begin{split}
       \renni{v}{D_t^n u_h}
-      + \renni{v}{\nabla u_h^{n-1} \, u_h^{n-1}}
+      + \renni{v}{u_h^{n-1} \cdot \nabla u_h^{n-1}}
       + \renni{\epsilon(v)}{\sigma(u^{n-\frac{1}{2}}_h, p_h^{\bigstar})}
       + \renni{v}{\bar{p} n}_{\partial\Omega}
-      - \renni{v}{\nu (\nabla \bar{u}_h^n)^{\top} n}_{\partial\Omega}
+      - \renni{v}{\nu n \cdot (\nabla \bar{u}_h^n)^{\top}}_{\partial\Omega}
       = \renni{v}{f^n},
     \end{split}
   \end{equation}
@@ -530,7 +530,7 @@ defined by
     \renni{v}{D_t^n u_h}
     + \renni{v}{\nabla u_n^n \cdot w}
     + \renni{\epsilon(v)}{\sigma(u_h^{n-\frac{1}{2}}, p_h^n)}
-    - \renni{v}{\nu (\nabla u_h^{n-\frac{1}{2}})^{\top} n}_{\partial\Omega}
+    - \renni{v}{\nu n \cdot (\nabla u_h^{n-\frac{1}{2}})^{\top}}_{\partial\Omega}
     + \renni{v}{\bar{p} n}_{\partial\Omega}
     &+ SD_{\delta}
     = \renni{v}{f^n}, \\
@@ -541,12 +541,12 @@ for all $(v, q) \in V_h \times Q_h$, where $u^{n-\frac{1}{2}} =
 ({u}^{n}_h + {u}^{n-1}_h) / 2$ and
 \begin{equation}
   SD_{\delta}
-  = \renni{\nabla v \,  u_h^{n-\frac{1}{2}}}{\delta_1 \nabla u_h^{n-\frac{1}{2}} \, u_h^{n-\frac{1}{2}}}
+  = \renni{\nabla v \,  u_h^{n-\frac{1}{2}}}{\delta_1 u_h^{n-\frac{1}{2}} \cdot \nabla u_h^{n-\frac{1}{2}}}
   + \renni{\nabla \cdot v}{\delta_2 \nabla \cdot u_h^{n-\frac{1}{2}}}.
 \end{equation}
 The G2 equations may be obtained by testing the incompressible
 Navier--Stokes equations against modified test functions $v
-\rightarrow v + \delta_1 (\nabla v \cdot \bar{u}^{n} + \nabla q)$ and
+\rightarrow v + \delta_1 (\bar{u}^{n} \cdot \nabla v + \nabla q)$ and
 $q \rightarrow q + \delta_2 \nabla \cdot v$ and dropping a number of
 terms, including all stabilizing terms involving the time derivative
 $D_t^n u_h$. The stabilization parameters are set to $\delta_{1} =
@@ -588,11 +588,11 @@ Figure~\ref{fig:g2_code}.
       \begin{equation}\label{eq:g2_scheme,2}
         \begin{split}
           \renni{v}{D_t^n u_h}
-          + \renni{v}{\nabla u_n^n \cdot w}
+          + \renni{v}{w \cdot \nabla u_n^n}
           + \renni{\epsilon(v)}{\sigma(u_h^{n-\frac{1}{2}}, p_h^n)}
-          - \renni{v}{\nu (\nabla u_h^{n-\frac{1}{2}})^{\top} n}_{\partial\Omega}
+          - \renni{v}{\nu n \cdot (\nabla u_h^{n-\frac{1}{2}})^{\top}}_{\partial\Omega}
           + \renni{v}{\bar{p} n}_{\partial\Omega} \\
-          + \renni{\nabla v \cdot w}{\delta_1 \nabla u_h^{n-\frac{1}{2}} \cdot w}
+          + \renni{\nabla v \cdot w}{\delta_1 w \cdot \nabla u_h^{n-\frac{1}{2}}}
           + \renni{\nabla \cdot v}{\delta_2 \nabla \cdot u_h^{n-\frac{1}{2}}}
           = \renni{v}{f^n}
         \end{split}
@@ -660,9 +660,9 @@ variational problem: find $(u^n_h, p^n_h)$ in $V_h \times Q_h$ such
 that
 \begin{align}
     \frac{1}{k_n} \renni{v}{u^n_h - u^{n-1}_h}
-    + \renni{v}{\nabla u^{n-\frac{1}{2}}_h \, u^{n-\frac{1}{2}}_h}
+    + \renni{v}{u^{n-\frac{1}{2}}_h \cdot \nabla u^{n-\frac{1}{2}}_h}
     + \renni{\epsilon(v)}{\sigma(u^{n-\frac{1}{2}}_h, p^n_h)}
-    - \renni{v}{\nu (\nabla u^{n-\frac{1}{2}}_h)^{\top} \cdot n}_{\partial \Omega}
+    - \renni{v}{\nu n \cdot (\nabla u^{n-\frac{1}{2}}_h)^{\top}}_{\partial \Omega}
     + \renni{v}{\bar{p}n} &= \renni{v}{f}, \\
     \renni{q}{\nabla \cdot u^{n-\frac{1}{2}}_h} &= 0,
 \end{align}
