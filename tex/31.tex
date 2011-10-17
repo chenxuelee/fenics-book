@@ -125,9 +125,9 @@ are nondimensional; scaling and physical constants are presented in
 Section~\ref{vynnytska:sec:results}.
 
 The Rayleigh numbers measure the relative importance of buoyancy to
-thermal and viscous dissipation ~\citep{KennettBunge2008} given by
+thermal and viscous dissipation given by
 thermal diffusivity ($k_{th}$) and the reference viscosity ($\eta_0$),
-respectively.  The change in density due to heat is a product of the
+respectively~\citep{KennettBunge2008}.  The change in density due to heat is a product of the
 thermal contrast ($\Delta T$), thermal expansivity ($\alpha$) and the
 reference density ($\rho_0$), while for the composition it is simply
 the density contrast ($\Delta \rho$) between the two materials; the
@@ -195,9 +195,9 @@ heat exchange) on the left- and right-hand boundaries:
 \end{equation}
 For the composition $\phi$, we set
 \begin{equation}
-  \phi |_{x_2 = 0} = 1, \quad \partial_{n} \phi|_{\Gamma} = 0.
+  \phi |_{x_2 = 0} = 1, \quad \partial_{n} \phi|_{\Gamma} = 0;
 \end{equation}
-That is, we fix the composition on the bottom of the box $\Omega$
+that is, we fix the composition on the bottom of the box $\Omega$
 and apply zero\vadjust{\pagebreak} flux conditions on the remainder of the boundary. This
 condition can be viewed as a consequence of the no outflow conditions
 for the velocity.
@@ -224,12 +224,12 @@ domain into account:
     T_s &= 0.5 - \frac{Q}{2\sqrt{\pi}} \sqrt{\frac{q}{2 - x_{2}} } \mathrm{expc} \left( - \frac{ \left(\lambda - x_1 \right)^2  q}{8 - 4 x_2} \right).
 \end{align}
 In order to keep the initial temperature distribution in the range
-between zero and one, we perform an additional correction. According
-to the above equations there are two peaks: positive in the top
-right and negative in the bottom left corners. We mapped all values
-below zero to zero and above one to one. The initial composition
-$\phi$ is a step function equal to one on the bottom layer and to zero
-on the top layer.
+between zero and one, we perform an additional correction: according
+to the above equations there are two peaks, a positive peak in the top
+right corner and a negative peak in the bottom left corner. However, we map all values
+below zero to zero and above one to one. Furthermore, the initial composition
+$\phi$ is a step function equal to one in the bottom layer and to zero
+in the top layer.
 
 %%------------------------------------------------------------------------------
 
@@ -259,7 +259,7 @@ being used to denote the continuous temperature field $T$.} of the
 domain $\Omega$. Let $V_h$ and $Q_h$ be finite dimensional spaces,
 defined relative to the mesh $\mathcal{T}_h$, for the velocity and
 pressure fields, respectively. The standard discrete mixed finite
-element formulation with independent approximation of the (continuous)
+element formulation with independent approximation of the
 velocity field $u$ and the pressure field $p$ for the incompressible
 Stokes
 equations~\eqref{vynnytska:eq:momentum}~--~\eqref{vynnytska:eq:incompress}
@@ -344,7 +344,7 @@ and vector fields $\beta$ as
 We now turn to consider the diffusive term
 of~\eqref{vynnytska:eq:transdif} separately. Its standard variational form
 for a symmetric discontinuous Galerkin discretization with a stabilization
-penalty term is given by~\citep{Arnold1982}
+penalty term is given by~\citep{Arnold1982}:
 \begin{multline}
   \label{vynnytska:eq:dgdiff}
     a_D(\phi_h, \psi_h)
@@ -354,7 +354,7 @@ penalty term is given by~\citep{Arnold1982}
     \int_{e} - \avg{k_c \Grad \phi_h} \cdot \jump{\psi_h} \ds
 \\
     + \sum_{e \in \Gamma_i} \int_{e} \left(
-    - \{ k_c \Grad \psi_h\} \cdot \jump{\phi_h}
+    - \avg{ k_c \Grad \psi_h} \cdot \jump{\phi_h}
     + \frac{\alpha_h k_c}{h_T} \jump{\phi_h} \cdot \jump{\psi_h}
     \right) \ds,
 \end{multline}
@@ -407,7 +407,7 @@ predictor--corrector scheme draws on the Crank--Nicolson scheme in using a
 two-step procedure. Taking the energy equation for the temperature as an
 example, assuming that the temperature at the previous time $T_h^{k-1}$
 and the previous velocity $u_h^{k-1}$ are known, the predictor step
-computes a predicted temperature $T_h^{pr} \in P_h$ solving the implicit
+computes a predicted temperature $T_h^{pr} \in P_h$ solving the backward
 Euler equations for all $\psi_h \in P_h$:
 \begin{equation}
   \label{vynnytska:eq:predictor}
@@ -443,14 +443,14 @@ below.
     \tab (1) Solve~\eqref{vynnytska:eq:predictor} to obtain $T_h^{pr}$. \\
     \tab (2) Solve (the composition equivalent
     of)~\eqref{vynnytska:eq:predictor} to obtain $\phi_h^{pr}$. \\
-    \tab (3) Filter predicted composition $\phi_h^{pr}$ to
+    \tab (3) Filter the predicted composition $\phi_h^{pr}$ to
     obtain $\phi_h^{k}$. \\
     \tab (4) Solve~\eqref{vynnytska:eq:mixed} with $T_h^{pr}$ and
     $\phi_h^{k}$ as input to obtain $u_h^{pr}$. \\
     \tab (5) Solve~\eqref{vynnytska:eq:corrector} to obtain $T_h^{k}$. \\
     \tab (4) Solve~\eqref{vynnytska:eq:mixed} with $T_h^{k}$ and
     $\phi_h^{k}$ as input to obtain $u_h^{k}$. \\
-    \tab (6) Compute new time step $\Delta t_{k+1}$ according
+    \tab (6) Compute the new time step $\Delta t_{k+1}$ according
     to~\eqref{vynnytska:eq:timestep}. \\
     \textbf{end for}
   \end{tabbing}
@@ -475,14 +475,14 @@ for the detailed explanation and here give the outline of the algorithm
 for a discrete property field $\phi = \{\phi_i \}$.
 \begin{algorithm}
   \begin{tabbing}
-  (1) Compute initial sum $S_0$ of all values of $\phi$. \\
-  (2) Find minimal value $\phi_{\min}$ below 0. \\
-  (3) Find maximal value $\phi_{\max}$ above 1. \\
-  (4) Assign to $\phi_i \leqslant | \phi_{\min} |$ value 0. \\
-  (5) Assign to $\phi_i \geqslant 2 - \phi_{\max} $ value 1. \\
-  (6) Compute sum $S_1$ of all values of $\phi$. \\
-  (7) Compute the number $num$ of $0 < \phi_j < 1$. \\
-  (8) Add $dist = (S_1 - S_0)/num$ to all $ 0 < \phi_j < 1$.
+  (1) Compute the initial sum $S_0$ of all values of $\phi$. \\
+  (2) Find the minimal value $\phi_{\min}$ below 0. \\
+  (3) Find the maximal value $\phi_{\max}$ above 1. \\
+  (4) Set $\phi_i = 0$ if $\phi_i \leqslant | \phi_{\min} |$. \\
+  (5) Set $\phi_i = 1$ if $\phi_i \geqslant 2 - \phi_{\max} $. \\
+  (6) Compute the sum $S_1$ of all values of $\phi$. \\
+  (7) Compute the number $num$ of $0 < \phi_i < 1$. \\
+  (8) Add $dist = (S_1 - S_0)/num$ to all $ 0 < \phi_i < 1$.
   \end{tabbing}
   \caption{A property filtering algorithm}
   \label{vynnytska:alg:filtering}
@@ -507,11 +507,10 @@ on this aspect. Below, we make some general observations and comments.
   predicted temperature is computed based on the velocity and the
   temperature from the previous time step. Next, a tentative
   composition is computed based on the velocity and the composition
-  from the previous time step; then filtered using as described by
+  from the previous time step; then filtered as described by
   Algorithm~\ref{vynnytska:alg:filtering}. With the filtered
   composition and the predicted temperature, the velocity and pressure
-  are predicted.  The corrected temperature is then calculated by the
-  Crank--Nicolson system using the predicted velocity, and the
+  are predicted.  The corrected temperature is then calculated using the predicted velocity and the
   velocity and the temperature from the previous time step. The Stokes
   system is then solved again, this time with the filtered composition
   and the corrected temperature as input to yield the corrected
@@ -524,8 +523,7 @@ on this aspect. Below, we make some general observations and comments.
   on the composition and temperature through the viscosity and the
   source terms. Thus, the linear systems of equations have to be
   assembled (and solved) at each time. For simplicity, we generate the
-  variational forms describing the equations and define a
-  new \emp{VariationalProblem} for each of these problems at each
+  variational forms describing each of these problems at each
   time. The compute time used for this is insignificant in comparison
   with the time required for the assembly and solution of the linear
   systems.
@@ -573,7 +571,7 @@ these.
 
 The mixed variational formulation for the Stokes equations is
 classical and listed in Figure~\ref{vynnytska:fig:stokes}. The
-definition of the bilinear and linear forms rely only on the mesh, a
+definition of the bilinear and linear forms rely only on the element space, a
 source vector field $f$ = $(Ra T_h - Rb \phi_h) e$ and the viscosity
 $\eta$, see~\eqref{vynnytska:eq:mixed}.  The viscosity itself is
 temperature- and depth-dependent, but crucially not velocity
@@ -601,7 +599,7 @@ To this end, the implementation mimics the structure defined
 by~\eqref{vynnytska:eq:dgadv},~\eqref{vynnytska:eq:dgdiff}, and
 \eqref{vynnytska:eq:thetascheme}. The pure advection form $a_A$ and
 the pure diffusion form $a_D$ are defined through separate Python
-functions. The code for these is listed in
+functions. The code for these are listed in
 Figures~\ref{vynnytska:fig:advection}
 and~\ref{vynnytska:fig:diffusion} and explained in the captions of
 those figures. The implementation of the weak forms of the predictor
@@ -645,72 +643,6 @@ the integral, and by defining the\hfilneg}
 \begin{figure}
 \bwfig
 {\small    \begin{python}
-# Functions at previous time step (and initial conditions)
-(phi_, T_, u_, P) = compute_initial_conditions()
-
-# Containers for storage
-velocity_series = TimeSeries("bin/velocity")
-temperature_series = TimeSeries("bin/temperature")
-composition_series = TimeSeries("bin/composition")
-
-# Solver for the Stokes systems
-solver = KrylovSolver("tfqmr", "amg_ml")
-...
-while (t <= finish):
-
-    # Solve for predicted temperature
-    (a, L) = energy(mesh, Constant(dt), u_, T_)
-    eq = VariationalProblem(a, L, T_bcs)
-    eq.parameters["solver"]["linear_solver"] = "gmres"
-    eq.solve(T_pr)
-
-    # Solve for predicted phi
-    (a, L) = transport(mesh, Constant(dt), u_, phi_)
-    eq = VariationalProblem(a, L, bc)
-    eq.parameters["solver"]["linear_solver"] = "gmres"
-    eq.solve(phi_pr)
-
-    # Filter predicted phi (in place)
-    filter_properties(phi_pr)
-    phi.assign(phi_pr)
-
-    # Solve for predicted velocity
-    H = Ra*T_pr - Rb*phi_pr
-    eta = viscosity(T_pr)
-    (a, L, precond) = stokes(mesh, eta, H*g)
-    (A, b) = assemble_system(a, L, bcs)
-    solver.set_operators(A, P)
-    solver.solve(velocity_pressure.vector(), b)
-    u_pr.assign(velocity_pressure.split()[0])
-
-    # Solve for corrected temperature T
-    (a, L) = energy_correction(mesh, Constant(dt), u_pr, u_, T_)
-    eq = VariationalProblem(a, L, T_bcs)
-    eq.parameters["solver"]["linear_solver"] = "gmres"
-    eq.solve(T)
-
-    # Solve for corrected velocity
-    H = Ra*T - Rb*phi
-    eta = viscosity(T)
-    (a, L, precond) = stokes(mesh, eta, H*g)
-    (A, b) = assemble_system(a, L, bcs)
-    solver.set_operators(A, P)
-    solver.solve(velocity_pressure.vector(), b)
-    u.assign(velocity_pressure.split()[0])
-
-    # Store stuff
-    composition_series.store(phi.vector(), t)
-    temperature_series.store(T.vector(), t)
-    velocity_series.store(u.vector(), t)
-
-    # Define dt based on CFL condition
-    dt = compute_timestep(u)
-
-    # Move to new timestep, including updating functions
-    phi_.assign(phi)
-    T_.assign(T)
-    u_.assign(u)
-    t += dt
     \end{python}}
     \caption{\fontsize{8.5}{10.5}\selectfont Abridged code for the main predictor-corrector algorithm,
       see \hbox{Algorithm} \ref{vynnytska:alg:algorithm}. The~initi\-alization
@@ -766,29 +698,6 @@ while (t <= finish):
 \begin{figure}
 \bwfig
   \begin{python}
-def stokes(mesh, eta, f):
-
-    # Define spatial discretization (Taylor--Hood)
-    V = VectorFunctionSpace(mesh, "Lagrange", 2)
-    Q = FunctionSpace(mesh, "Lagrange", 1)
-    W = V * Q
-
-    # Define basis functions
-    (u, p) = TrialFunctions(W)
-    (v, q) = TestFunctions(W)
-
-    # Define equation F((u, p), (v, q)) = 0
-    F = (2.0*eta*inner(sym(grad(u)),sym(grad(v)))*dx
-         + div(v)*p*dx
-         + div(u)*q*dx
-         + inner(f, v)*dx)
-
-    # Define form for preconditioner
-    precond = inner(grad(u), grad(v))*dx + p*q*dx
-
-    # Return right and left-hand side
-    # and preconditioner
-    return (lhs(F), rhs(F), precond)
   \end{python}
 
   \caption{Definition of variational forms for the Stokes equations
@@ -806,19 +715,6 @@ def stokes(mesh, eta, f):
 \begin{figure}
 \bwfig
     \begin{python}
-def advection(phi, psi, u, n, theta=1.0):
-
-    # Define |u * n|
-    un = abs(dot(u("+"), n("+")))
-
-    # Contributions from cells
-    a_cell = -theta*dot(u*phi, grad(psi))*dx
-
-    # Contribution from interior facets
-    a_int = theta*(dot(u("+"), jump(psi,n))*avg(phi)
-        + 0.5*un*dot(jump(phi, n), jump(psi, n)))*dS
-
-    return a_cell + a_int
     \end{python}
   \caption{Definition of an upwinded discontinuous Galerkin
     formulation of the advection term. The input consists of:
@@ -835,19 +731,6 @@ def advection(phi, psi, u, n, theta=1.0):
 \begin{figure}
 \bwfig
     \begin{python}
-def diffusion(phi, psi, k_c, alpha, n, h, theta=1.0):
-
-    # Contribution from the cells
-    a_cell = theta*k_c*dot(grad(phi), grad(psi))*dx
-
-    # Contribution from the interior facets
-    a_int = theta*(k_c("+")*alpha("+")/h("+")
-                   * dot(jump(phi, n), jump(psi, n))
-        - k_c("+")*dot(avg(grad(psi)), jump(phi,n))
-        - k_c("+")*dot(jump(psi, n), avg(grad(phi)))
-        )*dS
-
-    return a_cell + a_int
     \end{python}
   \caption{Definition of a discontinuous Galerkin formulation of the
     diffusion term. The input consists of: \emp{phi} and \emp{psi}
@@ -864,37 +747,6 @@ def diffusion(phi, psi, k_c, alpha, n, h, theta=1.0):
 \begin{figure}
 \bwfig
     \begin{python}
-def energy_correction(mesh, dt, u, u_, T_):
-
-    # Define function space and test and trial functions
-    P = FunctionSpace(mesh, "DG", 1)
-    T = TrialFunction(P)
-    psi = TestFunction(P)
-
-    # Diffusivity constant
-    k_c = Constant(1.0)
-
-    # Constants associated with DG scheme
-    alpha = Constant(50.0)
-    h = CellSize(mesh)
-    n = FacetNormal(mesh)
-
-    # Define discrete time derivative operator
-    Dt = lambda T: (T - T_)/dt
-
-    # Add syntactical sugar for a_A and a_D
-    a_A = lambda u, T, psi: \
-              advection(T, psi, u, n, theta=0.5)
-    a_D = lambda u, T, psi: \
-              diffusion(T, psi, k_c, alpha,
-                        n, h, theta=0.5)
-
-    # Define form
-    F = (Dt(T)*psi*dx
-         + a_A(u, T, psi) + a_A(u_, T_, psi)
-         + a_D(u, T, psi) + a_D(u_, T_, psi))
-
-    return (lhs(F), rhs(F))
     \end{python}
     \caption{Definition of variational forms for one correction step
       for the temperature, see~\eqref{vynnytska:eq:corrector}. The
