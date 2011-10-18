@@ -31,7 +31,7 @@ of the solvers is validated with the one-dimensional Burgers' equation,
 the Orr--Sommerfeld perturbation in two dimensions and finally the
 three-dimensional unstable and transitional Taylor--Green vortex.
 All solvers and problems can be found as part of the openly
-distributed CBC.Pdesys package.
+distributed CBC.PDESys package.
 
 \section{Background}
 
@@ -44,7 +44,7 @@ dynamics thus relies heavily on numerical solutions.
 
 For incompressible Newtonian fluids, the NS equations read
 \begin{align}
- \frac{\partial \vec{u}}{\partial t} + (\vec{u} \cdot \nabla)\, \vec{u}
+ \frac{\partial \vec{u}}{\partial t} + \vec{u} \cdot \nabla \vec{u}
       &= \nu \nabla^2 \vec{u} -\frac{1}{\rho} \nabla p +\vec{f}, \label{eq:mortensen:NS}
 \\
  \nabla \cdot \vec{u} &=0.
@@ -181,7 +181,7 @@ $B(\vec{u},\vec{a})$. Here, $\vec{u}$ is the \emph{convecting velocity},
 while $\vec{a}$ is the \emph{convected vector field}. Then the standard
 convective term,
 \begin{equation}
-B(\vec{u},\vec{a}) =  (\vec{u} \cdot \nabla)\, \vec{a}
+B(\vec{u},\vec{a}) =  \vec{u} \cdot \nabla \vec{a}
 \end{equation}
 can be multiplied by the vector $\vec{b}$ and integrated by parts to yield
 \begin{equation}
@@ -213,7 +213,7 @@ represents transport of kinetic energy:
 \begin{equation}
 \label{eq:mortensen:conv:K}
 \left(B(\vec{u}, \vec{u}), \vec{u} \right)
-= \int_\Omega ((\vec{u} \cdot \nabla)\, \vec{u})\cdot\vec{u}\dx
+= \int_\Omega (\vec{u} \cdot \nabla \vec{u})\cdot\vec{u}\dx
 = \int_\Omega \vec{u}\cdot\nabla K(\vec{u})\dx
 = B(\vec{u}, \vec{u}\cdot\vec{u}),
 \end{equation}
@@ -235,7 +235,7 @@ follows from the standard format by utilizing the divergence
 constraint. The well-known skew-symmetric (or just skew) form is
 a combination of the standard and divergence forms
 \begin{equation}
- B(\vec{u},\vec{a}) = \frac{1}{2}\left[ (\vec{u} \cdot \nabla)\, \vec{a}
+ B(\vec{u},\vec{a}) = \frac{1}{2}\left[ \vec{u} \cdot \nabla \vec{a}
           + \nabla \cdot (\vec{u} \otimes \vec{a}) \right].
 \label{eq:mortensen:skew}
 \end{equation}
@@ -617,6 +617,8 @@ objects \emp{dt} and \emp{nu} for the time step and viscosity, the key
 steps in formulating the variational problem for the coupled problem
 are as follows:
 \begin{python}
+from dolfin import nabla_grad as grad         # Used throughout chapter
+from dolfin import nabla_div as div
 V = VectorFunctionSpace(mesh, "Lagrange", 2)  # velocity space
 Q = FunctionSpace(mesh, "Lagrange", 1)        # pressure space
 VQ = V * Q  # composite space (Taylor-Hood element)
@@ -655,12 +657,12 @@ Section~\ref{sec:mortensen:Convection} have be implemented in the method
 \begin{python}
 def conv(u_tilde, u_bar, v, mode="standard"):
     if (mode == "Standard"):
-        return inner(u_tilde*nabla_grad(u_bar), v)
+        return inner(u_tilde*grad(u_bar), v)
     elif (mode == "Divergence"):
-        return inner(nabla_div(outer(u_tilde, u_bar)), v)
+        return inner(div(outer(u_tilde, u_bar)), v)
     elif (mode == "Skew"):
-        return 0.5*(inner(u_tilde*nabla_grad(u_bar), v) + \
-        inner(nabla_div(outer(u_tilde, u_bar)), v))
+        return 0.5*(inner(u_tilde*grad(u_bar), v) + \
+        inner(div(outer(u_tilde, u_bar)), v))
 \end{python}
 The fractional step Navier--Stokes solver is somewhat more elaborate
 than the fully coupled, since there are more steps involved. The
@@ -699,7 +701,7 @@ steps here in detail.
 %%
 \begin{enumerate}
  \item Split \emp{F} into accumulation $(\partial \vec{u}/\partial t)$,
-   convection $((\vec{u} \cdot \nabla)\, \vec{u})$, and diffusion terms
+   convection $(\vec{u} \cdot \nabla \vec{u})$, and diffusion terms
    $(\nu\nabla^2 \vec{u})$, and take advantage of the fact that for the total
    coefficient matrix it is only the nonlinear convection term that
    needs to be reassembled at each time step. The matrices for the
@@ -865,13 +867,13 @@ from numpy import sin
 from numpy.random import randn
 class U0(Expression):
     def eval(self, values, x):
-        if(x[0]< -1.+DOLFIN_EPS or x[0]>1.-DOLFIN_EPS):
+        if x[0] < -1. + DOLFIN_EPS or x[0] > 1. - DOLFIN_EPS:
             # no noise/perturbation at the boundary:
             values[0] = -sin(pi*x[0])
         else:
-            values[0] = -sin(pi*x[0])+self.kappa*randn()
+            values[0] = -sin(pi*x[0]) + self.kappa*randn()
 u0 = U0(element=V.ufl_element()); u0.kappa = 0.2
-u0 = interpolate(u0,V)
+u0 = interpolate(u0, V)
 \end{python}
 The variational problem can be implemented and solved as
 \begin{python}
@@ -1029,11 +1031,11 @@ viscosity, etc. The mesh and some necessary parameters are declared as:
 \begin{python}
 from dolfin import *
 from numpy import arctan
-mesh = Rectangle(0.,-1.,2*pi,1.,40, 40)
+mesh = Rectangle(0., -1., 2*pi, 1., 40, 40)
 x = mesh.coordinates()
-x[:,1] = arctan(2.*(x[:,1]))/arctan(2.)  # stretch mesh toward wall
+x[:, 1] = arctan(2.*(x[:, 1]))/arctan(2.)  # stretch mesh toward wall
 Re = 8000.; nu = Constant(1./Re)
-f = Constant((2./Re,0.)) # Pressure gradient
+f = Constant((2./Re, 0.)) # Pressure gradient
 \end{python}
 where the constant pressure gradient is implemented as a body force
 to enable the use of periodic boundary conditions for both velocity
@@ -1043,7 +1045,7 @@ At our disposal we have an Orr--Sommerfeld eigenvalue solver that uses
 spectral collocation in $n+1$ Chebyshev points. The details of this
 solver is given by \citet{Trefethen2006} and not repeated here, and the
 source code can be found in the file \emp{OrrSommerfeld\_eig.py} that
-resides within the CBC.Pdesys package. For the initialization of DOLFIN \emp{Functions}
+resides within the CBC.PDESys package. For the initialization of DOLFIN \emp{Functions}
 with the Orr--Sommerfeld solution, a subclass called \emp{U0} of the
 DOLFIN class \emp{Expression} is implemented such that it solves the
 eigenvalue problem on creation and overloads the \emp{eval} function
@@ -1091,33 +1093,33 @@ error in the perturbation flow energy computed as
 \end{equation}
 %%
 \begin{figure}
-  \includegraphics[width=\twofigs]{chapters/mortensen/pdf/OS_init_cfl_1.pdf}
-  \includegraphics[width=\twofigs]{chapters/mortensen/pdf/OS_init_cfl_0.pdf}
+  \includegraphics[width=\smallfig]{chapters/mortensen/pdf/OS_init_cfl_1.pdf}
+  \includegraphics[width=\smallfig]{chapters/mortensen/pdf/OS_init_cfl_0.pdf}
   \caption{Accumulated error \eqref{eq:mortensen:error} vs CFL number
     for an integration time of 0.5 for standard, divergence and skew
     forms, here represented with solid, dashed and dotted lines
     respectively. The fully coupled and fractional step solvers are
     represented with gray and black lines, respectively. All results
-    for a mesh size of $N=48$. The figures on left and right
+    for a mesh size of $N=48$. The figures on top and bottom
     use explicit \eqref{eq:mortensen:EX} and implicit \eqref{eq:mortensen:IM2}
-    convection respectively. Note that for the left figure the black and gray curves
+    convection respectively. Note that for the top figure the black and gray curves
     are practically identical (the error in the fully coupled solver is
     approximately 2\% less throughout). }
   \label{fig:mortensen:OS_init_cfl}
 \end{figure}
 \begin{figure}
   \centering
-  \includegraphics[width=\twofigs]{chapters/mortensen/pdf/OS_init_dx_1.pdf}
-  \includegraphics[width=\twofigs]{chapters/mortensen/pdf/OS_init_dx_0.pdf}
+  \includegraphics[width=\smallfig]{chapters/mortensen/pdf/OS_init_dx_1.pdf}
+  \includegraphics[width=\smallfig]{chapters/mortensen/pdf/OS_init_dx_0.pdf}
 %
  \caption{Accumulated error \eqref{eq:mortensen:error} vs mesh size
    for an integration time of 0.5. Standard, divergence and skew forms
    of convection are here represented with solid, dashed and dotted
    lines respectively. The fully coupled and fractional step solvers
    are represented with gray and black lines, respectively. For all
-   results the time step used is 0.005. The figures on left and right
+   results the time step used is 0.005. The figures on top and bottom
    use explicit \eqref{eq:mortensen:EX} and implicit \eqref{eq:mortensen:IM2}
-   convection respectively. Note that for the figure on the left the black and
+   convection respectively. Note that for the top figure the black and
    gray curves are practically identical (the error in the fully
    coupled solver is approximately 2\% less throughout). }
 \label{fig:mortensen:OS_init_dx}
