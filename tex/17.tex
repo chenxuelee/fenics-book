@@ -1,7 +1,4 @@
-% Used in algorithms
-\newcommand{\afor}{\textbf{for} {}}
-\newcommand{\aif}{\textbf{if} {}}
-\newcommand{\aelse}{\textbf{else} {}}
+% Define a sequence, used in algorithms and text
 \newcommand{\seq}[1]{\left\langle{#1}\right\rangle}
 
 % Boldface letters
@@ -1283,13 +1280,17 @@ $z$ by computing a sequence of subexpressions $\seq{y_i}_{i=1}^n$ and
 setting $z = y_n$.  Algorithm~\ref{ufl:alg:program} shows such a program.
 
 \begin{algorithm}
-\afor $i = 1, \ldots, m$:\\
-\tab $ y_i =  t_i = \mbox{terminal expression}$ \\
-\afor $i = m+1, \ldots, n$:\\
-\tab $ y_i =  f_i(\seq{y_j}_{j\in\mI_i})$ \\
-$z = y_n$
 \caption{Program to compute an expression $z$.}
 \label{ufl:alg:program}
+\begin{algorithmic}[1]
+\For{$i \gets 1, \ldots, m$}
+\State $y_i :=  t_i = \mbox{terminal expression}$
+\EndFor
+\For{$i \gets m+1, \ldots, n$}
+\State $y_i :=  f_i(\seq{y_j}_{j\in\mI_i})$
+\EndFor
+\State $z := y_n$
+\end{algorithmic}
 \end{algorithm}
 
 Each terminal expression $t_i$ is a literal constant or input argument to
@@ -1734,16 +1735,20 @@ can then be extended to compute the derivative $\frac{d z}{d
 This extension gives Algorithm~\ref{ufl:alg:forwardad}.
 
 \begin{algorithm}
-\afor $i = 1, \ldots, m$:\\
-\tab $y_i = t_i$ \\
-\tab $\frac{d y_i}{d v} = \frac{d t_i}{d v}$ \\
-\afor $i = m+1, \ldots, n$:\\
-\tab $y_i = f_i(\seq{y_j}_{j\in\mI_i})$ \\
-\tab $\frac{d y_i}{d v} = \sum_{k\in\mI_i} \frac{\partial f_i}{\partial y_k} \frac{d y_k}{d v}$ \\
-$z = y_n$ \\
-$\frac{d z}{d v} = \frac{d y_n}{d v}$
 \caption{Forward mode AD on Algorithm~\ref{ufl:alg:program}.}
 \label{ufl:alg:forwardad}
+\begin{algorithmic}[1]
+\For{$i \gets 1, \ldots, m$}
+\State $y_i := t_i$
+\State $\frac{d y_i}{d v} := \frac{d t_i}{d v}$
+\EndFor
+\For{$i \gets m+1, \ldots, n$}
+\State $y_i := f_i(\seq{y_j}_{j\in\mI_i})$
+\State $\frac{d y_i}{d v} := \sum_{k\in\mI_i} \frac{\partial f_i}{\partial y_k} \frac{d y_k}{d v}$
+\EndFor
+\State $z := y_n$
+\State $\frac{d z}{d v} := \frac{d y_n}{d v}$
+\end{algorithmic}
 \end{algorithm}
 
 This way of extending a program to simultaneously compute the expression
@@ -1754,13 +1759,17 @@ differentiation (AD).  By renaming $y_i$ and $\frac{d
 Algorithm~\ref{ufl:alg:forwardadprogram}, which is isomorphic to
 Algorithm~\ref{ufl:alg:program} (they have exactly the same structure).
 \begin{algorithm}
-\afor $i = 1, \ldots, \hat m$:\\
-\tab $\hat y_i = \hat t_i$ \\
-\afor $i = \hat m + 1, \ldots, \hat n$:\\
-\tab $\hat y_i = \hat f_i(\seq{\hat y_j}_{j\in\hat\mI_i})$ \\
-$\frac{d z}{d v} = \hat y_{\hat n}$
 \caption{Program to compute $\frac{d z}{d v}$ produced by forward mode AD}
 \label{ufl:alg:forwardadprogram}
+\begin{algorithmic}[1]
+\For{$i \gets 1, \ldots, \hat m$}
+\State $\hat y_i := \hat t_i$
+\EndFor
+\For{$i \gets \hat m + 1, \ldots, \hat n$}
+\State $\hat y_i := \hat f_i(\seq{\hat y_j}_{j\in\hat\mI_i})$
+\EndFor
+\State $\frac{d z}{d v} := \hat y_{\hat n}$
+\end{algorithmic}
 \end{algorithm}
 
 Since the program in Algorithm~\ref{ufl:alg:program} can be
@@ -2025,14 +2034,15 @@ pattern \citep{GammaHelmJohnsonEtAl1995}.  The implementation in \ufl{}
 is somewhat different from the patterns used in a statically typed
 language such as C++.
 
-One way to implement type based operation selection is to use a type
-switch, or a sequence of if-tests such as this:
+One way to implement type based operation selection is to use a
+\emph{type switch}, which is a sequence of if-tests as shown here:
 \begin{python}
-if isinstance(expression, IntValue):
-    result = int_operation(expression)
-elif isinstance(expression, Sum):
-    result = sum_operation(expression)
-# etc.
+def operation(expression):
+    if isinstance(expression, IntValue):
+        return int_operation(expression)
+    elif isinstance(expression, Sum):
+        return sum_operation(expression)
+    # etc.
 \end{python}
 There are several problems with this approach, one of which is
 efficiency when there are many types to check.  A type based function
@@ -2053,14 +2063,7 @@ for corresponding function names, such as \emp{IndexSum} and
 the closest superclass handler function is used instead.  Note that
 the \emp{MultiFunction} implementation is specialized to types in the
 \emp{Expr} class hierarchy.  The declaration and use of a multifunction
-is illustrated in Figure~\ref{ufl:fig:examplefunction}.  Note that
-\emp{argument} and \emp{sum} will handle instances of the exact types
-\emp{Argument} and \emp{Sum}, while \emp{terminal} and \emp{operator}
-will handle the types \emp{SpatialCoordinate} and \emp{Product} since
-they have no specific handlers.
-
-\begin{figure}
-\bwfig
+is illustrated in this example code:
 \begin{python}
 class ExampleFunction(MultiFunction):
     def __init__(self):
@@ -2088,9 +2091,11 @@ print m(x)
 print m(x[0] + x[1])
 print m(x[0] * x[1])
 \end{python}
-\caption{Example declaration and use of a multifunction.}
-\label{ufl:fig:examplefunction}
-\end{figure}
+Note that \emp{argument} and \emp{sum} will handle instances of the exact types
+\emp{Argument} and \emp{Sum}, while \emp{terminal} and \emp{operator}
+will handle the types \emp{SpatialCoordinate} and \emp{Product} since
+they have no specific handlers.
+
 %------------------------------------------------------------
 \subsection{Implementing expression transformations}
 \label{ufl:sec:transformer}
