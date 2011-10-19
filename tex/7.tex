@@ -103,10 +103,7 @@ of~$w$, $\Phi_{i}$ denotes basis functions on the reference element,
 $\det F_T'$ is the determinant of the Jacobian, and $W^q$ is the
 quadrature weight at integration point~$X^q$.  By default, \ffc{}
 applies a quadrature scheme that will integrate the variational form
-exactly.  It calls FIAT (see Chapter~\ref{chap:kirby-2}) to compute
-the quadrature scheme.  FIAT supplies schemes that are based on the
-Gauss--Legendre--Jacobi rule mapped onto simplices
-(see~\citet{KarniadakisSherwin2005} for details of such schemes).
+exactly.
 
 From the representation
 in~\eqref{oelgaard-2:eq:weightedlaplacian_quadraturerepresentation},
@@ -544,13 +541,19 @@ optimization strategies. However, the total number of temporary values
 will also increase. Therefore, this optimization strategy might not be
 feasible for all forms.
 
-\ffc{} uses a Gauss--Legendre--Jacobi quadrature scheme mapped onto
-simplices for the numerical integration of variational forms.  This
-means that for exact integration of a second-order polynomial, \ffc{}
-will use two quadrature points in each spatial direction that is, $2^3
-= 8$ points per cell in three dimensions.  A further optimization of
+\ffc{} implements a few efficient quadrature schemes for integrating
+polynomials of degree less than or equal to six on simplices.
+For polynomials of degree higher than six, it calls FIAT
+(see Chapter~\ref{chap:kirby-2}) to compute the quadrature scheme.
+FIAT supplies schemes that are based on the Gauss--Legendre--Jacobi rule mapped
+onto simplices (see~\citet{KarniadakisSherwin2005} for details of such
+schemes).
+This means that for integrating a seventh-order polynomial, \ffc{}
+will use four quadrature points in each spatial direction that is, $4^3
+= 64$ points per cell in three dimensions.  A further optimization of
 the quadrature representation can thus be achieved by implementing
-more efficient quadrature schemes for simplices since a reduction in
+more efficient quadrature schemes for higher order polynomials on simplices
+since a reduction in
 the number of integration points will yield improved run-time
 performance.  \ffc{} does, however, provide an option for a user to
 specify the quadrature degree of a variational form thereby permitting
