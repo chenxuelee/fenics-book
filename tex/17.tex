@@ -1,7 +1,4 @@
-% Used in algorithms
-\newcommand{\afor}{\textbf{for} {}}
-\newcommand{\aif}{\textbf{if} {}}
-\newcommand{\aelse}{\textbf{else} {}}
+% Define a sequence, used in algorithms and text
 \newcommand{\seq}[1]{\left\langle{#1}\right\rangle}
 
 % Boldface letters
@@ -92,7 +89,7 @@ explain the design of the implementation and dive into some
 implementation details.  Many details of the language have to be
 omitted in a text such as this, and we refer to the \ufl{} manual
 \citep{AlnaesLogg2009} for a more thorough description. Note that this
-chapter refers to \ufl{} version 0.5.4, and both the user interface
+chapter refers to \ufl{} version 1.0.0, and both the user interface
 and the implementation may change in future versions.
 
 Starting with a brief overview, we mention the main design goals for
@@ -560,7 +557,7 @@ instead of \emp{Argument} you can ignore their relative ordering.
 The only time \emp{Argument} is needed is for forms of arity $r > 2$.
 
 Coefficient functions are declared similarly for an arbitrary element,
-and shorthand notation exists for declaring piecewise constant functions:
+and shorthand notation exists for declaring constant coefficients:
 \begin{uflcode}
 w = Coefficient(element)
 c = Constant(cell)
@@ -719,6 +716,10 @@ classes are found in Section~\ref{ufl:sec:representation}.
 %\index{**}
 \index{\emp{sin}}
 \index{\emp{cos}}
+\index{\emp{tan}}
+\index{\emp{asin}}
+\index{\emp{acos}}
+\index{\emp{atan}}
 \index{\emp{exp}}
 \index{\emp{ln}}
 \index{\emp{pow}}
@@ -742,6 +743,7 @@ classes are found in Section~\ref{ufl:sec:representation}.
 \index{\emp{det}}
 \index{\emp{transpose}}
 \index{\emp{inv}}
+\index{\emp{elem\_op}}
 
 \ufl{} defines a comprehensive set of operators that can be used for
 composing expressions.  The elementary algebraic operators \emp{+},
@@ -789,8 +791,11 @@ found in the manual.
 
 A set of common elementary functions operating on scalar expressions
 without free indices are included, in particular \emp{abs(f)}, \emp{pow(f,
-g)}, \emp{sqrt(f)}, \emp{exp(f)}, \emp{ln(f)}, \emp{sin(f)}, \emp{cos(f)},
-and \emp{sign(f)}.
+g)}, \emp{sqrt(f)}, \emp{exp(f)}, \emp{ln(f)},
+\emp{cos(f)}, \emp{sin(f)}, \emp{tan(f)},
+\emp{acos(f)}, \emp{asin(f)}, \emp{atan(f)},
+and \emp{sign(f)}. Any operator taking scalar arguments can be applied
+element-wise to tensors using e.g. \emp{elem\_op(sin, A)}.
 
 %------------------------------------------------------------------------------
 \subsection{Differential operators} \label{ufl:sec:differential}
@@ -835,31 +840,57 @@ $f_{,i}$, which is shorthand for $\frac{\partial f}{\partial x_i}$.
 Repeated indices imply summation, such that the divergence of a vector
 valued expression \emp{v} can be written $v_{i,\,i}$, or \emp{v[i].dx(i)}.
 
-Several common compound spatial derivative operators are defined, namely
-\emp{div}, \emp{grad}, \emp{curl} and \emp{rot} (rot is a synonym for
-curl). Be aware that there are two common ways to define $\mop{grad}$
-and $\mop{div}$. Let $s$ be a scalar expression, $\vv$ be a vector
-expression, and $\MM$ be a tensor expression of rank $r$.  In \ufl{},
-the gradient is then defined as
+Several common compound spatial derivative operators are defined,
+namely the gradient, divergence, and curl (rot) operators.
+These operators are named \emp{grad}, \emp{div},
+\emp{nabla\_grad}, \emp{nabla\_div},
+\emp{curl} and \emp{rot} (rot is a synonym for curl).
+Be aware that there are two common ways to define the
+gradient and divergence, and \ufl{} supports both.
+
+Let $s$ be a scalar expression, $\vv$ be a vector expression,
+and $\MM$ be a tensor expression of rank $r$.
+In \ufl{}, the operator \emp{grad} is then defined explicitly as
 \begin{align}
 \left(\Grad (s) \right)_{i} &= s_{,i}, \\
 \left(\Grad (\vv) \right)_{ij} &= v_{i,j}, \\
 \left(\Grad (\MM) \right)_{i_1\,\ldots\,i_r\,k} &= M_{i_1\,\ldots\,i_r,\,k},
 \end{align}
-and the divergence is correspondingly defined as
+and the operator \emp{div} is correspondingly defined as
 \begin{align}
 \Div (\vv) &= v_{i,\,i}, \\
 \left(\Div (\MM) \right)_{i_1\,\ldots\,i_{r-1}} &= M_{i_1\,\ldots\,i_r,\,i_r}.
 \end{align}
-Thinking in terms of value shape, the gradient appends an axis to the
-end of the tensor shape of its operand.  Correspondingly, the divergence
-sums over the last index of its operand.
-
-For 3D vector expressions, curl is defined in terms of the nabla operator
-and the cross product:
+In contrast, the \emp{nabla\_*} operators are defined
+in terms of the $\mop{\nabla}$ operator
 \begin{align}
-  \nabla &\equiv \ee_k \frac{\partial}{\partial x_k}, \\
-  \mop{curl}(\vv) &\equiv \nabla \times \vv.
+  \nabla &\equiv \ee_k \frac{\partial}{\partial x_k}.
+\end{align}
+The operator \emp{nabla\_grad} is the outer product of $\mop{\nabla}$ with its operand:
+\begin{align}
+  \left(\nabla s\right)_i     &= s_{,i}, \\
+  \left(\nabla \vv\right)_{ij} &= v_{j,i}, \\
+  \left(\nabla \MM \right)_{k, i_1\,\ldots\,i_r} &= M_{i_1\,\ldots\,i_r,\,k}.
+\end{align}
+Similarly, the operator \emp{nabla\_div} is the dot product of $\mop{\nabla}$ with its operand:
+\begin{align}
+  \nabla \cdot \vv &= v_{i,\,i}, \\
+  \left(\nabla \cdot \MM \right)_{i_2\,\ldots\,i_r} &= M_{i_1\,\ldots\,i_r,\,i_1}.
+\end{align}
+Thinking in terms of value shape, the \emp{grad} operator appends
+an axis to the end of the shape of its operand,
+while the \emp{nabla\_grad} operator prepends an axis.
+For gradients of scalars, the result is the same.
+Correspondingly, the \emp{div} operator sums over the last index of its operand,
+while the \emp{nabla\_div} operator sums over the first index of its operand.
+For the divergence of vectors, the result is the same.
+
+For the operators \emp{curl} and \emp{rot} there is no difference
+between the two traditions. For 3D vector expressions, the curl can be
+defined in terms of the nabla operator and the cross product:
+\begin{align}
+  \mop{curl}(\vv) &\equiv \nabla \times \vv = 
+  \ee_0 (v_{2,1} - v_{1,2}) - \ee_1 (v_{2,0} - v_{0,2}) + \ee_2 (v_{1,0} - v_{0,1})
 \end{align}
 For 2D vector and scalar expressions the definitions are:
 \begin{align}
@@ -951,11 +982,14 @@ The condition can be one of
 \item \emp{lt(a, b)} $\leftrightarrow$ $(a < b)$
 \item \emp{le(a, b)} $\leftrightarrow$ $(a \le b)$
 \item \emp{eq(a, b)} $\leftrightarrow$ $(a = b)$
+\item \emp{And(P, Q)} $\leftrightarrow$ $(P \land Q)$
+\item \emp{Not(P)} $\leftrightarrow$ $(\lnot P)$
 \end{itemize}
 \begin{itemize}
 \item \emp{gt(a, b)} $\leftrightarrow$ $(a > b)$
 \item \emp{ge(a, b)} $\leftrightarrow$ $(a \ge b)$
 \item \emp{ne(a, b)} $\leftrightarrow$ $(a \ne b)$
+\item \emp{Or(P, Q)} $\leftrightarrow$ $(P \lor Q)$
 \end{itemize}
 \end{multicols}}
 
@@ -1078,10 +1112,12 @@ in this framework, in particular arbitrary mixed elements are supported.
 \label{ufl:sec:adjoint}
 
 Another form operator is the adjoint $a^*$ of a bilinear form $a$,
-defined as $a^*(u,v) = a(v,u)$, which is similar to taking the transpose
+defined as $a^*(v,u) = a(u,v)$, which is equivalent to taking the transpose
 of the assembled sparse matrix.  In \ufl{} this is implemented simply
-by swapping the test and trial functions, and can be written using the
-\emp{adjoint} form operator.  An example of its use on an anisotropic
+by swapping the order of the test and trial functions, and can be written using the
+\emp{adjoint} form operator.
+(Note that this is not the most generic definition of the adjoint of an operator).
+An example of its use on an anisotropic
 diffusion term looks like
 \begin{uflcode}
 V = VectorElement("Lagrange", cell, 1)
@@ -1092,10 +1128,10 @@ M = Coefficient(T)
 a = M[i,j]*u[k].dx(j)*v[k].dx(i)*dx
 astar = adjoint(a)
 \end{uflcode}
-which corresponds to
+which corresponds to (with $u \in U$ and $v \in V$)
 \begin{align}
-a(M; u, v) = \int_\Omega M_{ij} u_{k,j} v_{k,i} \dx, \\
-a^*(M; u, v) = a(M; v, u) = \int_\Omega  M_{ij} v_{k,j} u_{k,i} \dx.
+a(M; u, v) =& \int_\Omega M_{ij} u_{k,j} v_{k,i} \dx, \\
+a^*(M; v, u) =& \int_\Omega  M_{ij} u_{k,j} v_{k,i} \dx = a(M; u, v).
 \end{align}
 This automatic transformation is particularly useful if we need the
 adjoint of nonsymmetric bilinear forms computed using
@@ -1244,13 +1280,17 @@ $z$ by computing a sequence of subexpressions $\seq{y_i}_{i=1}^n$ and
 setting $z = y_n$.  Algorithm~\ref{ufl:alg:program} shows such a program.
 
 \begin{algorithm}
-\afor $i = 1, \ldots, m$:\\
-\tab $ y_i =  t_i = \mbox{terminal expression}$ \\
-\afor $i = m+1, \ldots, n$:\\
-\tab $ y_i =  f_i(\seq{y_j}_{j\in\mI_i})$ \\
-$z = y_n$
 \caption{Program to compute an expression $z$.}
 \label{ufl:alg:program}
+\begin{algorithmic}[1]
+\For{$i \gets 1, \ldots, m$}
+\State $y_i :=  t_i = \mbox{terminal expression}$
+\EndFor
+\For{$i \gets m+1, \ldots, n$}
+\State $y_i :=  f_i(\seq{y_j}_{j\in\mI_i})$
+\EndFor
+\State $z := y_n$
+\end{algorithmic}
 \end{algorithm}
 
 Each terminal expression $t_i$ is a literal constant or input argument to
@@ -1565,7 +1605,7 @@ for deps in sorted(partitions.keys()):
 \end{python}
 The output text from the program is included below.  Notice that the
 literal constant 2 has no dependencies. Expressions in this partition can
-always be precomputed compile-time. The \emp{Constant} \emp{c\_0} depends
+always be precomputed at compile-time. The \emp{Constant} \emp{c\_0} depends
 on data which varies for each cell, represented by \emp{c} in the dependency
 set, but not on spatial coordinates, so it can be placed outside the
 quadrature loop. The \emp{Function} \emp{w\_1} and expressions depending
@@ -1695,16 +1735,20 @@ can then be extended to compute the derivative $\frac{d z}{d
 This extension gives Algorithm~\ref{ufl:alg:forwardad}.
 
 \begin{algorithm}
-\afor $i = 1, \ldots, m$:\\
-\tab $y_i = t_i$ \\
-\tab $\frac{d y_i}{d v} = \frac{d t_i}{d v}$ \\
-\afor $i = m+1, \ldots, n$:\\
-\tab $y_i = f_i(\seq{y_j}_{j\in\mI_i})$ \\
-\tab $\frac{d y_i}{d v} = \sum_{k\in\mI_i} \frac{\partial f_i}{\partial y_k} \frac{d y_k}{d v}$ \\
-$z = y_n$ \\
-$\frac{d z}{d v} = \frac{d y_n}{d v}$
 \caption{Forward mode AD on Algorithm~\ref{ufl:alg:program}.}
 \label{ufl:alg:forwardad}
+\begin{algorithmic}[1]
+\For{$i \gets 1, \ldots, m$}
+\State $y_i := t_i$
+\State $\frac{d y_i}{d v} := \frac{d t_i}{d v}$
+\EndFor
+\For{$i \gets m+1, \ldots, n$}
+\State $y_i := f_i(\seq{y_j}_{j\in\mI_i})$
+\State $\frac{d y_i}{d v} := \sum_{k\in\mI_i} \frac{\partial f_i}{\partial y_k} \frac{d y_k}{d v}$
+\EndFor
+\State $z := y_n$
+\State $\frac{d z}{d v} := \frac{d y_n}{d v}$
+\end{algorithmic}
 \end{algorithm}
 
 This way of extending a program to simultaneously compute the expression
@@ -1715,13 +1759,17 @@ differentiation (AD).  By renaming $y_i$ and $\frac{d
 Algorithm~\ref{ufl:alg:forwardadprogram}, which is isomorphic to
 Algorithm~\ref{ufl:alg:program} (they have exactly the same structure).
 \begin{algorithm}
-\afor $i = 1, \ldots, \hat m$:\\
-\tab $\hat y_i = \hat t_i$ \\
-\afor $i = \hat m + 1, \ldots, \hat n$:\\
-\tab $\hat y_i = \hat f_i(\seq{\hat y_j}_{j\in\hat\mI_i})$ \\
-$\frac{d z}{d v} = \hat y_{\hat n}$
 \caption{Program to compute $\frac{d z}{d v}$ produced by forward mode AD}
 \label{ufl:alg:forwardadprogram}
+\begin{algorithmic}[1]
+\For{$i \gets 1, \ldots, \hat m$}
+\State $\hat y_i := \hat t_i$
+\EndFor
+\For{$i \gets \hat m + 1, \ldots, \hat n$}
+\State $\hat y_i := \hat f_i(\seq{\hat y_j}_{j\in\hat\mI_i})$
+\EndFor
+\State $\frac{d z}{d v} := \hat y_{\hat n}$
+\end{algorithmic}
 \end{algorithm}
 
 Since the program in Algorithm~\ref{ufl:alg:program} can be
@@ -1986,14 +2034,15 @@ pattern \citep{GammaHelmJohnsonEtAl1995}.  The implementation in \ufl{}
 is somewhat different from the patterns used in a statically typed
 language such as C++.
 
-One way to implement type based operation selection is to use a type
-switch, or a sequence of if-tests such as this:
+One way to implement type based operation selection is to use a
+\emph{type switch}, which is a sequence of if-tests as shown here:
 \begin{python}
-if isinstance(expression, IntValue):
-    result = int_operation(expression)
-elif isinstance(expression, Sum):
-    result = sum_operation(expression)
-# etc.
+def operation(expression):
+    if isinstance(expression, IntValue):
+        return int_operation(expression)
+    elif isinstance(expression, Sum):
+        return sum_operation(expression)
+    # etc.
 \end{python}
 There are several problems with this approach, one of which is
 efficiency when there are many types to check.  A type based function
@@ -2014,14 +2063,7 @@ for corresponding function names, such as \emp{IndexSum} and
 the closest superclass handler function is used instead.  Note that
 the \emp{MultiFunction} implementation is specialized to types in the
 \emp{Expr} class hierarchy.  The declaration and use of a multifunction
-is illustrated in Figure~\ref{ufl:fig:examplefunction}.  Note that
-\emp{argument} and \emp{sum} will handle instances of the exact types
-\emp{Argument} and \emp{Sum}, while \emp{terminal} and \emp{operator}
-will handle the types \emp{SpatialCoordinate} and \emp{Product} since
-they have no specific handlers.
-
-\begin{figure}
-\bwfig
+is illustrated in this example code:
 \begin{python}
 class ExampleFunction(MultiFunction):
     def __init__(self):
@@ -2047,11 +2089,13 @@ x = cell.x
 print m(Argument(element))
 print m(x)
 print m(x[0] + x[1])
-print m(x[0]* x[1])
+print m(x[0] * x[1])
 \end{python}
-\caption{Example declaration and use of a multifunction.}
-\label{ufl:fig:examplefunction}
-\end{figure}
+Note that \emp{argument} and \emp{sum} will handle instances of the exact types
+\emp{Argument} and \emp{Sum}, while \emp{terminal} and \emp{operator}
+will handle the types \emp{SpatialCoordinate} and \emp{Product} since
+they have no specific handlers.
+
 %------------------------------------------------------------
 \subsection{Implementing expression transformations}
 \label{ufl:sec:transformer}
@@ -2461,7 +2505,7 @@ representation, and thus the signature, of a form may change with
 versions of \ufl{}.  The following line prints the signature of a form
 with \emp{expand\_derivatives} and renumbering applied.
 \begin{python}
-print repr(preprocess(myform).form_data().form)
+print repr(preprocess(myform).preprocessed_form)
 \end{python}
 
 %------------------------------------------------------------
@@ -2553,6 +2597,6 @@ goal Automation of Mathematical Modeling.
 This work has been supported by the Norwegian Research Council (grant
 162730) and Simula Research Laboratory.  I wish to thank everyone who
 has helped improving \ufl{} with suggestions and testing, in particular
-Anders Logg, Kristian \O{}lgaard, Garth Wells, and Harish Narayanan. In
-addition to the two anonymous referees, both Kent-Andr\'e Mardal and Marie
+Anders Logg, Kristian \O{}lgaard, Garth Wells, Harish Narayanan and Marie Rognes.
+In addition to the two anonymous referees, both Kent-Andr\'e Mardal and Marie
 Rognes performed critical reviews which greatly improved this chapter.

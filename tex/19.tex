@@ -301,8 +301,8 @@ Python module.
 %module(package="dolfin", directors="1") cpp
 \end{swigcode}
 This statement tells SWIG to create a module called \emp{cpp} that
-resides in the package of \dolfin{}. We have also enabled the use of
-directors.  The latter is required to be able to subclass \dolfin classes
+resides in the package \dolfin{}. We also enable the use of
+directors.  This is required to be able to subclass \dolfin classes
 in Python, an issue that will be discussed below.  By naming the generated
 extension module \emp{cpp}, and including it in the \dolfin{} Python
 package, we hide the generated interface into a submodule of \dolfin{}; the
@@ -323,16 +323,16 @@ into the SWIG generated C++ wrapper file.
 import_array();
 %}
 \end{swigcode}
-SWIG inserts code that resides in a \emp{\%\{$\ldots$\}\%} block,
+SWIG inserts code that resides in a \emp{\%\{$\ldots$\%\}} block,
 verbatim at the top of the generated C++ wrapper file. Note that
-\emp{\%\{$\ldots$\}\%} is short for \emp{\%header\%\{$\ldots$\}\%}. Hence,
+\emp{\%\{$\ldots$\%\}} is short for \emp{\%header\%\{$\ldots$\%\}}. Hence,
 the first block of code is similar to the include statements you
 would put in a standard C++ program. The code in the second block,
 \emp{\%init\%\{$\ldots$\}\%}, is inserted in the code where the
 Python module is initialized. A typical example of such a function is
 \emp{import\_array()}, which initializes the \numpy module. SWIG provides
 several such statements, each inserting code verbatim into the wrapper
-file at different positions.
+file at different positions. 
 
 \subsection{Reference counting using \emp{shared\_ptr}}
 In the previous example dealing with \emp{operator+=}, we saw that
@@ -345,15 +345,15 @@ count of the Python object reach zero, instead the reference count on
 the \emp{shared\_ptr} is decreased.
 
 Shared pointers are provided by the \emp{boost\_shared\_ptr.i} file.
-This file declare the directive: \emp{\%shared\_ptr}. The directive
+This file defines the directive: \emp{\%shared\_ptr}. The directive
 must be used for each class we want shared pointers for. In DOLFIN
-this is done in the \emp{shared\_ptr\_classes.i} file. Note that the
-when the directive is called typemaps for passing a \emp{shared\_ptr}
-stored object to method that expects a reference or a pointer is
-declared. This means that the typemap pass a de-referenced
-\emp{shared\_ptr} to the function. This behavior can lead to
-unintentional trouble because the \emp{shared\_ptr} mechanism is
-circumvented.
+this is done in the \emp{shared\_ptr\_classes.i} file. Note that when
+the \emp{\%shared\_ptr} directive is called, typemaps for passing a
+\emp{shared\_ptr} stored object to method that expects a reference or
+a pointer is also defined. This means that the typemap pass a
+de-referenced \emp{shared\_ptr} to the function. This behavior can
+lead to unintentional trouble because the \emp{shared\_ptr} mechanism
+is circumvented.
 
 In \dolfin, instances of some crucial classes are stored internally
 with \emp{shared\_ptr}s. These classes also uses \emp{shared\_ptr}
@@ -381,24 +381,22 @@ count of the \emp{shared\_ptr}.  This undermines the whole concept
 of \emp{shared\_ptr}. To prevent this faulty behavior, we ignore the
 reference constructor (see \emp{function\_pre.i}):
 \begin{swigcode}
- %ignore dolfin::Function::Function(const FunctionSpace&);
+%ignore dolfin::Function::Function(const FunctionSpace&);
 \end{swigcode}
 
 \subsection{Typemaps}
-Most types in the \emp{kernel\_module.i} file are wrapped nicely
-with SWIG. However, as in the \emp{Array} example above, there
-is need for typemaps, for instance to handle \numpy arrays.
-In \emp{dolfin.i} we include three different types of global
-typemaps: \textit{i)} general-, \textit{ii)} \numpy- and,
-\textit{iii)} \emp{std::vector}-typemaps. These are implemented in the
-interface files: \emp{typemaps.i}, \emp{numpy\_}\emp{typemaps.i} and
-\emp{std\_}\emp{vector\_}\emp{typemaps.i}. Here, we present some of the
-typemaps defined in these files.
+Most types in the \emp{kernel\_module.i} file are wrapped nicely with
+SWIG. However, as in the \emp{Array} example above, there is need for
+typemaps, for instance to handle \numpy arrays. In \emp{dolfin.i} we
+include different types of global typemaps. They are called global
+because they are defined for the whole DOLFIN library. A typemap is
+not global if it is included in the kernel specific interface files,
+see below. Here we present some of the global typemaps defined in the
+files included in \emp{dolfin.i}.
 
-In \emp{typemaps.i}, typemaps for four different basic types
-are defined. In- and out-typemaps for \emp{dolfin::uint}, and
-\emp{dolfin::real}, an in-typemap for \emp{int}, and an out-typemap
-macro for \emp{std::pair<}\-\emp{dolfin::uint,}\-\emp{dolfin::uint>}.
+In \emp{typemaps.i} are typemaps and so called SWIG fragments (explained later), defined
+for the three primitive types:\emp{int}, \emp{dolfin::uint} and
+\emp{double}.
 
 The simplest typemap is an out-typemap for \emp{dolfin::uint} a
 typedef of \emp{unsigned int}. This typemap is needed since Python
@@ -410,75 +408,69 @@ does not have an equivalent of an \emp{unsigned int} type:
   $result = SWIG_From(unsigned int)($1);
 }
 \end{swigcode}
-This typemap specifies that a function returning a \emp{unsigned int}
-will use the SWIG provided type conversion macro:
-\emp{SWIG\_From(type)(arg)} to convert the unsigned int to a Python
-int. The macro is not provided by default in SWIG. We therefore need
-to specify that SWIG includes the definition of the macro in the
+Here we specify that a function returning an \emp{unsigned int} will
+use the SWIG provided type conversion macro: \emp{SWIG\_From(unsigned
+  int)(arg)} to convert the \emp{unsigned int} to a Python
+\emp{int}. The macro is not provided by default in SWIG. We therefore
+need to specify that SWIG includes the definition of the macro in the
 wrapper file by using the \emp{fragment} argument to the \emp{typemap}
 directive.
 
 The next typemap is an in typemap for \emp{unsigned int}.
 \begin{swigcode}
-%typemap(in, fragment="PyInteger_Check") unsigned int
+%typemap(in, fragment="Py_convert_uint") unsigned int
 {
-  if (PyInteger_Check($input))
-  {
-    long tmp = static_cast<long>(PyInt_AsLong($input));
-    if (tmp>=0)
-      $1 = static_cast<unsigned int>(tmp);
-    else
-      SWIG_exception(SWIG_TypeError, "expected positive 'int' for argument $argnum");
-  }
-  else
+  if (!Py_convert_uint($input, $1))
     SWIG_exception(SWIG_TypeError, "expected positive 'int' for argument $argnum");
 }
 \end{swigcode}
 %$ to fool emacs highlight...
-The typemap has the same structure as the \numpy typemap above. We
-first check that the object is of integer type, with the
-\emp{PyInteger\_}\emp{Check} function. Here, we have implemented the
-\emp{PyInteger\_}\emp{Check} function ourselves instead of using the
-Python macro \emp{PyInt\_Check}. The reason is that \emp{PyInt\_Check}
-in Python2.6 can not be combined with \numpy, which is the above
-mentioned bug. Here we use the \emp{fragment} argument to the typemap
-to tell SWIG to include code that defines the
-\emp{PyInteger\_}\emp{Check} function. Next, we convert the Python
-integer to a \emp{long} and check whether it is positive. Finally, we
-assign the input argument \$1 to a \emp{dolfin::uint} casted version
-of the value. If either of these checks fail, we use the built in SWIG
-function, \emp{SWIG\_exception} to raise a Python exception. These
-predefined SWIG exceptions are defined in the \emp{exception.i} file,
-included in \emp{dolfin.i}. Note that SWIG expands the \emp{\$argnum}
-variable to the number of the argument using the \emp{dolfin::uint}
-typemap. Including this number in the string creates more
-understandable error message.  Finally, we present the out-typemap for
-\emp{std::pair}\-\emp{<dolfin::uint,}\-\emp{dolfin::uint>}, which
-returns a Python tuple of two integers:
+This typemap is almost as simple as the corresponding out typemap. It
+employs the fragment provided function: \emp{Py\_convert\_uint}, to do
+the type check and the Python to C++ conversion. If the conversion is
+not successful it will return \emp{false} and a Python exception is
+raised. The built in SWIG function, \emp{SWIG\_exception} is used to
+raise the Python exception. These predefined SWIG exceptions are
+defined in the \emp{exception.i} file, included in
+\emp{dolfin.i}. Note that SWIG expands the \emp{\$argnum} variable to
+the argument number for which the \emp{dolfin::uint} typemap is used
+for. Including this number in the string creates more understandable
+error message. The \emp{Py\_convert\_uint} fragment is defined in the
+same file and looks like:
 \begin{swigcode}
-%typemap(out) std::pair<dolfin::uint,dolfin::uint>
-{
-  $result = Py_Build Value("ii",$1.first,$1.second);
+%fragment("Py_convert_uint", "header", fragment="PyInteger_Check") {
+  SWIGINTERNINLINE bool Py_convert_uint(PyObject* in, dolfin::uint& value)
+  {
+    if (!(PyInteger_Check(in) && PyInt_AS_LONG(in)>=0))
+      return false;
+    value = static_cast<dolfin::uint>(PyInt_AS_LONG(in));
+    return true;
+  }
 }
 \end{swigcode}
-%$ here to fool emacs highlightings
-This is an example of a short and comprehensive typemap. It uses the
-Python C-API function \emp{Py\_BuildValue} to build a tuple of the two
-values in the \emp{std::pair} object.
+%$ to fool emacs highlight...
+The first string in the \emp{fragment} declaration is the name of the
+\emp{fragment} and the second string defines where the code should be
+inserted. Here we insert it into the \emp{"header"} section of the
+generated code. This is similar to the code inserted using
+\emp{\%\{$\ldots$\%\}} above. Here we also rely on another fragment
+provided function: \emp{PyInteger\_Check}, which we provide as a
+substitute to the built in \emp{PyInt\_Check} function. The reason for
+that is that \emp{PyInt\_Check} in Python2.6 can not be combined with
+\numpy \emp{Int}.
 
-In \emp{numpy\_typemaps.i}, typemaps for arrays of primitive types:
-\emp{double}, \emp{int} and \emp{dolfin::uint} are defined.  As in the
-\emp{Array} example above, these typemaps are defined so a \numpy
-array of the corresponding type can be passed as the argument to
-functions, methods, and operators.  Instead of writing one typemap for
-each primitive type, we defined a SWIG macro, which is called with
-different types as argument. Using macros may produce a lot of code as
-some of these typemaps are used frequently. To avoid code bloat, most
-of the typemap code is place in the function
-\emp{convert\_numpy\_to\_}\-\emp{array\_no\_check(TYPE\_NAME)}\footnote{\emp{
-    \#\# TYPE\_NAME} is a SWIG macro directive that will be expanded
-  to the value of the \emp{TYPE\_NAME} macro argument.}, which is
-called by the actual typemap. The code is defined within a
+In \emp{numpy\_typemaps.i} are typemaps for C-arrays of primitive
+types: \emp{double}, \emp{int} and \emp{dolfin::uint} defined. As in
+the \emp{Array} example in the previous section, these typemaps let a
+user pass a \numpy array of the corresponding type as arguments to
+functions, methods, and operators. Instead of writing one typemap for
+each primitive type we define a SWIG macro, which instantiates a
+typemap for a particular primitive type when it is called. Some of these
+typemaps are used frequently and can therefore produce a lot of
+code. To avoid code bloat most of the typemap code is place in the
+function
+\emp{convert\_numpy\_to\_}\-\emp{array\_no\_check(TYPE\_NAME)}, which
+is called by the actual typemap. The code is defined within a
 \emp{fragment} directive, which means that a typemap can make use of
 that code by adding the name of the fragment as an argument in the
 typemap definition. The entire macro reads:
@@ -489,7 +481,7 @@ typemap definition. The entire macro reads:
   // Typemap function (Reducing wrapper code size)
   SWIGINTERN bool convert_numpy_to_array_no_check_ ## TYPE_NAME(PyObject* input, TYPE*& ret)
   {
-    if (PyArray_Check(input))
+    if (PyArray_ISCONTIGUOUS(xa) && PyArray_TYPE(xa) == NUMPY_TYPE)
     {
       PyArrayObject *xa = reinterpret_cast<PyArrayObject*>(input);
       if ( PyArray_TYPE(xa) == NUMPY_TYPE )
@@ -498,7 +490,7 @@ typemap definition. The entire macro reads:
         return true;
       }
     }
-    PyErr_SetString(PyExc_TypeError,"numpy array of 'TYPE_NAME' expected. Make sure that the numpy array use dtype='DESCR'.");
+    PyErr_SetString(PyExc_TypeError,"contiguous numpy array of 'TYPE_NAME' expected. Make sure that the numpy array is contiguous and uses dtype='DESCR'.");
     return false;
   }
 }
@@ -546,29 +538,36 @@ function included in the fragment declaration
 SWIGINTERN bool convert_numpy_to_array_no_check_ ## TYPE_NAME(PyObject* input, TYPE*& ret)
 \end{swigcode}
 takes a pointer to a \emp{PyObject} as input. This function returns
-\emp{true} if the conversion is successful and \emp{false} otherwise. The
-converted array will be returned by the \emp{TYPE*\& ret} argument.
-Finally, the \emp{\%apply TYPE* \{TYPE* \_array\}} directive means that
-we want the typemap to apply to any argument of type \emp{TYPE*} with
-argument name \emp{\_array}. This is another way of copying a typemap,
-similar to what we did for the \emp{dolfin::uint} out-typemap above.
+\emp{true} if the conversion is successful and \emp{false}
+otherwise. The converted array will be returned by the \emp{TYPE*\&
+  ret} argument.  Finally, the \emp{\%apply TYPE* \{TYPE* \_array\}}
+directive means that we want the typemap to apply to any argument of
+type \emp{TYPE*} with argument name \emp{\_array}. In this way we copy
+the already defined typemap to an C-array argument with the name
+\emp{\_array}.  Note that \emp{\#\# TYPE\_NAME} is a SWIG macro
+directive that will be expanded to the value of the \emp{TYPE\_NAME}
+macro argument.
 
-In \emp{std\_vector\_typemaps.i}, two typemap macros for passing
-\emp{std::vector<Type>} between Python and C++ are defined. One is
-an in-typemap macro for passing a \emp{std::vector} of pointers of \dolfin
-objects to a C++ function. The other is an out-typemap macro for passing
-a \emp{std::vector} of primitives, using \numpy arrays, to Python. It
-is not strictly necessary to add these typemaps as SWIG provides a
-\emp{std::vector} type. However, the SWIG \emp{std::vector} functionality
-is not very Pythonic and we have therefore chosen to implement our own
+In \emp{std\_vector\_typemaps.i}, several typemaps are defined which
+allow users to pass either \texttt{NumPy} arrays or Python lists where
+a \emp{std::vector} is expected. One is an in-typemap macro for
+passing a \emp{std::vector} of pointers of \dolfin objects to a C++
+function and another is an out-typemap macro for passing a
+\emp{std::vector} of primitives, using \numpy arrays, to Python. It is
+not strictly necessary to add these typemaps as SWIG provides
+interface files to handle templated types from
+\emp{std::vector}. However, the provided \emp{std::vector}
+functionality generates a lot of code and the resulting objects are
+not very Pythonic. We have therefore chosen to implement our own
 typemaps to handle \emp{std::vector} arguments.
 
-The first typemap macro enables the use of a Python list of
+The first typemap we describe enables the use of a Python list of
 \dolfin objects instead of a \emp{std:vector} of pointers to such
-objects. Since the handed \dolfin objects may and may not be stored using
-a \emp{shared\_ptr}, we provide a typemap that works for both situations.
-We also create typemaps for signatures where \emp{const} are used.
-Typically a signature can look like:
+objects. Since the handed \dolfin objects may and may not be stored
+using a \emp{shared\_ptr}, we provide a typemap that works for both
+situations. We also create typemaps for arguments where different
+combinations of \emp{const} are used. Typically a signature in the
+DOLFIN code can look like:
 \begin{swigcode}
 {const} std::vector<{const} dolfin::TYPE *>
 \end{swigcode}
@@ -589,52 +588,43 @@ IN_TYPEMAP_STD_VECTOR_OF_POINTERS(TYPE,const,const)
   $1 = PyList_Check($input) ? 1 : 0;
 }
 
-%typemap (in) CONST_VECTOR std::vector<CONST dolfin::TYPE *> & (std::vector<CONST dolfin::TYPE *> tmp_vec)
+%typemap (in) CONST_VECTOR std::vector<CONST dolfin::TYPE *> & (std::vector<CONST dolfin::TYPE *> tmp_vec, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<dolfin::TYPE> tempshared)
 {
-  if (PyList_Check($input))
-  {
-    int size = PyList_Size($input);
-    int res = 0;
-    PyObject * py_item = 0;
-    void * itemp = 0;
-    int newmem = 0;
-    tmp_vec.reserve(size);
-    for (int i = 0; i < size; i++)
-    {
-      py_item = PyList_GetItem($input,i);
-      res = SWIG_ConvertPtrAndOwn(py_item, &itemp, $descriptor(dolfin::TYPE *), 0, &newmem);
+  if (!PyList_Check($input)) {
+    SWIG_exception(SWIG_TypeError, "list of TYPE expected");
+  int size = PyList_Size($input);
+  int res = 0;
+  PyObject * py_item = 0;
+  void * itemp = 0;
+  int newmem = 0;
+  tmp_vec.reserve(size);
+  for (int i = 0; i < size; i++) {
+    py_item = PyList_GetItem($input,i);
+    res = SWIG_ConvertPtr(py_item, &itemp, $descriptor(dolfin::TYPE *), 0);
+    if (SWIG_IsOK(res)) {
+      tmp_vec.push_back(reinterpret_cast<dolfin::TYPE *>(itemp));
+    }
+    else {
+      // If failed with normal pointer conversion then
+      // try with shared_ptr conversion
+      newmem = 0;
+      res = SWIG_ConvertPtrAndOwn(py_item, &itemp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< dolfin::TYPE > *), 0, &newmem);
       if (SWIG_IsOK(res)) {
-          tmp_vec.push_back(reinterpret_cast<dolfin::TYPE *>(itemp));
-      }
-      else {
-        // If failed with normal pointer conversion then
-        // try with shared_ptr conversion
-        newmem = 0;
-        res = SWIG_ConvertPtrAndOwn(py_item, &itemp,
-                   $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< dolfin::TYPE > *),
-                   0, &newmem);
-	if (SWIG_IsOK(res)){
-	  // If we need to release memory
-	  if (newmem & SWIG_CAST_NEW_MEMORY){
-	    tempshared = *reinterpret_cast< SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<dolfin::TYPE> * >(itemp);
-	    delete reinterpret_cast< SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< dolfin::TYPE > * >(itemp);
-	    arg = const_cast< dolfin::TYPE * >(tempshared.get());
-	  }
-	  else {
-	    arg = const_cast< dolfin::TYPE * >(reinterpret_cast< SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< dolfin::TYPE > * >(itemp)->get());
-	  }
-	  tmp_vec.push_back(arg);
-	}
-        else {
-           SWIG_exception(SWIG_TypeError, "list of TYPE expected (Bad conversion)");
+        if (itemp) {
+          tempshared = *(reinterpret_cast< SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<dolfin::TYPE> * >(itemp));
+          tmp_vec.push_back(tempshared.get());
+        }
+        // If we need to release memory
+        if (newmem & SWIG_CAST_NEW_MEMORY) {
+          delete reinterpret_cast< SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< dolfin::TYPE > * >(itemp);
         }
       }
+      else {
+        SWIG_exception(SWIG_TypeError, "list of TYPE expected (Bad conversion)");
+      }
     }
-    $1 = &tmp_vec;
   }
-  else {
-    SWIG_exception(SWIG_TypeError, "list of TYPE expected");
-  }
+  $1 = &tmp_vec;
 }
 %enddef
 \end{swigcode}
@@ -650,13 +640,13 @@ the \emp{tmp\_vec}. If the conversion fails we try to acquire a
 \emp{shared\_ptr} version of the C++ object instead. If neither of the
 two conversions succeed we raise an error.
 
-The second typemap defined for \emp{std::vector} arguments, is a so
-called argout-typemap. This kind of typemap is used to return values from
-arguments. In C++, non \emp{const} references or pointers arguments are
-commonly used both as input and output of functions. In Python, output
-should be returned.  The following call to the \emp{GenericMatrix::getrow}
-method illustrates the difference between C++ and Python. The C++
-signature is:
+The second typemap defined for \emp{std::vector} arguments is a so
+called argout-typemap. This kind of typemap is used to return values
+from arguments. In C++ non \emp{const} references or pointers
+arguments are commonly used both as input and output of functions. In
+Python are output arguments returned by the function. The following
+call to the \emp{GenericMatrix::getrow} method illustrates the
+difference between C++ and Python. The C++ signature is:
 \begin{swigcode}
 GenericMatrix::getrow(dolfin::uint row, std::vector<uint>& columns, std::vector<double>& values)
 \end{swigcode}
@@ -667,7 +657,7 @@ corresponding call should look like:
 columns, values = A.getrow(row)
 \end{python}
 To obtain the desired Python behavior we employ argout-typemaps. The
-following typemap macro defines such typemaps:
+following macro defines such a typemap:
 \begin{swigcode}
 %define ARGOUT_TYPEMAP_STD_VECTOR_OF_PRIMITIVES(TYPE, TYPE_UPPER, ARG_NAME, NUMPY_TYPE)
 // In typemap removing the argument from the expected in list
@@ -678,37 +668,14 @@ following typemap macro defines such typemaps:
 
 %typemap(argout) std::vector<TYPE> & ARG_NAME
 {
-  PyObject* o0 = 0;
-  PyObject* o1 = 0;
-  PyObject* o2 = 0;
   npy_intp size = $1->size();
   PyArrayObject *ret = reinterpret_cast<PyArrayObject*>(PyArray_SimpleNew(1, &size, NUMPY_TYPE));
   TYPE* data = static_cast<TYPE*>(PyArray_DATA(ret));
   for (int i = 0; i < size; ++i)
     data[i] = (*$1)[i];
-  o0 = PyArray_Return(ret);
-  // If the $result is not already set
-  if ((!$result) || ($result == Py_None))
-  {
-    $result = o0;
-  }
-  // If the result is set by another out typemap build a tuple of arguments
-  else
-  {
-    // If the argument is set but is not a tuple make one and put the result in it
-    if (!PyTuple_Check($result))
-    {
-      o1 = $result;
-      $result = PyTuple_New(1);
-      PyTuple_SetItem($result, 0, o1);
-    }
-    o2 = PyTuple_New(1);
-    PyTuple_SetItem(o2, 0, o0);
-    o1 = $result;
-    $result = PySequence_Concat(o1, o2);
-    Py_DECREF(o1);
-    Py_DECREF(o2);
-  }
+
+  // Append the output to $result
+  %append_output(PyArray_Return(ret));
 }
 %enddef
 \end{swigcode}
@@ -751,71 +718,51 @@ files.  Below, we will highlight some of these specializations.
 
 \paragraph{The \emp{mesh} module.}
 The \emp{mesh} module defines the Python interfaces for \emp{Mesh},
-\emp{MeshFunction}, \emp{MeshEntity}, and their subclasses.  In \emp{Mesh}
-the geometrical and topological information is stored in contiguous
-arrays. These arrays are accessible from Python using access methods that
-return \numpy arrays of the underlying data. With this functionality,
-a user can for example move a mesh 1 unit to the right as follows:
+\emp{MeshFunction}, \emp{MeshEntity}, and their subclasses. In
+\emp{Mesh} the geometrical and topological information is stored in
+contiguous C-arrays. These arrays are accessible from Python using
+methods that return the underlying data wrapped to \numpy arrays. With
+this functionality, for example move a mesh 1 unit in the
+x-direction as follows:
 \begin{python}
 mesh.coordinates()[:,0] += 1
 \end{python}
-To obtain this functionality, the \emp{Mesh} class has been extended
-with a function \emp{coordinates} that returns a \numpy array. This is
-obtained by the following code in \emp{mesh\_pre.i}:
+To obtain this functionality we ignore the original C++ methods and
+then extend the \emp{Mesh} class with our own versions. The code for
+this functionality is found in \emp{mesh\_pre.i}:
 \begin{swigcode}
+%ignore dolfin::Mesh::coordinates;
+%ignore dolfin::Mesh::cells;
+...
 %extend dolfin::Mesh {
   PyObject* coordinates() {
-    int m = self->num_vertices();
-    int n = self->geometry().dim();
-
-    MAKE_ARRAY(2, m, n, self->coordinates(), NPY_DOUBLE)
-
-    return reinterpret_cast<PyObject*>(array);
+    return %make_numpy_array(2, double)(self->num_vertices(),
+					self->geometry().dim(),
+					self->coordinates(), true);
   }
-...
+  
+  PyObject* cells() {
+    return %make_numpy_array(2, uint)(self->num_cells(), self->topology().dim()+1,
+				      self->cells(), false);
+  }
 }
-...
-%ignore dolfin::Mesh::coordinates;
 \end{swigcode}
-This function wraps a 2 dimensional \numpy array around the coordinates
-obtained from the mesh, using the macro \emp{MAKE\_ARRAY}. In
-addition, the original \emp{coordinates} function is ignored using the
-\emp{\%ignore} directive. The \emp{MAKE\_ARRAY} macro looks like:
+Here we first ignore the C++ versions of the \emp{coordinates} and
+\emp{cells} methods. Then we re-implements them using the
+\emp{make\_numpy\_array} macro. This macro takes a pointer to a
+C-array, together with the dimension and size of that array. The last
+argument is used to set the writable flag of the NumPy array. This
+flag is set to \emp{true} for \emp{coordinates} and false for
+\emp{cells}. 
+
+In a similar fashion we use the \emp{make\_numpy\_array} macro to wrap
+the connectivity information to Python. This is done with the
+following SWIG directives in the \emp{mesh\_pre.i} files.
 \begin{swigcode}
-%define MAKE_ARRAY(dim_size, m, n, dataptr, TYPE)
-  npy_intp adims[dim_size];
-
-  adims[0] = m;
-  if (dim_size == 2)
-    adims[1] = n;
-
-  PyArrayObject* array = reinterpret_cast<PyArrayObject*>(PyArray_SimpleNewFromData(dim_size, adims, TYPE, (char *)(dataptr)));
-  if ( array == NULL ) return NULL;
-  PyArray_INCREF(array);
-% enddef
-\end{swigcode}
-The macro takes five arguments. The \emp{dim\_size}, \emp{m}, and \emp{n}
-arguments set the dimensions of the \numpy array. The \emp{dataptr} is
-a pointer that points to the first element of the underlying contiguous
-array and \emp{TYPE} is the type of the elements in the array. The
-\numpy macro \emp{PyArray\_}\emp{SimpleNewFromData} creates a \numpy
-array wrapping the underlying data. Hence, this function does not take
-ownership of the underlying data and will not delete the data when the
-\numpy array is deleted.  This prevents corruption of data when the
-\numpy array is deleted.
-
-In a similar fashion, we use the \emp{MAKE\_}\emp{ARRAY} macro to wrap
-the connectivity information to Python. This is done with the following
-SWIG directives in the \emp{mesh\_pre.i} files.
-\begin{swigcode}
+%ignore dolfin::MeshConnectivity::operator();
 %extend dolfin::MeshConnectivity {
   PyObject* __call__() {
-    int m = self->size();
-    int n = 0;
-
-    MAKE_ARRAY(1, m, n, (*self)(), NPY_UINT)
-
-      return reinterpret_cast<PyObject*>(array);
+    return %make_numpy_array(1, uint)(self->size(), (*self)(), false);
   }
   ...
 }
@@ -825,26 +772,24 @@ Here, we extend the C++ extension layer of the
 method. The method returns all connections between any two types of
 topological dimensions in the mesh.
 
-In \emp{mesh\_pre.i}, we also declare that it should be possible to
-subclass \emp{SubDomain} in Python. This is done using the \emp{\%director}
-directive.
+In \emp{mesh\_pre.i} we also declare that it should be possible to
+subclass \emp{SubDomain} in Python. This is done using the
+\emp{\%director} directive.
 \begin{swigcode}
 %feature("director") dolfin::SubDomain;
 \end{swigcode}
-To avoid code bloat, this feature is only included for certain classes.
+To avoid code bloat this feature is only included for certain classes.
 The following typemap enables seamless integration of \numpy array and
 the \emp{Array<double>\&} in the \emp{inside} and \emp{map} methods.
 \begin{swigcode}
 %typemap(directorin) const dolfin::Array<double>& {
-  npy_intp dims[1] = {$1_name.size()};
-  double * data = const_cast<double*>($1_name.data().get());
-  $input = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, reinterpret_cast<char *>(data));
+  $input = %make_numpy_array(1, double)($1_name.size(), $1_name.data().get(), false);
  }
 \end{swigcode}%$ To fool emacs
 Even if it by concept and name is an \textit{in}-typemap, one can look at
 it as an out-typemap (since it is a typemap for a callback function). SWIG
 needs to wrap the arguments that the implemented \emp{inside} or \emp{map}
-method in Python are called with. The above typemaps are inserted in the
+method in Python are called with. The above typemap is inserted in the
 \emp{inside} and \emp{map} methods of the SWIG created C++ director class,
 which is a subclass of \emp{dolfin::SubDomain}.
 

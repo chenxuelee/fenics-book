@@ -72,7 +72,7 @@ We consider the incompressible Navier--Stokes equations with unit
 fluid density written in the form\vspace*{2pt}
 \begin{align}
   \label{eq:ns,mom}
-  \dot{u} + \nabla u \, u - \nabla \cdot \sigma &= f, \\
+  \dot{u} + u \cdot \nabla u - \nabla \cdot \sigma &= f, \\
   \label{eq:ns,con}
   \nabla \cdot u &= 0,
 \end{align}\vspace*{2pt}
@@ -91,7 +91,7 @@ The above quantities $\sigma$ and $\epsilon$ may be defined as follows
 in DOLFIN/UFL:
 \begin{python}
 def epsilon(u):
-    return 0.5*(grad(u) + grad(u).T)
+    return 0.5*(nabla_grad(u) + nabla_grad(u).T)
 \end{python}
 \begin{python}
 def sigma(u, p, nu):
@@ -191,7 +191,7 @@ divergence free vector fields. The projection step is a Darcy problem
 for $u_h^n$ and $p^n_h$:
 \begin{align}
   \frac{u_h^n -u_h^{\bigstar}}{k_n} + \nabla p^n_h &= 0, \\
- \nabla \cdot u_h^n &= 0,
+  \nabla \cdot u_h^n &= 0,
 \end{align}
 which is in fact reducible to a Poisson problem $-\Delta p^n_h =
 - \nabla \cdot u_h^{\bigstar} / k_n$ for the corrected pressure
@@ -210,7 +210,7 @@ satisfied exactly (at the nodal points).
   Compute a tentative velocity $u_h^\bigstar$ by solving
   \begin{equation}\label{eq:chorin,1}
     \renni{v}{D_t^n u_h^\bigstar}
-    + \renni{v}{\nabla u_h^{n-1} \, u_h^{n-1}}
+    + \renni{v}{u_h^{n-1} \cdot \nabla u_h^{n-1}}
     + \renni{\nabla v}{\nu \nabla u_h^{\bigstar}}
     = \renni{v}{f^n} \quad \foralls v \in V_h,
   \end{equation}
@@ -238,18 +238,19 @@ satisfied exactly (at the nodal points).
     \begin{python}
 # Tentative velocity step
 F1 = (1/k)*inner(u - u0, v)*dx \
-   + inner(grad(u0)*u0, v)*dx \
-   + nu*inner(grad(u), grad(v))*dx - inner(f, v)*dx
+   + inner(dot(u0, nabla_grad(u0)), v)*dx \
+   + nu*inner(nabla_grad(u), nabla_grad(v))*dx \
+   - inner(f, v)*dx
 a1 = lhs(F1)
 L1 = rhs(F1)
 
 # Poisson problem for the pressure
-a2 = inner(grad(p), grad(q))*dx
-L2 = -(1/k)*div(us)*q*dx
+a2 = inner(nabla_grad(p), nabla_grad(q))*dx
+L2 = -(1/k)*nabla_div(us)*q*dx
 
 # Velocity update
 a3 = inner(u, v)*dx
-L3 = inner(us, v)*dx - k*inner(grad(p1), v)*dx
+L3 = inner(us, v)*dx - k*inner(nabla_grad(p1), v)*dx
     \end{python}
     \caption{Implementation of variational forms for the Chorin solver.}
     \label{fig:chorin_code}
@@ -266,8 +267,8 @@ implementation is shown in Figure~\ref{fig:IPCS}. The IPCS scheme as
 implemented here also differs from the Chorin scheme in that the
 viscous term is evaluated at $(t_{n-1} + t_n)/2$ and a stress
 formulation is used in place of the Laplacian formulation used for the
-Chorin scheme. Note the importance of the term $\renni{v}{\nu (\nabla
-  u_h^{n-1/2})^{\top} n}_{\partial\Omega}$ which arises as a result of
+Chorin scheme. Note the importance of the term $\renni{v}{\nu n \cdot (\nabla
+  u_h^{n-1/2})^{\top}}_{\partial\Omega}$ which arises as a result of
 integrating the stress term by parts. Without this term an incorrect
 velocity profile is obtained at inlets and outlets where the velocity
 will tend to ``creep'' around the corners.
@@ -278,11 +279,11 @@ will tend to ``creep'' around the corners.
   Compute the tentative velocity $u_h^\bigstar$ by solving
   \begin{multline}\label{eq:ipcs,1}
       \renni{v}{D_t^n u_h^{\bigstar}}
-      + \renni{v}{\nabla u_h^{n-1} \, u_h^{n-1}}
+      + \renni{v}{u_h^{n-1} \cdot \nabla u_h^{n-1}}
       + \renni{\epsilon(v)}{\sigma(u_h^{n-\frac{1}{2}}, p^{n-1}_h)}
       + \renni{v}{p^{n-1}_h n}_{\partial\Omega}
       \\
-      - \renni{v}{\nu (\nabla u_h^{n-\frac{1}{2}})^{\top} n}_{\partial\Omega}
+      - \renni{v}{\nu n \cdot (\nabla u_h^{n-\frac{1}{2}})^{\top}}_{\partial\Omega}
       = \renni{v}{f^n}
   \end{multline}
   for all $v \in V_h$, including any boundary conditions for the
@@ -313,22 +314,22 @@ will tend to ``creep'' around the corners.
 # Tentative velocity step
 U = 0.5*(u0 + u)
 F1 = (1/k)*inner(u - u0, v)*dx \
-   + inner(grad(u0)*u0, v)*dx \
+   + inner(dot(u0, nabla_grad(u0)), v)*dx \
    + inner(sigma(U, p0, nu), epsilon(v))*dx \
    + inner(p0*n, v)*ds \
-   - beta*nu*inner(grad(U).T*n, v)*ds \
+   - beta*nu*inner(dot(n, nabla_grad(U).T), v)*ds \
    - inner(f, v)*dx
 a1 = lhs(F1)
 L1 = rhs(F1)
 
 # Pressure correction
-a2 = inner(grad(p), grad(q))*dx
-L2 = inner(grad(p0), grad(q))*dx \
-   - (1.0/k)*div(u1)*q*dx
+a2 = inner(nabla_grad(p), nabla_grad(q))*dx
+L2 = inner(nabla_grad(p0), nabla_grad(q))*dx \
+   - (1.0/k)*nabla_div(u1)*q*dx
 
 # Velocity correction
 a3 = inner(u, v)*dx
-L3 = inner(u1, v)*dx - k*inner(grad(p1 - p0), v)*dx
+L3 = inner(u1, v)*dx - k*inner(nabla_grad(p1 - p0), v)*dx
     \end{python}
     \caption{Implementation of variational forms for the IPCS
       solver. The flag \emp{beta = 1} is set to zero in the case when
@@ -352,12 +353,12 @@ pressure. The derivation of the consistent splitting scheme is as
 follows. Multiply the momentum equation~\eqref{eq:ns,mom} by $\nabla
 q$ for $q
 \in H^1(\Omega)$ and integrate over the domain~$\Omega$ to obtain
-$\renni{\nabla q}{\dot{u} + \nabla u \, u - \nu \Delta u + \nabla
+$\renni{\nabla q}{\dot{u} + u \cdot \nabla u - \nu \Delta u + \nabla
   p} = \renni{\nabla q}{f}$. Since $\renni{\nabla q}{\dot{u}} =
 \renni{-q}{\nabla \cdot \dot{u}} + \renni{qn}{\dot{u}}_{\partial
-  \Omega}$, it follows by~(\ref{eq:ns,con}) that
+  \Omega} = 0$, it follows by~(\ref{eq:ns,con}) that
 \begin{equation}\label{eq:css,laplace}
-  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - \nabla u \, u +
+  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - u \cdot \nabla u +
     \nu \Delta u},
 \end{equation}
 if we assume that $\dot{u} = 0$ on~$\partial\Omega$. Next, we use the
@@ -367,7 +368,7 @@ constraint~(\ref{eq:ns,con}) to write the diffusive term
 of~(\ref{eq:css,laplace}) in
 \emph{rotational form}:
 \begin{equation}\label{eq:css,curl}
-  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - \nabla u \, u -
+  \renni{\nabla q}{\nabla p} = \renni{\nabla q}{f - u \cdot \nabla u -
     \nu \nabla \times \nabla \times u}.
 \end{equation}
 This equation is the basis for the consistent splitting scheme. At
@@ -375,18 +376,18 @@ this point, we may formulate the CSS scheme as the solution of the
 following pair of variational problems:
 \begin{equation} \label{eq:css,u}
   \inner{D_t^n u_h}{v}
-  + \inner{\nabla u_h^{n-1} \, u_h^{n-1}}{v}
+  + \inner{u_h^{n-1} \cdot \nabla u_h^{n-1}}{v}
   + \inner{\nu \nabla u_h^n}{\nabla v}
   - \inner{p_h^{\bigstar}}{\nabla \cdot v}
   = \inner{f^n}{v},
 \end{equation}
 \begin{equation} \label{eq:css,pn}
   \renni{\nabla q}{\nabla p_h^n} =
-  \renni{\nabla q}{f^n -\nabla u_h^{n-1} \, u_h^{n-1} - \nu \nabla \times \nabla \times u_h^n},
+  \renni{\nabla q}{f^n - u_h^{n-1} \cdot \nabla u_h^{n-1} - \nu \nabla \times \nabla \times u_h^n},
 \end{equation}
 where $D_t^n u_h$ is an appropriate approximation of $\dot{u}_h$ and
 $p^{\bigstar}_h$ is an appropriate approximation of the pressure. In
-the simplest case, one may chose $p_h^{\bigstar} = p_h^{n-1}$ but
+the simplest case, one may choose $p_h^{\bigstar} = p_h^{n-1}$ but
 higher order approximations are also possible. For example, one may
 take $p_h^{\bigstar}$ to be the linear extrapolation of $p_h$ from
 $p_h^{n-2}$ and $p_h^{n-1}$ given by $p_h^{\bigstar} = p_h^{n-1} +
@@ -438,10 +439,10 @@ The CSS scheme is summarized in Scheme~3/4.
   \begin{equation}\label{eq:css,2}
     \begin{split}
       \renni{v}{D_t^n u_h}
-      + \renni{v}{\nabla u_h^{n-1} \, u_h^{n-1}}
+      + \renni{v}{u_h^{n-1} \cdot \nabla u_h^{n-1}}
       + \renni{\epsilon(v)}{\sigma(u^{n-\frac{1}{2}}_h, p_h^{\bigstar})}
       + \renni{v}{\bar{p} n}_{\partial\Omega}
-      - \renni{v}{\nu (\nabla \bar{u}_h^n)^{\top} n}_{\partial\Omega}
+      - \renni{v}{\nu n \cdot (\nabla \bar{u}_h^n)^{\top}}_{\partial\Omega}
       = \renni{v}{f^n},
     \end{split}
   \end{equation}
@@ -495,22 +496,22 @@ else:
 
 # Tentative velocity step
 F1 = (1/k)*inner(u - u0, v)*dx \
-   + inner(grad(u0)*u0, v)*dx \
+   + inner(dot(u0, nabla_grad(u0)), v)*dx \
    + inner(sigma(u, ps, nu), epsilon(v))*dx \
-   - beta*nu*inner(grad(u).T*n, v)*ds \
+   - beta*nu*inner(dot(n, nabla_grad(u).T), v)*ds \
    + inner(pbar*n, v)*ds \
    - inner(f, v)*dx
 a1 = lhs(F1)
 L1 = rhs(F1)
 
 # Pressure correction
-a2 = inner(grad(p), grad(q))*dx
-L2 = (1/k)*inner(u1 - u0, grad(q))*dx \
+a2 = inner(nabla_grad(p), nabla_grad(q))*dx
+L2 = (1/k)*inner(u1 - u0, nabla_grad(q))*dx \
    - (1/k)*inner(u1 - u0, q*n)*ds
 
 # Pressure update
 a3 = p*q*dx
-L3 = p1*q*dx + psi*q*dx - nu*div(u1)*q*dx
+L3 = p1*q*dx + psi*q*dx - nu*nabla_div(u1)*q*dx
     \end{python}
     \caption{Implementation of variational forms for the CSS
       solver(s). The flag \emp{beta = 1} is set to zero in the case of
@@ -527,12 +528,12 @@ defined by
 \begin{equation}
   \begin{split}
     \renni{v}{D_t^n u_h}
-    + \renni{v}{\nabla u_n^n \cdot w}
+    + \renni{v}{u_h^{n-\frac{1}{2}} \cdot \nabla u_h^{n-\frac{1}{2}}}
     + \renni{\epsilon(v)}{\sigma(u_h^{n-\frac{1}{2}}, p_h^n)}
-    - \renni{v}{\nu (\nabla u_h^{n-\frac{1}{2}})^{\top} n}_{\partial\Omega}
-    + \renni{v}{\bar{p} n}_{\partial\Omega}
-    &+ SD_{\delta}
-    = \renni{v}{f^n}, \\
+    - \renni{v}{\nu n \cdot (\nabla u_h^{n-\frac{1}{2}})^{\top}}_{\partial\Omega}
+    &+ \renni{v}{\bar{p} n}_{\partial\Omega} \\
+    + SD_{\delta}
+    &= \renni{v}{f^n}, \\
     \renni{\nabla q}{\nabla p_h^n} &= - \renni{q}{\nabla \cdot u_h^n/\delta_1},
   \end{split}
 \end{equation}
@@ -540,12 +541,12 @@ for all $(v, q) \in V_h \times Q_h$, where $u^{n-\frac{1}{2}} =
 ({u}^{n}_h + {u}^{n-1}_h) / 2$ and
 \begin{equation}
   SD_{\delta}
-  = \renni{\nabla v \,  u_h^{n-\frac{1}{2}}}{\delta_1 \nabla u_h^{n-\frac{1}{2}} \, u_h^{n-\frac{1}{2}}}
+  = \renni{u_h^{n-\frac{1}{2}} \cdot \nabla v}{\delta_1 u_h^{n-\frac{1}{2}} \cdot \nabla u_h^{n-\frac{1}{2}}}
   + \renni{\nabla \cdot v}{\delta_2 \nabla \cdot u_h^{n-\frac{1}{2}}}.
 \end{equation}
 The G2 equations may be obtained by testing the incompressible
 Navier--Stokes equations against modified test functions $v
-\rightarrow v + \delta_1 (\nabla v \cdot \bar{u}^{n} + \nabla q)$ and
+\rightarrow v + \delta_1 (u_h^{n-\frac{1}{2}} \cdot \nabla v + \nabla q)$ and
 $q \rightarrow q + \delta_2 \nabla \cdot v$ and dropping a number of
 terms, including all stabilizing terms involving the time derivative
 $D_t^n u_h$. The stabilization parameters are set to $\delta_{1} =
@@ -587,11 +588,11 @@ Figure~\ref{fig:g2_code}.
       \begin{equation}\label{eq:g2_scheme,2}
         \begin{split}
           \renni{v}{D_t^n u_h}
-          + \renni{v}{\nabla u_n^n \cdot w}
+          + \renni{v}{w \cdot \nabla u_h^{n-\frac{1}{2}}}
           + \renni{\epsilon(v)}{\sigma(u_h^{n-\frac{1}{2}}, p_h^n)}
-          - \renni{v}{\nu (\nabla u_h^{n-\frac{1}{2}})^{\top} n}_{\partial\Omega}
+          - \renni{v}{\nu n \cdot (\nabla u_h^{n-\frac{1}{2}})^{\top}}_{\partial\Omega}
           + \renni{v}{\bar{p} n}_{\partial\Omega} \\
-          + \renni{\nabla v \cdot w}{\delta_1 \nabla u_h^{n-\frac{1}{2}} \cdot w}
+          + \renni{w \cdot \nabla v}{\delta_1 w \cdot \nabla u_h^{n-\frac{1}{2}}}
           + \renni{\nabla \cdot v}{\delta_2 \nabla \cdot u_h^{n-\frac{1}{2}}}
           = \renni{v}{f^n}
         \end{split}
@@ -619,19 +620,20 @@ Figure~\ref{fig:g2_code}.
 U = 0.5*(u0 + u)
 P = p1
 Fv = (1/k)*inner(u - u0, v)*dx \
-   + inner(grad(U)*W, v)*dx \
+   + inner(dot(W, nabla_grad(U)), v)*dx \
    + inner(sigma(U, P, nu), epsilon(v))*dx \
-   - beta*nu*inner(grad(U).T*n, v)*ds \
+   - beta*nu*inner(dot(n, nabla_grad(U).T), v)*ds \
    + inner(pbar*n, v)*ds \
    - inner(f, v)*dx \
-   + d1*inner(grad(U)*W, grad(v)*W)*dx \
-   + d2*div(U)*div(v)*dx
+   + d1*inner(dot(W, nabla_grad(U)), \
+              dot(W, nabla_grad(v)))*dx \
+   + d2*nabla_div(U)*nabla_div(v)*dx
 av = lhs(Fv)
 Lv = rhs(Fv)
 
 # Pressure system
-ap = inner(grad(p), grad(q))*dx
-Lp = -(1/d1)*div(u1)*q*dx
+ap = inner(nabla_grad(p), nabla_grad(q))*dx
+Lp = -(1/d1)*nabla_div(u1)*q*dx
 
 # Projection of velocity
 aw = inner(w, z)*dx
@@ -659,9 +661,9 @@ variational problem: find $(u^n_h, p^n_h)$ in $V_h \times Q_h$ such
 that
 \begin{align}
     \frac{1}{k_n} \renni{v}{u^n_h - u^{n-1}_h}
-    + \renni{v}{\nabla u^{n-\frac{1}{2}}_h \, u^{n-\frac{1}{2}}_h}
+    + \renni{v}{u^{n-\frac{1}{2}}_h \cdot \nabla u^{n-\frac{1}{2}}_h}
     + \renni{\epsilon(v)}{\sigma(u^{n-\frac{1}{2}}_h, p^n_h)}
-    - \renni{v}{\nu (\nabla u^{n-\frac{1}{2}}_h)^{\top} \cdot n}_{\partial \Omega}
+    - \renni{v}{\nu n \cdot (\nabla u^{n-\frac{1}{2}}_h)^{\top}}_{\partial \Omega}
     + \renni{v}{\bar{p}n} &= \renni{v}{f}, \\
     \renni{q}{\nabla \cdot u^{n-\frac{1}{2}}_h} &= 0,
 \end{align}
@@ -712,7 +714,7 @@ $A_Q$ are the mass and stiffness matrices associated with the pressure
 discretization. Hence, we let $L_1=\frac{1}{\deltat} M_Q$ and
 ${L}_2=A_Q$ and approximate $L^{-1}$ by $\tau_1 L_1^{-1} + \tau_2
 {L}_2^{-1}$. For simplicity, we here let $\tau_1 = \tau_2 = 2$.  For a
-further discussion on these preconditioners, we refer to the
+further discussion on these preconditioners, we refer to
 Chapter~\ref{chap:mardal-4}. In the implementation, we have chosen to
 exclude the convective term in the preconditioners $K$ and $L$ to
 avoid reassembly.  The GRPC scheme is summarized in Scheme~6 and the
@@ -750,12 +752,12 @@ implementation is shown in Figure~\ref{fig:grpc_code}.
 U = 0.5*(u0 + u1)
 P = p01
 Ru = inner(u1 - u0, v)*dx \
-   + k*inner(grad(U)*U, v)*dx \
+   + k*inner(dot(U, nabla_grad(U)), v)*dx \
    + k*inner(sigma(U, P, nu), epsilon(v))*dx \
-   - beta*k*nu*inner(grad(U).T*n, v)*ds \
+   - beta*k*nu*inner(dot(n, nabla_grad(U).T), v)*ds \
    + k*inner(pbar*n, v)*ds \
    - k*inner(f, v)*dx
-Rp = k*div(U)*q*dx
+Rp = k*nabla_div(U)*q*dx
     \end{python}
     \caption{Implementation of variational forms for the GRPC solver.}
     \label{fig:grpc_code}
@@ -867,7 +869,7 @@ functional are available in \citet{PanditKalitaDalal2007}, where a
 reference value of $\min\psi = -0.0585236$ is reported, and
 in \citet{ChudanovPopkovChurbanovEtAl2007}, where a value of $\min\psi
 = -0.058048$ is reported. These values differ already in the third
-decimal. To obtain a better reference value, we have therefore
+digit. To obtain a better reference value, we have therefore
 computed the solution using the spectral element code Semtex \citep{Blackburn2009,Blackburn2004}
 with up to $80 \times 80$ $10^{th}$ order elements heavily refined in
 the area in the vicinity of the minimum of the stream function. The
@@ -882,9 +884,10 @@ Figure~\ref{fig:drivencavity_CPU_and_errors}.
 
 \paragraph{Computing the stream function.}
 
-The stream function is defined as
+The stream function is defined by
 \begin{equation}
-  u_x = \frac{\partial{\psi}}{\partial{y}}, \;\; \;\;  u_y = \frac{\partial{\psi}}{\partial{x}},
+  u = \nabla \times \psi
+  = (\frac{\partial{\psi}}{\partial{y}}, -\frac{\partial{\psi}}{\partial{x}})
 \end{equation}
 and can be computed by solving the Poisson problem
 \begin{equation}
@@ -892,7 +895,8 @@ and can be computed by solving the Poisson problem
  \end{equation}
 where $\omega$ is the vorticity given by
 \begin{equation}
-  \omega = \frac{\partial{u_x}}{\partial{y}} - \frac{\partial{u_y}}{\partial{x}}.
+  \omega = \nabla \times u
+  = \frac{\partial{u_y}}{\partial{x}} - \frac{\partial{u_x}}{\partial{y}}.
 \end{equation}
 For a more thorough description, see \citet{White1999}
 or \citet{White1991}. Figure~\ref{fig:streamfunction} shows how to
@@ -906,7 +910,7 @@ compute the stream function in DOLFIN.
 V   = u.function_space().sub(0)
 psi = TrialFunction(V)
 q   = TestFunction(V)
-a   = dot(grad(psi), grad(q))*dx
+a   = dot(nabla_grad(psi), nabla_grad(q))*dx
 L   = dot(u[1].dx(0) - u[0].dx(1), q)*dx
 
 # Define boundary condition
@@ -914,8 +918,8 @@ g  = Constant(0)
 bc = DirichletBC(V, g, DomainBoundary())
 
 # Compute solution
-problem = VariationalProblem(a, L, bc)
-psi = problem.solve()
+psi = Function(V)
+solve(a == L, psi, bc)
     \end{python}
     \caption{Computing the stream function in DOLFIN.}
     \label{fig:streamfunction}
@@ -1235,14 +1239,14 @@ is accurate but expensive.
 As pointed out in \citet{GuermondMinevShen2006}, the fractional step
 solvers are usually plagued by an artificial boundary layer, because
 the boundary condition $ \nabla p^n_h \cdot n |_{\partial\Omega}=0$ is
-enforced on the pressure. This 'unphysical' Neumann boundary condition
+enforced on the pressure. This ``unphysical'' Neumann boundary condition
 can create a numerical boundary layer simply because the velocity
 update $u^{n}_h=u^{n-1}-\deltat\nabla p^n_h$ may lead to nonzero
 velocities in the tangential direction on no-slip walls (this follows
 since there is nothing preventing the pressure gradient from being
 nonzero in the tangential direction). However, in this work the
 velocity is being updated through a weak form where the no-slip
-boundary condition is strongly enforced. As such, the tangential
+boundary condition is strongly enforced. Therefore, the tangential
 velocity is set to zero and an artificial boundary layer is not
 observed in our simulations using the fractional step solvers Chorin
 and IPCS.

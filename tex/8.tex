@@ -13,7 +13,7 @@ tensor $A_T$ defined by
   = a_T(\phi^{T,\rho}_{i_{\rho}}, \ldots, \phi^{T,2}_{i_2}, \phi^{T,1}_{i_1}).
 \end{equation}
 Here, $a_T$ is the local contribution to a multilinear form $a:
-V_{\rho} \times \cdots \times V_2 \times V_1$,
+V_{\rho} \times \cdots \times V_2 \times V_1 \rightarrow \R$,
 $i=(i_1,i_2,\dots,i_\rho)$ is a multi-index of length~$\rho$, and
 $\{\phi^{T,j}_k\}_{k=1}^{n_j}$ is a basis for the local finite element
 space of $V_{j,h} \subset V_j$ on a local cell~$T$ for $j =
@@ -22,7 +22,7 @@ tensor~$A_T$ can be computed efficiently by an approach referred to as
 \emph{tensor representation}.
 
 %------------------------------------------------------------------------------
-\section{Tensor representation for Poisson equation}
+\section{Tensor representation for Poisson's equation}
 
 We first describe how one may express the cell tensor for Poisson's
 equation as a special tensor contraction and explain below how this
@@ -59,7 +59,7 @@ variables to obtain
 Here, $\hat{\phi}_i^j = \phi_i^{T,j} \circ F_T$ denotes the basis function
 on the reference cell~$\hat{T}$ corresponding to the basis function
 $\phi_i^{T,j}$ on the current cell~$T$. Since $F_T$ is affine, the
-derivatives $\partial \hat{x} / \partial x$ and the determinant~$\det F_T'$
+partial derivatives $\partial \hat{x} / \partial x$ and the determinant~$\det F_T'$
 are constant. We thus obtain
 \begin{equation}
   A_{T,i} =
@@ -138,13 +138,8 @@ find a reduced-arithmetic computation for the tensor contraction.
 \section{A representation theorem}
 
 In~\citet{KirbyLogg2006}, it was proved that the cell tensor for any
-affinely mapped monomial multilinear form may be expressed as a tensor
-contraction $A_T = A^0 : G_T$; that is,
-\begin{equation}
-  A_{T,i} = \sum_{\alpha} A^0_{i\alpha} G_T^{\alpha}.
-\end{equation}
-More precisely, the cell tensor may be expressed as a sum of tensor
-contractions:
+affinely mapped monomial multilinear form may be expressed as a sum
+of tensor contractions:
 \begin{equation} \label{eq:tensorcontraction}
   A_T = \sum_k A^{0,k} : G_{T,k}.
 \end{equation}
@@ -155,7 +150,10 @@ This class covers all forms that may be expressed by addition,
 multiplication and differentiation. Early versions of the form
 compiler FFC implemented a simple form language that was limited to
 these three operations. This simple form language is now replaced by
-the new and more expressive UFL form language
+the new and more expressive UFL form language. As a result, the tensor
+representation can only be a applied to a subset of the forms that
+can be expressed in UFL. This is automatically checked by FFC; if tensor
+representation is not applicable, then numerical quadrature is used.
 
 The representation theorem was later extended to Piola-mapped elements
 in~\citet{RognesKirbyLogg2009}, and in~\citet{OelgaardLoggWells2008}
@@ -248,13 +246,13 @@ kinds of elements with derivative-based degrees of freedom such as the
 Hermite and Argyris elements. Let \( \mathcal{F}_T \) be the mapping
 of the reference element function space to the function space over the
 cell $T$, such as the affine map or Piola transform. Then the physical
-element basis functions can be expressed as a linear combination of
-the transformed reference element basis functions,
+element basis functions can be expressed as linear combinations of
+the transformed reference element basis functions:
 \begin{equation}
   \phi^T_i = \sum_{j=1}^n M_{T,{ij}} \mathcal{F}_T \left( \hat{\phi}_j \right).
 \end{equation}
 The structure of this matrix \( M_T \) depends on the kinds of degrees
-freedom, and the values typically vary for each \( T \) based on the
+freedom, and the values typically vary for each cell \( T \) based on the
 cell geometry.  Frequently, the matrix $M_T$ is sparse. Given \( M_T
 \), the tensor-contraction framework may be extended to handle these
 more general elements.  As before, one may compute the reference

@@ -105,22 +105,26 @@ forms as input along with a set of optional arguments:
 compile_form(forms,
              object_names={},
              prefix="Form",
-             parameters=default_parameters())
+             parameters=default_parameters(),
+             common_cell=None)
 \end{python}
 %
-The above function generates UFC conforming code for each of the given
+The above call generates UFC conforming code for each of the given
 forms and each of the finite elements involved in the definition of
 the forms, as well as their corresponding degree-of-freedom
-maps. The \emp{prefix} argument can be used to control the prefix of
-the file containing the generated code; the default is ``Form''. The
-suffix ``.h'' will be added automatically. The second optional argument
-\emp{parameters} should be a Python dictionary with code
-generation parameters and is described further below.
-The \emp{object\_names} dictionary is an optional argument that
+maps. The \emp{object\_names} dictionary is an optional argument that
 specifies the names of the coefficients that were used to define the
 form. This is used by the command-line interface of FFC to allow a
 user to refer to any coefficients in a form by their names
-(\emp{f}, \emp{g}, etc.).
+(\emp{f}, \emp{g}, etc.). The \emp{prefix} argument can be used to
+control the prefix of the output file containing the generated code;
+the default is ``Form''. The suffix ``.h'' will be added
+automatically. The optional argument \emp{parameters} should be a
+Python dictionary with code generation parameters and is described
+further below.  The optional argument \emp{common\_cell} is mostly
+useful from within DOLFIN and is there used to specify the domain
+(cell) of integration for forms containing partly undefined
+expressions.
 
 \index{\emp{compile\_element}}
 Sometimes, it may be desirable to compile single elements, which means
@@ -136,7 +140,7 @@ compile_element(elements,
                 parameters=default_parameters())
 \end{python}
 %
-The above function generates \ufc{} conforming code for the specified
+The above call generates \ufc{} conforming code for the specified
 finite element spaces and their corresponding degree-of-freedom maps.
 The arguments \emp{prefix} and
 \emp{parameters} play the same role as for
@@ -179,8 +183,6 @@ virtual void tabulate_tensor(double* A,
                              const double * const * w,
                              const ufc::cell& c) const
 {
-  [...]
-
   // Extract vertex coordinates
   const double * const * x = c.coordinates;
 
@@ -209,22 +211,15 @@ virtual void tabulate_tensor(double* A,
   const double G0_1_1 = det*(K_10*K_10 + K_11*K_11);
 
   // Compute element tensor
-  A[0] = 0.500000000000000*G0_0_0
-       + 0.500000000000000*G0_0_1
-       + 0.500000000000000*G0_1_0
-       + 0.500000000000000*G0_1_1;
-  A[1] = -0.500000000000000*G0_0_0
-         -0.500000000000000*G0_1_0;
-  A[2] = -0.500000000000000*G0_0_1
-         -0.500000000000000*G0_1_1;
-  A[3] = -0.500000000000000*G0_0_0
-         -0.500000000000000*G0_0_1;
-  A[4] = 0.500000000000000*G0_0_0;
-  A[5] = 0.500000000000000*G0_0_1;
-  A[6] = -0.500000000000000*G0_1_0
-         -0.500000000000000*G0_1_1;
-  A[7] = 0.500000000000000*G0_1_0;
-  A[8] = 0.500000000000000*G0_1_1;
+  A[0] = 0.5*G0_0_0 + 0.5*G0_0_1 + 0.5*G0_1_0 + 0.5*G0_1_1;
+  A[1] = -0.5*G0_0_0 - 0.5*G0_1_0;
+  A[2] = -0.5*G0_0_1 - 0.5*G0_1_1;
+  A[3] = -0.5*G0_0_0 - 0.5*G0_0_1;
+  A[4] = 0.5*G0_0_0;
+  A[5] = 0.5*G0_0_1;
+  A[6] = -0.5*G0_1_0 - 0.5*G0_1_1;
+  A[7] = 0.5*G0_1_0;
+  A[8] = 0.5*G0_1_1;
 }
   \end{c++}
   \caption{Excerpt of the C++ code generated for the input listed in
@@ -241,7 +236,7 @@ compilation of a piecewise continuous quartic finite element (Lagrange
 element of degree $4$) in three dimensions using the
 \ffc{} Python interface. The two first lines import the \ufl{}
 and \ffc{} modules respectively. The third line specifies the finite
-element in the \ufl{} syntax. The last line calls the \ffc{}
+element in \ufl{} syntax. The last line calls the \ffc{}
 \emp{compile\_element} function. The generated code is written to
 the file \emp{P4tet.h}, as specified by the argument \emp{prefix}. In
 Figure~\ref{fig:logg-1:elementcode}, we list (a part of) the generated
@@ -278,47 +273,43 @@ virtual void evaluate_basis(unsigned int i,
   const double J_11 = x[2][1] - x[0][1];
   [...]
 
-  // Reset values.
-  *values = 0.000000000000000;
+  // Reset values
+  *values = 0.0;
   switch (i)
   {
   case 0:
     {
       [...]
-      for (unsigned int r = 1; r < 4; r++)
-      {
-        rr = (r + 1)*((r + 1) + 1)*((r + 1) + 2)/6;
-        ss = r*(r + 1)*(r + 2)/6;
-        [...]
-      }
+
+      // Declare helper variables
+      double tmp0 = 0.5*(2.0 + Y + Z + 2.0*X);
+      double tmp1 = 0.25*(Y + Z)*(Y + Z);
+      double tmp2 = 0.5*(1.0 + Z + 2.0*Y);
+      double tmp3 = 0.5*(1.0 - Z);
+      double tmp4 = tmp3*tmp3;
+
+      // Compute basisvalues
+      basisvalues[0] = 1.0;
+      basisvalues[1] = tmp0;
+      basisvalues[4] = 1.5*tmp0*basisvalues[1]
+                     - 0.5*tmp1*basisvalues[0];
       [...]
+
+      // Table(s) of coefficients
+      static const double coefficients0[35] = \
+      {-0.0137464349807054, -0.0144900147488139, -0.00836581391578936, ...
+
+      // Compute value(s)
       for (unsigned int r = 0; r < 35; r++)
       {
         *values += coefficients0[r]*basisvalues[r];
       }
-      [...]
+
+      break;
     }
-  [...]
+    [...]
   }
-  [...]
 }
-
-[...]
-
-virtual void tabulate_dofs(unsigned int* dofs,
-                           const ufc::mesh& m,
-                           const ufc::cell& c) const
-{
-  unsigned int offset = 0;
-  dofs[0] = offset + c.entity_indices[0][0];
-  dofs[1] = offset + c.entity_indices[0][1];
-  dofs[2] = offset + c.entity_indices[0][2];
-  dofs[3] = offset + c.entity_indices[0][3];
-  offset += m.num_entities[0];
-  [...]
-}
-
-[...]
   \end{c++}
   \caption{Excerpt of the C++ code generated for the input listed in
     Figure~\ref{fig:logg-1:python:element}. The evaluation of a basis
@@ -340,7 +331,7 @@ files as input:
 $ ffc FormFile.ufl
 \end{bash}
 The form file should contain the specification of elements and/or
-forms in the~\ufl{} syntax, and is very similar to the FFC Python
+forms in \ufl{} syntax, and is very similar to the FFC Python
 interface, as illustrated by the following specification of the same
 variational problem as in Figure~\ref{fig:logg-1:python:form}:
 \begin{uflcode}
@@ -354,7 +345,7 @@ L = f*v*dx
 \end{uflcode}
 The contents of each form file are wrapped in a Python script
 and then executed. Such a script is simply a copy of the form file
-that includes the required imports of FFC and UFL and calls
+that includes the required imports of FFC and UFL and calls to
 \emp{compile\_element} or \emp{compile\_form} from the FFC
 Python interface. The variable names \emp{a}, \emp{L}
 and \emp{element} are recognized as a bilinear form, a linear form and
@@ -407,7 +398,7 @@ and the command-line version in parentheses, if available.
     for the generated code.
   \item[\emp{"log\_level"}] This option controls the verbosity level of the
     compiler. The possible values are, in order of decreasing
-    verbosity: \emp{DEBUG}, \emp{INFO} (default), \emp{ERROR} and \emp{CRITICAL}.
+    verbosity: \emp{DEBUG}, \emp{INFO} (default), \emp{WARNING}, \emp{ERROR} and \emp{CRITICAL}.
 \end{description}
 
 %------------------------------------------------------------------------------
@@ -450,16 +441,16 @@ similar (but simpler) set of stages is used.
   \end{tabular}
   %
 \item[Compiler stage 1: Analysis.]
-  This stage preprocesses the UFL form and extracts form meta data
+  This stage preprocesses the UFL form and extracts form metadata
   (\emp{FormData}), such as which elements were used to define the form,
-  the number of coefficients and the cell type (intervals, triangles,
+  the number of coefficients and the cell type (intervals, triangles
   or tetrahedra). This stage also involves selecting a suitable
   representation for the form if that has not been specified by the user
   (see Section~\ref{sec:logg-1:representation} below). \\*[1ex]
   %
   \begin{tabular}{ll}
     \emph{Input:}  & UFL form \\
-    \emph{Output:} & preprocessed UFL form and form meta data
+    \emph{Output:} & preprocessed UFL form and form metadata
   \end{tabular}
   %
 \item[Compiler stage 2: Code representation.]
@@ -473,12 +464,12 @@ similar (but simpler) set of stages is used.
   names of UFC functions to the data needed for generation of the
   corresponding code. In simple cases, like \emp{ufc::form::rank},
   this data may be a simple number like~\emp{2}. In other cases,
-  like \emp{ufc::cell\_tensor::tabulate\_tensor}, the data may be a
+  like \emp{ufc::cell\_tensor::tabulate\_}\-\emp{tensor}, the data may be a
   complex data structure that depends on the choice of form
   representation. \\*[1ex]
   %
   \begin{tabular}{ll}
-    \emph{Input:}  & preprocessed UFL form and form meta data \\
+    \emph{Input:}  & preprocessed UFL form and form metadata \\
     \emph{Output:} & intermediate representation (IR)
   \end{tabular}
   %
@@ -597,14 +588,14 @@ detailed discussion on form complexity and comparisons between tensor
 and quadrature representations. In \citet{OelgaardWells2010}, it was
 suggested that the selection should be based on an estimate of the
 operation count to compute the element tensor~$A_T$.  However, it
-turns out to be difficult to obtain an estimate which is accurate
+turns out to be difficult to obtain an estimate that is accurate
 enough for this purpose. Therefore, the following crude strategy to
 select the representation has been implemented. First, \ffc{} will try
 to generate the tensor representation and in case it fails, quadrature
 representation will be selected. If the tensor representation is
 generated successfully, each monomial is investigated and if the
 number of coefficients plus derivatives is greater than three, then
-quadrature representation is selected for the given variational form.
+quadrature representation is selected.
 
 \enlargethispage{9pt}
 
@@ -688,7 +679,7 @@ freedom maps, etc.), \emp{form\_data} is a \ufl{} object that contains
 form metadata such as the number of coefficient functions in a form,
 and \emp{prefix} is a string identifier for the form.
 
-When the JIT compiler is called, internally \ffc{} generates \ufc{}
+When the JIT compiler is called, \ffc{} generates internally \ufc{}
 code for the given form or finite element, compiles the generated code
 using a C++ compiler, and then wraps the result as a Python module using
 SWIG and Instant (see Chapter~\ref{chap:wilbers}).  The returned objects
@@ -744,7 +735,7 @@ FFC has relied on FIAT as a backend for computing finite element basis
 functions. In 2005, the DOLFIN assembler was redesigned to rely on
 code generated by FFC at compile-time for evaluation of the element
 tensor. Earlier versions of DOLFIN were based on a run-time system for
-evaluation of variational forms in C++ via operator overloading, see
+evaluation of variational forms in C++ via operator overloading; see
 Figures~\ref{fig:logg-1:poisson,before}--\ref{fig:logg-1:poisson,ufl}.
 
 \begin{figure}
@@ -827,4 +818,5 @@ elements (2007--2008) \citep{RognesKirbyLogg2009}, code generation
 based on quadrature (2007) \citep{OelgaardWells2010}, the introduction
 of the UFC interface (2007), and optimized quadrature code generation
 (2008). In 2009, the FFC form language was replaced by the new UFL
-form language.
+form language. In 2011, support was added for automated generation of
+dual problems and \apost{} error estimators \citep{RognesLogg2011}.
