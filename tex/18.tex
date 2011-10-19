@@ -146,7 +146,9 @@ the incompressible UC equations as
 
 We note that to model a fluid--structure interaction problem, we can
 simply write the total stress $\sigma$ as a linear combination of
-fluid and solid stress using the $\theta$ phase function: $\sigma = \theta \sigma_f + (1 - \theta) \sigma_s$.
+fluid and solid stress using the $\theta$ phase function: $\sigma
+= \theta \sigma_f + (1 - \theta) \sigma_s$. We can also decompose the
+stress into a pressure $pI$ and deviatoric part: $\sigma = \sigma^D - pI$.
 
 The UC modeling framework is simple and compact, close to the
 formulation of the original conservation equations, and does not
@@ -162,13 +164,16 @@ constitutive equation impacts the formulation and implementation of
 the constitutive equation, but not the formulation and implementation
 of the conservation equations.
 
+In Unicorn we have currently implemented two constitutive laws:
+Newtonian fluid and incompressible Neo-Hookean solid \citep{HoffmanJanssonStockli2011}.
+
 %------------------------------------------------------------------------------
 \section{Space-time general Galerkin discretization}
 
 Adaptive G2 methods (also referred to as Adaptive DNS/LES) have been
 used in a number of turbulent flow computations to a very low
 computational cost
-\citep{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,Hoffman2009,HoffmanJansson2009,VilelaJanssonEtAl2010},
+\citep{Hoffman2005,HoffmanJohnson2006b,Hoffman2006,HoffmanJohnson2007,Hoffman2009,HoffmanJansson2009,VilelaJanssonEtAl2010},
 where convergence is obtained in output quantities such as drag, lift
 and pressure coefficients and Strouhal numbers, using orders of
 magnitude fewer mesh points than with standard LES methods based on
@@ -185,7 +190,7 @@ $R(W) = (R_u(W), R_p(W), R_\theta(W))$ the residual. The residual is defined by
 %%
 \begin{equation} \label{eq:TotalModel}
   \begin{split}
-    R_u(W) &= \rho\left(\frac{\partial U_i}{\partial t} + U_j \frac{\partial U_i}{\partial x_j} \right) - \frac{\partial}{\partial x_j} \Sigma_{ij} - f_i,\\
+    R_u(W) &= \rho\left(\frac{\partial U_i}{\partial t} + U_j \frac{\partial U_i}{\partial x_j} \right) - \frac{\partial}{\partial x_j} \Sigma^D_{ij} + P - f_i,\\
     R_p(W) &= \frac{\partial U_j}{\partial x_j},\\
     R_\theta(W) &= \frac{\partial\Theta}{\partial t} + U_j \frac{\partial \Theta}{\partial x_j},
   \end{split}
@@ -251,7 +256,7 @@ solution of the phase convection equation, and we can remove it from
 the system. The resulting discrete UC equations are then defined by the residuals
 \begin{equation}
   \begin{split}\label{eq:ALE}
-    R_u(W) &= \rho\left(\frac{\partial U_i}{\partial t} + (U_j - \beta^h_j) \frac{\partial U_i}{\partial x_j} \right) - \frac{\partial}{\partial x_j} \Sigma_{ij} - f_i,
+    R_u(W) &= \rho\left(\frac{\partial U_i}{\partial t} + (U_j - \beta^h_j) \frac{\partial U_i}{\partial x_j} \right) - \frac{\partial}{\partial x_j} \Sigma^D_{ij} + P - f_i,
     \\
     R_p(W) &= \frac{\partial U_j}{\partial x_j}.
   \end{split}
@@ -270,25 +275,24 @@ swapping) on the mesh to maintain the quality
 The standard FEM formulation is unstable.  We therefore consider a
 weighted standard streamline--diffusion method of the form
 $\inner{R(W)}{v + \delta R(v)} = 0$ for all $v \in \hat{V}_{hk}$ (see
-\citet{ErikssonEstepHansboEtAl1996}) with $\delta > 0$ a stabilization
-parameter. We make further simplifications by only including necessary
-stabilization terms and dropping terms not contributing to
-stabilization. Although not fully consistent, this avoids unnecessary
-smearing of shear layers. For the UC model, the stabilized method thus
-takes the following form:
+\citet{ErikssonEstepHansboEtAl1996,HoffmanJohnson2007}) with $\delta > 0$ a stabilization
+parameter. We make simplifications by dropping the stabilization terms
+including the time derivative and $\Sigma^D$. Although not fully
+consistent, this avoids unnecessary smearing of shear layers. For the
+UC model, the stabilized method thus takes the following form:
 %%
 \begin{align}
   \inner{R^u(W)}{v^u} &=
-  \inner{\rho(\frac{\partial U_i}{\partial t} + U_j \frac{\partial U_i}{\partial x_j} ) - f_i}{v^u_i} +
-  \inner{\Sigma_{ij}}{\frac{\partial}{\partial x_j} v^u_i} + SD^u(W, v^u) = 0, \\
+  \inner{\rho(\frac{\partial U_i}{\partial t} + U_j \frac{\partial U_i}{\partial x_j} ) - f_i}{v^u_i} -
+  \inner{\Sigma^D_{ij} - P}{\frac{\partial}{\partial x_j} v^u_i} + SD^u(W, v^u) = 0, \\
   \inner{R^p(W)}{v^p} &= \inner{\frac{\partial U_j}{\partial x_j}}{v^p} + SD^p(W, v^p) = 0,
 \end{align}
 for all $v \in \hat{V}_{hk}$, where
 \begin{align}
   SD^u(W, v^u) &=
-  \delta_1 \inner{U_j \frac{\partial U_i}{\partial x_j}}{U_j \frac{\partial v^u_i}{\partial x_j} } +
+  \delta_1 \inner{U_j \frac{\partial U_i}{\partial x_j} - \frac{\partial P}{\partial x_i}}{U_j \frac{\partial v^u_i}{\partial x_j} } +
   \delta_2 \inner{\frac{\partial U_j}{\partial x_j}}{\frac{\partial v^u_j}{\partial x_j} }, \\
-  SD^p(W, v^p) &= \delta_1 \inner{\frac{\partial P}{\partial x_i}}{\frac{\partial v^p}{\partial x_i}}.
+  SD^p(W, v^p) &= \delta_1 \inner{\frac{\partial P}{\partial x_i} + U_j \frac{\partial U_i}{\partial x_j}}{\frac{\partial v^p}{\partial x_i}}.
 \end{align}
 
 %------------------------------------------------------------------------------
@@ -608,8 +612,9 @@ formulating the full Newton method and then drop terms off the
 diagonal blocks. We also use the constitutive law as an identity to
 express $\Sigma$ in terms of $U$, allowing larger time steps than
 would be possibly otherwise by iterating between $\Sigma$ and $U$.
-See \citet{Jansson2009} for a discussion about the efficiency of the
-fixed-point iteration and its implementation.
+See \citet{Jansson2009,HoffmanJanssonStockli2011} for more details and
+discussion about the efficiency of the fixed-point iteration and its
+implementation.
 
 \subsection{\emp{ErrorEstimate}}
 
@@ -1348,5 +1353,5 @@ simulation described in Chapter~\ref{chap:hoffman-1} and above.
 
 We acknowledge contributions to Unicorn, both software development as
 well as ideas and scientific support from: Mattias Aechtner, Peter
-Brune, Zilan Ciftci, G\"aetan Compere, Claes Johnson, Ashraful Kadir,
+Brune, Zilan Ciftci, G\"aetan Compere, Claes Johnson, Ashraful Kadir, Kaspar M\"uller,
 Jeannette Sp\"uhler, Michael St\"ockli and Rodrigo Vilela de Abreu.
