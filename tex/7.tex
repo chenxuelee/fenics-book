@@ -103,10 +103,7 @@ of~$w$, $\Phi_{i}$ denotes basis functions on the reference element,
 $\det F_T'$ is the determinant of the Jacobian, and $W^q$ is the
 quadrature weight at integration point~$X^q$.  By default, \ffc{}
 applies a quadrature scheme that will integrate the variational form
-exactly.  It calls FIAT (see Chapter~\ref{chap:kirby-2}) to compute
-the quadrature scheme.  FIAT supplies schemes that are based on the
-Gauss--Legendre--Jacobi rule mapped onto simplices
-(see~\citet{KarniadakisSherwin2005} for details of such schemes).
+exactly.
 
 From the representation
 in~\eqref{oelgaard-2:eq:weightedlaplacian_quadraturerepresentation},
@@ -544,13 +541,19 @@ optimization strategies. However, the total number of temporary values
 will also increase. Therefore, this optimization strategy might not be
 feasible for all forms.
 
-\ffc{} uses a Gauss--Legendre--Jacobi quadrature scheme mapped onto
-simplices for the numerical integration of variational forms.  This
-means that for exact integration of a second-order polynomial, \ffc{}
-will use two quadrature points in each spatial direction that is, $2^3
-= 8$ points per cell in three dimensions.  A further optimization of
+\ffc{} implements a few efficient quadrature schemes for integrating
+polynomials of degree less than or equal to six on simplices.
+For polynomials of degree higher than six, it calls FIAT
+(see Chapter~\ref{chap:kirby-2}) to compute the quadrature scheme.
+FIAT supplies schemes that are based on the Gauss--Legendre--Jacobi rule mapped
+onto simplices (see~\citet{KarniadakisSherwin2005} for details of such
+schemes).
+This means that for integrating a seventh-order polynomial, \ffc{}
+will use four quadrature points in each spatial direction that is, $4^3
+= 64$ points per cell in three dimensions.  A further optimization of
 the quadrature representation can thus be achieved by implementing
-more efficient quadrature schemes for simplices since a reduction in
+more efficient quadrature schemes for higher order polynomials on simplices
+since a reduction in
 the number of integration points will yield improved run-time
 performance.  \ffc{} does, however, provide an option for a user to
 specify the quadrature degree of a variational form thereby permitting
@@ -581,9 +584,9 @@ equation~\eqref{alnes-1:eq:hypdefa}.  In both cases quadratic Lagrange
 finite elements will be used.
 
 All tests were performed on an Intel Pentium M CPU at 1.7GHz with
-1.0GB of RAM running Ubuntu 10.04 with Linux kernel 2.6.32.  We used
-Python version 2.6.5 and NumPy version 1.3.0 (both pertinent to
-\ffc{}), and g++ version 4.4.3 to compile the \ufc{} version 1.4
+1.0GB of RAM running Ubuntu 11.10 with Linux kernel 2.6.38.  We used
+Python version 2.7.2 and NumPy version 1.5.1 (both pertinent to
+\ffc{}), and g++ version 4.6.1 to compile the \ufc{} version 2.0.2
 compliant C++ code.
 
 The two forms are compiled with the different \ffc{} optimizations,
@@ -618,14 +621,14 @@ and the four g++ compiler options are shown with different colors.
     \multicolumn{1}{c}{\ffc{}}       &\multicolumn{2}{c}{}       \\
     \multicolumn{1}{c}{optimization} & flops & o/q   \\
     \midrule
-    \emp{None}                       &  6264 &  1.00 \\
-    \emp{-zeros}                     & 10008 &  1.60 \\
-    \emp{-simplify}                  &  4062 &  0.65 \\
-    \emp{-simplify -zeros}           &  2874 &  0.45 \\
-    \emp{-ip}                        &  5634 &  0.90 \\
-    \emp{-ip -zeros}                 &  6432 &  1.03 \\
-    \emp{-basis}                     &  5634 &  0.90 \\
-    \emp{-basis -zeros}              &  5532 &  0.88 \\
+    \emp{None}                       & 4176  &  1.00 \\
+    \emp{-zeros}                     & 6672  &  1.60 \\
+    \emp{-simplify}                  & 2712  &  0.65 \\
+    \emp{-simplify -zeros}           & 1920  &  0.46 \\
+    \emp{-ip}                        & 3756  &  0.90 \\
+    \emp{-ip -zeros}                 & 4290  &  1.03 \\
+    \emp{-basis}                     & 3756  &  0.90 \\
+    \emp{-basis -zeros}              & 3690  &  0.88 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -638,16 +641,18 @@ and the four g++ compiler options are shown with different colors.
           {\includegraphics[width=\mediumfullfig]{chapters/oelgaard-2/pdf/runtime_laplace.pdf}}
 \end{figure}
 
-The \ffc{} and g++ compile-times were less than one second for all
+The \ffc{} and g++ compile-times were less than two seconds for all
 optimization options.  It is clear~from
 Figure~\ref{oelgaard-2:fig:laplace_stats_2} that run-time performance
 is greatly influenced by the g++ optimizations.  \hbox{Compared} to the case
 where no g++ optimizations are used (the \emp{-O0} flag), the run-time
-for the standard quadrature code improves by a factor of 3.15 when
-using the \emp{-O2} option and 5.40 when using the \emp{-O2
--funroll-loops} option.  The \emp{-O3} option does not appear to
+for the standard quadrature code improves by a factor of 3.31 when
+using the \emp{-O2} option, 5.23 when using the \emp{-O2
+-funroll-loops} option and  7.75 when using the \emp{-O3} option.
+The \emp{-O3} option does not appear to
 improve the run-time noticeably beyond the improvement observed for the
-\emp{-O2 -funroll-loops} option.  Using the \ffc{} optimization option
+\emp{-O2 -funroll-loops} option when the \ffc{} optimization option
+\emp{-zeros} is used.  Using the \ffc{} optimization option
 \emp{-zeros} alone for this form does not improve run-time performance.
 In fact, using this option in combination with any of the other
 optimization options increases the run-time, even when combining with
@@ -663,8 +668,8 @@ operation count alone since the type of \ffc{} optimization must be
 taken into account as well as the intended use of g++ compiler
 options.  The optimal combination of optimizations for this form is
 \ffc{} option \emp{-ip} or \emp{-basis} combined with g++ option
-\emp{-O2 -funroll-loops}, in which case the run-time has improved by a
-factor of 7.23 compared to standard quadrature code with no g++
+\emp{-O3}, in which case the run-time has improved by a
+factor of 10.2 compared to standard quadrature code with no g++
 optimizations.
 
 The operation counts and \ffc{} compile-time for the bilinear form for
@@ -683,14 +688,14 @@ performance for different compiler options for $N = 1 \times 10^4$.
     \multicolumn{1}{c}{\ffc{}}       & \multicolumn{2}{c}{\ffc{} time} & \multicolumn{2}{c}{} \\
     \multicolumn{1}{c}{optimization} & {\scriptsize [s]} & o/q         & flops     & o/q      \\
     \midrule
-    \emp{None}                       &  8.1              & 1.00        & 136531980 & 1.000 \\
-    \emp{-zeros}                     &  8.3              & 1.02        &  60586218 & 0.444 \\
-    \emp{-simplify}                  & 22.3              & 2.75        &   5950646 & 0.044 \\
-    \emp{-simplify -zeros}           & 21.2              & 2.62        &    356084 & 0.003 \\
-    \emp{-ip}                        & 15.2              & 1.88        &  90146710 & 0.660 \\
-    \emp{-ip -zeros}                 & 17.9              & 2.21        &  14797360 & 0.108 \\
-    \emp{-basis}                     & 15.2              & 1.88        &   7429510 & 0.054 \\
-    \emp{-basis -zeros}              & 17.8              & 2.20        &   1973521 & 0.014 \\
+    \emp{None}                       &     6.8           &  1.00       & 70794360  & 1.000 \\
+    \emp{-zeros}                     &     6.9           &  1.01       & 31415076  & 0.444 \\
+    \emp{-simplify}                  &    19.6           &  2.88       &  3086370  & 0.044 \\
+    \emp{-simplify -zeros}           &    18.6           &  2.74       &   185472  & 0.003 \\
+    \emp{-ip}                        &    12.8           &  1.88       & 46742697  & 0.660 \\
+    \emp{-ip -zeros}                 &    15.1           &  2.22       &  7673022  & 0.108 \\
+    \emp{-basis}                     &    13.0           &  1.91       &  3852297  & 0.054 \\
+    \emp{-basis -zeros}              &    15.5           &  2.28       &  1023624  & 0.014 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -708,7 +713,7 @@ to the weighted Laplace example, it is clear that this problem is
 considerably more complex.  The \ffc{} compile-times in
 Table~\ref{oelgaard-2:tab:hyper_stats_1} show that the \emp{-simplify}
 optimization, as anticipated, is the most expensive to perform.  The
-g++ compile-times for all test cases were in the range two to six
+g++ compile-times for all test cases were in the range two to seven
 seconds for all optimization options.  A point to note is that the
 scope for reducing the flop count is considerably greater for this
 problem than for the weighted Laplace problem, with a difference in
@@ -739,7 +744,7 @@ option very efficient since many terms are common and can be
 precomputed and hoisted.  For the hyperelasticity form, the optimal
 combination of optimizations is \ffc{} option \emp{-simplify -zeros}
 and g++ option \emp{-O2 -funroll-loops} which improves the run-time
-performance of the code by a factor of 3149 when compared to the case
+performance of the code by a factor of 335 when compared to the case
 where no optimization is used by either \ffc{} or~g++.
 
 For the considered examples, it is clear that no single optimization
