@@ -47,11 +47,13 @@ to account for the discontinuity explicitly.
 
 We present in this chapter an automated framework for modeling
 evolving discontinuities which is based on the extended finite
-element method. The extended finite element method is new
-approach to model discontinuities independent of underlying mesh
+element method. The extended finite element method is an
+approach to modeling discontinuities independently of the underlying mesh
 \citep{BelytschkoBlack1999,MoesDolbowBelytschko1999,WellsSluys2001}.
-An overview on the extended finite element method and similar methods
-can be found in \citet{BabuskaBanerjeeOsborn2003}. The Unified Form
+An overview of the extended finite element method and similar methods
+can be found in \citet{BabuskaBanerjeeOsborn2003}.
+
+The Unified Form
 Language (\ufl) is used to express variational forms for problems with
 discontinuous solutions, and extensions to the FEniCS Form Compiler
 (\ffc) are developed for generating problem-dependent parts of the
@@ -67,14 +69,15 @@ Moreover, the consistent abstractions and algorithms provided by {\ufl},
 such as automatic differentiation, were not yet available. Less visible,
 the entire library has been re-written to permit far greater flexibility.
 
-In the remainder of this chapter, we review briefly the extended finite
-element for modeling \hbox{discontinuities} and formulate it in such a way that
-the computer input will resemble closely the mathematical description. The
-software components used in the automated framework are then discussed,
-as are aspects of the design, including interfaces. The approach is then
-illustrated using code extracts for a range of examples.
-The complete computer codes for partition of unity compiler and solver are available
-at \url{https://launchpad.net/ffc-pum} and \url{https://launchpad.net/dolfin-pum}, respectively.
+In the remainder of this chapter, we review briefly the extended
+finite element for modeling \hbox{discontinuities} and formulate
+it in such a way that the computer input will resemble closely the
+mathematical description. The software components used in the automated
+framework are then discussed, as are aspects of the design, including
+interfaces. The approach is then illustrated using code extracts for a
+range of examples.  The computer code for partition of unity
+compiler and solver are available at \url{https://launchpad.net/ffc-pum}
+and \url{https://launchpad.net/dolfin-pum}, respectively.
 %------------------------------------------------------------------------------
 \section{Partition-of-unity/extended finite element method}
 %
@@ -140,10 +143,10 @@ the finite element function spaces
 %
 \begin{align}
   \Bar{V}_{h} &= \bracc{\Bar{v}_{h} \in H^{1}_{0}(\Omega)
-                    : \Bar{v}_{h} \in P_{k}(T) \ \foralls \ T \in \mathcal{T}_h},
+                    : \Bar{v}_{h}|_{T} \in P_{k}(T) \ \foralls \ T \in \mathcal{T}_h},
 \\
   \Hat{V}_{h} &= \bracc{\Hat{v}_{h} \in H^{1}_{0}(\Hat{\Omega})
-                    : \Hat{v}_{h} \in P_{k}(T) \ \foralls \ T \in \Hat{\mathcal{T}}_h},
+                    : \Hat{v}_{h}|_{T} \in P_{k}(T) \ \foralls \ T \in \Hat{\mathcal{T}}_h},
 \end{align}
 %
 where $\Hat{\Omega}$ is the union of the supports of all finite element
@@ -181,7 +184,7 @@ where $\Hat{\Omega}_{+} \subset \Hat{\Omega}$ is the portion of
 $\Hat{\Omega}$ on which $\mathcal{H} = 1$.
 When presenting finite element function spaces
 with discontinuities in Section~\ref{sec:nikbakht:examples}, the more compact
-notation of the form
+notation
 %
 \begin{equation}
   V = \bracc{v_{h} \in H_{0}^{1}\brac{\Omega \backslash \Gamma_{d}}, \,
@@ -211,7 +214,7 @@ There are a number of issues that make the generation of computer
 code for the extended finite element method more complex than for the
 conventional finite element method.  A key point is that integration
 schemes must be evaluated at run-time since it is necessary to perform
-quadrature on both sides of discontinuity surface for intersected cells.
+quadrature on both sides of a discontinuity surface for intersected cells.
 Moreover, for problems in which flux-like quantities are prescribed
 on discontinuity surfaces, it is necessary to integrate terms on the
 surface $\Gamma_{d}$.  Another issue is that the number of degrees of
@@ -237,7 +240,7 @@ to express variational statements. Particular use is made of the
 concept of ``enriched'' spaces and the \ufl{} concept of a
 ``restriction''. The latter is the restriction of functions to a
 particular entity subdomain.  To generate code for a finite element
-assembler (and additional helper functions), we develop extensions of
+assembler (and additional helper functions), we develop extensions to
 the \fenics{} Form Compiler (\ffc{}, Chapter~\ref{chap:logg-1}) for
 generating \ufc{}-compliant code. Finally, re-usable tools for the
 implementation of extended finite element methods, including an
@@ -257,8 +260,8 @@ forms that involve discontinuous function spaces to a form compiler. We
 use features of \ufl{}, but rely also on a form compiler to interpret
 the \ufl{} representation appropriately.  The \ufl{} definition of a
 problem is therefore an incomplete definition, with the form compiler
-being relied upon to interpret various abstractions correctly. Therefore,
-form compilers that support \ufl{} will not necessarily generate the
+being relied upon to interpret various abstractions correctly.
+Form compilers that support \ufl{} will not necessarily generate the
 required code.
 
 We define a discontinuous function space by restricting (informally)
@@ -301,7 +304,7 @@ f = Coefficient(E)
 We can also restrict coefficients, test and trial functions
 defined on discontinuous space to the positive or negative side of a
 discontinuity. The \emp{jump} and \emp{average} of the function value
-of $v$ across the surface is defined by:
+of $v$ across the surface are defined by:
 %
 \begin{python}
 jump(v) = v("+") - v("-")
@@ -417,10 +420,10 @@ schemes. Finally, the \emp{GenericPUM} interface introduces some member
 functions to update data related to the enriched degrees of freedom when
 the discontinuity surfaces evolve.
 
-The \emp{GenericPUM} interface is abstract, hence the generated code is
-independent of various implementation details, such as the method by
-which a discontinuity surface is represented and quadrature method on
-intersected cells.
+The \emp{GenericPUM} interface is abstract, hence the generated code
+is independent of various implementation details, such as the method by
+which a discontinuity surface is represented and the quadrature method
+on intersected cells.
 
 %------------------------------------------------------------------------------
 \subsection{Assembler and solver}
@@ -436,8 +439,8 @@ schemes on a surface, as this is intimately related to details of the
 surface representation.  The use of the base class \emp{GenericSurface}
 permits different surface representations to be used interchangeably
 with the generated code. Surface representation is an active area
-of research in the context of the extended finite element method (See
-\citep{JagerSteinmannKuhl2008} for example), and the \emp{GenericSurface}
+of research in the context of the extended finite element method (see
+\citet{JagerSteinmannKuhl2008}, for example), and the \emp{GenericSurface}
 interface permits a high degree of flexibility in this respect.
 
 In addition to concrete implementations of \emp{GenericPUM} and
@@ -566,9 +569,8 @@ int main()
   L.f = f;
 
   // Create a linear variational problem and solve
-  dolfin::VariationalProblem pde(a, L, bcs);
   pum::Function u(V);
-  pde.solve(u);
+  solve(a == L, u, bcs);
 
   // Save solution to file for visualisation
   dolfin::File file("poisson.pvd");
@@ -862,8 +864,8 @@ differentiation is particularly attractive. Firstly, it eliminates a
 source of errors.  Secondly, it means that if details of the equation of
 interest are changed, then there is not need to re-evaluate the Jacobian
 by hand. \ufl{} provides functionality for automatic differentiation,
-and the directional derivative feature can be used to compute Jacobian
-from a functional, with the Jacobian filling the role of the bilinear
+and the directional derivative feature can be used to compute the Jacobian
+from a linear form, with the Jacobian filling the role of the bilinear
 form in the linearized system.
 
 The \ufl{} input for the problem in
@@ -873,7 +875,7 @@ to use quadratic Lagrange functions.  The trial function in this case is
 the iterative correction $du_{h}$, and the most recent approximation of
 $u_{h}$ is provided as a coefficient function to the forms.  Following
 from equation~\eqref{eqn:nikbakht:nonlinear_poisson_J}, the \ufl{}
-input the bilinear form (Jacobian) reads:
+input for the bilinear form (Jacobian) reads:
 %
 \begin{python}
 a = derivative(L, u, du)
@@ -924,9 +926,8 @@ F.u = u; F.f = f;
 NonlinearPoisson::BilinearForm dF(V, V);
 dF.u = u;
 
-// Create and solve nonlinear variational problem
-dolfin::VariationalProblem problem(F, dF, bc);
-problem.solve(u);
+// Solve nonlinear variational problem
+solve(F == 0, u, bc, dF);
 
 // Save solution in VTK format
 dolfin::File file("nonlinear_poisson.pvd");
@@ -955,5 +956,5 @@ can be easily and rapidly developed.  Moreover, the generated code and
 details of the adopted approach, such as the surface representation and
 modified quadrature on intersected cells, can be decoupled via suitably
 abstract class interfaces. This permits different implementation details
-to be used without impacting on other aspects of the solver.
+to be employed without impacting on other aspects of the solver.
 %------------------------------------------------------------------------------
