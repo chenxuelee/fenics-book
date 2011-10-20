@@ -154,6 +154,7 @@ users need to import functionality from the DOLFIN Python module. In
 the simplest case, one includes all functionality from the Python
 module named \emp{dolfin}:
 
+\newpage
 \begin{python}
 from dolfin import *
 \end{python}
@@ -294,7 +295,7 @@ available solver methods and preconditioners, the following commands
 may be used:
 %
 \begin{c++}
-list_lu_solver_method();
+list_lu_solver_methods();
 list_krylov_solver_methods();
 list_krylov_solver_preconditioners();
 \end{c++}
@@ -646,16 +647,14 @@ the solution vector $x$ to the nonlinear problem:
 MyNonlinearProblem problem(L, a, bc);
 NewtonSolver newton_solver;
 
-Vector x;
-newton_solver.solve(problem, x);
+newton_solver.solve(problem, u.vector());
 \end{c++}
 %%
 \begin{python}
 problem = MyNonlinearProblem(L, a, bc)
 newton_solver = NewtonSolver()
 
-x = Vector()
-newton_solver.solve(problem, x)
+newton_solver.solve(problem, u.vector())
 \end{python}
 %%
 A number of parameters can be set for a \emp{NewtonSolver}. Some
@@ -663,10 +662,10 @@ parameters that determine the behavior of the Newton solver are:
 %%
 \begin{python}
 newton_solver = NewtonSolver()
-newton_solver.parameter["maximum_iterations"] = 20
-newton_solver.parameter["relative_tolerance"] = 1.0e-6
-newton_solver.parameter["absolute_tolerance"] = 1.0e-10
-newton_solver.parameter["error_on_nonconvergence"] = False
+newton_solver.parameters["maximum_iterations"] = 20
+newton_solver.parameters["relative_tolerance"] = 1.0e-6
+newton_solver.parameters["absolute_tolerance"] = 1.0e-10
+newton_solver.parameters["error_on_nonconvergence"] = False
 \end{python}
 %%
 The parameters may be set similarly from~C++.  When testing for
@@ -1079,12 +1078,9 @@ sub_domains = mesh.data().mesh_function("sub_domains");
 sub_domains = mesh.data().create_mesh_function("sub_domains")
 sub_domains = mesh.data().mesh_function("sub_domains")
 \end{python}
-
-DOLFIN uses \emp{MeshData} internally to store various data associated
-with a \emp{Mesh}. To list data that is associated with a given
-\emp{Mesh}, issue the command \emp{info(mesh.data(), true)} in C++
-or\break \emp{info(mesh.data(), True)} in Python.
-
+To list data that associated with a given \emp{Mesh}, issue the
+command \emp{info(mesh.data(), true)} in C++ or \emp{info(mesh.data(),
+  True)} in Python.
 
 \paragraph{Mesh refinement.}
 
@@ -1334,10 +1330,10 @@ V = VectorElement("Lagrange", triangle, 2)
 Q = FiniteElement("Lagrange", triangle, 1)
 W = V*Q
 \end{uflcode}
-%%
+\newpage
 \begin{python}
-V = VectorFunctionSpace("Lagrange", triangle, 2)
-Q = FunctionSpace("Lagrange", triangle, 1)
+V = VectorFunctionSpace(mesh, "Lagrange", 2)
+Q = FunctionSpace(mesh, "Lagrange", 1)
 W = V*Q
 \end{python}
 
@@ -1431,10 +1427,10 @@ Function u(V);
 solve(A, u.vector(), b);
 \end{c++}
 %%
-\begin{c++}
+\begin{python}
 u = Function(V)
 solve(A, u.vector(), b)
-\end{c++}
+\end{python}
 %%
 The process of assembling and solving a linear system is handled
 automatically by the class\break \emp{Variational\-Problem}, which will be
@@ -1747,7 +1743,7 @@ forms directly as part of a Python script:
 from dolfin import *
 
 mesh = UnitSquare(8, 8)
-V = VectorElement("Lagrange", tetrahedron, 1)
+V = VectorElement(mesh, "Lagrange", 1)
 
 u = TrialFunction(V)
 v = TestFunction(V)
@@ -1975,8 +1971,8 @@ different forms may potentially use different definitions of their
 boundaries. From Python, one may simply connect the boundary
 definition to the corresponding measure by subscripting:
 \begin{python}
-ds = ds[neumann_boundary]
-a = ... + g*v*ds(0) + h*v*ds(1) + ...
+dss = ds[neumann_boundary]
+a = ... + g*v*dss(0) + h*v*dss(1) + ...
 \end{python}
 
 The correct specification of boundaries is a common error source. For
@@ -2049,7 +2045,7 @@ Python users may also use the following compact syntax:
 %%
 \begin{python}
 u_0 = Expression("sin(x[0])")
-bc = DirichletBC(V, u_0, "x[0] > 0.5 and on_boundary")
+bc = DirichletBC(V, u_0, "x[0] > 0.5 && on_boundary")
 \end{python}
 %%
 To speed up the application of Dirichlet boundary conditions, users of the
@@ -2293,7 +2289,6 @@ Figures~\ref{fig:logg-2:plots,mesh} and~\ref{fig:logg-2:plots,function}.
 From Python, one can also plot expressions and finite elements:
 %%
 \begin{python}
-plot(u)
 plot(grad(u))
 plot(u*u)
 
@@ -2375,10 +2370,6 @@ File vector_file("vector.xml");
 vector_file << vector;
 vector_file >> vector;
 
-File matrix_file("matrix.xml");
-matrix_file << matrix;
-matrix_file >> matrix;
-
 File mesh_file("mesh.xml");
 mesh_file << mesh;
 mesh_file >> mesh;
@@ -2392,10 +2383,6 @@ parameters_file >> parameters;
 vector_file = File("vector.xml")
 vector_file << vector
 vector_file >> vector
-
-matrix_file = File("matrix.xml")
-matrix_file << matrix
-matrix_file >> matrix
 
 mesh_file = File("mesh.xml")
 mesh_file << mesh
@@ -2435,7 +2422,7 @@ while (t < T)
   t += dt;
 }
 \end{c++}
-%%
+\newpage
 \begin{python}
 time_series = TimeSeries("simulation_data")
 
@@ -2460,8 +2447,8 @@ time_series.retrieve(mesh, t);
 \end{c++}
 %%
 \begin{python}
-time_series.retrieve(u.vector(), t);
-time_series.retrieve(mesh, t);
+time_series.retrieve(u.vector(), t)
+time_series.retrieve(mesh, t)
 \end{python}
 
 %------------------------------------------------------------------------------
@@ -2543,20 +2530,21 @@ Table~\ref{tab:logg-2:loglevels}.
   \label{tab:logg-2:loglevels}
 \end{table}
 
-To print messages at an arbitrary log level, one may specify the log level
-to the \emp{info} command, as illustrated in the code examples below.
+To print messages at an arbitrary log level, one may specify the log
+level to the \emp{info} and \emp{log} commands, as illustrated in the
+code examples below.
 %%
 \begin{c++}
 info("Test message");                      // will be printed
 cout << "Test message" << endl;            // will be printed
-info(DBG, "Test message");                 // will not be printed
-info(15, "Test message");                  // will not be printed
+log(DBG, "Test message");                  // will not be printed
+log(15, "Test message");                   // will not be printed
 
 set_log_level(DBG);
 info("Test message");                      // will be printed
 cout << "Test message" << endl;            // will be printed
-info(DBG, "Test message");                 // will be printed
-info(15, "Test message");                  // will be printed
+log(DBG, "Test message");                  // will be printed
+log(15, "Test message");                   // will be printed
 
 set_log_level(WARNING);
 info("Test message");                      // will not be printed
@@ -2567,13 +2555,13 @@ std::cout << "Test message" << std::endl;  // will be printed!
 %%
 \begin{python}
 info("Test message")                       # will be printed
-info(DEBUG, "Test message")                # will not be printed
-info(15, "Test message")                   # will not be printed
+log(DEBUG, "Test message")                 # will not be printed
+log(15, "Test message")                    # will not be printed
 
 set_log_level(DEBUG)
 info("Test message")                       # will be printed
-info(DEBUG, "Test message")                # will be printed
-info(15, "Test message")                   # will be printed
+log(DEBUG, "Test message")                 # will be printed
+log(15, "Test message")                    # will be printed
 
 set_log_level(WARNING)
 info("Test message")                       # will not be printed
@@ -2682,7 +2670,7 @@ for cell in cells(mesh):
   ...
   p += 1
 
-q = Progress q("Time-stepping")
+q = Progress("Time-stepping")
 while t < T:
   ...
   t += dt
@@ -2865,17 +2853,17 @@ reuse a set of parameter values from a previous run. The following code
 illustrates how to write and then read back parameter values to/from a
 DOLFIN XML file.
 %%
-\begin{python}
+\begin{c++}
 File file("parameters.xml");
 file << parameters;
 file >> parameters;
-\end{python}
+\end{c++}
 %%
-\begin{c++}
+\begin{python}
 file = File("parameters.xml")
 file << parameters
 file >> parameters
-\end{c++}
+\end{python}
 
 %------------------------------------------------------------------------------
 %------------------------------------------------------------------------------
@@ -3120,6 +3108,7 @@ The \emp{ufl.Argument} class (the base class of\break \emp{ufl.TrialFunction}
 and \emp{ufl.TestFunction}) is subclassed in the Python interface. Instead
 of using a \emp{ufl.FiniteElement} to instantiate the classes, a DOLFIN
 \emp{FunctionSpace} is used:
+\newpage
 %%
 \begin{python}
 u = TrialFunction(V)
@@ -3307,7 +3296,7 @@ a user to directly assemble a declared UFL form:
 %%
 \begin{python}
 mesh = UnitSquare(8, 8)
-V = FunctionSpace("Lagrange", mesh, 1)
+V = FunctionSpace(mesh, "Lagrange", 1)
 u = TrialFunction(V)
 v = TestFunction(V)
 c = Expression("sin(x[0])")
