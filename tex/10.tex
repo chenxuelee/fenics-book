@@ -274,12 +274,41 @@ solve(A, x, b)
 \end{python}
 %
 DOLFIN will use a default method to solve the system of equations.
-Using the function \emp{solve} is straightforward, but it offers little
-control over details of the solution process. For many applications, it is
-desirable to exercise a degree of control over the solution process.
-It is possible in DOLFIN to select the solver type (direct or iterative)
-and to control details of the solution method, and this is expanded upon
-below.
+Optional arguments may be given to specify which algorithm to use when
+solving the linear system and, in the case of an iterative method,
+which preconditioner to use:
+%
+\begin{c++}
+solve(A, x, b, "lu");
+solve(A, x, b, "gmres", "ilu");
+\end{c++}
+%
+\begin{python}
+solve(A, x, b, "lu");
+solve(A, x, b, "gmres", "ilu")
+\end{python}
+%
+Which methods and preconditioners that are available depends on which
+linear algebra backend DOLFIN has been configured with. To list the
+available solver methods and preconditioners, the following commands
+may be used:
+%
+\begin{c++}
+list_lu_solver_method();
+list_krylov_solver_methods();
+list_krylov_solver_preconditioners();
+\end{c++}
+%
+\begin{python}
+list_lu_solver_method()
+list_krylov_solver_methods()
+list_krylov_solver_preconditioners()
+\end{python}
+
+Using the function \emp{solve} is straightforward, but it offers
+little control over details of the solution process. For many
+applications, it is desirable to exercise a degree of control over the
+solution process and reuse solver objects throughout a simulation.
 
 The linear system $Ax = b$ can be solved using LU decomposition
 (a direct method) as follows:
@@ -415,17 +444,14 @@ KrylovSolver solver("gmres", "ilu");
 solver = KrylovSolver("gmres", "ilu")
 \end{python}
 The above specifies the Generalized Minimum Residual (GMRES) method as
-a solver, and incomplete LU (ILU) preconditioning. The available
-methods and preconditioners depend on the configured backends, but
-common methods, such as GMRES (\emp{"gmres"}), the Conjugate Gradient method
-(\emp{"cg"}) and ILU preconditioning (\emp{"ilu"}) are available for all backends.
+a solver, and incomplete LU (ILU) preconditioning.
 
 When backends such as PETSc and Trilinos are configured, a wide range
-of Krylov methods and preconditioners can be applied, and a large number
-of solver and preconditioner parameters can be set. In addition to what
-is described here, DOLFIN provides more advanced interfaces which permit
-finer control of the solution process. It is also possible for users to
-provide their own preconditioners.
+of Krylov methods and preconditioners can be applied, and a large
+number of solver and preconditioner parameters can be set. In addition
+to what is described here, DOLFIN provides more advanced interfaces
+which permit finer control of the solution process. It is also
+possible for users to provide their own preconditioners.
 
 \paragraph{Solving eigenvalue problems.}
 
@@ -1599,7 +1625,7 @@ in the Python interface is to use a variable name in an \emp{Expression}
 string.  For example, one may use the variable \emp{t} to denote time:
 %%
 \begin{python}
-h = Expression("t*sin(x[0])*cos(x[1])")
+h = Expression("t*sin(x[0])*cos(x[1])", t=0.0)
 while t < T:
     h.t = t
     ...
@@ -2065,14 +2091,10 @@ previously set values.
 \subsection{Variational problems}
 
 Variational problems (finite element discretizations of partial
-differential equations) can be easily solved in DOLFIN using the class
-\emp{VariationalProblem}. This is done by first specifying a\break
-\emp{VariationalProblem} in terms of a pair of forms and (possibly)
-boundary conditions, and then calling the \emp{solve} member function.
-
-Both linear and nonlinear problems can be solved. A linear problem
-must be expressed in the following canonical form: find $u \in V$ such
-that
+differential equations) can be easily solved in DOLFIN using the
+\emp{solve} function. Both linear and nonlinear problems can be
+solved. A linear problem must be expressed in the following canonical
+form: find $u \in V$ such that
 %%
 \begin{equation}
   a(u, v) = L(v) \quad \foralls v \in \hat{V}.
@@ -2091,12 +2113,7 @@ corresponding linear system, then applying boundary conditions to the
 system, and finally solving the linear system. In the case of a
 nonlinear variational problem specified in terms of a linear
 form~\emp{F} and a bilinear form~\emp{dF} (the derivative or Jacobian
-of~\emp{F}), the solution is computed by Newton's method. DOLFIN
-determines whether a problem is linear or nonlinear based on the given
-forms; if a pair of bilinear and linear forms (\emp{a} and \emp{L})
-are given, then the problem is assumed to be linear, and if a pair of
-linear and bilinear forms (\emp{F} and \emp{dF}) are given, then the
-problem is assumed to be nonlinear.
+of~\emp{F}), the solution is computed by Newton's method.
 
 The code examples below demonstrate how to solve a linear variational
 problem specified in terms of a bilinear form~\emp{a}, a linear
@@ -2109,41 +2126,75 @@ bcs.push_back(&bc0);
 bcs.push_back(&bc1);
 bcs.push_back(&bc2);
 
-VariationalProblem problem(a, L, bcs);
 Function u(V);
-problem.solve(u);
+solve(a == L, u, bcs);
 \end{c++}
 %%
 \begin{python}
 bcs = [bc0, bc1, bc2]
 
-problem = VariationalProblem(a, L, bcs)
-u = problem.solve()
+u = Function(V)
+solve(a == L, u, bcs=bcs)
 \end{python}
 
-To solve a nonlinear variational problem, one must supply both a linear
-form~\emp{F} and its derivative~\emp{dF}, which is a bilinear form. In
-many cases, the derivative can be easily computed using the function
+To solve a nonlinear variational problem, one must supply a linear
+form~\emp{F} and, in the case of C++, its derivative~\emp{J}, which is
+a bilinear form. In Python, the derivative is computed automatically
+but may also be specified manually. In many cases, the derivative can
+be easily computed using the function
 \emp{derivative}, either in a \emp{.ufl} form file or as part of a Python
-script. We here demonstrate how a nonlinear problem may be solved using
-the Python interface:
-%%
+script. We here demonstrate how a nonlinear problem may be solved
+using the Python interface. Nonlinear variational problems may be
+solved similarly in C++.
+%
 \begin{python}
 u  = Function(V)
-du = TrialFunction(V)
 v  = TestFunction(V)
 F  = inner((1 + u**2)*grad(u), grad(v))*dx - f*v*dx
-dF = derivative(F, u, du)
 
-problem = VariationalProblem(F, dF, bcs)
-problem.solve(u)
+# Let DOLFIN compute Jacobian
+solve(F == 0, u, bcs=bcs)
+
+# Supply Jacobian manually
+solve(F == 0, u, bcs=bcs, J=J)
 \end{python}
 
-A \emp{VariationalProblem} provides a range of parameters that can be
-adjusted to control the solution process. To view the list of available
-parameters for a \emp{VariationalProblem} object \emp{problem}, issue
-the command \emp{info(problem, true)} from C++ or \emp{info(problem,
-True)} from Python.
+More advance control over the solution process may be gained by
+using the classes \emp{Linear\-Variational\{Problem,Solver\}}
+and \emp{NonlinearVariational\{Problem,Solver\}}. Use of these classes
+is illustrated by the following code examples:
+%
+\begin{python}
+u = Function(V)
+problem = LinearVariationalProblem(a, L, u, bcs=bcs)
+solver = LinearVariationalSolver(problem)
+solver.parameters["linear_solver"] = "gmres"
+solver.parameters["preconditioner"] = "ilu"
+solver.solve()
+\end{python}
+%
+\begin{python}
+u = Function(V)
+problem = NonlinearVariationalProblem(F, u, bcs=bcs, J=J)
+solver = NonlinearVariationalSolver(problem)
+solver.parameters["linear_solver"] = "gmres"
+solver.parameters["preconditioner"] = "ilu"
+solver.solve()
+\end{python}
+These classes may be used similarly from C++.
+
+These classes providesa range of parameters that can be adjusted to
+control the solution process. For example, to view the list of
+available parameters for a \emp{\{Linear,Nonlinear\}VariationalProblem}
+object \emp{problem}, issue the following commands:
+%
+\begin{c++}
+info(problem.parameters, true)
+\end{c++}
+%
+\begin{python}
+info(problem.parameters, True)
+\end{python}
 
 %------------------------------------------------------------------------------
 \subsection{File I/O and visualization}
