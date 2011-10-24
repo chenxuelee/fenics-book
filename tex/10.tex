@@ -48,7 +48,7 @@ compiler on the command-line.
 
 DOLFIN also relies on external software for important functionality
 such as the linear algebra libraries
-\citet{www:petsc,www:trilinos,www:ublas} and \citet{www:mtl4}, and the
+\citet{www:petsc}, \citet{www:trilinos}, \citet{www:ublas} and \citet{www:mtl4}, and the
 mesh partitioning libraries \citet{www:parmetis} and
 SCOTCH~\citep{www:scotch}.
 \begin{figure}
@@ -154,7 +154,7 @@ users need to import functionality from the DOLFIN Python module. In
 the simplest case, one includes all functionality from the Python
 module named \emp{dolfin}:
 
-\newpage
+\pagebreak
 \begin{python}
 from dolfin import *
 \end{python}
@@ -343,7 +343,7 @@ This can be useful when passing a linear solver via a function
 interface and setting the operator inside a function.
 
 In some cases, the system $Ax = b$ may be solved a number of times for
-a given $A$, or for different $A$ but with the same nonzero structure.
+a given matrix $A$ and different vectors $b$, or for different $A$ but with the same nonzero structure.
 If the nonzero structure of $A$ does not change, then some efficiency
 gains for repeated solves can be achieved by informing the LU solver
 of this fact:
@@ -458,7 +458,7 @@ possible for users to provide their own preconditioners.
 
 DOLFIN uses the library SLEPc, which builds on PETSc, to solve eigenvalue
 problems. The SLEPc interface works only with PETSc-based linear algebra
-objects.  Therefore it is necessary to use PETSc-based objects, or to
+objects. Therefore, it is necessary to use PETSc-based objects, or to
 set the default linear algebra backend to PETSc and downcast objects
 (as explained in the next section). The following code illustrates
 the solution of the eigenvalue problem $Ax = \lambda x$:
@@ -522,7 +522,7 @@ M = PETScMatrix()
 eigensolver = SLEPcEigenSolver(A, M)
 \end{python}
 There are many options that a user can set via the parameter system to
-control the eigenproblem solution process. To print a list of
+control the eigenvalue problem solution process. To print a list of
 available parameters, call \emp{info(eigensolver.parameters, true)}
 and \emp{info(eigensolver.parameters, True)} from C++ and Python,
 respectively.
@@ -721,7 +721,7 @@ tetrahedra) may be constructed explicitly by specifying the cells and
 vertices of the mesh. An interface for creating simplicial meshes is
 provided by the class \texttt{MeshEditor}. The following code
 demonstrates how to create a mesh consisting of two triangles covering
-the unit square.
+the unit square:
 
 \begin{c++}
 Mesh mesh;
@@ -842,7 +842,7 @@ as facets. These concepts are implemented by the classes
 data. Instead, they are light-weight objects that provide views of the
 underlying mesh data. A \emp{MeshEntity} may be created from a
 \emp{Mesh}, a topological dimension and an index. The following code
-demonstrates how to create various entities on a mesh.
+demonstrates how to create various entities on a mesh:
 %%
 \begin{c++}
 MeshEntity entity(mesh, 0, 33); // vertex number 33
@@ -926,7 +926,7 @@ connectivity. This is illustrated in Table~\ref{tab:logg-2:connectivity},
 where we indicate which connectivities are required to compute the $1
 \rightarrow 1$ connectivity.  The following code demonstrates how to
 initialize various kinds of mesh connectivity for a tetrahedral mesh
-($D = 3$).
+($D = 3$):
 %%
 \begin{c++}
 mesh.init(2);    // Compute faces
@@ -968,8 +968,8 @@ as well as the specialized mesh iterators \texttt{VertexIterator},
 and \texttt{Cell\-Iterator}.
 
 The following code illustrates how to iterate over all incident
-(connected) vertices of all vertex neighbors of all cells of a given
-mesh. The code implies that two vertices are considered as neighbors if
+(connected) vertices of all vertices of all cells of a given
+mesh. Two vertices are considered as neighbors if
 they both belong to the same cell. For simplex meshes, this is equivalent
 to an edge connecting the two vertices.
 %%
@@ -1022,7 +1022,7 @@ classes \emp{VertexFunction}, \emp{EdgeFunction}, \emp{FaceFunction},
 \emp{FacetFunction} and \emp{CellFunction}.  The following code
 illustrates how to create a pair of \emp{MeshFunction}s, one for storing
 subdomain indicators on \emp{Cell}s and one for storing boundary markers
-on \emp{Facet}s.
+on \emp{Facet}s:
 %%
 \begin{c++}
 CellFunction<uint> sub_domains(mesh);
@@ -1067,7 +1067,7 @@ The \emp{MeshData} class provides a simple way to associate data with
 a \emp{Mesh}. It allows arbitrary \emp{MeshFunction}s (and other
 quantities) to be associated with a \emp{Mesh}. The following code
 illustrates how to attach and retrieve a \emp{MeshFunction} named
-\emp{"sub\_domains"} to/from a \emp{Mesh}.
+\emp{"sub\_domains"} to/from a \emp{Mesh}:
 %%
 \begin{c++}
 MeshFunction<uint>* sub_domains = mesh.data().create_mesh_function("sub_domains");
@@ -1078,7 +1078,7 @@ sub_domains = mesh.data().mesh_function("sub_domains");
 sub_domains = mesh.data().create_mesh_function("sub_domains")
 sub_domains = mesh.data().mesh_function("sub_domains")
 \end{python}
-To list data that associated with a given \emp{Mesh}, issue the
+To list data associated with a given \emp{Mesh}, issue the
 command \emp{info(mesh.data(), true)} in C++ or \emp{info(mesh.data(),
   True)} in Python.
 
@@ -1330,7 +1330,7 @@ V = VectorElement("Lagrange", triangle, 2)
 Q = FiniteElement("Lagrange", triangle, 1)
 W = V*Q
 \end{uflcode}
-\newpage
+%
 \begin{python}
 V = VectorFunctionSpace(mesh, "Lagrange", 2)
 Q = FunctionSpace(mesh, "Lagrange", 1)
@@ -1433,7 +1433,8 @@ solve(A, u.vector(), b)
 \end{python}
 %%
 The process of assembling and solving a linear system is handled
-automatically by the class\break \emp{Variational\-Problem}, which will be
+automatically by the
+classes\break \emp{Linear/NonlinearVariational\-Solver}, which will be
 discussed in more detail below.
 
 \paragraph{Function evaluation.}
@@ -1691,8 +1692,8 @@ f = Coefficient(V)
 E  = 10.0
 nu = 0.3
 
-mu    = E/(2.0*(1.0 + nu))
-lmbda = E*nu/((1.0 + nu)*(1.0 - 2.0*nu))
+mu    = E / (2.0*(1.0 + nu))
+lmbda = E*nu / ((1.0 + nu)*(1.0 - 2.0*nu))
 
 def sigma(v):
     return 2.0*mu*sym(grad(v)) + lmbda*tr(sym(grad(v)))*Identity(v.cell().d)
@@ -1752,8 +1753,8 @@ f = MyExpression() # code emitted for the definition of f
 E  = 10.0
 nu = 0.3
 
-mu    = E/(2.0*(1.0 + nu))
-lmbda = E*nu/((1.0 + nu)*(1.0 - 2.0*nu))
+mu    = E / (2.0*(1.0 + nu))
+lmbda = E*nu / ((1.0 + nu)*(1.0 - 2.0*nu))
 
 def sigma(v):
     return 2.0*mu*sym(grad(v)) + lmbda*tr(sym(grad(v)))*Identity(v.cell().d)
@@ -1804,7 +1805,7 @@ interface, with only a small overhead for handling the automatic code
 generation. The generated code is cached for later reuse, hence
 repeated assembly of the same form or running the same program twice
 does not re-trigger code generation. Instead, the previously generated
-code is automatically loaded.
+code is automatically loaded from cache.
 
 DOLFIN provides a common assembly algorithm for the assembly of tensors
 of any rank (scalars, vectors, matrices, \ldots) for any form. This is
@@ -1951,13 +1952,13 @@ neumann_boundary.mark(exterior_facet_domains, 0)
 %
 When combined with integrals defined using \emp{ds(0)} and
 \emp{ds(1)}, those integrals will correspond to integration over the
-domain boundary to the left of $x = 0.5$ and to the right of $x =
+domain boundary to the left of $x = 0.5$ and all facets to the right of $x =
 0.5$, respectively.
 
 Once the boundaries have been specified as a \emp{FacetFunction}, that
-object can be used do define the corresponding domains of
+object can be used to define the corresponding domains of
 integration. This is done differently in C++ and Python. From C++, one
-must assign to the \emp{.ds} member variable of the corresponding
+must assign to the \emp{ds} member variable of the corresponding
 forms:
 \begin{c++}
 a.ds = exterior_facet_domains;
@@ -1995,7 +1996,7 @@ specified either in terms of a \emp{SubDomain} object or in terms of a
 \emp{FacetFunction}. A \emp{DirichletBC} specifies that the solution
 should be equal to the given value on the given subdomain.
 
-The following code examples illustrates how to define the Dirichlet
+The following code examples illustrate how to define the Dirichlet
 condition $u(x) = u_0(x) = \sin x$ on the Dirichlet boundary
 $\Gamma_{\mathrm{D}}$ (assumed here to be the part of the boundary
 to the right of $x = 0.5$) for the elasticity
@@ -2108,7 +2109,7 @@ computed by assembling the matrix~\emp{A} and vector~\emp{b} of the
 corresponding linear system, then applying boundary conditions to the
 system, and finally solving the linear system. In the case of a
 nonlinear variational problem specified in terms of a linear
-form~\emp{F} and a bilinear form~\emp{dF} (the derivative or Jacobian
+form~\emp{F} and a bilinear form~\emp{J} (the derivative or Jacobian
 of~\emp{F}), the solution is computed by Newton's method.
 
 The code examples below demonstrate how to solve a linear variational
@@ -2151,14 +2152,18 @@ F  = inner((1 + u**2)*grad(u), grad(v))*dx - f*v*dx
 # Let DOLFIN compute Jacobian
 solve(F == 0, u, bcs=bcs)
 
+# Differentiate to get Jacobian
+J = derivative(F, u)
+
 # Supply Jacobian manually
 solve(F == 0, u, bcs=bcs, J=J)
 \end{python}
 
-More advance control over the solution process may be gained by
+More advanced control over the solution process may be gained by
 using the classes \emp{Linear\-Variational\{Problem,Solver\}}
 and \emp{NonlinearVariational\{Problem,Solver\}}. Use of these classes
 is illustrated by the following code examples:
+\pagebreak
 %
 \begin{python}
 u = Function(V)
@@ -2181,7 +2186,7 @@ These classes may be used similarly from C++.
 
 The solver classes provide a range of parameters that can be adjusted
 to control the solution process. For example, to view the list of
-available parameters for \emp{LinearVariationalSolver} or
+available parameters for a \emp{LinearVariationalSolver} or
 \emp{NonlinearVariationalSolver}, issue the following commands:
 %
 \begin{c++}
@@ -2248,8 +2253,8 @@ mesh = Mesh("mesh.xml")
 To visualize a solution (\emp{Function}), a \emp{Mesh} or a
 \emp{MeshFunction}, the \emp{plot} command\footnote{The plot command
   requires a working installation of the \emp{viper} Python
-  module. Plotting finite elements requires access to the \emp{ffc}
-  plotting module.} can be issued, from either C++ or Python:
+  module. Plotting finite elements requires access to FFC
+  and the \emp{soya} Python plotting module.} can be issued, from either C++ or Python:
 %%
 \begin{c++}
 plot(u);
@@ -2265,6 +2270,16 @@ plot(mesh_function)
 %%
 Example plots generated using the \emp{plot} command are presented in
 Figures~\ref{fig:logg-2:plots,mesh} and~\ref{fig:logg-2:plots,function}.
+From Python, one can also plot expressions and finite elements:
+%%
+\begin{python}
+plot(grad(u))
+plot(u*u)
+
+element = FiniteElement("BDM", tetrahedron, 3)
+plot(element)
+\end{python}
+%%
 
 \begin{figure}
 \bwfig
@@ -2286,16 +2301,6 @@ Figures~\ref{fig:logg-2:plots,mesh} and~\ref{fig:logg-2:plots,function}.
   \label{fig:logg-2:plots,function}
 \end{figure}
 
-From Python, one can also plot expressions and finite elements:
-%%
-\begin{python}
-plot(grad(u))
-plot(u*u)
-
-element = FiniteElement("BDM", tetrahedron, 3)
-plot(element)
-\end{python}
-%%
 To enable interaction with a plot window (rotate, zoom) from Python,
 call the function \emp{interactive}, or add an optional argument
 \emp{interactive=True} to the \emp{plot} command.
@@ -2312,7 +2317,7 @@ extension, as illustrated in the following code examples:
 File file("solution.pvd");
 file << u;
 \end{c++}
-%%
+\pagebreak
 \begin{python}
 file = File("solution.pvd")
 file << u
@@ -2397,7 +2402,7 @@ One cannot read/write \emp{Function} and \emp{FunctionSpace} objects
 since the representation of a\break \emp{FunctionSpace} (and thereby the
 representation of a \emp{Function}) relies on generated code.
 
-DOLFIN automatically handles \emph{reading} of gzipped XML files. Thus,
+DOLFIN automatically handles reading and writing of gzipped XML files. Thus,
 one may save space by storing meshes and other data in gzipped XML files
 (with suffix \emp{.xml.gz}).
 
@@ -2422,7 +2427,7 @@ while (t < T)
   t += dt;
 }
 \end{c++}
-\newpage
+%
 \begin{python}
 time_series = TimeSeries("simulation_data")
 
@@ -2467,7 +2472,7 @@ Informational messages from DOLFIN are normally printed using the
 optional list of variables to be formatted, much like the standard
 C \emp{printf} command. Note that the \emp{info} command
 automatically appends a newline to the given string. Alternatively,
-C++ users may use the \emp{dolfin::cout} and \emp{dolfin::endl} object
+C++ users may use the \emp{dolfin::cout} and \emp{dolfin::endl} objects
 for C++ style formatting of messages as illustrated below.
 %%
 \begin{c++}
@@ -2493,7 +2498,7 @@ In addition to the \emp{info} command, DOLFIN provides the
 commands \emp{warning} and \emp{error} that can be used to issue
 warnings and errors, respectively. These two commands work in much the
 same way as the \emp{info} command. However, the \emp{warning} command
-will prepend the given message with \emp{"Warning: "} and the
+will prepend the given message with \emp{"*** Warning: "} and the
 \emp{error} command will raise an exception that can be caught, from
 both C++ and Python. Both commands will also print the message at a
 \emph{log level} higher than messages printed using \emp{info}.
@@ -2506,7 +2511,7 @@ or equal to the current log level are printed. The log level of DOLFIN
 may be set using the function \emp{set\_log\_level}. This function
 expects an integer value that specifies the log level. To simplify the
 specification of the log level, one may use one of a number of
-predefined log levels as listed in the table below. The default log
+predefined log levels as listed in Table~\ref{tab:logg-2:loglevels}. The default log
 level is \emp{INFO}. Log messages may be switched off entirely by
 calling the command \emp{set\_log\_active(false)} from C++ and
 \emp{set\_log\_active(False)} from Python. For technical reasons, the
@@ -2532,7 +2537,7 @@ Table~\ref{tab:logg-2:loglevels}.
 \end{table}
 
 To print messages at an arbitrary log level, one may specify the log
-level to the \emp{info} and \emp{log} commands, as illustrated in the
+level to the \emp{log} command, as illustrated in the
 code examples below.
 %%
 \begin{c++}
@@ -2597,7 +2602,7 @@ info(function_space)
 info(parameters)
 \end{python}
 %%
-The above commands will print short informational messages. For example,
+The above commands will print short informal messages. For example,
 the command \emp{info(mesh)} may result in the following output:
 %%
 \begin{gencode}
@@ -2705,7 +2710,7 @@ One may explicitly call the \emp{start} and \emp{stop} member
 functions of a \emp{Timer}. To directly access the value of a timer,
 the \emp{value} member function can be called. A summary of the
 values of all timers created during the execution of a program can be
-printed by calling the \emp{summary} function.
+printed by calling the \emp{list\_timings} function.
 
 %------------------------------------------------------------------------------
 \subsection{Parameters}
@@ -2720,7 +2725,7 @@ This permits different parameter values to be set for different
 objects of a class.
 
 Parameter values can be either integer-valued, real-valued (standard
-double or extended precision), string-valued, or boolean-valued. Parameter
+double), string-valued or boolean-valued. Parameter
 names must not contain spaces.
 
 \paragraph{Accessing parameters.}
@@ -2748,7 +2753,7 @@ parameters["allow_extrapolation"] = True
 %%
 Parameters that are local to specific components of DOLFIN can be
 controlled by accessing the member variable named \emp{parameters}. The
-following code illustrates how to set some parameters for a Krylov solver.
+following code illustrates how to set some parameters for a Krylov solver:
 %%
 \begin{c++}
 KrylovSolver solver;
@@ -2783,7 +2788,7 @@ and its default value. It is also simple to create new parameter
 databases by creating a new instance of the \emp{Parameters}
 class. The following code demonstrates how to create a new parameter
 database and adding to it a pair of integer-valued and floating-point
-valued parameters.
+valued parameters:
 %%
 \begin{c++}
 Parameters parameters("my_parameters");
@@ -2827,7 +2832,7 @@ my_parameters = Parameters("my_parameters", foo=3, bar=0.1,
 Command-line parameters may be parsed into the global parameter database
 or into any other parameter database. The following code illustrates
 how to parse command-line parameters in C++ and Python, and how to pass
-command-line parameters to the program.
+command-line parameters to the program:
 %%
 \begin{c++}
 int main(int argc, char* argv[])
@@ -2852,7 +2857,7 @@ It can be useful to store parameter values to file, for example to
 document which parameter values were used to run a simulation or to
 reuse a set of parameter values from a previous run. The following code
 illustrates how to write and then read back parameter values to/from a
-DOLFIN XML file.
+DOLFIN XML file:
 %%
 \begin{c++}
 File file("parameters.xml");
@@ -2895,7 +2900,7 @@ required.  For multithreaded parallelization, a so-called coloring
 approach is used (see Figure~\ref{fig:logg-2:parallel}a), and for
 distributed parallelization a mesh partitioning approach is used (see
 Figure~\ref{fig:logg-2:parallel}b). Aspects of these two approaches are
-discussed below.  It also possible to combine the approaches, thereby
+discussed below. It is also possible to combine the approaches, thereby
 yielding hybrid approaches to leverage the power of modern clusters of
 multi-core processors.
 
@@ -2964,7 +2969,7 @@ at the present time, but is an area of active development.  The LU solver
 backend, supports multithreaded parallelism.
 
 %------------------------------------------------------------------------------
-\paragraph{Distributed parallel computing.}
+\paragraph{Distributed memory parallel computing.}
 
 Fully distributed parallel computing is supported using the Message
 Passing Interface (MPI). To perform parallel simulations, DOLFIN should
@@ -3020,8 +3025,8 @@ file points to the files produced by the different processes.
 \subsection{Implementation and generation of the Python interface}
 
 The DOLFIN C++ library is wrapped to Python using the Simplified
-Wrapper and Interface Generator \swig \citep{Beazley2006,www:swig}
-(see Chapter~\ref{chap:mardal-2} for more details). The wrapped C++
+Wrapper and Interface Generator \swig \citep{Beazley2006,www:swig};
+see Chapter~\ref{chap:mardal-2} for more details. The wrapped C++
 library is accessible in a Python module named \emp{cpp} residing inside the
 main \emp{dolfin} module of DOLFIN. This means that the compiled
 module, with all its functions and classes, can be accessed directly
@@ -3043,9 +3048,6 @@ the DOLFIN interface that facilitate this integration are presented. The
 Python interface also integrates well with the \numpy and \scipy toolkits,
 which is also discussed below.
 
-
-\pagebreak
-
 %------------------------------------------------------------------------------
 \subsection{UFL integration and just-in-time compilation}
 
@@ -3062,7 +3064,7 @@ or \emp{dolfin.bar}. The prefixes of the classes and functions are
 sometimes skipped for convenience. Most of the code snippets presented
 in this section are pseudo code. Their purpose is to illustrate the
 logic of a particular method or function. Parts of the actual code may
-be intentionally excluded. A reader can examine particular classes or
+be intentionally excluded. An interested reader can examine particular classes or
 functions in the code for a full understanding of the implementation.
 
 \paragraph{Construction of function spaces.}
@@ -3113,7 +3115,6 @@ The \emp{ufl.Argument} class (the base class of\break \emp{ufl.TrialFunction}
 and \emp{ufl.TestFunction}) is subclassed in the Python interface. Instead
 of using a \emp{ufl.FiniteElement} to instantiate the classes, a DOLFIN
 \emp{FunctionSpace} is used:
-\newpage
 %%
 \begin{python}
 u = TrialFunction(V)
@@ -3181,7 +3182,7 @@ class Function(ufl.Coefficient, cpp.Function):
         cpp.Function().__init__(self, V)
 \end{python}
 %%
-The actual constructor also includes logic to instantiate a Function
+The actual constructor also includes logic to instantiate a \emp{Function}
 from other objects. A more elaborate logic is also included to handle
 access to subfunctions.
 
@@ -3203,8 +3204,8 @@ class Expression(ufl.Coefficient, cpp.Expression):
 %%
 If the \emp{ufl.FiniteElement} is not defined by the user, DOLFIN will
 automatically choose an element using the \emp{auto\_select\_element}
-function. The function takes the value shape of the \emp{Expression}
-as argument. This has to be supplied by the user for any vector- or
+function. This function takes the value shape of the \emp{Expression}
+as argument. This has to be supplied by the user for vector- or
 tensor-valued \emp{Expression}s, by overloading the \emp{value\_shape}
 method. The base class \emp{cpp.Expression} is initialized using the
 value shape of the \emp{ufl.FiniteElement}.
@@ -3394,17 +3395,17 @@ values.
 
 \paragraph{Direct access to linear algebra data.}
 
-Direct access to the underlying data is possible for the \emp{uBLAS}
-and \emp{MTL4} linear algebra backends. A \numpy array view into the
+Direct access to the underlying data is possible for the uBLAS
+and MTL4 linear algebra backends. A \numpy array view into the
 data will be returned by the method \emp{data}:
 %%
 \begin{python}
 parameters["linear_algebra_backend"] = "uBLAS"
-b  = assemble(L)
+b = assemble(L)
 bb = b.data()
 \end{python}
 %%
-Here, \emp{b} is a \emp{uBLAS} vector and \emp{bb} is a \numpy view
+Here, \emp{b} is a uBLAS vector and \emp{bb} is a \numpy view
 into the data of \emp{b}. Any changes to \emp{bb} will directly affect
 \emp{b}. A similar method exists for matrices:
 %%
@@ -3415,20 +3416,20 @@ rows, columns, values = A.data()
 \end{python}
 %%
 The data is returned in a compressed row storage format as the three
-\numpy arrays \emp{rows}, \emp{columns}, and \emp{values}. These are also
+\numpy arrays \emp{rows}, \emp{columns} and \emp{values}. These are also
 views of the data that represent \emp{A}. Any changes in \emp{values}
 will directly result in a corresponding change in~\emp{A}.
 
 \paragraph{Sparse matrix and SciPy integration.}
 
-The \emp{rows}, \emp{columns}, and \emp{values} data structures can
+The \emp{rows}, \emp{columns} and \emp{values} data structures can
 be used to instantiate a \emp{csr\_matrix} from the \emp{scipy.sparse}
 module \citep{JonesOliphantPetersonEtAl2009}:
 %%
 \begin{python}
 from scipy.sparse import csr_matrix
 rows, columns, values = A.data()
-csr = csr_matrix(values, rows, columns)
+csr = csr_matrix((values, columns, rows))
 \end{python}
 %%
 The \emp{csr\_matrix} can then be used with other Python modules
@@ -3519,3 +3520,5 @@ made to the interface. Since the release of version~0.9.0, most work has
 gone into refining the interface, implementing missing functionality,
 fixing bugs and improving documentation, in anticipation of the
 first stable release of DOLFIN, version 1.0.
+
+\enlargethispage{12pt}
