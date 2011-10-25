@@ -65,9 +65,9 @@ to solve PDEs with \fenics{}!
 
 Reading this tutorial obviously requires access to a machine where the
 \fenics{} software is installed. Section~\ref{langtangen:app:install}
-explains briefly how to install the necessary tools.  
+explains briefly how to install the necessary tools.
 All the examples discussed in the following are available as
-executable Python source code files in a directory tree. 
+executable Python source code files in a directory tree.
 %File paths
 %reflect the nature of the PDE problem being solved. For example,
 %\emp{stationary/poisson/d2\_p2D.py} has a descriptive directory path
@@ -79,7 +79,7 @@ executable Python source code files in a directory tree.
 %transient diffusion PDE, with \emp{sin} as an identifier for a
 %sinusoidal boundary condition in time and \emp{daD} as an identifier
 %for a diffusion problem (\emp{d}) where the code works in any
-%dimension (\emp{aD}), i.e., 1D, 2D, or 3D. We will occasionally only
+%dimension (\emp{aD}); that is, 1D, 2D, or 3D. We will occasionally only
 %make references to the basename of a previously introduced filename,
 %say \emp{d2\_p2D.py}, instead of the much longer complete name
 %\emp{stationary/poisson/d2\_p2D.py}.
@@ -266,7 +266,7 @@ mesh and specify an element type, and then let $V$ correspond to this
 mesh and element choice.  Depending upon whether $V$ is infinite- or
 finite-dimensional, $u$ will be the exact or approximate solution.
 
-It turns out to be convenient to introduce a unified notation for a 
+It turns out to be convenient to introduce a unified notation for a
 linear weak form like \eqref{langtangen:poisson1:vard}:
 \begin{equation}
   a(u, v) = L(v).
@@ -361,7 +361,7 @@ file << u
 # Hold plot
 interactive()
 \end{python}
-The complete code can be found in the file \emp{d1\_p2D.py} in the 
+The complete code can be found in the file \emp{d1\_p2D.py} in the
 directory \emp{stationary/poisson}.
 
 We shall now dissect this \fenics{} program in detail. The program
@@ -545,7 +545,7 @@ of \fenics: the formulas in the variational formulation translate directly
 to very similar Python code, a feature that makes it easy to specify
 PDE problems with lots of PDEs and complicated terms in the equations.
 The language used to express weak forms is called UFL (Unified Form
-Language) and is an integral part of \fenics. 
+Language) and is an integral part of \fenics.
 
 Instead of \emp{nabla\_grad} we could also just have written
 \emp{grad} in the examples in this tutorial. However, when taking
@@ -640,7 +640,7 @@ you can check that the program is correct).  These technicalities are
 scattered around in forthcoming programs. However, the impatient reader who
 is more interested in seeing the previous program being adapted to a
 real physical problem, and play around with some interesting
-visualizations, can safely jump to Section~\ref{langtangen:poisson:membrane}. 
+visualizations, can safely jump to Section~\ref{langtangen:poisson:membrane}.
 Information in the intermediate sections can be studied on demand.
 
 \subsection{Controlling the solution process}
@@ -650,7 +650,7 @@ Sparse LU decomposition (Gaussian elimination)
 is used by default to solve linear systems of equations in \fenics{} programs.
 This is a very robust and recommended method for a few thousand
 unknowns in the equation system, and may hence be the method of
-choice in many 2D and smaller 3D problems. However, sparse LU 
+choice in many 2D and smaller 3D problems. However, sparse LU
 decomposition becomes slow and memory demanding in large problems.
 This fact forces the use of iterative methods, which are faster
 and require much less memory.
@@ -663,11 +663,11 @@ LU factorization (ILU) is a popular and
 robust all-round preconditioner, so let us try the CG--ILU pair:
 \begin{python}
 solve(a == L, u, bc)
-      solver_parameters={"linear_solver": "cg", 
+      solver_parameters={"linear_solver": "cg",
                          "preconditioner": "ilu"})
 # Alternative syntax
-solve(a == L, u, bc, 
-      solver_parameters=dict(linear_solver="cg", 
+solve(a == L, u, bc,
+      solver_parameters=dict(linear_solver="cg",
                              preconditioner="ilu"))
 \end{python}
 Section~\ref{langtangen:app:solver:prec} lists the most
@@ -679,7 +679,7 @@ The actual CG and ILU implementations that are brought into action depends on
 the choice of linear algebra package. \fenics{} interfaces
 several linear algebra packages, called \emph{linear algebra backends}
 in \fenics{} terminology.
-PETSc is the default choice if \dolfin{} is compiled with PETSc, 
+PETSc is the default choice if \dolfin{} is compiled with PETSc,
 otherwise uBLAS.  Epetra (Trilinos) and MTL4 are two other
 supported backends.
 Which backend to apply can
@@ -702,8 +702,8 @@ interface to).
 \index{parameters (\dolfin)}
 We will normally like to control
 the tolerance in the stopping criterion and the maximum number
-of iterations when running an iterative method. 
-Such parameters can be set by accessing 
+of iterations when running an iterative method.
+Such parameters can be set by accessing
 the \emph{global parameter database}, which is called
 \emp{parameters} and behaves as a nested dictionary. Write
 \index{info function (\dolfin)}
@@ -712,8 +712,8 @@ info(parameters, True)
 \end{python}
 to list all parameters and their default values in the database.
 The nesting of parameter sets is indicated through indentation in the
-output from \emp{info}. 
-According to this output, the relevant parameter set is 
+output from \emp{info}.
+According to this output, the relevant parameter set is
 named \emp{"krylov\_solver"}, and the parameters are set like this:
 \begin{python}
 prm = parameters["krylov_solver"] # short form
@@ -748,7 +748,7 @@ prm["maximum_iterations"] = 1000
 set_log_level(PROGRESS)
 
 solve(a == L, u, bc,
-      solver_parameters={"linear_solver": "cg", 
+      solver_parameters={"linear_solver": "cg",
                          "preconditioner": "ilu"})
 \end{python}
 The demo program \emp{d2\_p2D.py} in the
@@ -758,7 +758,7 @@ is otherwise similar to the previous \emp{d1\_p2D.py} program.
 
 We remark that default values for the global parameter database can be
 defined in an XML file, see the example file
-\emp{.dolfin\_parameters.xml} in the directory
+\emp{dolfin\_parameters.xml} in the directory
 \emp{stationary/poisson}.  If such a file is found in the directory
 where a FEniCS program is run, this file is read and used to
 initialize the \emp{parameters} object. Otherwise, the file
@@ -799,7 +799,7 @@ cg_prm["relative_tolerance"] = 1E-4
 cg_prm["maximum_iterations"] = 1000
 \end{python}
 Calling \emp{info(solver.parameters, True)} lists all the available
-parameter sets with default values for each parameter. 
+parameter sets with default values for each parameter.
 Settings in the global \emp{parameters} database are
 propagated to parameter sets in individual objects, with the
 possibility of being overwritten as done above.
@@ -884,7 +884,7 @@ between the computed and exact solution should be less than a small
 tolerance. The exact solution is given by the \emp{Expression}
 object \emp{u0}, which we can evaluate directly as \emp{u0(coor[i])}
 at the vertex with global number \emp{i}, or as \emp{u0(x)} for any
-spatial point \emp{x}.  
+spatial point \emp{x}.
 Alternatively, we can make a finite element field \emp{u\_e}, representing
 the exact solution, whose values at the nodes are given by the
 \emp{u0} function. With mathematics, $u_{\rm e} = \sum_{j=1}^N  E_j\phi_j$, where
@@ -974,7 +974,7 @@ right-hand side and assigning this array to the name \emp{u\_array}.
 
 A call like \emp{u.vector().array()} returns a copy of the data in
 \emp{u.vector()}. One must therefore never perform assignments like
-\emp{u.vector.array()[:] = ...}, but instead extract the 
+\emp{u.vector.array()[:] = ...}, but instead extract the
 \emp{numpy} array (that is, a copy), manipulate it, and insert
 it back with \emp{u.vector()[:] = } or \emp{u.set\_local(...)}.
 
@@ -1034,7 +1034,7 @@ f(x,y) = 4\exp{\left(
 - \frac{1}{2}\left( \frac{Ry-y_0}{\sigma}\right)^2
 \right)}.
 \end{equation}
-For notational convenience we have dropped introducing 
+For notational convenience we have dropped introducing
 new symbols for the scaled
 coordinates in \eqref{langtangen:poisson1:membrane:scaled:eq:rhs}.
 Now $D$ is related to $w$ through $D = AR^2w/(8\pi\sigma T)$.
@@ -1073,7 +1073,7 @@ A mesh over the unit circle can be created by
 \begin{python}
 mesh = UnitCircle(n)
 \end{python}
-where \emp{n} is the typical number of elements in the radial direction.  
+where \emp{n} is the typical number of elements in the radial direction.
 
 The function $f$ is represented by an \emp{Expression} object. There
 are many physical parameters in the formula for $f$ that enter
@@ -1096,12 +1096,12 @@ f.sigma = 50
 f.x0 = 0.3
 \end{python}
 
-\index{interpolation} 
+\index{interpolation}
 It would be of interest to visualize $f$ along with $w$ so that we can
 examine the pressure force and its response.  We must then transform
 the formula (\emp{Expression}) to a finite element function
 (\emp{Function}).  The most natural approach is to construct a finite
-element function whose degrees of freedom (values at the nodes in this case) 
+element function whose degrees of freedom (values at the nodes in this case)
 are calculated from $f$. That is, we interpolate $f$ (see
 Section~\ref{langtangen:poisson1:verify1}):
 \begin{python}
@@ -1129,7 +1129,7 @@ replaced by $w$ and $u_0=0$.
 The final program is found in the file \emp{membrane1.py}, located
 in the \emp{stationary/poisson} directory, and also listed below.
 We have inserted capabilities for iterative solution methods and
-hence large meshes (Section~\ref{langtangen:poisson1:solve:prm}), 
+hence large meshes (Section~\ref{langtangen:poisson1:solve:prm}),
 used objects for the variational problem and solver
 (Section~\ref{langtangen:poisson1:solver:problem}), and made numerical
 comparison of the numerical and (approximate) analytical solutions
@@ -1303,8 +1303,8 @@ U_j \phi_j$, we have that
 \begin{equation}
   \nabla u = \sum_{j=1}^N U_j \nabla \phi_j.
 \end{equation}
-Given the solution variable \emp{u} in the program, 
-its gradient is obtained by \emp{grad(u)} or \emp{nabla\_grad(u)}. 
+Given the solution variable \emp{u} in the program,
+its gradient is obtained by \emp{grad(u)} or \emp{nabla\_grad(u)}.
 However, the gradient of a piecewise continuous finite
 element scalar field is a discontinuous vector field since the $\phi_j$
 has discontinuous derivatives at the boundaries of the cells. For example,
@@ -1642,7 +1642,7 @@ E = sqrt(assemble(error))
 Here, \emp{u\_exact} will be interpolated onto the function
 space \emp{V}. This implies that the exact solution used in the integral will
 vary linearly over the cells, and not as a sine function, if \emp{V}
-corresponds to linear Lagrange elements.  This situation 
+corresponds to linear Lagrange elements.  This situation
 may yield a smaller error
 \emp{u - u\_e} than what is actually true.
 
@@ -1809,7 +1809,7 @@ total_flux = assemble(flux)
 Although \emp{nabla\_grad(u)} and \emp{grad(u)} are interchangeable
 in the above expression when \emp{u} is a scalar function, we have
 chosen to write \emp{nabla\_grad(u)} because this is
-the right expression if we generalize the underlying equation 
+the right expression if we generalize the underlying equation
 to a vector Laplace/Poisson PDE. With \emp{grad(u)} we must in that
 case write \emp{dot(n, grad(u))}.
 
@@ -1826,13 +1826,13 @@ is \emp{-p*dot(nabla\_grad(u), n)*ds(i)}.
 
 When finite element computations are done on a structured rectangular
 mesh, maybe with uniform partitioning, VTK-based tools for completely
-unstructured 2D/3D meshes are not required.  Instead we can use 
+unstructured 2D/3D meshes are not required.  Instead we can use
 visualization and data analysis tools for \emph{structured
   data}. Such data typically appear in finite difference simulations and
 image analysis.  Analysis and visualization of structured data are faster
 and easier than doing the same with data on unstructured meshes, and
 the collection of tools to choose among is much larger.  We shall
-demonstrate the potential of such tools and how they allow for 
+demonstrate the potential of such tools and how they allow for
 tailored and flexible visualization and data analysis.
 
 A necessary first step is to transform our
@@ -1869,7 +1869,7 @@ The function
 \emp{dolfin\_function2BoxField} can only work
 with finite element fields with \emph{linear} (degree 1) elements, so
 for higher-degree elements we here simply interpolate the solution
-onto a mesh with linear elements. We could also 
+onto a mesh with linear elements. We could also
 interpolate/project onto a finer
 mesh in the higher-degree case.  Such transformations to linear finite
 element fields are very often needed when calling up plotting packages
@@ -1916,7 +1916,7 @@ Many plotting programs can be used to visualize the data in
 plotting program in the Python world and could be used to make contour
 plots of \emp{u\_box}. However, other programs
 like Gnuplot, VTK, and MATLAB have better support for surface
-plots at the time of this writing. 
+plots at the time of this writing.
 Our choice in this tutorial is to use the Python package
 \emp{scitools.easyviz}, which offers a
 uniform MATLAB-like syntax as interface to various plotting packages
@@ -1925,7 +1925,7 @@ such as Gnuplot, matplotlib, VTK, OpenDX, MATLAB, and others. With
 statements, close to what one would do in MATLAB or Octave, and then
 it is easy to switch between different plotting programs, at a later
 stage, through a command-line option, a line in a configuration file,
-or an import statement in the program.  
+or an import statement in the program.
 
 A contour plot is made by the following \emp{scitools.easyviz} command:
 \index{contour plot}
@@ -2025,7 +2025,7 @@ As seen from Figure~\ref{langtangen:poisson:2D:fig2}b, the numerical flux
 is accurate except in the elements closest to the boundaries.
 
 The visualization constructions shown above and used to generate the
-figures are found in the program \emp{vcp2D.py} in the 
+figures are found in the program \emp{vcp2D.py} in the
 \emp{stationary/poisson} directory.
 
 
@@ -2189,7 +2189,7 @@ L = f*v*dx - g*v*ds
 \end{python}
 The \emp{ds} variable implies a boundary integral, while \emp{dx}
 implies an integral over the domain $\Omega$.  No more modifications
-are necessary. 
+are necessary.
 
 The file \emp{dn1\_p2D.py} in the \emp{stationary/poisson} directory
 implements this problem. Running the program verifies the implementation:
@@ -2313,7 +2313,7 @@ and the vector elements~$b_i$.
 The matrix $A$ and vector $b$ are first assembled without
 incorporating essential (Dirichlet) boundary conditions. Thereafter,
 the \emp{bc.apply(A, b)} call performs the necessary modifications to
-the linear system. 
+the linear system.
 When we have multiple Dirichlet conditions stored in a list \emp{bcs},
 as explained in Section~\ref{langtangen:poisson:multiple:Dirichlet},
 we must apply each condition in \emp{bcs} to the system:
@@ -2332,13 +2332,13 @@ A, b = assemble_system(a, L, bcs)
 The \emp{assemble\_system} function incorporates the boundary conditions
 in the element matrices and vectors, prior to assembly.
 The conditions are also incorporated in a symmetric way to preserve
-eventual symmetry of the coefficient matrix. 
+eventual symmetry of the coefficient matrix.
 %That is, for each degree of freedom
 %that is known, the corresponding row and column is zeroed out and 1 is
 %placed on the main diagonal, and the right-hand side \emp{b} is modified
 %by subtracting the column in \emp{A} times the value of the degree of
 %freedom, and then the corresponding entry in \emp{b} is replaced by the
-%known value of the degree of freedom. 
+%known value of the degree of freedom.
 With \emp{bc.apply(A,b)}
 the matrix \emp{A} is modified in an unsymmetric way.
 %: The row
@@ -2411,7 +2411,7 @@ To control tolerances in the stopping criterion and the maximum
 number of iterations, one can explicitly form a \emp{KrylovSolver} object
 and set items in its \emp{parameters} attribute
 (see Section~\ref{langtangen:poisson1:solver:problem}):
-\index{KrylovSolver}
+\index{\emp{KrylovSolver}}
 \begin{python}
 solver = KrylovSolver("cg", "ilu")
 solver.parameters["absolute_tolerance"] = 1E-7
@@ -2465,12 +2465,12 @@ in detail.
 
 \fenics{} makes it is easy to write a unified simulation code that can operate
 in 1D, 2D, and 3D. We will conveniently make use of this feature in
-forthcoming examples. 
+forthcoming examples.
 As an appetizer, go back to the introductory program \emp{d1\_p2D.py}
 in the \emp{stationary/poisson} directory and change the mesh construction
 from \emp{UnitSquare(6, 4)} to \emp{UnitCube(6, 4, 5)}. Now the domain
 is the unit cube with $6\times 4\times 5$ cells.
-Run the program and observe that we can solve a 3D problem without 
+Run the program and observe that we can solve a 3D problem without
 any other modifications (!). The visualization allows you rotate to the
 cube and observe the function values as colors on the boundary.
 
@@ -3077,8 +3077,8 @@ solver  = NonlinearVariationalSolver(problem)
 solver.solve()
 \end{python}
 where \emp{F} corresponds to the nonlinear form $F(u;v)$,
-\emp{u} is the unknown \emp{Function} object, \emp{bcs} 
-represents the essential boundary conditions (list of 
+\emp{u} is the unknown \emp{Function} object, \emp{bcs}
+represents the essential boundary conditions (list of
 \emp{DirichletBC} objects), and
 \emp{J} is a variational form for the Jacobian of \emp{F}.
 
@@ -3148,7 +3148,7 @@ as $\epsilon\rightarrow 0$.  This last expression is the Gateaux
 derivative of $F$. We may use $J$ or $a(\delta u, v)$ for this derivative,
 the latter having the advantage that we easily recognize the expression
 as a bilinear form. However, in the forthcoming code examples \emp{J}
-is used as variable name for the Jacobian.  
+is used as variable name for the Jacobian.
 
 The specification of \emp{J}
 goes as follows if \emp{du} is the \emp{TrialFunction}:
@@ -3177,7 +3177,7 @@ J = inner(q(u_)*nabla_grad(u), nabla_grad(v))*dx + \
 The UFL language, used to specify weak forms, supports differentiation
 of forms. This feature facilitates automatic \emph{symbolic} computation of the
 Jacobian \emp{J} by calling the function \emp{derivative} with \emp{F}, the most
-recently computed solution (\emp{Function}), and the unknown 
+recently computed solution (\emp{Function}), and the unknown
 (\emp{TrialFunction}) as parameters:
 \index{derivative}\index{automatic differentiation}
 \index{Jacobian, automatic computation}
@@ -3213,7 +3213,7 @@ function is most naturally matched with an implementation where
 \emp{u} is the \emp{TrialFunction}.
 We have implemented both approaches in two files:
 \emp{vp1\_np.py} with
-\emp{u} as \emp{TrialFunction}, and 
+\emp{u} as \emp{TrialFunction}, and
 \emp{vp2\_np.py} with \emp{du} as \emp{TrialFunction}.
 Both files are located in the
 \emp{stationary/nonlinear\_poisson} directory.
@@ -3225,10 +3225,10 @@ an associated solver based on Newton's method. We also demonstrate
 how key parameters in
 Newton's method can be set, as well as the choice of
 solver and preconditioner, and associated parameters, for the
-linear system occuring in the Newton iteration.
+linear system occurring in the Newton iteration.
 \index{nonlinear variational problems}
-\index{NonlinearVariationalProblem}
-\index{NonlinearVariationalSolver}\vspace*{3pt}
+\index{\emp{NonlinearVariationalProblem}}
+\index{\emp{NonlinearVariationalSolver}}\vspace*{3pt}
 \begin{python}
 problem = NonlinearVariationalProblem(F, u_, bcs, J)
 solver  = NonlinearVariationalSolver(problem)
@@ -3517,7 +3517,7 @@ while t <= T:
     t += dt
     u_1.assign(u)
 \end{python}
-Observe that \emp{u0.t} must be updated before the \emp{bc.apply} 
+Observe that \emp{u0.t} must be updated before the \emp{bc.apply}
 statement, to
 enforce computation of Dirichlet conditions at the current time level.
 
@@ -3943,7 +3943,7 @@ sets:
 \item $T_R=0$, $T_A=1$, $\kappa_0 = \kappa_1=0.2$, $\varrho = c = 1$, $\omega = 2\pi$
 \item $T_R=0$, $T_A=1$, $\kappa_0=0.2$, $\kappa_1=0.01$, $\varrho = c = 1$, $\omega = 2\pi$
 \item $T_R=0$, $T_A=1$, $\kappa_0=0.2$, $\kappa_1=0.001$, $\varrho = c = 1$, $\omega = 2\pi$
-\item $T_R=10$ C, $T_A=10$ C, 
+\item $T_R=10$ C, $T_A=10$ C,
 $\kappa_0= 2.3 \hbox{ K}^{-1}\hbox{Ns}^{-1}$,
 $\kappa_1= 100 \hbox{ K}^{-1}\hbox{Ns}^{-1}$,
 $\varrho = 1500\hbox{ kg/m}^3$,
@@ -4440,7 +4440,7 @@ We then have
   \label{langtangen:poisson:2D:DN3:var:L}
 \end{align}
 
-A natural starting point for implementation is the 
+A natural starting point for implementation is the
 file \emp{stationary/poisson/dn2\_p2D.py}.
 The new aspects are
 \begin{enumerate}
@@ -4585,9 +4585,9 @@ more complete PDE solvers for the Navier--Stokes equations
 (Chapter~\ref{chap:vynnytska}), and the bidomain model of
 electrophysiology.  Another project, CBC.RANS
 (\emp{https://launchpad.net/cbc.rans}), offers an environment for very
-flexible and easy implementation 
+flexible and easy implementation
 of Navier--Stokes solvers and turbulence
-(\citet{Mortensen2011,Mortensen2011b}). For example,
+\citep{Mortensen2011,Mortensen2011b}. For example,
 CBC.RANS contains an elliptic relaxation model for turbulent flow
 involving 18 nonlinear PDEs. FEniCS proved to be an ideal environment
 for implementing such complicated PDE models.
@@ -4681,7 +4681,7 @@ programs.\enlargethispage{12pt}
   \emp{"Lagrange"} or \emp{"DG"}), with basis functions as polynomials
   of a specified degree.
 
-  \item[\emp{Expression(formula, p1=v1, p2=v2, ...)}:] 
+  \item[\emp{Expression(formula, p1=v1, p2=v2, ...)}:]
    a scalar- or vector-valued function,
    given as a mathematical expression \emp{formula} (string) written in
    C++ syntax. The spatial coordinates in the expression are named
@@ -4876,9 +4876,9 @@ Linux\footnote{Even though Mac users now can get \fenics{} by a
 with Ubuntu Linux, which may live side by side with either Windows
 or Mac OS X or another Linux installation.  Basically, you download
 Ubuntu from \url{http://www.ubuntu.com/getubuntu/download}, burn the
-file on a CD or copy it to a memory stick, 
+file on a CD or copy it to a memory stick,
 reboot the machine with the CD or memory stick, and answer some usually
-straightforward questions (if necessary). 
+straightforward questions (if necessary).
 On Windows, Wubi is a tool that automatically installs
 Ubuntu on the machine. Just give a user~name and password for the
 Ubuntu installation, and Wubi performs the rest.
@@ -4959,6 +4959,6 @@ requests. I will in particular thank Professor Douglas Arnold for very
 valuable feedback on the text. {\O}ystein S{\o}rensen pointed out a lot
 of typos and contributed with many helpful comments.  Many errors and
 typos were also reported by Mauricio Angeles, Ida Dr{\o}sdal, Hans
-Ekkehard Plesser, and Marie Rognes. 
+Ekkehard Plesser, and Marie Rognes.
 Ekkehard Ellmann as well as two anonymous reviewers
 provided a series of suggestions and improvements.
