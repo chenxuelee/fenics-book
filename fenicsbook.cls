@@ -132,10 +132,10 @@
 % Hyperlinks
 \usepackage{hyperref}
 \hypersetup{colorlinks,
-            citecolor=blue,
-            filecolor=blue,
-            linkcolor=blue,
-            urlcolor=blue}
+            citecolor=black,
+            filecolor=black,
+            linkcolor=black,
+            urlcolor=black}
 
 % Environments
 \newtheorem{example}{Example}[chapter]
