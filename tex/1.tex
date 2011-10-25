@@ -66,23 +66,23 @@ to solve PDEs with \fenics{}!
 Reading this tutorial obviously requires access to a machine where the
 \fenics{} software is installed. Section~\ref{langtangen:app:install}
 explains briefly how to install the necessary tools.  
-
 All the examples discussed in the following are available as
-executable Python source code files in a directory tree. File paths
-reflect the nature of the PDE problem being solved. For example,
-\emp{stationary/poisson/d2\_p2D.py} has a descriptive directory path
-and a very brief Unix-style filename.  The latter indicates a second
-Dirichlet problem example (\emp{d2}), with a brief postfix \emp{p2D}
-which here is meant to indentify a 2D Poisson problem and help to
-provide a unique filename among all the programs.  Quite similarly,
-\emp{transient/diffusion/sin\_daD.py} is the file associated with a
-transient diffusion PDE, with \emp{sin} as an identifier for a
-sinusoidal boundary condition in time and \emp{daD} as an identifier
-for a diffusion problem (\emp{d}) where the code works in any
-dimension (\emp{aD}), i.e., 1D, 2D, or 3D. We will occasionally only
-make references to the basename of a previously introduced filename,
-say \emp{d2\_p2D.py}, instead of the much longer complete name
-\emp{stationary/poisson/d2\_p2D.py}.
+executable Python source code files in a directory tree. 
+%File paths
+%reflect the nature of the PDE problem being solved. For example,
+%\emp{stationary/poisson/d2\_p2D.py} has a descriptive directory path
+%and a very brief Unix-style filename.  The latter indicates a second
+%Dirichlet problem example (\emp{d2}), with a brief postfix \emp{p2D}
+%which here is meant to identify a 2D Poisson problem and help to
+%provide a unique filename among all the programs.  Quite similarly,
+%\emp{transient/diffusion/sin\_daD.py} is the file associated with a
+%transient diffusion PDE, with \emp{sin} as an identifier for a
+%sinusoidal boundary condition in time and \emp{daD} as an identifier
+%for a diffusion problem (\emp{d}) where the code works in any
+%dimension (\emp{aD}), i.e., 1D, 2D, or 3D. We will occasionally only
+%make references to the basename of a previously introduced filename,
+%say \emp{d2\_p2D.py}, instead of the much longer complete name
+%\emp{stationary/poisson/d2\_p2D.py}.
 
 
 \subsection{The Poisson equation}
@@ -575,7 +575,7 @@ solve(equation, u, bc)
 Note that we first defined the variable \emp{u} as a
 \emp{TrialFunction} and used it to represent the unknown in the form
 \emp{a}.  Thereafter, we redefined \emp{u} to be a \emp{Function}
-object representing the solution, i.e., the computed finite element
+object representing the solution; that is, the computed finite element
 function $u$.  This redefinition of the variable \emp{u} is possible
 in Python and often done in \fenics{} applications. The two types of
 objects that \emp{u} refers to are equal from a mathematical point of
@@ -695,7 +695,7 @@ of equations.
 A common platform for \fenics{} users is Ubuntu Linux.  The \fenics{}
 distribution for Ubuntu contains PETSc, making this package the default
 linear algebra backend.  The default solver is sparse LU decomposition
-(\emp{<"lu"}), and the actual software that is called\index{UMFPACK}
+(\emp{"lu"}), and the actual software that is called\index{UMFPACK}
 is then the sparse LU solver from UMFPACK (which PETSc has an
 interface to).
 
@@ -721,9 +721,11 @@ prm["absolute_tolerance"] = 1E-10
 prm["relative_tolerance"] = 1E-6
 prm["maximum_iterations"] = 1000
 \end{python}
-The absolute and relative tolerances enter
-(usually residual-based) stopping criteria, which are dependent on the
-implementation of the underlying iterative solver in the actual backend.
+Stopping criteria for Krylov solvers usually involve the norm of
+the residual, which must be smaller than the absolute tolerance
+parameter or smaller than the relative tolerance parameter times
+the initial residual.
+
 To see the number of actual iterations to reach the stopping criterion,
 we can insert
 \begin{python}
@@ -734,7 +736,7 @@ set_log_level(DEBUG)
 A message with the equation system size, solver type, and number of
 iterations arises from specifying the argument \emp{PROGRESS}, while
 \emp{DEBUG} results in more information, including CPU time spent in
-the various parts of the matrix assemly and solve process.
+the various parts of the matrix assembly and solve process.
 
 The complete solution process with control of the solver parameters
 now contains the statements
@@ -760,7 +762,7 @@ defined in an XML file, see the example file
 \emp{stationary/poisson}.  If such a file is found in the directory
 where a FEniCS program is run, this file is read and used to
 initialize the \emp{parameters} object. Otherwise, the file
-\emp{.fenics/dolfin\_parameters.xml} in the user's home directory is
+\emp{.config/fenics/dolfin\_parameters.xml} in the user's home directory is
 read, if it exists.  The XML file can also be in gzip'ed form with the
 extension \emp{.xml.gz}.
 
@@ -838,7 +840,7 @@ u_nodal_values = u.vector()
 \end{python}
 The result is a \dolfin{} \emp{Vector} object, which is basically an
 encapsulation of the vector object used in the linear algebra package
-that is applied to solve the linear system arising form the variational
+that is applied to solve the linear system arising from the variational
 problem.  Since we program in Python it is convenient to convert
 the \emp{Vector} object to a standard \emp{numpy} array for further
 processing:\index{degrees of freedom array}\index{nodal values array}
@@ -973,7 +975,7 @@ right-hand side and assigning this array to the name \emp{u\_array}.
 A call like \emp{u.vector().array()} returns a copy of the data in
 \emp{u.vector()}. One must therefore never perform assignments like
 \emp{u.vector.array()[:] = ...}, but instead extract the 
-\emp{numpy} array (i.e., a copy), manipulate it, and insert
+\emp{numpy} array (that is, a copy), manipulate it, and insert
 it back with \emp{u.vector()[:] = } or \emp{u.set\_local(...)}.
 
 All the code in this subsection can be found in the file
@@ -1032,9 +1034,10 @@ f(x,y) = 4\exp{\left(
 - \frac{1}{2}\left( \frac{Ry-y_0}{\sigma}\right)^2
 \right)}.
 \end{equation}
-For notational convenience we have dropped new symbols for the scaled
+For notational convenience we have dropped introducing 
+new symbols for the scaled
 coordinates in \eqref{langtangen:poisson1:membrane:scaled:eq:rhs}.
-Now $D$ is related $w$ through $D = AR^2w/(8\pi\sigma T)$.
+Now $D$ is related to $w$ through $D = AR^2w/(8\pi\sigma T)$.
 
 Let us list the modifications of the
 \emp{d1\_p2D.py} program that are needed code to solve this membrane problem:
@@ -1079,11 +1082,11 @@ by keyword arguments:
 \index{Expression with parameters}
 \begin{python}
 f = Expression("4*exp(-0.5*(pow((R*x[0] - x0)/sigma, 2)) "
-               "     - 0.5*(pow((R*x[1] - y0)/sigma, 2)))",
+                     "-0.5*(pow((R*x[1] - y0)/sigma, 2)))",
                R=R, x0=x0, y0=y0, sigma=sigma)
 \end{python}
 The coordinates in \emp{Expression} objects \emph{must} be a vector
-with indices 0, 1, and 3, and with the name \emp{x}. Otherwise
+with indices 0, 1, and 2, and with the name \emp{x}. Otherwise
 we are free to introduce names of parameters as long as these are
 given default values by keyword arguments. All the parameters
 initialized by keyword arguments can at any time have their
@@ -1116,7 +1119,7 @@ In the limit $\sigma\rightarrow\infty$, the function $f$
 approaches the constant 4, which allows us to easily integrate the
 equation (in radial coordinates) and obtain an exact solution
 $w_{\rm e}(x,y) = 1-x^2-y^2$.  Practical values for an infinite $\sigma$
-is 50 or larger, so we may insert a code segment that that
+is 50 or larger, so we may insert a code segment that
 computes the difference $w-w_{\rm e}$
 when $\sigma \geqslant 50$.
 
@@ -1159,7 +1162,7 @@ w = TrialFunction(V)
 v = TestFunction(V)
 a = inner(nabla_grad(w), nabla_grad(v))*dx
 f = Expression("4*exp(-0.5*(pow((R*x[0] - x0)/sigma, 2)) "
-               "     - 0.5*(pow((R*x[1] - y0)/sigma, 2)))",
+                     "-0.5*(pow((R*x[1] - y0)/sigma, 2)))",
                R=R, x0=x0, y0=y0, sigma=sigma)
 L = f*v*dx
 
@@ -1195,7 +1198,6 @@ if sigma >= 50:
     # Create finite element field over V and fill with error values
     difference = Function(V)
     difference.vector()[:] = diff_array
-    #plot(difference, title="Error field for sigma=%g" % sigma)
 
 # Should be at the end
 interactive()
@@ -1261,9 +1263,8 @@ around the domain.
 One can alternatively control the visualization from the program code
 directly. This is done through a \emp{Viper} object returned from the
 \emp{plot} command. Let us grab this object and use it to 1) tilt the
-camera $-65$ degrees in latitude direction, 2) add $x$ and $y$ axes, 3)
-change the default name of the plot files (generated by typing \emp{m}
-and \emp{i} in the plot window), 4) change the color scale, and 5)
+camera $-65$ degrees in the latitude direction, 2) add $x$ and $y$ axes, 3)
+change the default name of the plot files, 4) change the color scale, and 5)
 write the plot to a PNG and an EPS file. Here is the code:
 \begin{python}
 viz_w = plot(w,
@@ -1296,7 +1297,7 @@ scalar surface.
 \subsection{Computing derivatives}
 \label{langtangen:poisson:gradu}
 
-In many Poisson and other problems the gradient of the solution is of
+In Poisson and many other problems the gradient of the solution is of
 interest. The computation is in principle simple: since $u = \sum_{j=1}^N
 U_j \phi_j$, we have that
 \begin{equation}
@@ -1367,7 +1368,7 @@ can visualize such a vector field.
 \begin{figure}
   \centering
   \includegraphics[width=\largefig]{chapters/langtangen/pdf/ex1_gradu.pdf}
-  \caption{Example on visualizing the vector field
+  \caption{Example of visualizing the vector field
     $\nabla u$ by arrows at the nodes.}
   \label{langtangen:poisson:2D:fig:ex1:gradu}
 \end{figure}
@@ -1449,7 +1450,7 @@ Let us continue to use our favorite solution $u(x,y)=1+x^2+2y^2$ and
 then prescribe $p(x,y)=x+y$. It follows that $u_0(x,y) = 1 + x^2 + 2y^2$
 and $f(x,y)=-8x-10y$.
 
-What are the modifications we need to do in the \emp{d4\_p2D..py}
+What are the modifications we need to do in the \emp{d4\_p2D.py}
 program from Section~\ref{langtangen:poisson1:verify1}?
 \begin{enumerate}
   \item \emp{f} must be an \emp{Expression} since it is no longer
@@ -1545,8 +1546,8 @@ plot(flux_x, title="x-component of flux (-p*grad(u))")
 plot(flux_y, title="y-component of flux (-p*grad(u))")
 \end{python}
 
-Data analysis of the nodal values of the flux field may conveniently
-apply the underlying \emp{numpy} arrays:
+For data analysis of the nodal values of the flux field we can
+grab the underlying \emp{numpy} arrays:
 \begin{python}
 flux_x_array = flux_x.vector().array()
 flux_y_array = flux_y.vector().array()
@@ -1638,7 +1639,7 @@ done by
 error = (u - u_exact)**2*dx
 E = sqrt(assemble(error))
 \end{python}
-Here, \emp{u\_exact} will here be interpolated onto the function
+Here, \emp{u\_exact} will be interpolated onto the function
 space \emp{V}. This implies that the exact solution used in the integral will
 vary linearly over the cells, and not as a sine function, if \emp{V}
 corresponds to linear Lagrange elements.  This situation 
@@ -1702,11 +1703,11 @@ H1seminorm = sqrt(assemble(inner(grad(e_Ve), grad(e_Ve))*dx))
 Finally, we remove all \emp{plot} calls and printouts of $u$ values in
 the original program, and collect the computations in a function:
 \begin{python}
-def compute(nx, ny, polynomial_degree):
+def compute(nx, ny, degree):
     mesh = UnitSquare(nx, ny)
-    V = FunctionSpace(mesh, "Lagrange", degree=polynomial_degree)
+    V = FunctionSpace(mesh, "Lagrange", degree=degree)
     ...
-    Ve = FunctionSpace(mesh, "Lagrange", degree=3)
+    Ve = FunctionSpace(mesh, "Lagrange", degree=5)
     E = errornorm(u_exact, u, Ve)
     return E
 \end{python}
@@ -1805,7 +1806,7 @@ n = FacetNormal(mesh)
 flux = -p*dot(nabla_grad(u), n)*ds
 total_flux = assemble(flux)
 \end{python}
-Although \emp{nabla\_grad(u)} and \emp{grad(u)} are interchangable
+Although \emp{nabla\_grad(u)} and \emp{grad(u)} are interchangeable
 in the above expression when \emp{u} is a scalar function, we have
 chosen to write \emp{nabla\_grad(u)} because this is
 the right expression if we generalize the underlying equation 
@@ -1826,10 +1827,10 @@ is \emp{-p*dot(nabla\_grad(u), n)*ds(i)}.
 When finite element computations are done on a structured rectangular
 mesh, maybe with uniform partitioning, VTK-based tools for completely
 unstructured 2D/3D meshes are not required.  Instead we can use 
-visualization and data anlysis tools for \emph{structured
+visualization and data analysis tools for \emph{structured
   data}. Such data typically appear in finite difference simulations and
 image analysis.  Analysis and visualization of structured data are faster
-and easier than doing the same with data on unstructred meshes, and
+and easier than doing the same with data on unstructured meshes, and
 the collection of tools to choose among is much larger.  We shall
 demonstrate the potential of such tools and how they allow for 
 tailored and flexible visualization and data analysis.
@@ -2023,7 +2024,7 @@ ev.plot(x, fluxval, "r-",
 As seen from Figure~\ref{langtangen:poisson:2D:fig2}b, the numerical flux
 is accurate except in the elements closest to the boundaries.
 
-The visualizations constructions shown above and used to generate the
+The visualization constructions shown above and used to generate the
 figures are found in the program \emp{vcp2D.py} in the 
 \emp{stationary/poisson} directory.
 
@@ -2032,7 +2033,7 @@ figures are found in the program \emp{vcp2D.py} in the
   \centering
   \subfloat[]{\includegraphics[width=\twofigs]{chapters/langtangen/pdf/Poisson2D_Dvc_contour1.pdf}}
   \subfloat[]{\includegraphics[width=\twofigs]{chapters/langtangen/pdf/Poisson2D_Dvc_flux_x.pdf}}
-  \caption{Examples on plots created by transforming the finite
+  \caption{Examples of plots created by transforming the finite
     element field to a field on a uniform, structured 2D grid: (a)
     contour plot of the solution; (b) curve plot of the exact flux
     $-p\partial u/\partial x$ against the corresponding projected
@@ -2044,7 +2045,7 @@ figures are found in the program \emp{vcp2D.py} in the
   \centering
   \subfloat[]{\includegraphics[width=\twofigs]{chapters/langtangen/pdf/Poisson2D_Dvc_surf1.pdf}}
   \subfloat[]{\includegraphics[width=\twofigs]{chapters/langtangen/pdf/Poisson2D_Dvc_mesh1.pdf}}
-  \caption{Examples on plots created by transforming the finite
+  \caption{Examples of plots created by transforming the finite
     element field to a field on a uniform, structured 2D grid: (a) a
     surface plot of the solution; (b) lifted mesh plot of the
   solution.}
@@ -2178,20 +2179,6 @@ def Dirichlet_boundary(x, on_boundary):
     return on_boundary and \
            (abs(x[0]) < tol or abs(x[0] - 1) < tol)
 \end{python}
-We may also split the boundary functions into two separate pieces,
-one for each part of the boundary:
-\begin{python}
-tol = 1E-14
-def Dirichlet_boundary0(x, on_boundary):
-    return on_boundary and abs(x[0]) < tol
-
-def Dirichlet_boundary1(x, on_boundary):
-    return on_boundary and abs(x[0] - 1) < tol
-
-bc0 = DirichletBC(V, Constant(0), Dirichlet_boundary0)
-bc1 = DirichletBC(V, Constant(1), Dirichlet_boundary1)
-bcs = [bc0, bc1]
-\end{python}
 
 The second adjustment of our program concerns the definition of \emp{L},
 where we have to add a boundary integral and a definition of the $g$
@@ -2264,7 +2251,9 @@ bcs = [Gamma_0, Gamma_1]
 ...
 solve(a == L, u, bcs)
 # or
-problem = LinearVariationalProblem(a, L, bcs)
+problem = LinearVariationalProblem(a, L, u, bcs)
+solver  = LinearVariationalSolver(problem)
+solver.solve()
 \end{python}
 
 If the $u$ values are constant at a part of the boundary, we may use a
@@ -2340,9 +2329,9 @@ assemble the system and take boundary conditions into account in one call:
 \begin{python}
 A, b = assemble_system(a, L, bcs)
 \end{python}
-The \emp{assemble\_system} function incorporates the boundary conditions in
+The \emp{assemble\_system} function incorporates the boundary conditions
 in the element matrices and vectors, prior to assembly.
-The conditions are also incorporated in symmetric way to preserve
+The conditions are also incorporated in a symmetric way to preserve
 eventual symmetry of the coefficient matrix. 
 %That is, for each degree of freedom
 %that is known, the corresponding row and column is zeroed out and 1 is
@@ -2398,15 +2387,15 @@ eigenvalues of large, sparse matrices of the type encountered in PDE
 problems (see \emp{demo/la/eigenvalue} in the \dolfin{} source code tree for
 a demo).
 
-A complete code where linear system $AU=b$ is explicitly assembled and
+A complete code where the linear system $AU=b$ is explicitly assembled and
 solved is found in the file \emp{dn3\_p2D.py} in the directory
 \emp{stationary/poisson}. This code solves the same problem as in
 \emp{dn2\_p2D.py}
 (Section~\ref{langtangen:poisson:multiple:Dirichlet}).  For small
 linear systems, the program writes out \emp{A} and \emp{b} before and
 after incorporation of essential boundary conditions and illustrates
-the difference between \emp{assemble} and \emp{assemble\_linear}
-system.  The reader is encouraged to run the code for a $2\times 1$
+the difference between \emp{assemble} and \emp{assemble\_system}.
+The reader is encouraged to run the code for a $2\times 1$
 mesh (\emp{UnitSquare(2, 1)} and study the output of \emp{A}.
 
 By default, \emp{solve(A, U, b)} applies sparse LU decomposition
@@ -2440,19 +2429,16 @@ illustrating this latter approach.
 The choice of start vector for the iterations in a linear solver is often
 important. With the \emp{solve(A, U, b)} function the start vector
 is the vector \emp{U} we feed in for the solution. A start vector
-with random numbers in the interval $[-1,1]$ can be computed as
+with random numbers in the interval $[-100,100]$ can be computed as
 \begin{python}
 n = u.vector().array().size
 U = u.vector()
-U[:] = numpy.random.uniform(-1, 1, n)
-
-solve(A, U, b, "cg", "ilu")
-
-# or
-problem = LinearVariationalProblem(a, L, u, bcs)
-solver  = LinearVariationalSolver(problem)
-solver.solve()
+U[:] = numpy.random.uniform(-100, 100, n)
+solver.parameters['nonzero_initial_guess'] = True
+solver.solve(A, U, b)
 \end{python}
+Note that we must turn off the default behavior of setting the start
+vector (``initial guess'') to zero.
 A random start vector is included in the \emp{dn4\_p2D.py} code.
 
 Creating the linear system explicitly in a program can have some
@@ -2586,7 +2572,7 @@ L = f*v*dx
 u = Function(V)
 solve(a == L, u, bcs)
 \end{python}
-The complete code is found in \emp{paD.py} (Poisson problem in anyD).
+The complete code is found in \emp{paD.py} (Poisson problem in any--D).
 
 If we want to parameterize the direction in which $u$ varies, say by
 the space direction number \emp{e}, we only need to replace \emp{x[0]}
@@ -2603,9 +2589,9 @@ sample PDE for implementation is taken as a nonlinear Poisson
 equation:
 \begin{equation}
 -\nabla\cdot\left( q(u)\nabla u\right) = f.
-\end{equation}
+\end{equation}<
 The coefficient $q(u)$ makes the equation nonlinear (unless $q(u)$
-is a constant).
+is constant in $u$).
 
 To be able to easily verify our implementation, we choose the domain,
 $q(u)$, $f$, and the boundary conditions such that we have a simple,
@@ -3201,7 +3187,7 @@ v  = TestFunction(V)
 u_ = Function(V)      # the most recently computed solution
 F  = inner(q(u_)*nabla_grad(u_), nabla_grad(v))*dx
 
-J  = derivative(F, u_, du)  # Gautaux derivative in dir. of du
+J  = derivative(F, u_, du)  # Gateaux derivative in dir. of du
 \end{python}
 or
 \begin{python}
@@ -3211,7 +3197,7 @@ u_ = Function(V)      # the most recently computed solution
 F  = inner(q(u)*nabla_grad(u), nabla_grad(v))*dx
 F  = action(F, u_)
 
-J  = derivative(F, u_, u)   # Gautaux derivative in dir. of u
+J  = derivative(F, u_, u)   # Gateaux derivative in dir. of u
 \end{python}
 \vspace*{12pt}\noindent The \emp{derivative} function is obviously
 very convenient in problems where differentiating \emp{F} by hand
@@ -4268,7 +4254,7 @@ as $0,1,2,\ldots$.
 %as \emph{enum} types).}.
 
 A \emp{MeshFunction} is a discrete function that can be evaluated at a
-set of so-called \emph{mesh entities}. Examples on mesh entities are cells,
+set of so-called \emph{mesh entities}. Examples of mesh entities are cells,
 facets, and vertices. A \emp{MeshFunction} over cells is suitable
 to represent subdomains (materials), while a \emp{MeshFunction} over
 facets is used to represent pieces of external or internal boundaries.
@@ -4362,7 +4348,7 @@ Let us go back to the model problem from
 Section~\ref{langtangen:poisson:multiple:Dirichlet} where we had both
 Dirichlet and Neumann conditions.  The term \emp{v*g*ds} in the expression
 for \emp{L} implies a boundary integral over the complete boundary,
-or in \fenics{} terms, an integral over all exterior cell facets.
+or in \fenics{} terms, an integral over all exterior facets.
 However, the contributions from the parts of the boundary where we have
 Dirichlet conditions are erased when the linear system is modified by the
 Dirichlet conditions.  We would like, from an efficiency point of view,
@@ -4455,9 +4441,8 @@ We then have
 \end{align}
 
 A natural starting point for implementation is the 
-\emp{dn2\_p2D.py}
-program in the directory \emp{stationary/poisson}.  The new aspects
-are
+file \emp{stationary/poisson/dn2\_p2D.py}.
+The new aspects are
 \begin{enumerate}
 \item definition of a mesh function over the boundary,
 \item marking each side as a subdomain, using the mesh function,
@@ -4602,7 +4587,7 @@ electrophysiology.  Another project, CBC.RANS
 (\emp{https://launchpad.net/cbc.rans}), offers an environment for very
 flexible and easy implementation 
 of Navier--Stokes solvers and turbulence
-\citet{Mortensen2011,Mortensen2011b}. For example,
+(\citet{Mortensen2011,Mortensen2011b}). For example,
 CBC.RANS contains an elliptic relaxation model for turbulent flow
 involving 18 nonlinear PDEs. FEniCS proved to be an ideal environment
 for implementing such complicated PDE models.
@@ -4658,7 +4643,7 @@ Below we explain some key terms used in this tutorial.
   in method definitions, but never in calls to a method.  For example,
   if \emp{method(self, x)} is the definition of \emp{method} in a class
   \emp{Y}, \emp{method} is called as \emp{y.method(x)}, where \emp{y}
-  is an instance of class \emp{X}.  In a call like \emp{y.method(x)},
+  is an instance of class \emp{Y}.  In a call like \emp{y.method(x)},
   \emp{method} is invoked with \emp{self=y}.
 
   \item[Class attribute (Python):] a variable in a class, reached by
@@ -4868,8 +4853,8 @@ linear solver or preconditioner.
 An up-to-date list of the available solvers and preconditioners
 in FEniCS can be produced by
 \begin{python}
-print list_linear_solver_methods()
-print list_krylov_solver_preconditioners()
+list_linear_solver_methods()
+list_krylov_solver_preconditioners()
 \end{python}
 
 
@@ -4973,6 +4958,7 @@ questions about \fenics{} functionality and for implementing all my
 requests. I will in particular thank Professor Douglas Arnold for very
 valuable feedback on the text. {\O}ystein S{\o}rensen pointed out a lot
 of typos and contributed with many helpful comments.  Many errors and
-typos were also reported by Mauricio Angeles, Ida Dr{\o}sdal, and Hans
-Ekkehard Plesser. Ekkehard Ellmann as well as two anonymous reviewers
+typos were also reported by Mauricio Angeles, Ida Dr{\o}sdal, Hans
+Ekkehard Plesser, and Marie Rognes. 
+Ekkehard Ellmann as well as two anonymous reviewers
 provided a series of suggestions and improvements.
