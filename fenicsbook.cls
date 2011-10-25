@@ -23,6 +23,7 @@
 % TOC related setting
 \setcounter{tocdepth}{0} % Only show the chapter titles in the table of contents
 \renewcommand\bibname{References} % Name of references section
+\usepackage{bookmark}
 
 % Make empty page really empty
 \usepackage{emptypage}
