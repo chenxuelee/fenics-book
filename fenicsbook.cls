@@ -21,7 +21,7 @@
 \setcounter{secnumdepth}{2}
 
 % TOC related setting
-\setcounter{tocdepth}{0} % Only show the chapter titles in the table of contents
+\setcounter{tocdepth}{1} % Only show the chapters and sections
 \renewcommand\bibname{References} % Name of references section
 \usepackage{bookmark}
 
