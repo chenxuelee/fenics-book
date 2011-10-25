@@ -10,6 +10,6 @@
 for f in `ls tex/*.tex`; do
     echo "Spell checking $f"
     echo "---------------------"
-    ./spellcheckchapter.sh $f
+    cat $f | utils/stripfile | ispell -l -t -d american -p`pwd`/dictionary.txt
     echo ""
 done
