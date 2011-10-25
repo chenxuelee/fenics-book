@@ -12,6 +12,7 @@ implementation of DOLFIN, we refer to~\citet{LoggWells2010}.
 
 %------------------------------------------------------------------------------
 \section{Overview}
+\index{DOLFIN}
 
 A large part of the functionality of FEniCS is implemented as part of
 DOLFIN. It provides a problem solving environment for models based
@@ -64,6 +65,7 @@ SCOTCH~\citep{www:scotch}.
 %------------------------------------------------------------------------------
 %------------------------------------------------------------------------------
 \section{User interfaces}
+\index{user interfaces}
 
 DOLFIN provides two user interfaces. One interface is implemented as a
 traditional C++ library, and another interface is implemented as a
@@ -76,6 +78,7 @@ design and implementation of the two user interfaces of DOLFIN.
 
 %------------------------------------------------------------------------------
 \subsection{C++ interface}
+\index{user interfaces!C++}
 
 The DOLFIN C++ interface is designed as a standard object-oriented
 C++ library. It provides classes such as \emp{Matrix}, \emp{Vector},
@@ -133,6 +136,7 @@ int main()
 
 %------------------------------------------------------------------------------
 \subsection{Python interface}
+\index{user interfaces!Python}
 
 Over the last decade, Python has emerged as an attractive choice for
 the rapid development of simulation codes for scientific computing.
@@ -175,6 +179,7 @@ Project web page and to \citet{LoggWells2010}.
 
 %------------------------------------------------------------------------------
 \subsection{Linear algebra}
+\index{linear algebra}
 
 DOLFIN provides a range of linear algebra objects and functionality,
 including vectors, dense and sparse matrices, direct and iterative linear
@@ -189,6 +194,10 @@ different backends.  Users can also wrap other linear algebra backends
 by implementing the generic interfaces.
 
 \paragraph{Matrices and vectors.}
+\index{matrix}
+\index{vector}
+\index{\emp{Matrix}}
+\index{\emp{Vector}}
 
 The simplest way to create matrices and vectors is via the classes
 \emp{Matrix} and \emp{Vector}. In general, \emp{Matrix} and \emp{Vector}
@@ -263,6 +272,8 @@ of parallel data layouts. The distribution of objects across processes
 is handled automatically by the library.
 
 \paragraph{Solving linear systems.}
+\index{linear system}
+\index{\emp{solve}}
 
 The simplest approach to solving the linear system $Ax = b$ is to use
 %
@@ -301,15 +312,21 @@ list_krylov_solver_preconditioners();
 \end{c++}
 %
 \begin{python}
-list_lu_solver_method()
+list_lu_solver_methods()
 list_krylov_solver_methods()
 list_krylov_solver_preconditioners()
 \end{python}
+
+\index{\emp{list\_lu\_solver\_methods}}
+\index{\emp{list\_krylov\_solver\_methods}}
+\index{\emp{list\_krylov\_solver\_preconditioners}}
 
 Using the function \emp{solve} is straightforward, but it offers
 little control over details of the solution process. For many
 applications, it is desirable to exercise a degree of control over the
 solution process and reuse solver objects throughout a simulation.
+
+\index{\emp{LUSolver}}
 
 The linear system $Ax = b$ can be solved using LU decomposition
 (a direct method) as follows:
@@ -367,6 +384,8 @@ been configured.
 
 The system of equations $Ax = b$ can be solved using a preconditioned
 Krylov solver by:
+
+\index{\emp{KrylovSolver}}
 
 \begin{c++}
 KrylovSolver solver(A);
@@ -447,6 +466,9 @@ solver = KrylovSolver("gmres", "ilu")
 The above specifies the Generalized Minimum Residual (GMRES) method as
 a solver, and incomplete LU (ILU) preconditioning.
 
+\index{GMRES}
+\index{ILU}
+
 When backends such as PETSc and Trilinos are configured, a wide range
 of Krylov methods and preconditioners can be applied, and a large
 number of solver and preconditioner parameters can be set. In addition
@@ -455,6 +477,8 @@ which permit finer control of the solution process. It is also
 possible for users to provide their own preconditioners.
 
 \paragraph{Solving eigenvalue problems.}
+\index{eigenvalue problem}
+\index{SLEPc}
 
 DOLFIN uses the library SLEPc, which builds on PETSc, to solve eigenvalue
 problems. The SLEPc interface works only with PETSc-based linear algebra
@@ -529,6 +553,13 @@ respectively.
 
 \paragraph{Selecting a linear algebra backend.}
 
+\index{linear algebra backend}
+\index{PETSc}
+\index{Trilinos}
+\index{Epetra}
+\index{uBLAS}
+\index{MTL4}
+
 The \emp{Matrix}, \emp{Vector}, \emp{LUSolver} and \emp{KrylovSolver}
 objects are all based on a specific linear algebra backend.
 The default backend depends on which backends are enabled when DOLFIN
@@ -565,8 +596,10 @@ x = PETScVector()
 solver = PETScLUSolver()
 \end{python}
 
-
 \paragraph{Solving nonlinear systems.}
+\index{nonlinear system}
+\index{Newton solver}
+\index{\emp{NewtonSolver}}
 
 DOLFIN provides a Newton solver in the form of the class
 \emp{NewtonSolver} for solving nonlinear systems of equations of the
@@ -681,6 +714,8 @@ in the solution process.
 
 %------------------------------------------------------------------------------
 \subsection{Meshes}
+\index{mesh}
+\index{\emp{Mesh}}
 
 A central part of DOLFIN is its mesh library and the \emp{Mesh}
 class. The mesh library provides data structures and algorithms for
@@ -697,6 +732,8 @@ discussion on the design and implementation of the mesh library, we
 refer to \citet{Logg2009}.
 
 \paragraph{Creating a mesh.}
+\index{\emp{UnitSquare}}
+\index{\emp{UnitCube}}
 
 DOLFIN provides functionality for creating simple meshes, such as
 meshes of unit squares and unit cubes, spheres, rectangles and
@@ -722,6 +759,9 @@ vertices of the mesh. An interface for creating simplicial meshes is
 provided by the class \texttt{MeshEditor}. The following code
 demonstrates how to create a mesh consisting of two triangles covering
 the unit square:
+
+\index{\emp{MeshEditor}}
+\index{mesh!creating}
 
 \begin{c++}
 Mesh mesh;
@@ -754,6 +794,7 @@ editor.close()
 \end{python}
 
 \paragraph{Reading a mesh from file.}
+\index{mesh!reading}
 
 Although the built-in classes \emp{UnitSquare} and \emp{UnitCube}
 are useful for testing, a typical application will need to read from
@@ -771,6 +812,9 @@ mesh = Mesh("mesh.xml")
 %%
 Meshes must be stored in the DOLFIN XML format. The following example
 illustrates the XML format for a $2 \times 2$ mesh of the unit square:
+
+\index{mesh!XML format}
+\index{XML format}
 
 \begin{xml}
 <?xml version="1.0" encoding="UTF-8"?>
@@ -807,6 +851,7 @@ format using the command \emp{dolfin-convert}, as explained in more
 detail below.
 
 \paragraph{Mesh entities.}
+\index{mesh entity}
 
 Conceptually, a \emph{mesh} (modeled by the class \emp{Mesh}), consists of
 a collection of \emph{mesh entities}.  A \emph{mesh entity} is a pair $(d,
@@ -824,6 +869,18 @@ of mesh entities of topological dimension~$d$.
     dimension~$d$.}
   \label{fig:logg-2:entities}
 \end{figure}
+
+\index{vertex}
+\index{edge}
+\index{face}
+\index{facet}
+\index{cell}
+\index{\emp{Vertex}}
+\index{\emp{Edge}}
+\index{\emp{Face}}
+\index{\emp{Facet}}
+\index{\emp{Cell}}
+\index{\emp{MeshEntity}}
 
 For convenience, mesh entities of topological dimension~$0$ are
 referred to as \emph{vertices}, entities of dimension~$1$ as
@@ -877,6 +934,10 @@ cell = Cell(mesh, 25)            # cell number 25
 \end{table}
 
 \paragraph{Mesh topology and geometry.}
+\index{mesh!topology}
+\index{mesh!geometry}
+\index{\emp{MeshTopology}}
+\index{\emp{MeshGeometry}}
 
 The topology of a mesh is stored separately from its geometry. The
 topology of a mesh is a description of the relations between the
@@ -906,6 +967,8 @@ which is typically a mesh of topological dimension~$D$ embedded in
 $\R^{D+1}$. That is, the geometry dimension is~$D + 1$.
 
 \paragraph{Mesh connectivity.}
+\index{mesh!connectivity}
+\index{\emp{MeshConnectivity}}
 
 The topology of a \emp{Mesh} is represented by the \emph{connectivity}
 (incidence relations) of the mesh, which is a complete description of
@@ -959,6 +1022,13 @@ mesh.init(1, 1)   # Compute edge neighbors for each edge
 \end{table}
 
 \paragraph{Mesh iterators.}
+\index{mesh!iterators}
+\index{\emp{MeshEntityIterator}}
+\index{\emp{VertexIterator}}
+\index{\emp{EdgeIterator}}
+\index{\emp{FaceIterator}}
+\index{\emp{FacetIterator}}
+\index{\emp{CellIterator}}
 
 Algorithms operating on a mesh can often be expressed in terms of
 \emph{iterators}. The mesh library provides the general iterator
@@ -1007,6 +1077,14 @@ for c in entities(mesh, D):
 \end{python}
 
 \paragraph{Mesh functions.}
+\index{\emp{MeshFunction}}
+\index{\emp{VertexFunction}}
+\index{\emp{EdgeFunction}}
+\index{\emp{FaceFunction}}
+\index{\emp{FacetFunction}}
+\index{\emp{CellFunction}}
+\index{\emp{Point}}
+\index{boundary markers}
 
 A useful class for storing data associated with a \emp{Mesh} is the
 \emp{MeshFunction} class. This makes it simple to store, for example,
@@ -1062,6 +1140,8 @@ for facet in facets(mesh):
 
 
 \paragraph{Mesh data.}
+\index{mesh!data}
+\index{\emp{MeshData}}
 
 The \emp{MeshData} class provides a simple way to associate data with
 a \emp{Mesh}. It allows arbitrary \emp{MeshFunction}s (and other
@@ -1083,6 +1163,8 @@ command \emp{info(mesh.data(), true)} in C++ or \emp{info(mesh.data(),
   True)} in Python.
 
 \paragraph{Mesh refinement.}
+\index{mesh!refinement}
+\index{adaptive refinement}
 
 A \emp{Mesh} may be refined, by either uniform or local refinement, by
 calling the \emp{refine} function, as illustrated in the code examples
@@ -1133,8 +1215,8 @@ corners of the unit cube is shown in Figure~\ref{fig:logg-2:refinement}.
   \label{fig:logg-2:refinement}
 \end{figure}
 
-
 \paragraph{Parallel meshes.}
+\index{mesh!distributed}
 
 When running a program in parallel on a distributed memory architecture
 (using MPI by invoking the program with the \emp{mpirun} wrapper),
@@ -1147,6 +1229,8 @@ in Section~\ref{sec:logg-2:implementation}.
 
 %------------------------------------------------------------------------------
 \subsection{Finite elements}
+\index{finite element!implementation}
+\index{\emp{FiniteElement}}
 
 The concept of a finite element as discussed in
 Chapters~\ref{chap:kirby-7} and~\ref{chap:kirby-6} (the Ciarlet
@@ -1209,6 +1293,7 @@ element = FiniteElement("N1curl", tetrahedron, 2)
 \end{uflcode}
 
 \begin{table}
+  \index{finite element!list of supported}
   \centering
   \begin{tabular}{ll}
     \toprule
@@ -1236,6 +1321,9 @@ element = FiniteElement("N1curl", tetrahedron, 2)
 
 %------------------------------------------------------------------------------
 \subsection{Function spaces}
+\index{function space}
+\index{\emp{FunctionSpace}}
+\index{\emp{DofMap}}
 
 The DOLFIN \emp{FunctionSpace} class represents a finite element function
 space~$V_h$, as defined in Chapter~\ref{chap:kirby-7}. The data of a
@@ -1313,6 +1401,8 @@ V = FunctionSpace(mesh, "Lagrange", 1)
 \end{python}
 
 \paragraph{Mixed spaces.}
+\index{function space!mixed}
+\index{mixed function space}
 
 Mixed function spaces may be created from arbitrary combinations of
 function spaces. As an example, we consider here the creation of the
@@ -1351,6 +1441,7 @@ intention, one must instead define the mixed function space using
 \emp{MixedFunctionSpace([V, Q, P])} in Python.
 
 \paragraph{Subspaces.}
+\index{function space!subspace}
 
 For a mixed function space, one may access its subspaces. These
 subspaces differ, in general, from the function spaces that were used to
@@ -1361,6 +1452,8 @@ issue below.
 
 %------------------------------------------------------------------------------
 \subsection{Functions}
+\index{function}
+\index{\emp{Function}}
 
 The \emp{Function} class represents a finite element
 function~$u_h$ in a finite element space~$V_h$ as defined in
@@ -1400,6 +1493,7 @@ distributed memory architecture, the \emp{FunctionSpace} and the
 \enlargethispage{12pt}
 
 \paragraph{Creating functions.}
+\emp{function!creation}
 
 \looseness-1{}To create a \emp{Function} on a \emp{FunctionSpace}, one simply calls
 the constructor of the \emp{Function} class with the \emp{FunctionSpace}
@@ -1438,6 +1532,7 @@ classes\break \emp{Linear/NonlinearVariational\-Solver}, which will be
 discussed in more detail below.
 
 \paragraph{Function evaluation.}
+\index{function!evaluation}
 
 A \emp{Function} may be evaluated at arbitrary points inside the
 computational domain\footnote{One may also evaluate a \emp{Function}
@@ -1476,6 +1571,7 @@ evaluated at points located in the portion of the mesh that is stored
 by the local process.
 
 \paragraph{Subfunctions.}
+\index{function!subfunction}
 
 For \emp{Function}s constructed on a mixed \emp{FunctionSpace},
 subfunctions (components) of the \emp{Function} can be accessed, for
@@ -1523,6 +1619,8 @@ component of the original \emp{Function}.
 
 %------------------------------------------------------------------------------
 \subsection{Expressions}
+\index{expression}
+\index{\emp{Expression}}
 
 The \emp{Expression} class is closely related to the \emp{Function}
 class in that it represents a function that can be evaluated on a
@@ -1641,6 +1739,7 @@ more information, we refer to the DOLFIN Programmer's Reference.
 
 %------------------------------------------------------------------------------
 \subsection{Variational forms}
+\index{variational form}
 
 DOLFIN relies on the FEniCS toolchain FIAT--UFL--FFC/SFC--UFC for the
 evaluation of finite element variational forms. Variational forms
@@ -1771,6 +1870,7 @@ assembled.
 
 %------------------------------------------------------------------------------
 \subsection{Finite element assembly}
+\index{assembly!implementation}
 
 A core functionality of DOLFIN is the assembly of finite element
 variational forms. Given a variational form (\emp{a}), DOLFIN assembles
@@ -1834,6 +1934,7 @@ Section~\ref{sec:logg-2:implementation}.
 
 %------------------------------------------------------------------------------
 \subsection{Boundary conditions}
+\index{boundary condition}
 
 DOLFIN handles the application of both Neumann (natural) and Dirichlet
 (essential) boundary conditions.\footnote{As noted in
@@ -1845,6 +1946,10 @@ essential boundary conditions are usually applied to the discrete
 system of equations.
 
 \paragraph{Natural boundary conditions.}
+\index{boundary condition!natural}
+\index{boundary condition!neumann}
+\index{boundary integral}
+\index{Neumann boundary condition}
 
 Natural boundary conditions typically appear as boundary terms as the
 result of integrating by parts a partial differential equation multiplied
@@ -1987,6 +2092,10 @@ plot close to domain boundaries (corners) in this case. The issue is
 not present in the VTK output.
 
 \paragraph{Essential boundary conditions.}
+\index{boundary condition!essential}
+\index{boundary condition!Dirichlet}
+\index{Dirichlet boundary condition}
+\index{\emp{DirichletBC}}
 
 The application of essential boundary conditions is handled by the
 class \emp{DirichletBC}. Using this class, one may specify a Dirichlet
@@ -2086,6 +2195,7 @@ previously set values.
 
 %------------------------------------------------------------------------------
 \subsection{Variational problems}
+\index{variational problem!solving}
 
 Variational problems (finite element discretizations of partial
 differential equations) can be easily solved in DOLFIN using the
@@ -2111,6 +2221,8 @@ system, and finally solving the linear system. In the case of a
 nonlinear variational problem specified in terms of a linear
 form~\emp{F} and a bilinear form~\emp{J} (the derivative or Jacobian
 of~\emp{F}), the solution is computed by Newton's method.
+
+\index{\emp{solve}}
 
 The code examples below demonstrate how to solve a linear variational
 problem specified in terms of a bilinear form~\emp{a}, a linear
@@ -2159,6 +2271,11 @@ J = derivative(F, u)
 solve(F == 0, u, bcs=bcs, J=J)
 \end{python}
 
+\index{\emp{LinearVariationalProblem}}
+\index{\emp{LinearVariationalSolver}}
+\index{\emp{NonlinearVariationalProblem}}
+\index{\emp{NonlinearVariationalSolver}}
+
 More advanced control over the solution process may be gained by
 using the classes \emp{Linear\-Variational\{Problem,Solver\}}
 and \emp{NonlinearVariational\{Problem,Solver\}}. Use of these classes
@@ -2199,8 +2316,12 @@ info(solver.parameters, True)
 
 %------------------------------------------------------------------------------
 \subsection{File I/O and visualization}
+\index{input/output}
 
 \paragraph{Preprocessing.}
+\index{preprocessing}
+\index{\emp{dolfin-convert}}
+\index{file formats}
 
 DOLFIN has capabilities for mesh generation only in the form of the
 built-in meshes \emp{UnitSquare}, \emp{UnitCube}, etc.  External software
@@ -2249,6 +2370,8 @@ mesh = Mesh("mesh.xml")
 \end{table}
 
 \paragraph{Postprocessing.}
+\index{postprocessing}
+\index{\emp{plot}}
 
 To visualize a solution (\emp{Function}), a \emp{Mesh} or a
 \emp{MeshFunction}, the \emp{plot} command\footnote{The plot command
@@ -2305,6 +2428,11 @@ To enable interaction with a plot window (rotate, zoom) from Python,
 call the function \emp{interactive}, or add an optional argument
 \emp{interactive=True} to the \emp{plot} command.
 
+\index{ParaView}
+\index{MayaVi}
+\index{file format!PVD}
+\index{file format!VTU}
+
 The \emp{plot} command provides rudimentary plotting, and advanced
 postprocessing is better handled by external software such as
 \citet{www:paraview} and \citet{www:mayavi}. This is easily
@@ -2358,8 +2486,8 @@ parallel, a single \emp{.pvd} file is created and a \emp{.vtu} file is
 created for the data on each partition. Results computed in parallel
 can be viewed seamlessly using ParaView.
 
-
 \paragraph{DOLFIN XML format.}
+\index{file format!DOLFIN XML}
 
 DOLFIN XML is the native format of DOLFIN. An advantage of XML is that
 it is a robust and human-readable format. If the files are compressed,
@@ -2407,6 +2535,8 @@ one may save space by storing meshes and other data in gzipped XML files
 (with suffix \emp{.xml.gz}).
 
 \paragraph{Time series.}
+\index{time series}
+\index{\emp{TimeSeries}}
 
 For time-dependent problems, it may be useful to store a
 sequence of solutions or meshes in a format that enables fast
@@ -2458,6 +2588,7 @@ time_series.retrieve(mesh, t)
 
 %------------------------------------------------------------------------------
 \subsection{Logging / diagnostics}
+\index{logging}
 
 DOLFIN provides a simple interface for the uniform handling of log
 messages, including warnings and errors. All messages are collected to a
@@ -2466,6 +2597,9 @@ from an entire program, including the DOLFIN library, to be controlled
 by the user.
 
 \paragraph{Printing messages.}
+\index{\emp{info}}
+\index{\emp{cout}}
+\index{\emp{endl}}
 
 Informational messages from DOLFIN are normally printed using the
 \emp{info} command. This command takes a string argument and an
@@ -2493,6 +2627,9 @@ output from DOLFIN, or select the verbosity of printed messages, as
 explained below.
 
 \paragraph{Warnings and errors.}
+\index{\emp{warning}}
+\index{\emp{error}}
+\index{log level}
 
 In addition to the \emp{info} command, DOLFIN provides the
 commands \emp{warning} and \emp{error} that can be used to issue
@@ -2504,6 +2641,8 @@ both C++ and Python. Both commands will also print the message at a
 \emph{log level} higher than messages printed using \emp{info}.
 
 \paragraph{Setting the log level.}
+\index{\emp{set\_log\_level}}
+\index{\emp{set\_log\_active}}
 
 The DOLFIN log level determines which messages routed through the
 logging system will be printed. Only messages on a level higher than
@@ -2625,6 +2764,10 @@ info(mesh, True)
 The detailed output for some objects may be very lengthy.
 
 \paragraph{Tasks and progress bars.}
+\index{progress bar}
+\index{\emp{begin}}
+\index{\emp{end}}
+\index{\emp{Progress}}
 
 In addition to basic commands for printing messages, DOLFIN provides a
 number of commands for organizing the diagnostic output from a simulation
@@ -2684,6 +2827,8 @@ while t < T:
 \end{python}
 
 \paragraph{Setting timers.}
+\index{timing}
+\index{\emp{Timer}}
 
 Timing can be accomplished using the \emp{Timer} class. A \emp{Timer} is
 automatically started when it is created, and automatically stopped when
@@ -2714,6 +2859,8 @@ printed by calling the \emp{list\_timings} function.
 
 %------------------------------------------------------------------------------
 \subsection{Parameters}
+\index{parameters}
+\index{\emp{Parameters}}
 
 DOLFIN keeps a global database of parameters that control the behavior
 of its various components. Parameters are controlled via a uniform
@@ -2886,6 +3033,7 @@ interface, and just-in-time compilation.
 
 %------------------------------------------------------------------------------
 \subsection{Parallel computing}
+\index{parallel computing}
 
 DOLFIN supports parallel computing on multi-core workstations through
 to massively parallel supercomputers. It is designed such that users
@@ -2921,6 +3069,10 @@ multi-core processors.
 
 %------------------------------------------------------------------------------
 \paragraph{Shared memory parallel computing.}
+\index{parallel computing!shared memory}
+\index{multicore}
+\index{multithreading}
+\index{mesh!coloring}
 
 Multithreaded assembly for finite element matrices and vectors on shared
 memory machines is supported using OpenMP. It is activated by
@@ -2970,6 +3122,9 @@ backend, supports multithreaded parallelism.
 
 %------------------------------------------------------------------------------
 \paragraph{Distributed memory parallel computing.}
+\index{parallel computing!distributed memory}
+\index{MPI}
+\index{mesh!partitioning}
 
 Fully distributed parallel computing is supported using the Message
 Passing Interface (MPI). To perform parallel simulations, DOLFIN should
@@ -2988,6 +3143,9 @@ and for Python:
 \begin{bash}
 mpirun -n 16 python myprogram.py
 \end{bash}
+
+\index{SCOTCH}
+\index{ParMETIS}
 
 DOLFIN supports fully distributed parallel meshes, which means that each
 processor has a copy of only the portion of the mesh for which it is
@@ -3210,6 +3368,8 @@ tensor-valued \emp{Expression}s, by overloading the \emp{value\_shape}
 method. The base class \emp{cpp.Expression} is initialized using the
 value shape of the \emp{ufl.FiniteElement}.
 
+\index{metaclass}
+
 The actual code is considerably more complex than indicated above, as
 the same class, \emp{Expression}, is used to handle both JIT compiled
 and pure Python \emp{Expression}s. Also note that the actual subclass
@@ -3224,6 +3384,8 @@ C++. These methods call the Python version of the method, which the user
 eventually implements by subclassing \emp{cpp.Expression} in Python.
 
 \paragraph{Just-in-time compilation of expressions.}
+\index{just-in-time compilation}
+\index{JIT compilation}
 
 The performance of a pure Python \emp{Expression} may be suboptimal
 because of the callback from C++ to Python each time the \emp{Expression}
@@ -3372,6 +3534,8 @@ functions.
 
 %------------------------------------------------------------------------------
 \subsection{\numpy and \scipy integration}
+\index{NumPy}
+\index{SciPy}
 
 The values of the \emp{Matrix} and \emp{Vector} classes in the Python
 interface of DOLFIN can be viewed as \numpy arrays. This is done by
@@ -3391,7 +3555,6 @@ values.
 % Removed comment about calling array on a distributed matrix. What
 % it does is that it returns the submatrix for the rows stored on the
 % local process by calling MatGetRow for those rows.
-
 
 \paragraph{Direct access to linear algebra data.}
 
