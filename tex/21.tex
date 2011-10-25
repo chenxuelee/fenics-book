@@ -520,11 +520,17 @@ L3 = p1*q*dx + psi*q*dx - nu*nabla_div(u1)*q*dx
 \end{figure}
 
 \subsection{A least-squares stabilized Galerkin method (G2)}
+\label{sec:g2}
 
 The G2 method is a stabilized finite element method using piecewise
-linear discretization in space and time. For further reading we refer
-to \citet{HoffmanJohnson2007}. In each time step, the G2 solution is
-defined by
+linear discretization in space and time. The version of G2 studied in
+this work is a simplified version of the G2 method presented
+in~\citet{HoffmanJohnson2007} and identical to the version of G2 found
+in the latest stable release of Unicorn (version 0.1.0). For a
+discussion of the simplifications involved, see
+Section~\ref{sec:g2comment}.
+
+In each time step, the simplified G2 solution is defined by
 \begin{equation}
   \begin{split}
     \renni{v}{D_t^n u_h}
@@ -1264,6 +1270,46 @@ solvers, which could also be attributed to the fact that both
 stabilization terms in the momentum equation of G2 are zero for this
 flow.
 
+\subsection{G2 vs. G2}
+\label{sec:g2comment}
+
+The version of G2 described in Section~\ref{sec:g2} is modeled after
+the G2 version implemented in the latest available stable release of
+Unicorn at the time of writing (version 0.1.0). This version of G2 is
+a simplified version of G2 as presented in~\citet{HoffmanJohnson2007}.
+In particular, the simplified version does not include stabilization
+terms involving the right-hand side $f$, drops the stabilization term
+$\inner{\delta_1 \nabla p_h^n}{u_h^{n-\frac{1}{2}} \cdot \nabla v}$
+from the right-hand side of the velocity equation, and drops the
+stabilization term $- \inner{\delta_1 u_h^{n-\frac{1}{2}} \cdot \nabla
+  u_h^{n-\frac{1}{2}}}{\nabla q}$ from the right-hand side of the
+pressure equation. The authors of Unicorn have kindly provided an
+updated version of the G2 method including these terms. This updated
+solver has been added to the collection of benchmarks and solvers
+available at \url{http://launchpad.net/nsbench}. Inclusion of the
+missing terms improves the accuracy of the G2 method, as shown in
+Figure~\ref{fig:g3plots} and Figure~\ref{fig:g3scatter}. In these
+plots, the updated G2 method is referred to as ``G3''.
+
+\begin{figure}
+  \ffigbox{
+    \caption{Updated results showing the speed and accuracy of the set
+      of test solvers for the driven cavity test problem. In these
+      plots, results have been included for an updated version of the
+      G2 method, here referred to as ``G3''.}
+    \label{fig:g3plots}}
+  {\includegraphics[width=\fullfig]{chapters/kvs-1/pdf/drivencavity-plots.pdf}}
+\end{figure}
+
+\begin{figure}
+    \caption{Updated results showing a scatter plot of the speed and
+      accuracy of the set of test solvers for the driven cavity test
+      problem. In these plots, results have been included for an
+      updated version of the G2 method, here referred to as ``G3''.}
+  \label{fig:g3scatter}
+  \includegraphics[width=\largefig]{chapters/kvs-1/pdf/drivencavity-scatter.pdf}
+\end{figure}
+
 %------------------------------------------------------------------------------
 \section{Conclusions}
 
@@ -1275,4 +1321,5 @@ system in each time step. The GRPC method (straightforward standard
 finite element Galerkin discretization) also obtains high accuracy,
 but does not deliver the same speed. It is possible that better tuning
 of the iterative solution of the saddle-point system would change this
-picture.
+picture. The same can be said for the G2 method, the speed of which
+will likely increase by adopting a more efficient iterative algorithm.
