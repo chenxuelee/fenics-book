@@ -1,7 +1,7 @@
 \fenicschapter{Unicorn: a unified continuum mechanics solver}
               {Unicorn: a unified continuum mechanics solver}
               {Unicorn: a unified continuum mechanics solver}
-              {Cem Degirmenci, Johan Hoffman, Johan Jansson,
+              {Johan Hoffman, Johan Jansson, Cem Degirmenci,
                 Niclas Jansson and \\ Murtazo Nazarov}
               {hoffman-2}
 
@@ -148,7 +148,7 @@ We note that to model a fluid--structure interaction problem, we can
 simply write the total stress $\sigma$ as a linear combination of
 fluid and solid stress using the $\theta$ phase function: $\sigma
 = \theta \sigma^f + (1 - \theta) \sigma^s$. We can also decompose the
-stress into a pressure part $p\delta_{ij}$ and deviatoric part: $\sigma_{ij} = \sigma^D_{ij} - p \delta_{ij}$.
+stress into a pressure $p \delta_{ij}$ and deviatoric part: $\sigma_{ij} = \sigma^D_{ij} - p \delta_{ij}$.
 
 The UC modeling framework is simple and compact, close to the
 formulation of the original conservation equations, and does not
@@ -193,7 +193,7 @@ $R(W) = (R_u(W), R_p(W), R_\theta(W))$ the residual. The residual is defined by
 %%
 \begin{equation} \label{eq:TotalModel}
   \begin{split}
-    R_u(W) &= \rho\left(\frac{\partial U_i}{\partial t} + U_j \frac{\partial U_i}{\partial x_j} \right) - \frac{\partial}{\partial x_j} \Sigma^D_{ij} + P \delta_{ij} - f_i,\\
+    R_u(W) &= \rho\left(\frac{\partial U_i}{\partial t} + U_j \frac{\partial U_i}{\partial x_j} \right) - \frac{\partial}{\partial x_j} (\Sigma^D_{ij} - P \delta_{ij}) - f_i,\\
     R_p(W) &= \frac{\partial U_j}{\partial x_j},\\
     R_\theta(W) &= \frac{\partial\Theta}{\partial t} + U_j \frac{\partial \Theta}{\partial x_j},
   \end{split}
@@ -259,7 +259,7 @@ solution of the phase convection equation, and we can remove it from
 the system. The resulting discrete UC equations are then defined by the residuals
 \begin{equation}
   \begin{split}\label{eq:ALE}
-    R_u(W) &= \rho\left(\frac{\partial U_i}{\partial t} + (U_j - \beta^h_j) \frac{\partial U_i}{\partial x_j} \right) - \frac{\partial}{\partial x_j} \Sigma^D_{ij} + P \delta_{ij} - f_i,
+    R_u(W) &= \rho\left(\frac{\partial U_i}{\partial t} + (U_j - \beta^h_j) \frac{\partial U_i}{\partial x_j} \right) - \frac{\partial}{\partial x_j} (\Sigma^D_{ij} - P \delta_{ij}) - f_i,
     \\
     R_p(W) &= \frac{\partial U_j}{\partial x_j}.
   \end{split}
@@ -287,15 +287,15 @@ UC model, the stabilized method thus takes the following form:
 \begin{align}
   \inner{R^u(W)}{v^u} &=
   \inner{\rho(\frac{\partial U_i}{\partial t} + U_j \frac{\partial U_i}{\partial x_j} ) - f_i}{v^u_i} +
-  \inner{\Sigma^D_{ij} + P \delta_{ij}}{\frac{\partial}{\partial x_j} v^u_i} + SD^u(W, v^u) = 0, \\
+  \inner{\Sigma^D_{ij} - P \delta_{ij}}{\frac{\partial}{\partial x_j} v^u_i} + SD^u(W, v^u) = 0, \\
   \inner{R^p(W)}{v^p} &= \inner{\frac{\partial U_j}{\partial x_j}}{v^p} + SD^p(W, v^p) = 0,
 \end{align}
 for all $v \in \hat{V}_{hk}$, where
 \begin{align}
   SD^u(W, v^u) &=
-  \delta_1 \inner{U_j \frac{\partial U_i}{\partial x_j} - \frac{\partial P}{\partial x_i}}{U_j \frac{\partial v^u_i}{\partial x_j} } +
+  \delta_1 \inner{U_j \frac{\partial U_i}{\partial x_j} + \frac{\partial P \delta_{ij}}{\partial x_i}}{U_j \frac{\partial v^u_i}{\partial x_j} } +
   \delta_2 \inner{\frac{\partial U_j}{\partial x_j}}{\frac{\partial v^u_j}{\partial x_j} }, \\
-  SD^p(W, v^p) &= \delta_1 \inner{\frac{\partial P}{\partial x_i} + U_j \frac{\partial U_i}{\partial x_j}}{\frac{\partial v^p}{\partial x_i}}.
+  SD^p(W, v^p) &= \delta_1 \inner{\frac{\partial P \delta_{ij}}{\partial x_i} + U_j \frac{\partial U_i}{\partial x_j}}{\frac{\partial v^p}{\partial x_i}}.
 \end{align}
 
 %------------------------------------------------------------------------------
@@ -1046,7 +1046,10 @@ and used as verification of Unicorn
 in \citep{HoffmanJanssonStockli2011} and also in
 Chapter~\ref{chap:hoffman-1}. The velocity field and phase function
 $\theta$ are plotted in Figure~\ref{fig:fsi2D_plot2} for times t = 1
-and t = 5.5. We divide the use case into four parts:
+and t = 5.5. The full example can be found in the Unicorn distribution
+under {\tt unicorn-0.1.3-hpc/ucsolver/fsi/cylinder2D/}.
+
+We divide the use case into four parts:
 
 \begin{description}
 \item[Geometry and subdomains] \ \\ The user specifies possible
@@ -1063,6 +1066,7 @@ in a parameter file.
 These four parts are demonstrated by the code examples shown in
 Figures~\ref{code:UseCasePart1}--\ref{code:UseCasePart4}.
 
+
 \subsection{Adaptivity}
 
 \begin{figure}
@@ -1078,8 +1082,11 @@ Figures~\ref{code:UseCasePart1}--\ref{code:UseCasePart4}.
 We continue with a use case for adaptive solution of a pure fluid
 turbulent flow problem: flow around a 3D cube corresponding to the
 cube problem description given in Chapter~\ref{chap:hoffman-1}. A
-snapshot of the solution can be seen in
-Figure~\ref{fig:cube2}. The implementation of the problem is
+snapshot of the solution can be seen in Figure~\ref{fig:cube2}. The
+full example can be found in the Unicorn distribution under {\tt
+unicorn-0.1.3-hpc/ucsolver/icns/cube/}.
+
+The implementation of the problem is
 very similar to the fluid--structure case (just with pure fluid data),
 but with 3 important additions:
 \begin{description}
@@ -1244,7 +1251,7 @@ public:
       // Define a parabolic inflow profile
       real Um = 2.0;
       values[0] =
-        ramp*1.5*Um*( (x[1]*(Geo::cont_H - x[1])) /
+        1.5*Um*( (x[1]*(Geo::cont_H - x[1])) /
           ((0.5*Geo::cont_H)*(0.5*Geo::cont_H)) );
   }
 };
@@ -1290,9 +1297,9 @@ Parameters for Unicorn solver:
 10        adapt_percentage - adaptive percentage
 rivara    adapt_algorithm - adaptive refinement type
 
-10.0      T - final time, primal solver
+10.0       T - final time, primal solver
 0.25      dual_T - final time, dual solver
-1.0       Ubar - free stream velocity
+8.0       Ubar - free stream velocity
 
 gmres     krylov_method - krylov method
 amg       krylov_pc - preconditioner
@@ -1305,7 +1312,8 @@ amg       krylov_pc - preconditioner
 \bwfig
 \begin{c++}
 void solve(Mesh& mesh, Checkpoint& chkp,
-  long& w_limit, timeval& s_time)
+  long& w_limit, timeval& s_time,
+  Mesh* structure_mesh)
 {
   InflowBoundary iboundary;
   BC_Momentum bcf_mom(mesh);
@@ -1320,8 +1328,10 @@ void solve(Mesh& mesh, Checkpoint& chkp,
 
   ...
 
-  NSESolver psolver(mesh, node_normal, f, beta, aero_f,
-                    bc_mom, bc_con, chkp, w_limit, td, "primal");
+ UCSolver psolver(mesh, U, U0, f, f, phi, beta, p_bc_momentum,
+                  p_bc_pressure, p_bc_density, &density,
+                  solid_cells, solid_vertices, T, nu, mu,
+                  nu_s, rho_s, ubar, td, ``primal'');
   psolver.solve();
 }
 
@@ -1330,9 +1340,10 @@ int main()
   Mesh mesh;
   ...
 
-  unicorn_init(argc, argv, mesh, chkp, w_limit, iter);
+  unicorn_init(argc, argv, mesh, chkp, w_limit, iter, structure_mesh);
 
-  unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0, &solve);
+  unicorn_solve(mesh, chkp, w_limit, s_time, iter, 0, 0,
+                &solve, structure_mesh);
   return 0;
 }
 \end{c++}
@@ -1342,9 +1353,16 @@ int main()
 
 \subsection{Unicorn-HPC installation and basic test}
 
-Unicorn-HPC is the high-performance computing branch of Unicorn,
-showing strong linear scaling on massively parallel hardware as
-described above.
+Unicorn-HPC is the high-performance computing branch of Unicorn, and
+is the actively developed branch. The version corresponding to the
+chapters in this book is ``Unicorn 0.1.3-hpc''. For simulations and
+plots referenced from previously published articles, we refer to that
+specific article for software details. The MAdLib mesh adaptation
+interface of Unicorn is currently only available in the no longer
+maintained serial branch of Unicorn, which we make available on the
+Live DVD {\tt unicorn\_fenics-book.iso} available through
+either \emp{http://www.csc.kth.se/ctl}
+or \emp{http://fenicsproject.org}.
 
 To verify the correct installation and functionality of Unicorn-HPC,
 follow the steps in the README file in the Unicorn-HPC distribution,
@@ -1356,5 +1374,14 @@ simulation described in Chapter~\ref{chap:hoffman-1} and above.
 
 We acknowledge contributions to Unicorn, both software development as
 well as ideas and scientific support from: Mattias Aechtner, Peter
-Brune, Zilan Ciftci, G\"aetan Compere, Claes Johnson, Ashraful Kadir, Kaspar M\"uller,
-Jeannette Sp\"uhler, Michael St\"ockli and Rodrigo Vilela de Abreu.
+Brune, Zilan Ciftci, G\"aetan Compere, Claes Johnson, Ashraful Kadir,
+Kaspar M\"uller, Jeannette Sp\"uhler, Michael St\"ockli and Rodrigo
+Vilela de Abreu.
+
+The authors would like to acknowledge the financial support from the
+European Research Council, Swedish Foundation for Strategic Research,
+the Swedish Research Council and the Swedish Energy Agency. The
+simulations were performed on resources provided by the Swedish
+National Infrastructure for Computing (SNIC) at High Performance
+Computing Center North (HPC2N), National Supercomputer Centre in
+Sweden (NSC) and PDC -- Center for High-Performance Computing.
