@@ -142,7 +142,7 @@ technically difficult programming.
 
 \subsection{Variational formulation}
 \label{langtangen:poisson1:varform}
-\index{variational formulation}
+\index{variational problem}
 
 \fenics{} makes it easy to solve PDEs if finite elements are
 used for discretization in space and the problem is expressed as
@@ -421,8 +421,8 @@ V = FunctionSpace(mesh, "Lagrange", 1)
 \end{python}
 The second argument reflects the type of element, while the third
 argument is the degree of the basis functions on the element.
-\index{finite element specifications}\index{CG finite element
-  family}\index{Lagrange finite element family} The type of element is
+\index{finite element!Lagrange}
+The type of element is
 here \emp{"Lagrange"}, implying the standard Lagrange family of
 elements (some \fenics{} programs use \emp{"CG"}, for Continuous
 Galerkin, as a synonym for \emp{"Lagrange"}).  With degree 1, we
@@ -448,7 +448,7 @@ v = TestFunction(V)
 
 The next step is to specify the boundary condition:
 $u=u_0$ on $\partial\Omega$. This is done
-by\index{\emp{DirichletBC}}\index{Dirichlet boundary conditions}
+by\index{\emp{DirichletBC}}\index{boundary condition!Dirichlet}
 \begin{python}
 bc = DirichletBC(V, u0, u0_boundary)
 \end{python}
@@ -699,7 +699,7 @@ linear algebra backend.  The default solver is sparse LU decomposition
 is then the sparse LU solver from UMFPACK (which PETSc has an
 interface to).
 
-\index{parameters (\dolfin)}
+\index{parameters}
 We will normally like to control
 the tolerance in the stopping criterion and the maximum number
 of iterations when running an iterative method.
@@ -768,8 +768,8 @@ extension \emp{.xml.gz}.
 
 \subsection{Linear variational problem and solver objects}
 \label{langtangen:poisson1:solver:problem}
-\index{LinearVariationalProblem}
-\index{LinearVariationalSolver}
+\index{\emp{LinearVariationalProblem}}
+\index{\emp{LinearVariationalSolver}}
 
 The \emp{solve(a == L, u, bc)} call
 is just a compact syntax alternative to a slightly more comprehensive
@@ -826,7 +826,7 @@ of basis functions $\phi_j$, spanning the space $V$:
 By writing \emp{solve(a == L, u, bc)} in the program, a linear system
 will be formed from $a$ and $L$, and this system is solved for
 the $U_1,\ldots,U_N$ values. The $U_1,\ldots,U_N$ values are known
-\index{degree of freedom} as \emph{degrees of freedom} of $u$. For
+\index{degrees of freedom} as \emph{degrees of freedom} of $u$. For
 Lagrange elements (and many other element types) $U_k$ is simply the value
 of $u$ at the node with global number $k$.  (The nodes and cell vertices
 coincide for linear Lagrange elements, while for higher-order elements
@@ -843,7 +843,7 @@ encapsulation of the vector object used in the linear algebra package
 that is applied to solve the linear system arising from the variational
 problem.  Since we program in Python it is convenient to convert
 the \emp{Vector} object to a standard \emp{numpy} array for further
-processing:\index{degrees of freedom array}\index{nodal values array}
+processing:
 \begin{python}
 u_array = u_nodal_values.array()
 \end{python}
@@ -1079,7 +1079,7 @@ The function $f$ is represented by an \emp{Expression} object. There
 are many physical parameters in the formula for $f$ that enter
 the expression string and these parameters must have their values set
 by keyword arguments:
-\index{Expression with parameters}
+\index{expression!with parameters}
 \begin{python}
 f = Expression("4*exp(-0.5*(pow((R*x[0] - x0)/sigma, 2)) "
                      "-0.5*(pow((R*x[1] - y0)/sigma, 2)))",
@@ -1242,7 +1242,7 @@ Poisson equation for a scalar field \emp{w} (the membrane deflection).
 
 The \emp{plot} function can take additional arguments, such as a title
 of the plot, or a specification of a wireframe plot (elevated mesh)
-instead of a colored surface plot:\index{plot}
+instead of a colored surface plot:\index{\emp{plot}}
 \begin{python}
 plot(mesh, title="Finite element mesh")
 plot(w, wireframe=True, title="solution")
@@ -1387,7 +1387,7 @@ copy}, where the returned objects are just pointers to the original data.)
 
 The \emp{grad\_u\_x} and \emp{grad\_u\_y} variables behave as \emp{Function}
 objects. In particular, we can extract the underlying arrays of nodal
-values by\index{degrees of freedom array} \index{nodal values array}
+values by
 \begin{python}
 grad_u_x_array = grad_u_x.vector().array()
 grad_u_y_array = grad_u_y.vector().array()
@@ -1417,7 +1417,7 @@ Section~\ref{langtangen:quickviz} for illustrations of this phenomenon.
 Representing the gradient by the same elements as we used for the solution
 is a very common step in finite element programs, so the formation and
 solution of a variational problem for $w$ as shown above can be replaced
-by a one-line call:\index{project}\index{projection}
+by a one-line call:\index{\emp{project}}\index{projection}
 \begin{python}
 grad_u = project(grad(u), VectorFunctionSpace(mesh, "Lagrange", 1))
 \end{python}
@@ -1431,7 +1431,7 @@ visualization packages.
 
 \subsection{A variable-coefficient Poisson problem}
 \label{langtangen:possion:2D:varcoeff}
-\index{Poisson's equation with variable coefficient}
+\index{Poisson's equation!variable coefficients}
 
 Suppose we have a variable coefficient $p(x,y)$ in the Laplace operator,
 as in the boundary-value problem
@@ -1561,7 +1561,7 @@ visualization are explained in Section~\ref{langtangen:structviz}.
 
 \subsection{Computing functionals}
 \label{langtangen:poisson1:functionals}
-\index{functionals}
+\index{functional}
 
 After the solution $u$ of a PDE is computed, we often want to compute
 functionals of $u$, for example,
@@ -2293,8 +2293,7 @@ assemble the linear system and solve it.
 An alternative to is explicitly call functions for assembling the
 coefficient matrix $A$ and the right-side vector $b$, and then solve
 the linear system $AU=b$ with respect to the $U$ vector.
-Instead of \emp{solve(a == L, u, b)} we now write\index{assemble}\index{linear systems
-(in \fenics)}\index{assembly of linear systems}
+Instead of \emp{solve(a == L, u, b)} we now write\index{\emp{assemble}}\index{linear system}
 \begin{python}
 A = assemble(a)
 b = assemble(L)
@@ -2325,7 +2324,7 @@ for bc in bcs:
 
 There is an alternative function \emp{assemble\_system} that can
 assemble the system and take boundary conditions into account in one call:
-\index{assemble\_system}
+\index{\emp{assemble\_system}}
 \begin{python}
 A, b = assemble_system(a, L, bcs)
 \end{python}
@@ -3226,7 +3225,7 @@ how key parameters in
 Newton's method can be set, as well as the choice of
 solver and preconditioner, and associated parameters, for the
 linear system occurring in the Newton iteration.
-\index{nonlinear variational problems}
+\index{nonlinear problem}
 \index{\emp{NonlinearVariationalProblem}}
 \index{\emp{NonlinearVariationalSolver}}\vspace*{3pt}
 \begin{python}
@@ -3538,7 +3537,7 @@ each time level.  With the construction \emp{b = assemble(L)}, a new
 vector for \emp{b} is allocated in memory in every pass of the time
 loop.  It would be much more memory friendly to reuse the storage of
 the \emp{b} we already have. This is easily accomplished
-by\index{assemble}
+by\index{\emp{assemble}}
 \begin{python}
 b = assemble(L, tensor=b)
 \end{python}
@@ -3553,7 +3552,7 @@ file \emp{d1\_d2D.py} in the directory \emp{transient/diffusion}.
 
 \subsection{Avoiding assembly}
 \label{langtangen:timedep:diffusion1:noassemble}
-\index{assembly, increasing efficiency}
+\index{assembly!increasing efficiency}
 
 The purpose of this section is to present a technique for speeding up
 \fenics{} simulators for time-dependent problems where it is possible
@@ -4017,7 +4016,7 @@ mesh = UnitSphere(10)
 \label{langtangen:mesh:transform:cyl}
 \index{mesh transformations}
 \index{coordinate stretching}
-\index{coordinate transformations}
+\index{coordinate transformation}
 
 A mesh that is denser toward a boundary is often desired to increase
 accuracy in that region. Given a mesh with uniformly spaced coordinates
@@ -4197,8 +4196,8 @@ differs by a factor of 10.
 
 The new functionality in this subsection regards how to define
 the subdomains $\Omega_0$ and $\Omega_1$. For this purpose we need to
-use subclasses of class \emp{SubDomain}, \index{boundary specification
-(class)} not only plain functions as we have used so far for specifying
+use subclasses of class \emp{SubDomain},
+not only plain functions as we have used so far for specifying
 boundaries. Consider the boundary function
 \begin{python}
 def boundary(x, on_boundary):
@@ -4339,10 +4338,10 @@ All the details can be found in the file \emp{mat2\_p2D.py}.
 
 \subsection{Multiple Neumann, Robin, and Dirichlet conditions}
 \label{langtangen:poisson:mat:neumann}
-\index{Dirichlet boundary conditions}
-\index{Neumann boundary conditions}
-\index{Robin boundary conditions}
-\index{boundary conditions}
+\index{boundary condition!Dirichlet}
+\index{boundary condition!Neumann}
+\index{boundary condition!Robin}
+\index{boundary condition}
 
 Let us go back to the model problem from
 Section~\ref{langtangen:poisson:multiple:Dirichlet} where we had both

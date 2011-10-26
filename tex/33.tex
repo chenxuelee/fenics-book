@@ -48,7 +48,7 @@ above.
 \index{sarcoplasmic reticulum}
 \index{ryanodine receptor}
 %\index{L-type Ca channels}
-\index{cell membrane} \index{excitation contraction coupling}
+\index{cell membrane}
 \index{cytosol}
 
 In a healthy heart every heart beat originates in the sinoatrial node
@@ -277,7 +277,7 @@ distance to the center of the cytosol. In our model, we have used \Ds
 \subsection{Stochastic models of single channels}
 \label{sec:hake:stochastic-models}
 \index{stochastic channel} \index{Markov chain model} \index{Discrete
-  state} \index{propensity functions}
+  state} \index{propensity function}
 
 Discrete and stochastic Markov chain models are used to describe
 single channel dynamics for the LCC and RyR. Such models are described
@@ -500,7 +500,7 @@ of the included LCC channel is presented below.
 \subsection{Stabilization}
 \label{sec:hake:stabilization}
 \index{stabilization}
-\index{stabilization!Streamline upwind Petrov-Galerkin}
+\index{stabilization!streamline upwind Petrov--Galerkin}
 \index{stabilization!parameter}
 \index{stabilization!element P\'eclet number}
 \index{tetgen}
@@ -510,7 +510,7 @@ in~(\ref{eq:hake:algebraic-equation}) can be numerically unstable for
 physiological relevant values of $a$. This is due to the transport
 term introduced by {\bfseries\itshape E}$_{ij}$
 from~(\ref{eq:hake:matrices}). We have chosen to stabilize the system
-using the Streamline upwind Petrov-Galerkin (SUPG) method
+using the Streamline upwind Petrov--Galerkin (SUPG) method
 \citep{BrooksHughes1982}. This method adds an upwind discontinuous
 contribution to the test function in the streamline
 direction~(\ref{eq:hake:advection-diffusion-weak-form-0}):
@@ -628,21 +628,21 @@ plot(u, vmin=0, vmax=4000, interactive=True)
 while t < tstop:
     # Initalize the left and right hand side
     A.assign(K); A *= sigma; A += E; b[:] = 0
-    
+
     # Adding channel fluxes
     for c in [1,2]:
         if t >= t_channels[c][0] and t < t_channels[c][1]:
             b.axpy(-amp*1e9/(2*Faraday*area),f[c])
-    
+
     # Adding cytosole flux at Omega 3
     A.axpy(sigma/ds,F[3],True); b.axpy(c0*sigma/ds,f[3])
 
     # Applying the Backward Euler time discretization
     A *= dt; b *= dt; b += M*x; A += M
-    
+
     solver.solve(A,x,b)
     t += dt; print "Ca Concentration solved for t:",t
-    
+
     # Handle the next time step
     if t == events[0]:
         dt = dt_min; events.pop(0)
@@ -650,7 +650,7 @@ while t < tstop:
         dt = events[0] - t
     else:
         dt *= dt_expand
-    
+
     plot(u, vmin=0, vmax=4000)
 
 plot(u, vmin=0, vmax=4000, interactive=True)
@@ -807,7 +807,7 @@ than the rest. The optimal solution measured in the Max norm is given
 when $\tau=50$ (result not shown).
 
 The numerical results tell us that the Streamline upwind
-Petrov-Galerkin method can be used to stabilize the Finite element
+Petrov--Galerkin method can be used to stabilize the Finite element
 solution of the advection--diffusion problem presented
 in~(\ref{eq:hake:full_system}). Three different meshes that resolve
 the boundary layer at $z=0\,\mathrm{nm}$ differently were used. For
