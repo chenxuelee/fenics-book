@@ -302,27 +302,37 @@ we must first perform two steps:
 \subsection{Implementation}
 \label{langtangen:poisson1:impl}
 
-The test problem so far has a general domain $\Omega$ and general
-functions $u_0$ and $f$. For our first implementation we must decide on specific
-choices of $\Omega$, $u_0$, and $f$.  It will be wise to construct a
-specific problem where we can easily check that the solution is correct.
-Let us choose $u(x,y)=1 + x^2 + 2y^2$ to be the solution of our Poisson
-problem since the finite element method with linear elements over a
-uniform mesh of triangular cells should exactly reproduce a second-order
-polynomial at the vertices of the cells, regardless of the size of
-the elements. This property allows us to verify the code by using very
-few elements and checking that the computed and the exact solution are
-equal to the machine precision.  Test problems with this property will
-be frequently constructed throughout this tutorial.
-%Should errors in the implementation arise, it is possible
-%to perform hand calculations of the intermediate steps in the finite
-%element method and compare with what the program gives.
+The test problem so far has a general domain $\Omega$ and general functions
+$u_0$ and $f$. For our first implementation we must decide on specific
+choices of $\Omega$, $u_0$, and $f$.
+It will be wise to construct a specific problem where we can easily
+check that the computed solution is correct. Let us start with
+specifying an exact solution
+\begin{equation}
+\label{langtangen:poisson1:impl:uex}
+u_{\rm e}(x, y) = 1 +x^2 + 2y^2
+\end{equation}
+on some 2D domain.  By inserting \eqref{langtangen:poisson1:impl:uex} in
+our Poisson problem, we find that $u_{\rm e}(x,y)$ is a solution if
+\[ f(x,y) = -6,\quad u_0(x,y)=u_{\rm e}(x,y)=1 + x^2 + 2y^2,\]
+regardless of the shape of the domain. We choose here, for simplicity,
+the domain to be the unit square,
+\[ \Omega = [0,1]\times [0,1] .\]
+The reason for specifying the solution \eqref{langtangen:poisson1:impl:uex}
+is that the finite element method, with a rectangular domain uniformly
+partitioned into linear triangular elements, will exactly reproduce a
+second-order polynomial at the vertices of the cells, regardless of
+the size of the elements. This property allows us to verify the
+implementation by comparing the computed solution, called $u$ is this
+document (except when setting up the PDE problem), with the exact
+solution, denoted by $u_{\rm e}$: $u$ should equal
+$u_{\rm}$ to machine precision \emph{at the nodes}.
+Test problems with this property will be frequently constructed
+throughout this tutorial.
 
-Specifying $u(x,y)=1 + x^2 + 2y^2$ in the problem from
-Section~\ref{langtangen:poisson1:varform} implies $u_0(x,y)= 1 + x^2 +
-2y^2$ and $f(x,y)=-6$.  We let $\Omega$ be the unit square for simplicity.
-A \fenics{} program for solving \eqref{langtangen:poisson1} with the
-given choices of $u_0$, $f$, and $\Omega$ may look as follows:
+A \fenics{} program for solving the Poisson equation in 2D
+with the given choices
+of $u_0$, $f$, and $\Omega$ may look as follows:
 %%
 \begin{python}
 from dolfin import *
@@ -483,7 +493,8 @@ u0 = Expression("1 + x[0]*x[0] + 2*x[1]*x[1]")
 \end{python}
 
 The information about where to apply the \emp{u0} function as boundary
-condition is coded in a function \emp{u0\_boundary}:
+condition is coded in a function \emp{u0\_boundary}: \index{boundary
+specification (function)}
 \begin{python}
 def u0_boundary(x, on_boundary):
     return on_boundary
@@ -594,8 +605,8 @@ interactive()
 The \emp{interactive()} call is necessary for the plot to remain on the
 screen. With the left, middle, and right mouse buttons you can rotate,
 translate, and zoom (respectively) the plotted surface to better examine
-what the solution looks like.  Figures~\ref{tut:poisson:2D:fig:ex1:u}
-and \ref{tut:poisson:2D:fig:ex1:mesh} display the resulting $u$ function
+what the solution looks like.  Figures~\ref{langtangen:poisson:2D:fig:ex1:u}
+and \ref{langtangen:poisson:2D:fig:ex1:mesh} display the resulting $u$ function
 and the finite element mesh, respectively.
 
 It is also possible to dump the computed solution to file, e.g., in the
@@ -620,7 +631,7 @@ and VisIt.
     (A bounding box around the mesh is added by pressing \emp{o} in the plot
     window, and the mouse buttons are then used to rotate and move the
     plot, see Section~\ref{langtangen:quickviz}.)}
-  \label{tut:poisson:2D:fig:ex1:u}
+  \label{langtangen:poisson:2D:fig:ex1:u}
 \end{figure}
 
 \begin{figure}
@@ -629,7 +640,7 @@ and VisIt.
   \centering
   \includegraphics[width=\smallfig]{chapters/langtangen/png/ex1_mesh.png}
   \caption{Plot of the mesh in the first \fenics{} example.}
-  \label{tut:poisson:2D:fig:ex1:mesh}
+  \label{langtangen:poisson:2D:fig:ex1:mesh}
 \end{figure}
 
 The next three sections deal with some technicalities about specifying
@@ -722,7 +733,7 @@ prm["maximum_iterations"] = 1000
 \end{python}
 Stopping criteria for Krylov solvers usually involve the norm of
 the residual, which must be smaller than the absolute tolerance
-parameter or smaller than the relative tolerance parameter times
+parameter and smaller than the relative tolerance parameter times
 the initial residual.
 
 To see the number of actual iterations to reach the stopping criterion,
@@ -839,7 +850,7 @@ u_nodal_values = u.vector()
 \end{python}
 The result is a \dolfin{} \emp{Vector} object, which is basically an
 encapsulation of the vector object used in the linear algebra package
-that is applied to solve the linear system arising from the variational
+that is used to solve the linear system arising from the variational
 problem.  Since we program in Python it is convenient to convert
 the \emp{Vector} object to a standard \emp{numpy} array for further
 processing:
@@ -850,83 +861,13 @@ With \emp{numpy} arrays we can write ``MATLAB-like'' code to analyze
 the data. Indexing is done with square brackets: \emp{u\_array[i]},
 where the index \emp{i} always starts at \emp{0}.
 
-The coordinates of the vertices in the mesh can be extracted by
-\begin{python}
-coor = mesh.coordinates()
-\end{python}
-For a $d$-dimensional problem, \emp{coor} is an $M\times d$ \emp{numpy}
-array, $M$ being the number of vertices in the mesh. Writing out the
-solution on the screen can now be done by a simple loop:
-\begin{python}
-for i in range(len(u_array)):
-    print "u(%8g,%8g) = %g" % \
-          (coor[i][0], coor[i][1], u_array[i])
-\end{python}
-The beginning of the output looks like this:
-\begin{progoutput}
-u(       0,       0) = 1
-u(0.166667,       0) = 1.02778
-u(0.333333,       0) = 1.11111
-u(     0.5,       0) = 1.25
-u(0.666667,       0) = 1.44444
-u(0.833333,       0) = 1.69444
-u(       1,       0) = 2
-\end{progoutput}
-\noindent
-For Lagrange elements of degree higher than one, the vertices and the
-nodes do not coincide, and then the loop above is meaningless.
-
-For verification purposes we want to compare the values of \emp{u}
-at the nodes; that is, the values of the vector \emp{u\_array} with
-the exact solution given by \emp{u0}. At each node, the difference
-between the computed and exact solution should be less than a small
-tolerance. The exact solution is given by the \emp{Expression}
-object \emp{u0}, which we can evaluate directly as \emp{u0(coor[i])}
-at the vertex with global number \emp{i}, or as \emp{u0(x)} for any
-spatial point \emp{x}.
-Alternatively, we can make a finite element field \emp{u\_e}, representing
-the exact solution, whose values at the nodes are given by the
-\emp{u0} function. With mathematics, $u_{\rm e} = \sum_{j=1}^N  E_j\phi_j$, where
-$E_j=u_0(x_j,y_j)$, $(x_j,y_j)$ being the coordinates of node number $j$.
-This process is known as interpolation.\index{interpolation}
-\fenics{} has a function for performing the operation:
-\begin{python}
-u_e = interpolate(u0, V)
-\end{python}
-The maximum error can now be computed as
-\begin{python}
-u_e_array = u_e.vector().array()
-diff = abs(u_array - u_e_array)
-print "Max error:", diff.max()
-
-# or more compactly:
-print "Max error:", abs(u_e_array - u_array).max()
-\end{python}
-The value of the error should be at the level of the machine precision
-($10^{-16}$).
-
-To demonstrate the use of point evaluations of \emp{Function} objects,
-we write out the computed \emp{u} at the center point of the domain and
-compare it with the exact solution:
-\begin{python}
-center = (0.5, 0.5)
-u_value = u(center)
-u0_value = u0(center)
-print "numerical u at the center point:", u_value
-print "exact     u at the center point:", u0_value
-\end{python}
-Trying a $3\times 3$ mesh, the output from the previous snippet becomes
-\begin{progoutput}
-numerical u at the center point: [ 1.83333333]
-exact     u at the center point: [ 1.75]
-\end{progoutput}
-\noindent
-The discrepancy is due to the fact that the center point is not a node in
-this particular mesh, but a point in the interior of a cell, and \emp{u}
-varies linearly over the cell while \emp{u0} is a quadratic function.
-
 Mesh information can be gathered from the \emp{mesh} object, e.g.,
 \begin{itemize}
+  \item \emp{mesh.coordinates()} returns the coordinates of the
+  vertices as an $M\times d$ \emp{numpy} array,
+  $M$ being the number of vertices in the mesh and $d$ being
+  the number of space dimensions,
+
   \item \emp{mesh.num\_cells()} returns the number of cells (triangles)
   in the mesh,
 
@@ -944,13 +885,75 @@ Mesh information can be gathered from the \emp{mesh} object, e.g.,
   and \emp{print mesh} is actually the same as \emp{print str(mesh)}.
 \end{itemize}
 All mesh objects are of type \emp{Mesh} so typing the command \emp{pydoc
-dolfin.Mesh}\index{\emp{pydoc}} in a terminal window will give a list
+dolfin.Mesh}\index{pydoc} in a terminal window will give a list
 of methods\footnote{A method in Python (and other
   languages supporting the class construct) is simply a function in a
   class.} that can be called through any \emp{Mesh} object. In fact,
-\emp{pydoc dolfin.X} shows the documentation of any \dolfin{} name \emp{X}
-(at the time of this writing, some names have missing or incomplete
-documentation).
+\emp{pydoc dolfin.X} shows the documentation of any \dolfin{} name \emp{X}.
+
+Writing out the solution on the screen can now be done by a simple loop:
+\begin{python}
+coor = mesh.coordinates()
+if mesh.num_vertices() == len(u_array):
+    for i in range(mesh.num_vertices()):
+        print 'u(%8g,%8g) = %g' % (coor[i][0], coor[i][1], u_array[i])
+\end{python}
+The beginning of the output looks like this:
+\begin{progoutput}
+u(       0,       0) = 1
+u(0.166667,       0) = 1.02778
+u(0.333333,       0) = 1.11111
+u(     0.5,       0) = 1.25
+u(0.666667,       0) = 1.44444
+u(0.833333,       0) = 1.69444
+u(       1,       0) = 2
+\end{progoutput}
+\noindent
+For Lagrange elements of degree higher than one, the vertices do not
+correspond to all the nodal points and the \emp{if}-test fails.
+
+For verification purposes we want to compare the values of the
+computed \emp{u} at the nodes (given by \emp{u\_array}) with the exact
+solution \emp{u0} evaluated at the nodes.  The difference between the
+computed and exact solution should be less than a small tolerance at
+all the nodes. The \emp{Expression} object \emp{u0} can be evaluated
+at any point \emp{x} by calling \emp{u0(x)}. Specifically,
+\emp{u0(coor[i])} returns the value of \emp{u0} at the vertex or node
+with global number \emp{i}.
+Alternatively, we can make a finite element field \emp{u\_e}, representing
+the exact solution, whose values at the nodes are given by the
+\emp{u0} function. With mathematics, $u_{\rm e} = \sum_{j=1}^N  E_j\phi_j$, where
+$E_j=u_0(x_j,y_j)$, $(x_j,y_j)$ being the coordinates of node number $j$.
+This process is known as interpolation.\index{interpolation}
+\fenics{} has a function for performing the operation:
+\begin{python}
+u_e = interpolate(u0, V)
+\end{python}
+The maximum error can now be computed as
+\begin{python}
+u_e_array = u_e.vector().array()
+print "Max error:", numpy.abs(u_e_array - u_array).max()
+\end{python}
+The value of the error should be at the level of the machine precision
+($10^{-16}$).
+
+To demonstrate the use of point evaluations of \emp{Function} objects,
+we write out the computed \emp{u} at the center point of the domain and
+compare it with the exact solution:
+\begin{python}
+center = (0.5, 0.5)
+print "numerical u at the center point:",  u(center)
+print "exact     u at the center point:", u0(center)
+\end{python}
+Trying a $3\times 3$ mesh, the output from the previous snippet becomes
+\begin{progoutput}
+numerical u at the center point: [ 1.83333333]
+exact     u at the center point: [ 1.75]
+\end{progoutput}
+\noindent
+The discrepancy is due to the fact that the center point is not a node in
+this particular mesh, but a point in the interior of a cell, and \emp{u}
+varies linearly over the cell while \emp{u0} is a quadratic function.
 
 We have seen how to extract the nodal values in a \emp{numpy} array.
 If desired, we can adjust the nodal values too. Say we want to normalize
@@ -1010,17 +1013,18 @@ p(x,y) = \frac{A}{2\pi\sigma}\exp{\left(
 Here, $T$ is the tension in the membrane (constant), $p$ is the
 external pressure load, $A$ the amplitude of the pressure, $(x_0,y_0)$
 the localization of the Gaussian pressure function, and $\sigma$ the
-``width'' of this function. The boundary condition is $D=0$.
+``width'' of this function. The boundary of the membrane has no
+deflection, implying $D=0$ as boundary condition.
 
-Introducing a scaling with $R$ as characteristic length and $8\pi\sigma
-T/A$ as characteristic size\footnote{ Assuming $\sigma$ large enough
-so that $p\approx\hbox{const} \sim A/(2\pi\sigma)$ in $\Omega$, we
-can integrate an axi-symmetric version of the equation in the radial
-coordinate $r\in [0,R]$ and obtain $D=(r^2-R^2)A/(8\pi\sigma T)$, which
-for $r=0$ gives a rough estimate of the size of $|D|$: $AR^2/(8\pi\sigma
-T)$.}
- of $D$, we can derive the equivalent
-scaled problem on the unit circle,
+For scaling and verification it is convenient to simplify the problem
+to find an analytical solution. In the limit $\sigma\rightarrow\infty$,
+$p\rightarrow A/(2\pi\sigma)$, which allows us to integrate an axi--symmetric
+version of the equation in the radial coordinate $r\in [0,R]$ and
+obtain $D(r)=(r^2-R^2)A/(8\pi\sigma T)$. This result gives
+a rought estimate of the characteristic size of the deflection:
+$|D(0)|=AR^2/(8\pi\sigma T)$, which can be used to scale the deflection.
+With $R$ as characteristic length scale, we can derive the equivalent
+dimensionless problem on the unit circle,
 \begin{equation}
 \label{langtangen:poisson1:membrane:scaled:eq}
 -\Delta w = f,
@@ -1039,10 +1043,9 @@ coordinates in \eqref{langtangen:poisson1:membrane:scaled:eq:rhs}.
 Now $D$ is related to $w$ through $D = AR^2w/(8\pi\sigma T)$.
 
 Let us list the modifications of the
-\emp{d1\_p2D.py} program that are needed code to solve this membrane problem:
+\emp{d1\_p2D.py} program that are needed to solve this membrane problem:
 \begin{enumerate}
-  \item Initialize $T$, $A$, $R$, $x_0$, $y_0$, and $\sigma$ in the
-  beginning of the program,
+  \item Initialize $T$, $A$, $R$, $x_0$, $y_0$, and $\sigma$,
 
   \item create a mesh over the unit circle,
 
@@ -1053,10 +1056,10 @@ Let us list the modifications of the
 
   \item plot the mesh, $w$, and $f$,
 
-  \item write out the maximum real deflection $D$ (the maximum of the $w$
-  values times $A/(8\pi\sigma T)$).
+  \item write out the maximum real deflection $D$,
 \end{enumerate}
 
+\noindent
 Some suitable values of $T$, $A$, $R$, $x_0$, $y_0$, and $\sigma$ are
 \begin{python}
 T = 10.0  # tension
@@ -1080,8 +1083,8 @@ the expression string and these parameters must have their values set
 by keyword arguments:
 \index{expression!with parameters}
 \begin{python}
-f = Expression("4*exp(-0.5*(pow((R*x[0] - x0)/sigma, 2)) "
-                     "-0.5*(pow((R*x[1] - y0)/sigma, 2)))",
+f = Expression("4*exp(-0.5*(pow((R*x[0] - x0)/sigma, 2)) "\
+               "     - 0.5*(pow((R*x[1] - y0)/sigma, 2)))",
                R=R, x0=x0, y0=y0, sigma=sigma)
 \end{python}
 The coordinates in \emp{Expression} objects \emph{must} be a vector
@@ -1108,19 +1111,17 @@ f = interpolate(f, V)
 \end{python}
 Calling \emp{plot(f)} will produce a plot of $f$. Note that the assignment
 to \emp{f} destroys the previous \emp{Expression} object \emp{f}, so if
-it is of interest to still have access to this object, another name must be used
+it is of interest to still have access to this object another name must be used
 for the \emp{Function} object returned by \emp{interpolate}.
 
 We need some evidence that the program works, and to this end we may
-look at a special case where it is easy to find an analytical solution
-to compare with.
-In the limit $\sigma\rightarrow\infty$, the function $f$
-approaches the constant 4, which allows us to easily integrate the
-equation (in radial coordinates) and obtain an exact solution
-$w_{\rm e}(x,y) = 1-x^2-y^2$.  Practical values for an infinite $\sigma$
-is 50 or larger, so we may insert a code segment that
-computes the difference $w-w_{\rm e}$
-when $\sigma \geqslant 50$.
+use the analytical solution listed above for the case
+$\sigma\rightarrow\infty$. In scaled coordinates the solution reads
+\[ w_{\rm}(x,y) = 1-x^2-y^2 .\]
+Practical values for an infinite $\sigma$
+may be 50 or larger, and in such cases the program will report the
+maximum deviation between the computed $w$ and the (approximate) exact
+$w_{\rm e}$.
 
 Note that the variational formulation remains the same as in the
 program from Section~\ref{langtangen:poisson1:impl}, except that $u$ is
@@ -1131,7 +1132,7 @@ We have inserted capabilities for iterative solution methods and
 hence large meshes (Section~\ref{langtangen:poisson1:solve:prm}),
 used objects for the variational problem and solver
 (Section~\ref{langtangen:poisson1:solver:problem}), and made numerical
-comparison of the numerical and (approximate) analytical solutions
+comparison of the numerical and (approximate) analytical solution
 (Section~\ref{langtangen:poisson1:verify1}).
 \begin{python}
 from dolfin import *
@@ -1150,7 +1151,6 @@ mesh = UnitCircle(n)
 V = FunctionSpace(mesh, "Lagrange", 1)
 
 # Define boundary condition w=0
-
 def boundary(x, on_boundary):
     return on_boundary
 
@@ -1160,8 +1160,8 @@ bc = DirichletBC(V, Constant(0.0), boundary)
 w = TrialFunction(V)
 v = TestFunction(V)
 a = inner(nabla_grad(w), nabla_grad(v))*dx
-f = Expression("4*exp(-0.5*(pow((R*x[0] - x0)/sigma, 2)) "
-                     "-0.5*(pow((R*x[1] - y0)/sigma, 2)))",
+f = Expression("4*exp(-0.5*(pow((R*x[0] - x0)/sigma, 2)) "\
+               "     - 0.5*(pow((R*x[1] - y0)/sigma, 2)))",
                R=R, x0=x0, y0=y0, sigma=sigma)
 L = f*v*dx
 
@@ -1188,15 +1188,8 @@ print "Maximum real deflection is", max_D
 if sigma >= 50:
     w_exact = Expression("1 - x[0]*x[0] - x[1]*x[1]")
     w_e = interpolate(w_exact, V)
-    w_e_array = w_e.vector().array()
-    w_array = w.vector().array()
-    diff_array = numpy.abs(w_e_array - w_array)
-    print "Verification of the solution, max difference is %.4E" % \
-          diff_array.max()
-
-    # Create finite element field over V and fill with error values
-    difference = Function(V)
-    difference.vector()[:] = diff_array
+    dev = numpy.abs(w_e.vector().array() - w.vector().array()).max()
+    print 'sigma=%g: max deviation=%e' % dev
 
 # Should be at the end
 interactive()
@@ -1222,22 +1215,21 @@ useful visualization features.
 
 The \emp{plot(u)} command launches a \fenics{} component called Viper,
 which applies the VTK package to visualize finite element functions.
-Viper is not a full-fledged, easy-to-use front-end to VTK (like ParaView
-or VisIt), but rather a thin layer on top of VTK's Python interface,
-allowing us to quickly visualize a \dolfin{} function or mesh, or data
-in plain Numerical Python arrays, within a Python program.  Viper is
-ideal for debugging, teaching, and initial scientific investigations.
-The visualization can be interactive, or you can steer and automate it
-through program statements.  More advanced and professional visualizations
-are usually better done with advanced tools like MayaVi2, ParaView,
-or VisIt.
+Viper is not a full-fledged, easy-to-use front-end to VTK (like
+Mayavi2, ParaView, or VisIt), but rather a thin layer on top of VTK's
+Python interface, allowing us to quickly visualize a \dolfin{}
+function or mesh, or data in plain Numerical Python arrays, within a
+Python program.  Viper is ideal for debugging, teaching, and initial
+scientific investigations.  The visualization can be interactive, or
+you can steer and automate it through program statements.  More
+advanced and professional visualizations are usually better done with
+advanced tools like MayaVi2, ParaView, or VisIt.
 
 We have made a program \emp{membrane1v.py} for the membrane deflection
 problem in Section~\ref{langtangen:poisson:membrane} and added various
 demonstrations of Viper capabilities. You are encouraged to play around
 with \emp{membrane1v.py} and modify the code as you read about various
-features.  The \emp{membrane1v.py} program solves the two-dimensional
-Poisson equation for a scalar field \emp{w} (the membrane deflection).
+features.
 
 The \emp{plot} function can take additional arguments, such as a title
 of the plot, or a specification of a wireframe plot (elevated mesh)
@@ -1315,14 +1307,14 @@ continuous vector field. Typically, we want each component of $\nabla
 u$ to be represented in the same way as $u$ itself. To this end,
 we can project the components of $\nabla u$ onto the same function
 space as we used for $u$.  This means that we solve $w = \nabla u$
-approximately by a finite element method\footnote{This process is known as
-\emph{projection}\index{projection}.  Looking at the component $\partial
+approximately by a finite element method. This process is known as
+\emph{projection}. \index{projection}
+Looking at the component $\partial
 u/\partial x$ of the gradient, we project the (discrete) derivative
-$\sum_jU_j{\partial \phi_j/\partial x}$ onto another function space
-with basis $\bar\phi_1,\bar\phi_2,\ldots$ such that the derivative in
-this space is expressed by the standard sum $\sum_j\bar U_j\bar \phi_j$,
-for suitable (new) coefficients $\bar U_j$.}, using the same elements
-for the components of $w$ as we used for $u$.
+$\sum_jU_j{\partial \phi_j/\partial x}$ onto a function space
+with basis $\phi_1,\phi_2,\ldots$ such that the derivative in
+this space is expressed by the standard sum $\sum_j\bar U_j \phi_j$,
+for suitable (new) coefficients $\bar U_j$.
 
 The variational problem for $w$ reads: find $w\in V^{(\mbox{g})}$ such that
 \begin{equation}
@@ -1358,6 +1350,8 @@ solve(a == L, grad_u)
 
 plot(grad_u, title="grad(u)")
 \end{python}
+The boundary condition argument to \emp{solve} is dropped since there are
+no essential boundary conditions in this problem.
 The new thing is basically that we work with a
 \emp{VectorFunctionSpace}, since the unknown is now a vector
 field, instead of the \emp{FunctionSpace} object for scalar fields.
@@ -1392,7 +1386,7 @@ grad_u_x_array = grad_u_x.vector().array()
 grad_u_y_array = grad_u_y.vector().array()
 \end{python}
 The degrees of freedom of the \emp{grad\_u} vector field can also be
-reached by
+reached by \index{degrees of freedom array!vector field}
 \begin{python}
 grad_u_array = grad_u.vector().array()
 \end{python}
@@ -1413,16 +1407,21 @@ of the gradient vary linearly as $2x$ and $4y$ in the interior of
 the mesh (as soon as we are one element away from the boundary). See
 Section~\ref{langtangen:quickviz} for illustrations of this phenomenon.
 
-Representing the gradient by the same elements as we used for the solution
-is a very common step in finite element programs, so the formation and
-solution of a variational problem for $w$ as shown above can be replaced
-by a one-line call:\index{\emp{project}}\index{projection}
+Projecting some function onto some space is a very common
+operation in finite element programs. The manual steps in this process
+have therefore been collected in a utility function \emp{project(q, W)},
+which returns the projection of some \emp{Function} or \emp{Expression} object
+named \emp{q} onto the \emp{FunctionSpace} or \emp{VectorFunctionSpace}
+named \emp{W}.
+Specifically, the previous code for
+projecting each component of \emp{grad(u)} onto
+the same sapce that we use for \emp{u}, can now be done by
+a one--line call:
+\index{project}\index{projection}
 \begin{python}
 grad_u = project(grad(u), VectorFunctionSpace(mesh, "Lagrange", 1))
 \end{python}
-The \emp{project} function can take an expression involving some finite
-element function in some space and project the expression onto another
-space.  The applications are many, including turning discontinuous
+The applications of projection are many, including turning discontinuous
 gradient fields into continuous ones, comparing higher- and lower-order
 function approximations, and transforming a higher-order finite element
 solution down to a piecewise linear field, which is required by many
@@ -1430,7 +1429,7 @@ visualization packages.
 
 \subsection{A variable-coefficient Poisson problem}
 \label{langtangen:possion:2D:varcoeff}
-\index{Poisson's equation!variable coefficients}
+\index{Poisson's equation!variable coefficient}
 
 Suppose we have a variable coefficient $p(x,y)$ in the Laplace operator,
 as in the boundary-value problem
@@ -1527,9 +1526,7 @@ L = inner(-p*grad(u), v)*dx
 flux = Function(V_g)
 solve(a == L, flux)
 \end{python}
-The convenience function \emp{project} was implemented
-to condense the frequently
-occurring statements above:
+The following call to \emp{project} is equivalent to the above statements:
 \begin{python}
 flux = project(-p*nabla_grad(u),
                VectorFunctionSpace(mesh, "Lagrange", 1))
@@ -1562,7 +1559,7 @@ visualization are explained in Section~\ref{langtangen:structviz}.
 \label{langtangen:poisson1:functionals}
 \index{functional}
 
-After the solution $u$ of a PDE is computed, we often want to compute
+After the solution $u$ of a PDE is computed, we occasionally want to compute
 functionals of $u$, for example,
 \begin{equation}
   \frac{1}{2} ||\nabla u||^2 \equiv \frac{1}{2}\int_\Omega \nabla u\cdot \nabla u\dx,
@@ -1571,10 +1568,11 @@ functionals of $u$, for example,
 which often reflects some energy quantity.  Another frequently
 occurring functional is the error
 \begin{equation}
-  ||u_e-u|| = \left(\int_\Omega (u_e-u)^2\dx\right)^{1/2},
+  ||u_{\rm e}-u|| = \left(\int_\Omega (u_{\rm e}-u)^2\dx\right)^{1/2},
 \label{langtangen:poisson1:functionals:error}
 \end{equation}
-which is of particular interest when studying convergence properties.
+where $u_{\rm e}$ is the exact solution. The error
+is of particular interest when studying convergence properties.
 Sometimes the interest concerns the flux out of a part $\Gamma$ of the
 boundary $\partial\Omega$,
 \begin{equation}
@@ -1626,19 +1624,19 @@ def boundary(x, on_boundary):
 bc = DirichletBC(V, Constant(0.0), boundary)
 
 omega = 1.0
-u_exact = Expression("sin(omega*pi*x[0])*sin(omega*pi*x[1])",
-                     omega=omega)
+u_e = Expression("sin(omega*pi*x[0])*sin(omega*pi*x[1])",
+                 omega=omega)
 
-f = 2*pi**2*omega**2*u_exact
+f = 2*pi**2*omega**2*u_e
 \end{python}
 
 The computation of \eqref{langtangen:poisson1:functionals:error} can be
 done by
 \begin{python}
-error = (u - u_exact)**2*dx
+error = (u - u_e)**2*dx
 E = sqrt(assemble(error))
 \end{python}
-Here, \emp{u\_exact} will be interpolated onto the function
+Here, \emp{u\_e} will be interpolated onto the function
 space \emp{V}. This implies that the exact solution used in the integral will
 vary linearly over the cells, and not as a sine function, if \emp{V}
 corresponds to linear Lagrange elements.  This situation
@@ -1650,38 +1648,33 @@ interpolating the formula onto a space defined by higher-order elements,
 say of third degree:
 \begin{python}
 Ve = FunctionSpace(mesh, "Lagrange", degree=3)
-u_e = interpolate(u_exact, Ve)
-error = (u - u_e)**2*dx
+u_e_Ve = interpolate(u_e, Ve)
+error = (u - u_e_Ve)**2*dx
 E = sqrt(assemble(error))
 \end{python}
-The \emp{u} function will here be automatically interpolated and
-represented in the \emp{Ve} space. When functions in different function
-spaces enter UFL expressions, they will be represented in the space
-of highest order before integrations are carried out. When in doubt,
-we should explicitly interpolate \emp{u}:
+To achieve complete mathematical
+control of which function space the computations are carried out in,
+we can explicitly interpolate \emp{u} too:
 \begin{python}
 u_Ve = interpolate(u, Ve)
-error = (u_Ve - u_e)**2*dx
+error = (u_Ve - u_e_Ve)**2*dx
 \end{python}
 
 The square in the expression for \emp{error} will be expanded and lead
 to a lot of terms that almost cancel when the error is small, with the
 potential of introducing significant round-off errors.  The function
 \emp{errornorm} is available for avoiding this effect by first
-interpolating \emp{u} and \emp{u\_exact} to a space with higher-order
+interpolating \emp{u} and \emp{u\_e} to a space with higher-order
 elements, then subtracting the degrees of freedom, and then performing
 the integration of the error field. The usage is simple:
 \begin{python}
-E = errornorm(u_exact, u, normtype="L2", degree=3)
+E = errornorm(u_e, u, normtype="L2", degree=3)
 \end{python}
-At the time of this writing, \emp{errornorm} does not work with
-\emp{Expression} objects for \emp{u\_exact}, making the function
-inapplicable for most practical purposes. Nevertheless, we can easily
-express the procedure explicitly:
+It is illustrative to look at the short implementation of \emp{errornorm}:
 \begin{python}
-def errornorm(u_exact, u, Ve):
+def errornorm(u_e, u, Ve):
     u_Ve = interpolate(u, Ve)
-    u_e_Ve = interpolate(u_exact, Ve)
+    u_e_Ve = interpolate(u_e, Ve)
     e_Ve = Function(Ve)
     # Subtract degrees of freedom for the error field
     e_Ve.vector()[:] = u_e_Ve.vector().array() - \
@@ -1693,7 +1686,7 @@ The \emp{errornorm} procedure turns out to be identical to computing
 the expression \emp{(u\_e - u)**2*dx} directly in the present test case.
 
 Sometimes it is of interest to compute the error of the gradient field:
-$||\nabla (u-u_e)||$ (often referred to as the $H^1$ seminorm of the
+$||\nabla (u-u_{\rm e})||$ (often referred to as the $H^1$ seminorm of the
 error).  Given the error field \emp{e\_Ve} above, we simply write
 \begin{python}
 H1seminorm = sqrt(assemble(inner(grad(e_Ve), grad(e_Ve))*dx))
@@ -1707,7 +1700,7 @@ def compute(nx, ny, degree):
     V = FunctionSpace(mesh, "Lagrange", degree=degree)
     ...
     Ve = FunctionSpace(mesh, "Lagrange", degree=5)
-    E = errornorm(u_exact, u, Ve)
+    E = errornorm(u_e, u, Ve)
     return E
 \end{python}
 
@@ -1766,10 +1759,10 @@ h=7.81E-03 E=1.34E-07 r=3.00
 h=3.79E-03 E=1.53E-08 r=3.00
 \end{progoutput}
 \noindent
-However, using \emp{(u - u\_exact)**2} for the error computation, which
-implies interpolating \emp{u\_exact} onto the same space as \emp{u},
+However, using \emp{(u - u\_e)**2} for the error computation, which
+implies interpolating \emp{u\_e} onto the same space as \emp{u},
 results in $r=4$ (!). This is an example where it is important to
-interpolate \emp{u\_exact} to a higher-order space (polynomials of
+interpolate \emp{u\_e} to a higher-order space (polynomials of
 degree 3 are sufficient here) to avoid computing a too optimistic
 convergence rate.
 %Looking at the error in the degrees of freedom
@@ -2580,7 +2573,7 @@ this modification.
 
 \section{Nonlinear problems}
 \label{langtangen:poisson:nonlinear}
-\index{partial differential equation!nonlinear}
+\label{partial differential equation!nonlinear}
 
 Now we shall address how to solve nonlinear PDEs in \fenics. Our
 sample PDE for implementation is taken as a nonlinear Poisson
@@ -2635,7 +2628,7 @@ the discrete problem, and as mentioned in
 Section~\ref{langtangen:poisson1:varform}, we simply write $u$ instead
 of $u_h$ to get a closer resemblance in notation between the mathematics and the
 Python code. When the exact solution needs to be distinguished, we
-denote it by $u_e$.
+denote it by $u_{\rm e}$.
 
 \fenics{} can be used in alternative ways for solving a nonlinear PDE
 problem. We shall in the following subsections go through four
@@ -3178,7 +3171,7 @@ recently computed solution (\emp{Function}), and the unknown
 (\emp{TrialFunction}) as parameters:
 \index{derivative}
 \index{automatic differentiation}
-\index{Jacobian}
+\index{jacobian}
 \begin{python}
 du = TrialFunction(V)
 v  = TestFunction(V)
@@ -3223,7 +3216,7 @@ an associated solver based on Newton's method. We also demonstrate
 how key parameters in
 Newton's method can be set, as well as the choice of
 solver and preconditioner, and associated parameters, for the
-linear system occurring in the Newton iteration.
+linear system occuring in the Newton iteration.
 \index{nonlinear problem}
 \index{\emp{NonlinearVariationalProblem}}
 \index{\emp{NonlinearVariationalSolver}}\vspace*{3pt}
@@ -3372,7 +3365,7 @@ spaces $V$ and $\hat V$ to finite-dimensional spaces, exactly as we have
 done in the Poisson problems.  We shall use the symbol $u$ for the finite
 element approximation at time $t_k$. In case we need to distinguish
 this space-time discrete approximation from the exact solution of the
-continuous diffusion problem, we use $u_e$ for the latter.  By $u^{k-1}$
+continuous diffusion problem, we use $u_{\rm e}$ for the latter.  By $u^{k-1}$
 we mean, from now on, the finite element approximation of the solution
 at time $t_{k-1}$.
 
@@ -4585,7 +4578,7 @@ electrophysiology.  Another project, CBC.RANS
 (\emp{https://launchpad.net/cbc.rans}), offers an environment for very
 flexible and easy implementation
 of Navier--Stokes solvers and turbulence
-\citep{Mortensen2011,Mortensen2011b}. For example,
+\citet{Mortensen2011,Mortensen2011b}. For example,
 CBC.RANS contains an elliptic relaxation model for turbulent flow
 involving 18 nonlinear PDEs. FEniCS proved to be an ideal environment
 for implementing such complicated PDE models.
@@ -4637,8 +4630,8 @@ Below we explain some key terms used in this tutorial.
   notation: \emp{instance\_name.method\_name}.
 
   \item[\emp{self} parameter (Python):] required first parameter in class
-  methods, representing a particular object of the class.\index{\emp{self}} Used
-  in method definitions, but never in calls to a method.  For example,
+  methods, representing a particular object of the class.\index{\emp{self}}
+  Used in method definitions, but never in calls to a method.  For example,
   if \emp{method(self, x)} is the definition of \emp{method} in a class
   \emp{Y}, \emp{method} is called as \emp{y.method(x)}, where \emp{y}
   is an instance of class \emp{Y}.  In a call like \emp{y.method(x)},
