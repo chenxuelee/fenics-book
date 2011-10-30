@@ -4,9 +4,10 @@
 # makeindex etc and build the final version of the book.
 
 export TEXINPUTS=".:"`pwd`"/packages:"
-FILE=book
 
-if [ "x$1" = "x--final" ]; then
+FILE=$1
+
+if [ "x$2" = "x--final" ]; then
     pdflatex $FILE
     bibtex $FILE
     makeindex $FILE
