@@ -1082,8 +1082,8 @@ the expression string and these parameters must have their values set
 by keyword arguments:
 \index{expression!with parameters}
 \begin{python}
-f = Expression("4*exp(-0.5*(pow((R*x[0] - x0)/sigma, 2)) "\
-               "     - 0.5*(pow((R*x[1] - y0)/sigma, 2)))",
+f = Expression("4*exp(-0.5*(pow((R*x[0] - x0)/sigma, 2)) "
+               "      -0.5*(pow((R*x[1] - y0)/sigma, 2)))",
                R=R, x0=x0, y0=y0, sigma=sigma)
 \end{python}
 The coordinates in \emp{Expression} objects \emph{must} be a vector
@@ -1159,8 +1159,8 @@ bc = DirichletBC(V, Constant(0.0), boundary)
 w = TrialFunction(V)
 v = TestFunction(V)
 a = inner(nabla_grad(w), nabla_grad(v))*dx
-f = Expression("4*exp(-0.5*(pow((R*x[0] - x0)/sigma, 2)) "\
-               "     - 0.5*(pow((R*x[1] - y0)/sigma, 2)))",
+f = Expression("4*exp(-0.5*(pow((R*x[0] - x0)/sigma, 2)) "
+               "      -0.5*(pow((R*x[1] - y0)/sigma, 2)))",
                R=R, x0=x0, y0=y0, sigma=sigma)
 L = f*v*dx
 
@@ -1188,7 +1188,7 @@ if sigma >= 50:
     w_exact = Expression("1 - x[0]*x[0] - x[1]*x[1]")
     w_e = interpolate(w_exact, V)
     dev = numpy.abs(w_e.vector().array() - w.vector().array()).max()
-    print 'sigma=%g: max deviation=%e' % dev
+    print 'sigma=%g: max deviation=%e' % (sigma, dev)
 
 # Should be at the end
 interactive()
@@ -2015,7 +2015,7 @@ ev.plot(x, fluxval, "r-",
         savefig="flux.eps")
 \end{python}
 As seen from Figure~\ref{langtangen:poisson:2D:fig2}b, the numerical flux
-is accurate except in the elements closest to the boundaries.
+is accurate except in the boundary elements.
 
 The visualization constructions shown above and used to generate the
 figures are found in the program \emp{vcp2D.py} in the
@@ -2304,7 +2304,7 @@ and the vector elements~$b_i$.
 
 The matrix $A$ and vector $b$ are first assembled without
 incorporating essential (Dirichlet) boundary conditions. Thereafter,
-the \emp{bc.apply(A, b)} call performs the necessary modifications to
+the call \emp{bc.apply(A, b)} performs the necessary modifications of
 the linear system.
 When we have multiple Dirichlet conditions stored in a list \emp{bcs},
 as explained in Section~\ref{langtangen:poisson:multiple:Dirichlet},
@@ -2315,7 +2315,7 @@ for bc in bcs:
     bc.apply(A, b)
 \end{python}
 
-There is an alternative function \emp{assemble\_system} that can
+There is an alternative function \emp{assemble\_system}, which can
 assemble the system and take boundary conditions into account in one call:
 \index{\emp{assemble\_system}}
 \begin{python}
@@ -2419,8 +2419,8 @@ illustrating this latter approach.
 
 \index{random start vector (linear systems)}
 The choice of start vector for the iterations in a linear solver is often
-important. With the \emp{solve(A, U, b)} function the start vector
-is the vector \emp{U} we feed in for the solution. A start vector
+important. With the \emp{solver.solve(A, U, b)} call the default start vector
+is the zero vector. A start vector
 with random numbers in the interval $[-100,100]$ can be computed as
 \begin{python}
 n = u.vector().array().size
@@ -3103,37 +3103,37 @@ computed approximation to the solution.
 
 The Jacobian or derivative $J$ (\emp{J}) of $F$ (\emp{F}) is formally the
 Gateaux derivative $DF(u^k; \delta u, v)$
-of $F(u;v)$ at $u=u^k$ in the direction of $\delta u$.
+of $F(u;v)$ at $u=u_{-}$ in the direction of $\delta u$.
 Technically, this Gateaux derivative is derived by computing
 \index{Gateaux derivative}
 \begin{equation}
-  \lim_{\epsilon\rightarrow 0} \frac{d}{d\epsilon} F_i(u^k + \epsilon\delta u; v)
+  \lim_{\epsilon\rightarrow 0} \frac{d}{d\epsilon} F_i(u_{-} + \epsilon\delta u; v)
 \label{langtangen:poisson:nonlinear:Gateaux1}
 \end{equation}
-The $\delta u$ is now the trial function and $u^k$ is as usual the previous
+The $\delta u$ is now the trial function and $u_{-}$ is the previous
 approximation to the solution $u$.
 We start with
 \begin{equation}
-\frac{d}{d\epsilon}\int_\Omega \nabla v\cdot\left( q(u^k + \epsilon\delta u)
-\nabla (u^k + \epsilon\delta u)\right)\dx
+\frac{d}{d\epsilon}\int_\Omega \nabla v\cdot\left( q(u_{-} + \epsilon\delta u)
+\nabla (u_{-} + \epsilon\delta u)\right)\dx
 \end{equation}
 and obtain
 \begin{equation}
 \int_\Omega \nabla v\cdot\left\lbrack
-q'(u^k + \epsilon\delta u)\delta u
-\nabla (u^k + \epsilon\delta u)
+q'(u_{-} + \epsilon\delta u)\delta u
+\nabla (u_{-} + \epsilon\delta u)
 +
-q(u^k + \epsilon\delta u)
+q(u_{-} + \epsilon\delta u)
 \nabla \delta u
 \right\rbrack\dx,
 \end{equation}
 which leads to
 \begin{equation}
 \int_\Omega \nabla v\cdot\left\lbrack
-q'(u^k)\delta u
-\nabla (u^k)
+q'(u_{-})\delta u
+\nabla (u_{-})
 +
-q(u^k)
+q(u_{-})
 \nabla \delta u
 \right\rbrack\dx,
 \end{equation}
@@ -3215,7 +3215,7 @@ The first command-line argument determines if the Jacobian is to
 be automatically derived or computed from the hand-derived formula.
 
 The following code defines the nonlinear variational problem and
-an associated solver based on Newton's method. We also demonstrate
+an associated solver based on Newton's method. We here demonstrate
 how key parameters in
 Newton's method can be set, as well as the choice of
 solver and preconditioner, and associated parameters, for the
