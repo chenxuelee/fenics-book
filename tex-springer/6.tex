@@ -1,0 +1,385 @@
+\begingroup
+
+\setcounter{chapter}{5}
+\setcounter{chpnum}{5}
+
+\fenicschapter{Finite element assembly}
+              {Finite element assembly}
+              {Finite element assembly}
+              {Anders Logg, Kent-Andre Mardal and Garth N. Wells}
+              {logg-3}
+
+The finite element method may be viewed as a method for forming a discrete
+linear system $AU = b$ or nonlinear system $b(U) = 0$ corresponding to
+the discretization of the variational form of a differential equation. A
+central part of the implementation of finite element methods is therefore
+the computation of matrices and vectors from variational forms. In this
+chapter, we describe the standard algorithm for computing the discrete
+operator (tensor)~$A$. This algorithm is known as \emph{finite element
+assembly}. We also discuss efficiency aspects of the standard algorithm
+and extensions to matrix-free methods.
+
+%------------------------------------------------------------------------------
+\section{Assembly algorithm}
+\index{assembly}
+
+As seen in Chapter~\ref{chap:kirby-5}, the discrete operator of a
+multilinear form~$a : V_{\rho} \times \cdots \times V_2 \times V_1
+\rightarrow \R$ of arity~$\rho$ is the rank~$\rho$ tensor~$A$ defined
+by
+\begin{equation}
+  A_I = a(\phi^{\rho}_{I_{\rho}}, \ldots, \phi^2_{I_2}, \phi^1_{I_1}),
+\end{equation}
+where $I = (I_1, I_2, \ldots, I_{\rho})$ is a multi-index of
+length~$\rho$ and $\{\phi^j_k\}_{k=1}^{N_j}$ is a basis for $V_{j,h}
+\subset V_j$, $j = 1,2,\ldots,\rho$. The discrete operator is a
+typically sparse tensor of rank~$\rho$ and dimension $N_1 \times N_2
+\times \cdots \times N_{\rho}$.
+
+A straightforward algorithm to compute the tensor~$A$ is to iterate
+over all its entries and compute them one by one as outlined in
+Algorithm~\ref{alg:assembly,naive}. This algorithm has two major
+drawbacks and is rarely used in practice. First, it does not take into
+account that most entries of the sparse tensor~$A$ may be
+zero. Second, it does not take into account that each entry is
+typically a sum of contributions (integrals) from the set of cells
+that form the support of the basis functions $\phi^1_{I_1},
+\phi^2_{I_2}, \ldots, \phi^{\rho}_{I_\rho}$. As a result, each cell of
+the mesh must be visited multiple times when computing the local
+contribution to different entries of the tensor~$A$.  For this reason,
+the tensor~$A$ is usually computed by iterating over the cells of the
+mesh and adding the contribution from each local cell to the global
+tensor~$A$. To see how the tensor~$A$ can be decomposed as a sum of
+local contributions, we recall the definition of the cell tensor~$A_T$
+from Chapter~\ref{chap:kirby-5}:\vspace*{1.5pt}
+\begin{equation}
+  A_{T,i} = a_T(\phi^{T,\rho}_{i_{\rho}}, \ldots, \phi^{T,2}_{i_2},
+  \phi^{T,1}_{i_1}),\vspace*{1.5pt}
+\end{equation}
+\looseness-1{}where $i = (i_1, i_2, \ldots, i_{\rho})$ is a multi-index of
+length~$\rho$, $A_{T,i}$ is the $i$th entry of the rank~$\rho$ tensor
+$A_T$, $a_T$ is the local contribution to the multilinear form from a
+cell~$T\in\mathcal{T}_h$ and $\{\phi^{T,j}_k\}_{k=1}^{n_j}$ is the
+local finite element basis for $V_{j,h}$ on~$T$. We assume here that
+the multilinear form is expressed as an integral over the
+domain~$\Omega$ so that it may be naturally decomposed as a sum of
+local contributions. If the form contains contributions from facet or
+boundary integrals, one may similarly decompose the multilinear form
+into local contributions from facets.
+
+\begin{algorithm}[!t]
+\begin{tabbing}
+    \textbf{for} {$I_1 = 1,2,\ldots,N_1$}\\
+    \tab \textbf{for} {$I_2 = 1,2,\ldots,N_2$}\\
+    \tab \tab \textbf{for} \ldots \\
+    \tab \tab \tab $A_I = a(\phi^{\rho}_{I_{\rho}}, \ldots, \phi^2_{I_2}, \phi^1_{I_1})$
+\end{tabbing}
+\caption{Straightforward (naive) ``assembly'' algorithm.}
+\label{alg:assembly,naive}
+\end{algorithm}
+
+
+To\index{assembly!algorithm} formulate the general assembly algorithm, let $\iota_T^j : [1,n_j]\rightarrow [1,N_j]$ denote the local-to-global mapping introduced in Chapter~\ref{chap:kirby-7} for each discrete function space $V_{j,h}$, $j=1,2,\ldots,\rho$, and define for each $T \in \mathcal{T}_h$ the
+collective local-to-global mapping $\iota_T : \mathcal{I}_T
+\rightarrow \mathcal{I}$ by
+\begin{equation}
+  \iota_T(i) =
+  (\iota_T^1(i_1),\iota_T^2(i_2),\ldots,\iota_T^{\rho}(i_{\rho}))
+  \quad \foralls i \in \mathcal{I}_T,
+\end{equation}
+where $\mathcal{I}_T$ is the index set
+\begin{equation}
+  \mathcal{I}_T =
+  \prod_{j=1}^{\rho}[1,n_j] = \{(1,1,\ldots,1), (1,1,\ldots,2), \ldots,
+  (n_1, n_2, \ldots, n_{\rho} - 1),
+  (n_1, n_2, \ldots, n_{\rho})\}.
+\end{equation}
+That is, $\iota_T$ maps a tuple of local degrees of freedom to a tuple
+of global degrees of freedom. Furthermore, let $\mathcal{T}_I \subset
+\mathcal{T}_h$ denote the subset of cells of the mesh on which
+$\{\phi_{I_j}^j\}_{j=1}^{\rho}$ are all nonzero. We note that
+$\iota_T$ is invertible if $T \in \mathcal{T}_I$.  We may now compute
+the tensor~$A$ by summing local contributions from the cells of the
+mesh:
+\begin{equation}
+\begin{split}
+  A_I
+  &=
+  \sum_{T\in\mathcal{T}_h}
+  a_T(\phi_{I_{\rho}}^{\rho}, \ldots, \phi_{I_2}^2, \phi_{I_1}^1)
+  =
+  \sum_{T\in\mathcal{T}_I}
+  a_T(\phi_{I_{\rho}}^{\rho}, \ldots, \phi_{I_2}^2, \phi_{I_1}^1) \\
+  &=
+  \sum_{T\in\mathcal{T}_I}
+  a_T(\phi_{(\iota_T^{\rho})^{-1}(I_{\rho})}^{T,{\rho}},
+      \ldots,
+      \phi_{(\iota_T^2)^{-1}(I_2)}^{T,2},
+      \phi_{(\iota_T^1)^{-1}(I_1)}^{T,1})
+  =
+  \sum_{T\in\mathcal{T}_I}
+  A_{T,{\iota_T^{-1}(I)}}.
+  \end{split}
+\end{equation}
+This computation may be carried out efficiently by a single iteration
+over all cells~$T \in \mathcal{T}_h$. On each cell~$T$, the cell
+tensor~$A_T$ is computed and then added to the global tensor~$A$ as
+outlined in Algorithm~\ref{alg:assembly} and illustrated in
+Figure~\ref{fig:insertion}.
+\begin{algorithm}[!t]
+  \begin{tabbing}
+    $A = 0$\\
+    \textbf{for}  {$T \in \mathcal{T}_h$}\\
+    \tab (1) Compute $\iota_T$ \\
+    \tab (2) Compute $A_T$ \\ \\
+    \tab (3) Add $A_T$ to $A$ according to $\iota_T$: \\
+    \tab \textbf{for} $i \in \mathcal{I}_T$ \\
+    \tab \tab $A_{\iota_T(i)} \stackrel{+}{=} A_{T,i}$ \\
+    \tab \textbf{end for} \\
+    \textbf{end for}
+\end{tabbing}
+\caption{Assembly algorithm.}
+\label{alg:assembly}
+\end{algorithm}
+
+
+
+
+\begin{figure}
+\centering
+ % \fenicsfig{logg-3}{insertion}{\largefig}
+ \includegraphics{0001335339/272415_1_en_6_fig1_print.eps}
+  \caption{Adding the entries of the cell tensor~$A_T$ to the global
+    tensor~$A$ using the local-to-global mapping $\iota_T$,
+    illustrated here for the assembly of a rank two tensor (matrix)
+    with piecewise linear elements on triangles. On each element
+    $T$, a $3 \times 3$ element matrix~$A_T$ is computed and its
+    entries are added to the global matrix. The entries of the first
+    row are added to row $\iota^1_T(1)$ of the global matrix in the
+    columns given by $\iota^2_T(1)$, $\iota^2_T(2)$ and
+    $\iota^2_T(3)$, respectively. The entries of the second row are
+    added to row $\iota^1_T(2)$ of the global matrix etc.}
+  \label{fig:insertion}\vspace*{8pt}
+\end{figure}
+
+%------------------------------------------------------------------------------
+\section{Implementation}
+\index{assembly!implementation}
+
+In FEniCS, the assembly algorithm (Algorithm~\ref{alg:assembly}) is
+implemented as part of DOLFIN (see
+Figure~\ref{fig:assembly,code}). For the steps~(1), (2) and (3) of the
+assembly algorithm, DOLFIN relies on external code. For steps (1) and
+(2), DOLFIN calls code generated by a form compiler such as FFC or
+SyFi. In particular, DOLFIN calls the two functions
+\emp{tabulate\_dofs} and \emp{tabulate\_tensor} through the UFC
+interface for steps (1) and (2), respectively. Step (3) is carried out
+through the DOLFIN \emp{GenericTensor::add} interface and maps to the
+corresponding operation in one of a number of linear algebra backends,
+such as \emp{MatSetValues} for PETSc and \emp{SumIntoGlobalValues}
+for Trilinos/Epetra.
+
+
+In typical assembly implementations, the computation of the
+cell tensor~$A_T$ is the most costly operation of the assembly
+algorithm. For \dolfin{}, however, as a result of optimized algorithms
+for the computation of $A_T$ being generated by form compilers (see
+Chapters~\ref{chap:oelgaard-2} and~\ref{chap:kirby-8}), adding entries of
+the local tensor $A_T$ to appropriate positions in the global tensor~$A$
+often constitutes a significant portion of the total assembly time. This
+operation is costly since the addition of a value to an arbitrary entry
+of a sparse tensor is not a trivial operation, even when the layout of
+the sparse matrix has been initialized.  In the standard case when $A$
+is a sparse matrix (a rank two tensor), the linear algebra backend stores
+the sparse matrix in \emph{compressed row storage} (CRS) format or some
+other sparse format. For each given entry, the linear algebra backend
+must search along a row~$I$ to find the position to store the value for
+a given column~$J$. As a result, the speed of assembly in FEniCS for
+sparse matrices is currently limited by the speed of insertion into a
+sparse linear algebra data structure for many problems. An additional
+cost is associated with the initialization of a sparse matrix, which
+involves the computation of a sparsity pattern. For most linear algebra
+libraries, it is necessary to initialize the layout of a sparse matrix
+before inserting entries in order to achieve tolerable insertion speed.
+Computation of the sparsity pattern is a moderately costly operation,
+but which in the case of nonlinear problems is usually amortized over time.
+
+\begin{figure}[!t]
+\bwfig
+%%%  \begin{c++}
+%%%for (CellIterator cell(mesh); !cell.end(); ++cell)
+%%%{
+%%%  ...
+%%%
+%%%  // Get local-to-global dofmap for each dimension
+%%%  for (uint i = 0; i < form_rank; ++i)
+%%%    dofs[i] = &(dofmaps[i]->cell_dofs(cell->index()));
+%%%
+%%%  // Tabulate cell tensor
+%%%  integral->tabulate_tensor(&ufc.A[0],
+%%%                            ufc.w(),
+%%%                            ufc.cell);
+%%%
+%%%  // Add entries to global tensor
+%%%  A.add(&ufc.A[0], dofs);
+%%%}
+%%%\end{c++}
+\includegraphics{0001335339/272415_1_en_6_fig2_print.eps}
+\caption{Actual implementation (excerpt) of the assembly algorithm
+    (Algorithm~\ref{alg:assembly}) in DOLFIN (from \emp{Assembler.cpp}
+    in DOLFIN~1.0).}\label{fig:assembly,code}\vspace*{8pt}
+\end{figure}
+
+
+Algorithm~\ref{alg:assembly} may be easily extended to assembly over
+the facets of a mesh. Assembly over facets is necessary both for
+handling variational forms that contain integrals over the boundary of
+a mesh (the exterior facets), to account for Neumann boundary
+conditions, and forms that contain integrals over the interior facets
+of a mesh as part of a discontinuous Galerkin formulation. For this
+reason, DOLFIN implements three different assembly algorithms. These
+are assembly over cells, exterior facets and interior facets.
+
+%------------------------------------------------------------------------------
+\section{Symmetric application of boundary conditions}
+\index{boundary condition!symmetric application of}
+
+For symmetric problems, it is useful to be able to apply Dirichlet
+boundary conditions in a fashion that preserves the symmetry of the
+matrix, since that allows the use of solution algorithms which are
+limited to symmetric matrices, such as the conjugate gradient method
+and Cholesky decomposition. The symmetric application of boundary
+conditions may be handled by modifying the cell tensors $A_T$ before
+assembling into the global tensor~$A$. Assembly with symmetric
+application of boundary conditions is implemented in DOLFIN in the
+class \emp{SystemAssembler}.
+
+To explain the symmetric assembly algorithm, consider the global
+system $AU=b$ and the corresponding element matrix $A_T$ and element
+vector~$b_T$. If a global index $I$ is associated with a Dirichlet
+boundary condition, $U_I=D_I$, then this condition can be enforced by
+setting $A_{II} = 1$, $A_{IJ} = 0$ for $I \neq J$, and $b_I =
+D_I$. This approach is applied when calling the DOLFIN function
+\emp{DirichetBC::apply}. However, to preserve symmetry of the matrix,
+we can perform a partial Gaussian elimination to obtain $A_{JI} =
+A_{IJ} = 0$ for $I \ne J$. This is achieved by subtracting the $I$th
+row multiplied by $A_{JI}$ from the $J$th equation, locally. These
+partial Gaussian eliminations are performed on the linear systems at
+the element level. The local linear systems are then added to the
+global matrix. As a result, the Dirichlet condition is added multiple
+times to the global vector, one time for each cell, which is
+compensated for by the addition of one multiple times to the
+corresponding diagonal entry of~$A$. This is summarized in
+Algorithm~\ref{alg:assembly:sym}. Alternatively, one may choose to
+eliminate degrees of freedom corresponding to Dirichlet boundary
+conditions from the linear system (since these values are known). The
+values then end up in the right-hand side of the linear system. The
+described algorithm does not eliminate the degrees of freedom
+associated with a Dirichlet boundary condition. Instead, these degrees
+of freedom are retained to preserve the dimension of the linear system
+so that it always matches the total number of degrees of freedom for
+the solution (including known Dirichlet values).
+
+\vfill
+
+\begin{algorithm}
+  \begin{tabbing}
+    $A = 0$ and $b = 0$\\
+    \textbf{for}  {$T \in \mathcal{T}_h$}\\
+    \tab (1) Compute $\iota^A_T$ and $\iota^b_T$  \\
+    \tab (2) Compute $A_T$ and $b_T$ \\
+    \tab (3) Apply Dirichlet boundary conditions to $A_T$ and $b_T$ \\
+    \tab (4) Perform partial Gaussian elimination on $A_T$ and $b_T$ to preserve symmetry \\
+    \tab (5) Add $A_T$ and $b_T$ to $A$ and $b$ according to $\iota^A_T$ and $\iota^b_T$, respectively: \\
+    \tab \textbf{for} $(i,j) \in \mathcal{I}^A_T$ \\
+    \tab \tab $A_{\iota^{A,1}_T(i), \iota^{A,2}_T(j)} \stackrel{+}{=} A_{T,ij}$ \\
+    \tab \textbf{end for} \\
+    \tab \textbf{for} $i \in \mathcal{I}^b_T$  \\
+    \tab \tab $b_{\iota^b_T(i)} \stackrel{+}{=} b^{\top}_i$  \\
+    \tab \textbf{end for} \\
+    \textbf{end for}
+  \end{tabbing}
+  \caption{Symmetric assembly algorithm ($\rho = 2$).}
+  \label{alg:assembly:sym}
+\end{algorithm}
+
+%------------------------------------------------------------------------------
+\section{Parallel assembly}
+\index{assembly!parallel implementation}
+
+The assembly algorithms remain unchanged in a distributed\footnote{By
+  distributed assembly, we refer here to assembly in parallel on a
+  distributed memory parallel architecture, running multiple processes
+  that cannot access the same memory, but must pass data as messages
+  between processes.} parallel environment if the linear algebra
+backend supports distributed matrices and insertion for both on- and
+off-process matrix entries, and if the mesh data structure supports
+distributed meshes. Both PETSc
+\citep{BalayBuschelmanGroppEtAl2001,BalayBuschelmanEijkhoutEtAl2004}
+and Trilinos/Epetra \citep{HerouxBartlettHowleEtAl2005} support
+distributed matrices and vectors. Efficient parallel assembly relies
+on appropriately partitioned meshes and properly distributed
+degree-of-freedom maps to minimize inter-process communication.  It is
+not generally possible to produce an effective degree-of-freedom map
+using only a form compiler, since the degree-of-freedom map should
+reflect the partitioning of the mesh. Instead, one may use a
+degree-of-freedom map generated by a form compiler to construct a
+suitable map at run-time.  \dolfin{} supports distributed meshes and
+computes distributed degree of freedom maps for distributed assembly.
+
+Multi-threaded\footnote{By multi-threaded assembly, we refer here to
+  assembly in parallel on a shared memory parallel architecture,
+  running multiple threads that may access the same memory.} assembly
+  is outwardly simpler than distributed assembly and is attractive
+  given the rapid growth in multi-core architectures. The assembly
+  code can be easily modified, using for example OpenMP, to
+  parallelize the assembly loop over cells. Multi-threaded assembly
+  requires extra care so that multiple threads don't write to the same
+  memory location (when multiple threads attempt to write to the same
+  memory location, this is known as a \emph{race condition}).
+  Multi-threaded assembly has recently been implemented in DOLFIN
+  (from version 1.0) based on coloring the cells of the mesh so that
+  no two neighboring cells (cells that share a common vertex in the
+  case of Lagrange elements) have the same color. One may then iterate
+  over the colors of the mesh, and for each color use OpenMP to
+  parallelize the assembly loop. This ensures that no two cells will
+  read data from the same location (in the mesh), or write data to
+  the same location (in the global tensor).
+
+%------------------------------------------------------------------------------
+\section{Matrix-free methods}
+\index{matrix-free method}
+
+\looseness-1{}A feature of Krylov subspace methods and some other iterative methods
+for linear systems of the form $AU = b$ is that they rely only on the
+\emph{action} of the matrix operator $A$ on vectors and do not require
+direct manipulation of~$A$. This is in contrast with direct linear
+solvers. Therefore, if the action of $A$ on an arbitrary vector $v$
+can be computed, then a Krylov solver can be used to solve the system
+$AU = b$ without needing to assemble~$A$. This matrix-free approach
+may be attractive for problem types that are well-suited to Krylov
+solvers and for which the assembly of $A$ is costly (in terms of CPU
+time and/or memory).  A disadvantage of matrix-free methods is that
+the preconditioners that are most commonly used to improve the
+convergence properties and robustness of Krylov solvers do involve
+manipulations of $A$; hence these cannot be applied in a matrix-free
+approach. For the purpose of assembly, a matrix-free approach replaces
+the assembly of the matrix $A$ with repeated assembly of a vector
+$Av$, which is the action of $A$ on the given vector~$v$. A key
+element in the efficient application of such methods is the rapid
+assembly of vectors. The cost of insertion into a dense vector is
+relatively low, compared to insertion into a sparse matrix. The
+computation of the cell tensor is therefore the dominant
+cost. Assembly of the action of a linear or linearized operator is
+supported in FEniCS.
+
+\endgroup
+
+%%%\begin{figure}
+%%%\includegraphics{0001335339/272415_1_en_6_fig1_print.eps}
+%%%\caption{}
+%%%\end{figure}
+%%%\begin{figure}
+%%%\includegraphics{0001335339/272415_1_en_6_fig2_print.eps}
+%%%\caption{}
+%%%\end{figure}
