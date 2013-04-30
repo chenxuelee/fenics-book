@@ -4,7 +4,7 @@ Automated Solution of Differential Equations by the Finite Element Method -- The
 This is the source for the "FEniCS Book". The book was published by
 Springer in 2012:
 
-    <http://dx.doi.org/10.1007/978-3-642-23099-8>
+  <http://dx.doi.org/10.1007/978-3-642-23099-8>
 
 * To build the book, simply type
 
