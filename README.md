@@ -1,4 +1,7 @@
-This is the source code for the "FEniCS Book".
+This is the source code for the "FEniCS Book". The book was published
+by Springer in 2012:
+
+   http://dx.doi.org/10.1007/978-3-642-23099-8
 
 * To build the book, simply type
 
@@ -23,13 +26,10 @@ This is the source code for the "FEniCS Book".
 
 * The repository for the book is located at
 
-  https://launchpad.net/fenics-book
+  https://bitbucket.org/fenics-project/fenics-book
 
 * Tutorial example files reside in 3 different repositories:
 
   This repository (the book)
   The DOLFIN repository (as unit tests)
   The FEniCS Web repository (as book resources)
-
-  In addition, it also resides in Hans Petter's SVN repository...
-  All changes should be made there and copied to the above locations
